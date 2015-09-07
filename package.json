@@ -1,0 +1,10 @@
+{
+  "name": "CacophonyUploadServer",		
+  "version": "0.0.1",
+  "dependencies": {
+    "bluebird": "^2.9.34",
+    "formidable": "^1.0.17",
+    "knox": "^0.9.2",
+    "pg": "^4.4.1"
+  }
+}
