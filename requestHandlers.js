@@ -1,8 +1,10 @@
 var util = require('./util');
+var dataValidation = require('./dataValidation');
+var orm = require('./orm');
 
 //Home page
 function start(response, request) {
-	
+
 	console.log("Request handler 'start' was called.");
 	var body = "<h3>Cacophony server</h3>";
 
@@ -13,7 +15,7 @@ function start(response, request) {
 
 //test function! run some random code here to test!
 function test(response, request) {
-	var query = "SELECT * from test_table";	
+	var query = "SELECT * from test_table";
 
 	util.connectToDB()
 	.then(queryDB(query, client)
@@ -23,18 +25,16 @@ function test(response, request) {
 //Upload page
 function upload(response, request) {
 	console.log("Request handler 'upload' was called.");
-
 	util.parseRequest(request)				//parses a request and resolves the promise with a dataPoint
-	.then(util.connectToDB)
 	.then(util.registerDeviceIfNotAlready)
-	.then(util.checkDataIDs)
+	.then(dataValidation.dataIDs)
 	.then(util.uploadFile)
 	.then(util.uploadDataPoint)
 	.then(function(dataPoint){
 		console.log("Responding to device.");
 		response.writeHead(200, {"Content-Type": "text/html"});
 		response.write(util.generateSuccessResponse(dataPoint));
-		response.end(); 
+		response.end();
 		console.log("Responded back to device.")
 		console.log();
 	}).catch(function(err) {
