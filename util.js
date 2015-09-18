@@ -59,13 +59,14 @@ return new Promise(function(resolve, reject) {
 	var fileName = dataPoint.getFileName();
 	console.log("Uploading file as:", fileName);
 	client.putFile(tempFilePath, fileName, function(err, res){
-		console.log('upload result:',res);
-		console.log('ERROR: ', err);
 		if (err) {
 			console.log("Error with uploading file.");
 			reject(err);
+		} else if (res.statusCode != 200) {
+			console.log("Error with uploading file.");
+			console.log("Server response code of:", res.statusCode)
+			reject(res.statusCode);
 		} else {
-			console.log("Uploaded file.");
 			resolve(dataPoint);
 		}
 	});
