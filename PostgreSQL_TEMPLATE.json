@@ -1,9 +1,0 @@
-//This is the template for the PostgreSQL.json file.
-//Enter in the apropriate values for each field then save as "PostgreSQL.json"
-{
-	"name": "",			//Name of the Postgres Database. Default: "cacophony_metadata" 
-	"host": "",			//Host of the Database. Default: "localhost"
-	"port": ,			//Post of the Database. Default: 5432
-	"username": "",		//Username to connect to the Database. Default: "server_rw"
-	"password": ""		//Password to connect to the Database. 
-}

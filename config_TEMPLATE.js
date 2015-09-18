@@ -1,0 +1,19 @@
+var config = {};
+
+config.db = {}; //Holds config data fot the database
+config.s3 = {}; //Holds config data for the AWS S3
+
+config.db.name = 'cacophony_metadata';
+config.db.username = 'username';
+config.db.password = 'password';
+config.db.host = '192.168.33.10';
+config.db.port = '5432';
+config.db.dialect = 'postgres';
+config.db.logging = false;  //Logging for the ORM
+
+config.s3.publicKey = publicKey;
+config.s3.privateKey = privateKey;
+config.s3.bucket = 'bucket name';
+config.s3.region = 'us-west-2';
+
+module.exports = config;

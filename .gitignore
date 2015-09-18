@@ -1,8 +1,5 @@
 # Dependency directory
 node_modules
 
-# Private PostgreSQL login and DB details
-PostgreSQL.json
-
-# Private AWS S3 details
-S3.json
+# Config file
+config.js

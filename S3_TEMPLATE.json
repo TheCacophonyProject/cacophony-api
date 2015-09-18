@@ -1,7 +1,0 @@
-//This is the template for the S3.json file.
-//Enter in the apropriate values for each field then save as "S3.json"
-{
-	"publicKey": "",	//AWS public key
-	"privateKey": "",	//AWS private key
-	"bucket": ""		//S3 bucket name
-}

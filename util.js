@@ -1,8 +1,7 @@
 var BUCKET_NAME = 'testBucket';
 
 var DataPoint = require('./DataPoint'),
-	s3 = require('./S3'),
-	database = require('./PostgreSQL'),
+	config = require('./config'),
 	Promise = require('bluebird'),
 	pg = require('pg'),
 	formidable = require('formidable'),
@@ -50,16 +49,18 @@ return new Promise(function(resolve, reject) {
 function uploadFile(dataPoint){
 return new Promise(function(resolve, reject) {
 	var client = knox.createClient({
-		key: s3.publicKey
-	  , secret: s3.privateKey
-	  , bucket: s3.bucket
-	  , region: 'us-west-2'
+		key: config.s3.publicKey
+	  , secret: config.s3.privateKey
+	  , bucket: config.s3.bucket
+	  , region: config.s3.region
 	});
 
 	var tempFilePath = dataPoint.tempFilePath;
 	var fileName = dataPoint.getFileName();
 	console.log("Uploading file as:", fileName);
 	client.putFile(tempFilePath, fileName, function(err, res){
+		console.log('upload result:',res);
+		console.log('ERROR: ', err);
 		if (err) {
 			console.log("Error with uploading file.");
 			reject(err);
