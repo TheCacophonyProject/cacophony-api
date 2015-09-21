@@ -10,7 +10,7 @@ return new Promise(function(resolve, reject) {
 		validateSoftwareId(dataPoint),
 		validateLocationId(dataPoint)])
 	.then(function() {
-		//console.log("All data IDs are checked.");		//TODO check the current IDs
+		console.log("All data IDs are checked.");
 		resolve(dataPoint);
 	})
 	.catch(function(err) {
@@ -25,10 +25,18 @@ return new Promise(function(resolve, reject) {
 function validateHardwareId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.hardware.id){
-		dataPoint.checkedHardwareId = true;
-		resolve(dataPoint);
-		//DataPoint has an ID, check that it is valid
-		//TODO check if the data is the same, if it is then carry on, if not do a new post and get new hardware ID;
+		console.log('Checking equialent hardwares.');
+    checkEquivalentRowsById(dataPoint.hardware, orm.Hardware)
+    .then(function(equiv) {
+      if (equiv){
+        checkedHardwareId = true;
+        console.log('Equivalent hardwares.');
+        resolve();
+      } else {
+        console.log('Error: hardwares are not Equivalent.');
+        reject('Error with equivalent hardwares.');
+      }
+    });
 	} else {
 		//No hardware id, get new one
     orm.uploadHardware(dataPoint.hardware)
@@ -48,13 +56,21 @@ return new Promise(function(resolve, reject) {
 }
 
 //Check Software id:
-//TODO function still in progress.
 function validateSoftwareId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.software.id){
-		//TODO as with hardware check.
-		dataPoint.checkedSoftwareId = true;
-		resolve(dataPoint);
+    console.log('Checking valid equivalent software');
+    checkEquivalentRowsById(dataPoint.software, orm.Software)
+    .then(function(equiv){
+      if (equiv){
+        dataPoint.checkedSoftwareId = true;
+        console.log('Equivalent Softwares');
+        resolve();
+      } else {
+        consoel.log('Error: Softwares were not equialent.');
+        reject('Error with software id.');
+      }
+    });
 	} else {
 		//No software id, get new one
     orm.uploadSoftware(dataPoint.software)
@@ -78,9 +94,18 @@ return new Promise(function(resolve, reject) {
 function validateLocationId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.location.id){
-		dataPoint.checkedLocationId = true;
-		//TODO as with hardware check.
-		resolve();
+    console.log('Checking valid equivalent locations.');
+    checkEquivalentRowsById(dataPoint.location, orm.Location)
+    .then(function(equiv){
+      if (equiv){
+        dataPoint.checkedLocationId = true;
+        console.log('Equivalent locations.');
+        resolve();
+      } else {
+        console.log('Error: Locations were not equivalent.');
+        reject('Error with location id.');
+      }
+    });
 	} else {
 		//No location id, get new one
     orm.uploadLocation(dataPoint.location)
@@ -96,6 +121,34 @@ return new Promise(function(resolve, reject) {
       reject(err);
     });
 	}
+});
+}
+
+function checkEquivalentRowsById(value, table){
+return new Promise(function(resolve, reject){
+  table.findAll({ where: { id: value.id }})
+  .then(function(result){
+    var equiv = true;
+    var result = result[0].dataValues;
+    for (var key in result) {
+      if (key == 'microphoneId') {     //Enter in keys that have default values here to deal with them.  //TODO find a cleaner way t deal with this
+        console.log('Checking default values');
+        if (!(result['microphoneId'] == 0 && !value['microphoneId'] || result['microphoneId'] && value['microphoneId'])) {
+          equiv = false;
+        }
+      } else if (key != 'createdAt' && key != 'updatedAt'){
+        if (value[key] && result[key] == value[key]){
+
+        } else if (!value[key] && result[key] == null){
+
+        } else {
+          console.log(key + 'is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
+          equiv = false;
+        }
+      }
+    }
+    resolve(equiv);
+  });
 });
 }
 

@@ -121,3 +121,6 @@ exports.uploadSoftware = uploadSoftware;
 exports.uploadHardware = uploadHardware;
 exports.uploadLocation = uploadLocation;
 exports.sync = sync;
+exports.Location = Location;
+exports.Software = Software;
+exports.Hardware = Hardware;
