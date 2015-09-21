@@ -1,22 +1,21 @@
-var BUCKET_NAME = 'testBucket';
-
 var DataPoint = require('./DataPoint'),
 	config = require('./config'),
 	Promise = require('bluebird'),
 	pg = require('pg'),
 	formidable = require('formidable'),
-	knox = require('knox');
+	knox = require('knox'),
+	log = require('./logging');
 
 //Parse Form: Takes a request and parses it into a DataPoint
 function parseRequest(request){
 return new Promise(function(resolve, reject) {
 	var form = new formidable.IncomingForm();
-	console.log("About to parse incoming form.");
+	log.debug("About to parse incoming form.");
 
 	form.parse(request, function(err, fields, files) {
-		console.log("Parsing form done. ");
+		log.debug("Finsihed parsing form.");
 		if (err) {
-			console.log("Error when parsing form.");
+			log.error("Error when parsing form.");
 			reject(err);
 		} else {
 			var dataPoint = new DataPoint(eval('('+fields.DATA_POINT+')'), files.RECORDING);
@@ -31,11 +30,11 @@ return new Promise(function(resolve, reject) {
 function registerDeviceIfNotAlready(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.deviceId){
-		console.log('DataPoint had an id.')
+		log.verbose('DataPoint had an id.');
 		resolve(dataPoint);
 	} else {
 		//TODO register device
-		console.log("Device is not registered, for now a device id of 1 will be given to it.");
+		log.info("Device is not registered, for now a device id of 1 will be given to it.");
 		dataPoint.deviceId = 1;
 		resolve(dataPoint);
 	}
@@ -57,15 +56,14 @@ return new Promise(function(resolve, reject) {
 
 	var tempFilePath = dataPoint.tempFilePath;
 	var fileName = dataPoint.getFileName();
-	console.log("Uploading file as:", fileName);
+	log.debug("Uploading file as:", fileName);
 	client.putFile(tempFilePath, fileName, function(err, res){
 		if (err) {
-			console.log("Error with uploading file.");
+			log.error("Error with uploading file.");
 			reject(err);
 		} else if (res.statusCode != 200) {
-			console.log("Error with uploading file.");
-			console.log("Server response code of:", res.statusCode)
-			reject(res.statusCode);
+			log.error("Error with uploading file. Response code of:", res.statusCode);
+			reject('Bad response code from S3 server:', res.statusCode);
 		} else {
 			resolve(dataPoint);
 		}

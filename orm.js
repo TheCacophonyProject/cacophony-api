@@ -1,5 +1,5 @@
-var Sequelize = require('sequelize');
-var config = require('./config');
+var Sequelize = require('sequelize'),
+  config = require('./config');
 
 var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
   host: config.db.host,

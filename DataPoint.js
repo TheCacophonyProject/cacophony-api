@@ -8,6 +8,7 @@
 //	marinData:	{key1:val1, key2:val2...}}
 //
 //file: The file of the data point (the recording)
+var log = require('./logging');
 
 module.exports = function(json, file) {
 
@@ -45,7 +46,7 @@ if (json.deviceId) {
 }
 
 //TODO check if DataPoint is valid or not at this point.
-console.log("New DataPoint created.");
+log.debug("New DataPoint created.");
 
 //TODO This will return true if the datapoint is ready to upload the file (recording)
 this.readyForFileUpload = function(){
@@ -59,10 +60,10 @@ this.readyForUpload = function(){
 	if (this.deviceId && this.checkedHardwareId && this.checkedSoftwareId && this.checkedLocationId){
 		return true;
 	} else {
-		if (!this.deviceId)		{ console.log("Invalid device id", this.deviceId) }
-		if (!this.checkedHardwareId) { console.log("Hardware ID has not been validated") }
-		if (!this.checkedSoftwareId) { console.log("Software ID has not been validated") }
-		if (!this.checkedLocationId) { console.log("Location ID has not been validated.") }
+		if (!this.deviceId)		{ log.error("Device id not found. DataPoint not ready for upload.") }
+		if (!this.checkedHardwareId) { log.error("Hardware ID has not been validated. DataPoint not ready for upload.") }
+		if (!this.checkedSoftwareId) { log.error("Software ID has not been validated. DataPoint not ready for upload.") }
+		if (!this.checkedLocationId) { log.error("Location ID has not been validated. DataPoint not ready for upload.") }
 		return false;
 	}
 }
@@ -73,7 +74,7 @@ this.getFileName = function(){
 	if (this.deviceId && this.mainData.startTimeUtc && fileExtension){
 		fileName = this.deviceId + "/" + this.mainData.startTimeUtc + "." + fileExtension;
 	} else {
-		console.log("Error, invalid DEVICE_ID and/or START_TIME_UTC and/or FILE_EXTENSION.");
+		log.error("Cannot generate file name. Invalid DEVICE_ID and/or START_TIME_UTC and/or FILE_EXTENSION.");
 	}
 	return fileName;
 }
@@ -83,11 +84,11 @@ this.isValid = function(){
 		//TODO add more validation checks
 		return true;
 	} else {
-		if (!this.hardware) { console.log("Hardware is invalid", this.hardware); }
-		if (!this.software) { console.log("Software is invalid", this.software); }
-		if (!this.location) { console.log("Location is invalid", this.location); }
-		if (!this.mainData) { console.log("MainData is invalid", this.mainData); }
-		if (!file) {console.log("File is invalid", file); }
+		if (!this.hardware) { log.error("Hardware is invalid", this.hardware); }
+		if (!this.software) { log.error("Software is invalid", this.software); }
+		if (!this.location) { log.error("Location is invalid", this.location); }
+		if (!this.mainData) { log.error("MainData is invalid", this.mainData); }
+		if (!file) { log.error("File is invalid", file); }
 		return false;
 	}
 }

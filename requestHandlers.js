@@ -1,11 +1,12 @@
-var util = require('./util');
-var dataValidation = require('./dataValidation');
-var orm = require('./orm');
+var util = require('./util'),
+	dataValidation = require('./dataValidation'),
+	orm = require('./orm'),
+	log = require('./logging');
 
 //Home page
 function start(response, request) {
 
-	console.log("Request handler 'start' was called.");
+	log.debug("Request handler 'start' was called.");
 	var body = "<h3>Cacophony server</h3>";
 
 	response.writeHead(200, {"Content-Type": "text/html"});
@@ -13,37 +14,30 @@ function start(response, request) {
 	response.end();
 }
 
-//test function! run some random code here to test!
-function test(response, request) {
-	var query = "SELECT * from test_table";
-
-	util.connectToDB()
-	.then(queryDB(query, client)
-	.then(console.log(result)));
-}
-
 //Upload page
 function upload(response, request) {
-	console.log("Request handler 'upload' was called.");
+	log.debug("Request handler 'upload' was called.");
+	log.info('Upload request started.')
 	util.parseRequest(request)				//parses a request and resolves the promise with a dataPoint
 	.then(util.registerDeviceIfNotAlready)
 	.then(dataValidation.dataIDs)
 	.then(util.uploadFile)
 	.then(util.uploadDataPoint)
 	.then(function(dataPoint){
-		console.log("Responding to device.");
+		log.debug("Responding to device.");
 		response.writeHead(200, {"Content-Type": "text/html"});
-		response.write(util.generateSuccessResponse(dataPoint));
+		var responseBody = util.generateSuccessResponse(dataPoint)
+		response.write(responseBody);
 		response.end();
-		console.log("Responded back to device.")
-		console.log();
+		log.debug("Responded back to device.");
+		log.verbose('Responded to device with:', responseBody);
 	}).catch(function(err) {
-		console.log("Error: ", err);
+		log.error("Error: ", err);
 	});
+	log.info('Upload request finished.');
 }
 
 
 
 exports.start = start;
 exports.upload = upload;
-exports.test = test;

@@ -1,4 +1,5 @@
-var orm = require('./orm');
+var orm = require('./orm'),
+  log = require('./logging');
 //Check Data IDs:
 //Checks that the hardware, software and location IDs are valid.
 //Returns a Promise that resolves when all IDs are checked.
@@ -10,11 +11,11 @@ return new Promise(function(resolve, reject) {
 		validateSoftwareId(dataPoint),
 		validateLocationId(dataPoint)])
 	.then(function() {
-		console.log("All data IDs are checked.");
+		log.debug("All data IDs are checked.");
 		resolve(dataPoint);
 	})
 	.catch(function(err) {
-		console.log("Error when checking data IDs.");
+		log.error("Error when checking data IDs.");
 		reject(err);
 	});
 });
@@ -25,16 +26,16 @@ return new Promise(function(resolve, reject) {
 function validateHardwareId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.hardware.id){
-		console.log('Checking equialent hardwares.');
+		log.verbose('Checking equialent hardwares.');
     checkEquivalentRowsById(dataPoint.hardware, orm.Hardware)
     .then(function(equiv) {
       if (equiv){
         checkedHardwareId = true;
-        console.log('Equivalent hardwares.');
+        log.verbose('Equivalent hardwares.');
         resolve();
       } else {
-        console.log('Error: hardwares are not Equivalent.');
-        reject('Error with equivalent hardwares.');
+        log.error('Hardwares from the Database and DataPoint with the same id were not equivalent.');
+        reject('Error when checking equivalent hardwares.');
       }
     });
 	} else {
@@ -45,10 +46,10 @@ return new Promise(function(resolve, reject) {
       dataPoint.newHardwareId = true;
       dataPoint.checkedHardwareId = true;
       resolve();
-      console.log('Successfully got new hardware id.');
+      log.debug('Successfully got new hardware id.');
     })
     .catch(function(err){
-      console.log("Error when getting new hardware id.");
+      log.error("Error when getting new hardware id.");
       reject(err);
     });
 	}
@@ -59,15 +60,15 @@ return new Promise(function(resolve, reject) {
 function validateSoftwareId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.software.id){
-    console.log('Checking valid equivalent software');
+    log.verbose('Checking valid equivalent software');
     checkEquivalentRowsById(dataPoint.software, orm.Software)
     .then(function(equiv){
       if (equiv){
         dataPoint.checkedSoftwareId = true;
-        console.log('Equivalent Softwares');
+        log.verbose('Equivalent Softwares');
         resolve();
       } else {
-        consoel.log('Error: Softwares were not equialent.');
+        log.error('Softwares from the Database and DataPoint with the same id were not equivalent.');
         reject('Error with software id.');
       }
     });
@@ -79,10 +80,10 @@ return new Promise(function(resolve, reject) {
       dataPoint.newSoftwareId = true;
       dataPoint.checkedSoftwareId = true;
       resolve();
-      console.log('Successfully got new software id.');
+      log.debug('Successfully got new software id.');
     })
     .catch(function(err){
-      console.log("Error when getting new software id.");
+      log.error("Error when getting new software id.");
       reject(err);
     });
 	}
@@ -94,15 +95,15 @@ return new Promise(function(resolve, reject) {
 function validateLocationId(dataPoint){
 return new Promise(function(resolve, reject) {
 	if (dataPoint.location.id){
-    console.log('Checking valid equivalent locations.');
+    log.verbose('Checking valid equivalent locations.');
     checkEquivalentRowsById(dataPoint.location, orm.Location)
     .then(function(equiv){
       if (equiv){
         dataPoint.checkedLocationId = true;
-        console.log('Equivalent locations.');
+        log.verbose('Equivalent locations.');
         resolve();
       } else {
-        console.log('Error: Locations were not equivalent.');
+        log.error('Locations from the Database and DataPoint with the same id were not equivalent.');
         reject('Error with location id.');
       }
     });
@@ -114,10 +115,10 @@ return new Promise(function(resolve, reject) {
       dataPoint.newLocationId = true;
       dataPoint.checkedLocationId = true;
       resolve();
-      console.log('Successfully got new location id.');
+      log.debug('Successfully got new location id.');
     })
     .catch(function(err){
-      console.log("Error when getting new location id.");
+      log.error("Error when getting new location id.");
       reject(err);
     });
 	}
@@ -132,7 +133,6 @@ return new Promise(function(resolve, reject){
     var result = result[0].dataValues;
     for (var key in result) {
       if (key == 'microphoneId') {     //Enter in keys that have default values here to deal with them.  //TODO find a cleaner way t deal with this
-        console.log('Checking default values');
         if (!(result['microphoneId'] == 0 && !value['microphoneId'] || result['microphoneId'] && value['microphoneId'])) {
           equiv = false;
         }
@@ -142,7 +142,7 @@ return new Promise(function(resolve, reject){
         } else if (!value[key] && result[key] == null){
 
         } else {
-          console.log(key + 'is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
+          log.error(key + 'is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
           equiv = false;
         }
       }

@@ -1,22 +1,23 @@
-var http = require("http");
-var url = require("url");
-var orm = require('./orm');
-var config = require('./config');
+var http = require("http"),
+	url = require("url"),
+	orm = require('./orm'),
+	config = require('./config'),
+	log = require('./logging');
 
 function start(route, handle){
 
 	function onRequest(request, response) {
 		var pathname = url.parse(request.url).pathname;
-		console.log("Request for " + pathname + " received.");
+		log.debug("Request for " + pathname + " received.");
 		route(handle, pathname, response, request);
 	}
 
-	console.log('Syncing to database.');
+	log.info('Syncing to database.');
 	orm.sync()
 	.then(function() {
-		console.log('Sync finished.')
+		log.info('Sync to Database finished.')
 		http.createServer(onRequest).listen(config.server.port);
-		console.log("Server has started");
+		log.info("Server has started");
 	});
 }
 
