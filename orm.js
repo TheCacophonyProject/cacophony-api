@@ -1,5 +1,6 @@
 var Sequelize = require('sequelize'),
-  config = require('./config');
+  config = require('./config'),
+  log = require('./logging');
 
 var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
   host: config.db.host,
@@ -115,6 +116,19 @@ function sync(){
   return sequelize.sync();
 }
 
+function uploadNewRow(data, table) {
+  log.verbose('Starting new row upload');
+  if (table == Location) {
+    return uploadLocation(data);
+  } else if (table == Software) {
+    return uploadSoftware(data);
+  } else if (table == Hardware) {
+    return uploadHardware(data);
+  } else {
+    log.error('Unknown table to upload here.');
+  }
+};
+
 
 exports.uploadDataPoint = uploadDataPoint;
 exports.uploadSoftware = uploadSoftware;
@@ -124,3 +138,4 @@ exports.sync = sync;
 exports.Location = Location;
 exports.Software = Software;
 exports.Hardware = Hardware;
+exports.uploadNewRow = uploadNewRow;

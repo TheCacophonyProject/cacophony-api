@@ -7,9 +7,9 @@ var orm = require('./orm'),
 function dataIDs(dataPoint){
 return new Promise(function(resolve, reject) {
 	Promise.all([
-		validateHardwareId(dataPoint),
-		validateSoftwareId(dataPoint),
-		validateLocationId(dataPoint)])
+		validateId(dataPoint, dataPoint.hardware, orm.Hardware),
+		validateId(dataPoint, dataPoint.software, orm.Software),
+		validateId(dataPoint, dataPoint.location, orm.Location)])
 	.then(function() {
 		log.debug("All data IDs are checked.");
 		resolve(dataPoint);
@@ -21,109 +21,91 @@ return new Promise(function(resolve, reject) {
 });
 }
 
-//Check Hardware id:
-//TODO function still in progress.
-function validateHardwareId(dataPoint){
-return new Promise(function(resolve, reject) {
-	if (dataPoint.hardware.id){
-		log.verbose('Checking equialent hardwares.');
-    checkEquivalentRowsById(dataPoint.hardware, orm.Hardware)
-    .then(function(equiv) {
-      if (equiv){
-        checkedHardwareId = true;
-        log.verbose('Equivalent hardwares.');
-        resolve();
-      } else {
-        log.error('Hardwares from the Database and DataPoint with the same id were not equivalent.');
-        reject('Error when checking equivalent hardwares.');
-      }
-    });
-	} else {
-		//No hardware id, get new one
-    orm.uploadHardware(dataPoint.hardware)
-    .then(function(result) {
-      dataPoint.hardware.id = result.dataValues.id;
-      dataPoint.newHardwareId = true;
-      dataPoint.checkedHardwareId = true;
-      resolve();
-      log.debug('Successfully got new hardware id.');
-    })
-    .catch(function(err){
-      log.error("Error when getting new hardware id.");
-      reject(err);
-    });
-	}
-});
-}
-
-//Check Software id:
-function validateSoftwareId(dataPoint){
-return new Promise(function(resolve, reject) {
-	if (dataPoint.software.id){
-    log.verbose('Checking valid equivalent software');
-    checkEquivalentRowsById(dataPoint.software, orm.Software)
-    .then(function(equiv){
-      if (equiv){
-        dataPoint.checkedSoftwareId = true;
-        log.verbose('Equivalent Softwares');
-        resolve();
-      } else {
-        log.error('Softwares from the Database and DataPoint with the same id were not equivalent.');
-        reject('Error with software id.');
-      }
-    });
-	} else {
-		//No software id, get new one
-    orm.uploadSoftware(dataPoint.software)
-    .then(function(result) {
-      dataPoint.software.id = result.dataValues.id;
-      dataPoint.newSoftwareId = true;
-      dataPoint.checkedSoftwareId = true;
-      resolve();
-      log.debug('Successfully got new software id.');
-    })
-    .catch(function(err){
-      log.error("Error when getting new software id.");
-      reject(err);
-    });
-	}
-});
-}
-
 //Check Location id:
 //TODO function still in progress.
-function validateLocationId(dataPoint){
+function validateId(dataPoint, data, table){
 return new Promise(function(resolve, reject) {
-	if (dataPoint.location.id){
+	if (data.id){
     log.verbose('Checking valid equivalent locations.');
-    checkEquivalentRowsById(dataPoint.location, orm.Location)
+    checkEquivalentRowsById(data, table)
     .then(function(equiv){
       if (equiv){
-        dataPoint.checkedLocationId = true;
-        log.verbose('Equivalent locations.');
+        dataPoint.checkedId[table.name] = true;
+        log.verbose('Equivalent', table.name);
         resolve();
       } else {
-        log.error('Locations from the Database and DataPoint with the same id were not equivalent.');
-        reject('Error with location id.');
+
+        getRowId(data, table)
+        .then(function(){
+          log.debug('New '+table.name+' id.');
+          dataPoint.newId[table.name] = true;
+          dataPoint.checkedId[table.name] = true;
+          resolve();
+        })
+        .catch(function(error){
+          log.error('Error when getting new '+table.name+' id.');
+          reject(error);
+        });
       }
     });
 	} else {
-		//No location id, get new one
-    orm.uploadLocation(dataPoint.location)
-    .then(function(result) {
-      dataPoint.location.id = result.dataValues.id;
-      dataPoint.newLocationId = true;
-      dataPoint.checkedLocationId = true;
+    getRowId(data, table)
+    .then(function() {
+      log.debug('New location id.');
+      dataPoint.newId[table.name] = true;
+      dataPoint.checkedId[table.name] = true;
       resolve();
-      log.debug('Successfully got new location id.');
     })
-    .catch(function(err){
-      log.error("Error when getting new location id.");
+    .catch(function(err) {
+      log.error('Error when getting '+table.name+'  id.');
       reject(err);
     });
 	}
 });
 }
+
+function getRowId(data, table){
+return new Promise(function(resolve, reject) {
+  findEquivalentRow(data, table)
+  .then(function(result) {
+    if (result == 0) {
+      orm.uploadNewRow(data, table)
+      .then(function(result) {
+        data.id = result.dataValues.id;
+        resolve();
+      })
+    } else {
+      data.id = result;
+      log.verbose('Equivalent row in '+table.name+' found. Using same id of', result);
+      resolve();
+    }
+  })
+});
+};
+
+function findEquivalentRow(data, table){
+return new Promise(function(resolve, reject) {
+  var values = data;
+  if (values.id) { delete values.id; }
+
+  table.findAll({ where: values })
+  .then(function(result) {
+    if (result.length == 0) resolve(0);
+    else if (result.length == 1) resolve(result[0].dataValues.id);
+    else if (result.length >= 2) {
+      log.warn('Two or more rows were found to be equivalent in the table:', table.name);
+      resolve(result[0].dataValues.id);
+    } else {
+      log.error('Invalid reult length.');
+      reject('Invalid result length, result:', result);
+    }
+  })
+  .catch(function(err) {
+    log.error('Error when getting new table id.');
+    reject(err);
+  });
+});
+};
 
 function checkEquivalentRowsById(value, table){
 return new Promise(function(resolve, reject){
@@ -142,11 +124,12 @@ return new Promise(function(resolve, reject){
         } else if (!value[key] && result[key] == null){
 
         } else {
-          log.error(key + 'is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
+          log.error(key + ' in table '+table.name+' is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
           equiv = false;
         }
       }
     }
+    if (!equiv){ log.error(table.name+' from the Database and DataPoint with the same id were not equivalent.'); }
     resolve(equiv);
   });
 });

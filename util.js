@@ -78,13 +78,13 @@ return new Promise(function(resolve, reject) {
 //TODO there is probably a better way to send a JSON back to the device.
 function generateSuccessResponse(dataPoint) {
 	var jsonResponse = {response: 'success'};
-	if(dataPoint.newHardwareId){
+	if(dataPoint.newId['hardware']){
 		jsonResponse.newHardwareId = dataPoint.hardware.id;
 	}
-	if(dataPoint.newSoftwareId){
+	if(dataPoint.newId['software']){
 		jsonResponse.newSoftwareId = dataPoint.software.id;
 	}
-	if(dataPoint.newLocationId){
+	if(dataPoint.newId['location']){
 		jsonResponse.newLocationId = dataPoint.location.id;
 	}
 	return JSON.stringify(jsonResponse);

@@ -8,7 +8,8 @@
 //	marinData:	{key1:val1, key2:val2...}}
 //
 //file: The file of the data point (the recording)
-var log = require('./logging');
+var log = require('./logging'),
+	orm = require('./orm');
 
 module.exports = function(json, file) {
 
@@ -26,6 +27,17 @@ this.newSoftwareId = false;
 this.newLocationId = false;
 
 this.uploaded = false;
+
+this.checkedId = {
+//	orm.Location.name = false,
+//	orm.Software.name = false,
+//	orm.Hardware.name = false
+};
+this.newId = {
+//	orm.Location.name = false,
+//	orm.Software.name = false,
+//	orm.Hardware.name = false
+};
 
 //Parsing JSON
 this.json = json;
