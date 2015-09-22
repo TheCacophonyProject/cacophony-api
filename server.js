@@ -17,7 +17,7 @@ function start(route, handle){
 	.then(function() {
 		log.info('Sync to Database finished.')
 		http.createServer(onRequest).listen(config.server.port);
-		log.info("Server has started");
+		log.info("Server has started on port", config.server.port);
 	});
 }
 
