@@ -12,7 +12,7 @@ var log = require('./logging'),
 	orm = require('./orm');
 
 module.exports = function(json, file) {
-
+console.log(JSON.stringify(json));
 this.dataBase;			//connection to the PostgreSQL DB.
 this.postgreSQL;		//The PostgreSQL data base connection that the data point will be uploaded to.
 this.fileName = file.name;		//The file to be uploaded.
@@ -48,7 +48,7 @@ this.mainData = json.mainData;	//JSON object containing the main data of the dat
 if (json.mainData.fileExtension) {
 	this.fileExtension = json.mainData.fileExtension;
 } else {
-	fileExtension = this.fileName.substr(this.fileName.lastIndexOf('.')+1);
+	this.fileExtension = this.fileName.substr(this.fileName.lastIndexOf('.')+1);
 }
 
 
@@ -83,8 +83,8 @@ this.readyForUpload = function(){
 //Get File Name: This function return the name/key that will be used when storing a file in the AWS S3.
 this.getFileName = function(){
 	var fileName = null;
-	if (this.deviceId && this.mainData.startTimeUtc && fileExtension){
-		fileName = this.deviceId + "/" + this.mainData.startTimeUtc + "." + fileExtension;
+	if (this.deviceId && this.mainData.startTimeUtc && this.fileExtension){
+		fileName = this.deviceId + "/" + this.mainData.startTimeUtc + "." + this.fileExtension;
 	} else {
 		log.error("Cannot generate file name. Invalid DEVICE_ID and/or START_TIME_UTC and/or FILE_EXTENSION.");
 	}

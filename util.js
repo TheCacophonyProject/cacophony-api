@@ -18,7 +18,7 @@ return new Promise(function(resolve, reject) {
 			log.error("Error when parsing form.");
 			reject(err);
 		} else {
-			var dataPoint = new DataPoint(eval('('+fields.DATA_POINT+')'), files.RECORDING);
+			var dataPoint = new DataPoint(eval('('+fields.JSON+')'), files.recording);
 			resolve(dataPoint);
 		}
 	});
@@ -88,6 +88,20 @@ function generateSuccessResponse(dataPoint) {
 		jsonResponse.newLocationId = dataPoint.location.id;
 	}
 	return JSON.stringify(jsonResponse);
+}
+
+function uploadDataPoint(dataPoint) {
+return new Promise(function(resolve, reject) {
+	orm.uploadDataPoint(dataPoint)
+	.then(function(result) {
+		log.info("Uploaded dataPoint.");
+		reolve(dataPoint);
+	})
+	.error(function(er) {
+		log.error('Error with uploading dataPoint.');
+		reject(err);
+	});
+});
 }
 
 exports.registerDeviceIfNotAlready = registerDeviceIfNotAlready;

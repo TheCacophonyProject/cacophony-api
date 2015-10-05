@@ -104,6 +104,7 @@ function uploadDataPoint(dataPoint) {
     locationId: dataPoint.location.id,
     file: dataPoint.file,
     fileExtension: dataPoint.fileExtension,
+    fileName: dataPoint.fileName,
     startTimeUtc: dataPoint.mainData.startTimeUtc,
     duration: dataPoint.mainData.duration,
     ruleName: dataPoint.mainData.ruleName,

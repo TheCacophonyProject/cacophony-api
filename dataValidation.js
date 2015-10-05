@@ -101,7 +101,8 @@ return new Promise(function(resolve, reject) {
     }
   })
   .catch(function(err) {
-    log.error('Error when getting new table id.');
+    log.error('Error when getting new '+table.name+' id.');
+    log.error(err);
     reject(err);
   });
 });
