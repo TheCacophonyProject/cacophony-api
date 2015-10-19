@@ -5,18 +5,40 @@
 //	{hardware: 	{key1:val1, key2:val2...},
 //	software: 	{key1:val1, key2:val2...},
 //	location:	{key1:val1, key2:val2...},
-//	marinData:	{key1:val1, key2:val2...}}
+//	mainData:	{key1:val1, key2:val2...}}
 //
 //file: The file of the data point (the recording)
 var log = require('./logging'),
-	orm = require('./orm');
+	orm = require('./orm'),
+	assert = require('assert');
 
 module.exports = function(json, file) {
-console.log(JSON.stringify(json));
-this.dataBase;			//connection to the PostgreSQL DB.
-this.postgreSQL;		//The PostgreSQL data base connection that the data point will be uploaded to.
-this.fileName = file.name;		//The file to be uploaded.
-this.tempFilePath = file.path;
+//Checkiing json and file is valid
+assert.equal(typeof json, 'object', 'json was invalid.');
+assert.equal(typeof file, 'object', 'file invalid.');
+assert.equal(typeof file.path, 'string', 'file path was not a string');
+assert.equal(typeof json.mainData, 'object', 'Invalid mainData field.');
+assert.equal(typeof json.mainData.fileName, 'string', 'fileName in mainData was not a String.');
+assert.equal(typeof json.mainData.deviceId, 'number', 'deviceId in mainData was not a number.');
+assert.equal(typeof json.location, 'object', 'Invalid location field.');
+assert.equal(typeof json.hardware, 'object', 'Invalid hardware field.');
+assert.equal(typeof json.software, 'object', 'Invalid software field.');
+
+this.filePath = file.path;
+this.fileName = json.mainData.fileName;
+this.deviceId = json.mainData.deviceId;
+this.hardware = json.hardware;
+this.software = json.software;
+this.location = json.location;
+this.mainData = json.mainData;
+this.fileType;
+if (typeof json.mainData.fileType == 'string') {
+	this.fileType = json.mainData.fileType;
+} else if (this.fileName.lastIndexOf('.') != -1) {
+	this.fileType = this.fileName.substr(this.fileName.lastIndexOf('.')+1);
+} else {
+	assert(false, 'Can\'t find file type.');
+}
 
 this.checkedHardwareId = false;
 this.checkedSoftwareId = false;
@@ -27,37 +49,6 @@ this.newSoftwareId = false;
 this.newLocationId = false;
 
 this.uploaded = false;
-
-this.checkedId = {
-//	orm.Location.name = false,
-//	orm.Software.name = false,
-//	orm.Hardware.name = false
-};
-this.newId = {
-//	orm.Location.name = false,
-//	orm.Software.name = false,
-//	orm.Hardware.name = false
-};
-
-//Parsing JSON
-this.json = json;
-this.hardware = json.hardware;	//JSON object that holds the device dardware info.
-this.software = json.software;	//JSON object that holds the device software info.
-this.location = json.location;	//JSON object that holds the location info.
-this.mainData = json.mainData;	//JSON object containing the main data of the data point object.
-if (json.mainData.fileExtension) {
-	this.fileExtension = json.mainData.fileExtension;
-} else {
-	this.fileExtension = this.fileName.substr(this.fileName.lastIndexOf('.')+1);
-}
-
-
-this.deviceId;
-if (json.deviceId) {
-	this.deviceId = json.deviceId;	//ID of the device that was given to the device when it registered.
-}
-
-//TODO check if DataPoint is valid or not at this point.
 log.debug("New DataPoint created.");
 
 //TODO This will return true if the datapoint is ready to upload the file (recording)

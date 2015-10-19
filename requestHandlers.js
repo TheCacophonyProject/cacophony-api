@@ -17,8 +17,9 @@ function start(response, request) {
 //Upload page
 function upload(response, request) {
 	log.debug("Request handler 'upload' was called.");
-	log.info('Upload request started.')
-	util.parseRequest(request)				//parses a request and resolves the promise with a dataPoint
+	log.info('Upload request started.');
+
+	dataValidation.validUploadRequest(request)
 	.then(util.registerDeviceIfNotAlready)
 	.then(dataValidation.dataIDs)
 	.then(util.uploadFile)
@@ -32,9 +33,15 @@ function upload(response, request) {
 		log.debug("Responded back to device.");
 		log.verbose('Responded to device with:', responseBody);
 	}).catch(function(err) {
-		log.error("Error: ", err);
+		log.error(err);
+		response.writeHead(400, {"Content-Type": "text/html"});
+		response.write(err);
+		response.end();
 	});
-	log.info('Upload request finished.');
+	//.fail(function(err) {
+	//	console.log('fail', err);
+
+	//});
 }
 
 

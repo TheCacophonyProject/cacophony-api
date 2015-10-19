@@ -6,24 +6,6 @@ var DataPoint = require('./DataPoint'),
 	knox = require('knox'),
 	log = require('./logging');
 
-//Parse Form: Takes a request and parses it into a DataPoint
-function parseRequest(request){
-return new Promise(function(resolve, reject) {
-	var form = new formidable.IncomingForm();
-	log.debug("About to parse incoming form.");
-
-	form.parse(request, function(err, fields, files) {
-		log.debug("Finsihed parsing form.");
-		if (err) {
-			log.error("Error when parsing form.");
-			reject(err);
-		} else {
-			var dataPoint = new DataPoint(eval('('+fields.JSON+')'), files.recording);
-			resolve(dataPoint);
-		}
-	});
-});
-}
 
 //Register device if not already:
 //TODO function still in progress.
@@ -105,6 +87,5 @@ return new Promise(function(resolve, reject) {
 }
 
 exports.registerDeviceIfNotAlready = registerDeviceIfNotAlready;
-exports.parseRequest	= parseRequest;
 exports.uploadFile = uploadFile;
 exports.generateSuccessResponse = generateSuccessResponse;

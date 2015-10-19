@@ -1,5 +1,8 @@
 var orm = require('./orm'),
-  log = require('./logging');
+  log = require('./logging'),
+  formidable = require('formidable'),
+  DataPoint = require('./DataPoint'),
+  assert = require('assert');
 //Check Data IDs:
 //Checks that the hardware, software and location IDs are valid.
 //Returns a Promise that resolves when all IDs are checked.
@@ -20,6 +23,35 @@ return new Promise(function(resolve, reject) {
 	});
 });
 }
+
+function validUploadRequest(request){
+return new Promise(function(resolve, reject) {
+  var form = new formidable.IncomingForm();
+  form.parse(request, function(err, fields, files) {
+		log.debug("Finsihed parsing form.");
+		if (err) {
+			log.error("Error when parsing form.");
+			reject(err);
+		} else {
+      var json;
+      var dataPoint;
+      try {
+        assert.notEqual(fields, null, 'Fields is null');
+        assert.notEqual(files, null, 'Files is null');
+        assert.notEqual(fields.json, null, 'Fields had no field named "json"');
+        assert.notEqual(files.recording, null, 'Files had no field named "recording"');
+        json = eval('('+fields.json+')');
+        dataPoint = new DataPoint(json, files.recording);
+      } catch (e) {
+        log.error('Error: problem with processing request.');
+        reject(e.message);
+      }
+			resolve(dataPoint);
+    }
+  });
+});
+}
+
 
 //Check Location id:
 //TODO function still in progress.
@@ -137,3 +169,4 @@ return new Promise(function(resolve, reject){
 }
 
 exports.dataIDs = dataIDs;
+exports.validUploadRequest = validUploadRequest;
