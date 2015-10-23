@@ -46,7 +46,32 @@ return new Promise(function(resolve, reject) {
         log.error('Error: problem with processing request.');
         reject(e.message);
       }
-			resolve(dataPoint);
+      var models = [];
+      models.push(dataPoint.parentModel.validate());
+      for (var model in dataPoint.childModels) {
+        models.push(dataPoint.childModels[model].validate());
+      }
+      Promise.all(models)
+      .then(function(values) {
+        var error = false;
+        var errors = [];
+        for (var i = 0; i < values.length; i++) {
+          if (values[i] != undefined){
+            error = true;
+            errors.push(error);
+          }
+        }
+        if (error) {
+          log.debug('Error with validating data.');
+          log.debug(errors);
+          reject('Error with validating data');
+        } else {
+          resolve(dataPoint);
+        }
+      })
+      .catch(function(err) {
+        reject(err);
+      });
     }
   });
 });
