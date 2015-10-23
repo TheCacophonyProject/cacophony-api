@@ -33,9 +33,9 @@ function upload(response, request) {
 		log.debug("Responded back to device.");
 		log.verbose('Responded to device with:', responseBody);
 	}).catch(function(err) {
-		log.error(err);
+		log.error('Error with upload:', err);
 		response.writeHead(400, {"Content-Type": "text/html"});
-		response.write(err);
+		response.write('Error with processing request.');
 		response.end();
 	});
 	//.fail(function(err) {

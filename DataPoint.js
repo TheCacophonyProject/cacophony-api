@@ -16,29 +16,41 @@ module.exports = function(json, file) {
 //Checkiing json and file is valid
 assert.equal(typeof json, 'object', 'json was invalid.');
 assert.equal(typeof file, 'object', 'file invalid.');
-assert.equal(typeof file.path, 'string', 'file path was not a string');
-assert.equal(typeof json.mainData, 'object', 'Invalid mainData field.');
-assert.equal(typeof json.mainData.fileName, 'string', 'fileName in mainData was not a String.');
-assert.equal(typeof json.mainData.deviceId, 'number', 'deviceId in mainData was not a number.');
-assert.equal(typeof json.location, 'object', 'Invalid location field.');
-assert.equal(typeof json.hardware, 'object', 'Invalid hardware field.');
-assert.equal(typeof json.software, 'object', 'Invalid software field.');
+assert.equal(typeof file.path, 'string', 'file path was not a string.');
 
-this.filePath = file.path;
-this.fileName = json.mainData.fileName;
-this.deviceId = json.mainData.deviceId;
-this.hardware = json.hardware;
-this.software = json.software;
-this.location = json.location;
-this.mainData = json.mainData;
-this.fileType;
-if (typeof json.mainData.fileType == 'string') {
-	this.fileType = json.mainData.fileType;
-} else if (this.fileName.lastIndexOf('.') != -1) {
-	this.fileType = this.fileName.substr(this.fileName.lastIndexOf('.')+1);
+this.parentModel = orm.parentModel.build();
+if (json[orm.parentModel.name]) {
+	this.parentModel.setFromJson(json[orm.parentModel.name]);
 } else {
-	assert(false, 'Can\'t find file type.');
+	throw {
+		name: "Bad request",
+		message: "No field in json for Model: " + orm.parentModel.name
+	};
 }
+
+this.childModels = {};
+this.validChildModels = {};
+
+for (var i = 0; i < orm.childModels.length; i++) {
+  var model = orm.childModels[i];
+  if (json[model.name]) {
+    var modelInstance = model.build();
+    modelInstance.setFromJson(json[model.name]);
+    this.childModels[model.name] = modelInstance;
+		this.validChildModels[model.name] = false;
+  } else {
+		throw {
+			name: "Bad request",
+			message: "No field in json for Model: " + model.name
+		};
+  }
+}
+
+for (var model in this.childModels) {
+	console.log(model, this.childModels[model].dataValues);
+}
+//console.log('childModels', this.childModels);
+console.log('parentModel', this.parentModel.dataValues);
 
 this.checkedHardwareId = false;
 this.checkedSoftwareId = false;
