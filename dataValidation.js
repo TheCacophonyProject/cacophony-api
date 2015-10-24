@@ -9,11 +9,12 @@ var orm = require('./orm'),
 //TODO the IDs are not properly checked at the moment, look into individual functions (checkHardwareId) for more detail.
 function dataIDs(dataPoint){
 return new Promise(function(resolve, reject) {
-	Promise.all([
-		validateId(dataPoint, dataPoint.hardware, orm.Hardware),
-		validateId(dataPoint, dataPoint.software, orm.Software),
-		validateId(dataPoint, dataPoint.location, orm.Location)])
-	.then(function() {
+  var validateIdArray = [];
+  for (var key in dataPoint.childModels) {
+    validateIdArray.push(validateId(dataPoint.childModels[key]));
+  }
+	Promise.all(validateIdArray)
+  .then(function() {
 		log.debug("All data IDs are checked.");
 		resolve(dataPoint);
 	})
@@ -44,7 +45,7 @@ return new Promise(function(resolve, reject) {
         dataPoint = new DataPoint(json, files.recording);
       } catch (e) {
         log.error('Error: problem with processing request.');
-        reject(e.message);
+        reject(e);
       }
       var models = [];
       models.push(dataPoint.parentModel.validate());
@@ -80,23 +81,30 @@ return new Promise(function(resolve, reject) {
 
 //Check Location id:
 //TODO function still in progress.
-function validateId(dataPoint, data, table){
+function validateId(model){
 return new Promise(function(resolve, reject) {
-	if (data.id){
+  var modelName = model.__options.name.singular;
+  //TODO add device registeration instead of giving it an id of 1
+  //=============================
+  if (modelName == 'device') {
+    if (model.dataValues.id) {resolve()}
+    else {
+      model.setDataValue('id', 1);
+      resolve();
+    }
+  }
+  //========================
+  if (model.dataValues.id){
     log.verbose('Checking valid equivalent locations.');
-    checkEquivalentRowsById(data, table)
+    checkEquivalentModelById(model)
     .then(function(equiv){
       if (equiv){
-        dataPoint.checkedId[table.name] = true;
-        log.verbose('Equivalent', table.name);
+        log.verbose('Equivalent', modelName);
         resolve();
       } else {
-
-        getRowId(data, table)
+        getModelId(model)
         .then(function(){
-          log.debug('New '+table.name+' id.');
-          dataPoint.newId[table.name] = true;
-          dataPoint.checkedId[table.name] = true;
+          log.debug('New '+modelName+' id.');
           resolve();
         })
         .catch(function(error){
@@ -106,89 +114,84 @@ return new Promise(function(resolve, reject) {
       }
     });
 	} else {
-    getRowId(data, table)
+    getModelId(model)
     .then(function() {
-      log.debug('New location id.');
-      dataPoint.newId[table.name] = true;
-      dataPoint.checkedId[table.name] = true;
+      log.debug('New '+modelName+' id.');
       resolve();
     })
     .catch(function(err) {
-      log.error('Error when getting '+table.name+'  id.');
+      log.error('Error when getting '+modelName+'  id.');
       reject(err);
     });
 	}
 });
 }
 
-function getRowId(data, table){
+function getModelId(model){
 return new Promise(function(resolve, reject) {
-  findEquivalentRow(data, table)
+  findEquivalentModel(model)
   .then(function(result) {
     if (result == 0) {
-      orm.uploadNewRow(data, table)
+      model.save()
       .then(function(result) {
-        data.id = result.dataValues.id;
         resolve();
       })
+      .catch(function(err) {
+        reject(err);
+      });
     } else {
-      data.id = result;
-      log.verbose('Equivalent row in '+table.name+' found. Using same id of', result);
+      model.setDataValue('id', result);
       resolve();
     }
+  })
+  .catch(function(err) {
+    log.error('Error with getting model id');
+    reject(err);
   })
 });
 };
 
-function findEquivalentRow(data, table){
+function findEquivalentModel(model){
 return new Promise(function(resolve, reject) {
-  var values = data;
-  if (values.id) { delete values.id; }
-
-  table.findAll({ where: values })
+  var values = model.dataValues;
+  modelClass = orm.getClassFromModel(model);
+  delete values.id;
+  modelClass.findAll({ where: values })
   .then(function(result) {
-    if (result.length == 0) resolve(0);
-    else if (result.length == 1) resolve(result[0].dataValues.id);
+    if (result.length == 0) {resolve(0);}
+    else if (result.length == 1) {resolve(result[0].dataValues.id);}
     else if (result.length >= 2) {
-      log.warn('Two or more rows were found to be equivalent in the table:', table.name);
+      log.warn('Two or more rows were found to be equivalent');
+      var id = result[0].dataValues.id;
       resolve(result[0].dataValues.id);
     } else {
-      log.error('Invalid reult length.');
+      log.error('Invalid result length.');
       reject('Invalid result length, result:', result);
     }
   })
   .catch(function(err) {
-    log.error('Error when getting new '+table.name+' id.');
+    log.error('Error when getting new id.');
     log.error(err);
     reject(err);
   });
 });
 };
 
-function checkEquivalentRowsById(value, table){
+function checkEquivalentModelById(model){
 return new Promise(function(resolve, reject){
-  table.findAll({ where: { id: value.id }})
+  table.findAll({ where: { id: model.dataValues.id }})
   .then(function(result){
     var equiv = true;
     var result = result[0].dataValues;
-    for (var key in result) {
-      if (key == 'microphoneId') {     //Enter in keys that have default values here to deal with them.  //TODO find a cleaner way t deal with this
-        if (!(result['microphoneId'] == 0 && !value['microphoneId'] || result['microphoneId'] && value['microphoneId'])) {
-          equiv = false;
-        }
-      } else if (key != 'createdAt' && key != 'updatedAt'){
-        if (value[key] && result[key] == value[key]){
-
-        } else if (!value[key] && result[key] == null){
-
-        } else {
-          log.error(key + ' in table '+table.name+' is not equivalent. Database: ' + result[key] +', DataPoint: ' + value[key]);
-          equiv = false;
-        }
-      }
+    if (util.equivalentModels(reult[0]), model) {
+      resolve(true);
+    } else {
+      log.error(model.__options.name.singular+' from the Database and DataPoint with the same id were not equivalent.');
+      resolve(false);
     }
-    if (!equiv){ log.error(table.name+' from the Database and DataPoint with the same id were not equivalent.'); }
-    resolve(equiv);
+  })
+  .catch(function(err) {
+    reject(err);
   });
 });
 }

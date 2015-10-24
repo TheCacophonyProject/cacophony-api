@@ -99,6 +99,7 @@ var Device = sequelize.define('device', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
+    autoIncrement: true,
     validate: {
       isInt: true
     }
@@ -471,6 +472,30 @@ var RecordingRule = sequelize.define('recording_rule', {
 var parentModel = DataPoint;
 var childModels = [Device, Recording, Location, Hardware, Software, Microphone, Environment, RecordingRule];
 
+function getClassFromModel(model) {
+  var singular = model.__options.name.singular;
+  var plural = model.__options.name.plural;
+  var error = false;
+  modelClass = null;
+  if (parentModel.name == singular || parentModel == plural) {
+    modelClass = parentModel;
+  }
+  for (var i = 0; i < childModels.length; i++) {
+    if (childModels[i].name == singular || childModels[i] == plural) {
+      if (modelClass) {
+        log.error('More than one model have similar names');
+        error = true;
+      }
+      modelClass = childModels[i];
+    }
+  }
+  if (error) {
+    return null;
+  } else {
+    return modelClass;
+  }
+}
+
 function uploadLocation(location){
   var locationJson = {};
   if (location.longitude) locationJson.longitude = location.longitude;
@@ -541,3 +566,4 @@ exports.sync = sync;
 exports.uploadNewRow = uploadNewRow;
 exports.childModels = childModels;
 exports.parentModel = parentModel;
+exports.getClassFromModel = getClassFromModel;

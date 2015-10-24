@@ -17,6 +17,8 @@ module.exports = function(json, file) {
 assert.equal(typeof json, 'object', 'json was invalid.');
 assert.equal(typeof file, 'object', 'file invalid.');
 assert.equal(typeof file.path, 'string', 'file path was not a string.');
+assert.equal(typeof file.name, 'string', 'file name was not a string.');
+this.tempFilePath = file.path;
 
 this.parentModel = orm.parentModel.build();
 if (json[orm.parentModel.name]) {
@@ -28,7 +30,7 @@ if (json[orm.parentModel.name]) {
 	};
 }
 
-this.childModels = {};
+this.childModels = [];
 this.validChildModels = {};
 
 for (var i = 0; i < orm.childModels.length; i++) {
@@ -47,10 +49,10 @@ for (var i = 0; i < orm.childModels.length; i++) {
 }
 
 for (var model in this.childModels) {
-	console.log(model, this.childModels[model].dataValues);
+//	console.log(model, this.childModels[model].dataValues);
 }
 //console.log('childModels', this.childModels);
-console.log('parentModel', this.parentModel.dataValues);
+//console.log('parentModel', this.parentModel.dataValues);
 
 this.checkedHardwareId = false;
 this.checkedSoftwareId = false;
@@ -83,28 +85,41 @@ this.readyForUpload = function(){
 	}
 }
 
-//Get File Name: This function return the name/key that will be used when storing a file in the AWS S3.
-this.getFileName = function(){
-	var fileName = null;
-	if (this.deviceId && this.mainData.startTimeUtc && this.fileExtension){
-		fileName = this.deviceId + "/" + this.mainData.startTimeUtc + "." + this.fileExtension;
-	} else {
-		log.error("Cannot generate file name. Invalid DEVICE_ID and/or START_TIME_UTC and/or FILE_EXTENSION.");
+//Get File Path: This function return the name/key that will be used when storing a file in the AWS S3.
+this.getFilePath = function(){
+	var startTimeUtc = this.childModels['recording'].dataValues.start_time_utc;
+	var deviceId = this.childModels['device'].dataValues.id;
+	var fileType = this.getFileType();
+	if (startTimeUtc != 0 && deviceId && fileType) {
+		return deviceId+'/'+startTimeUtc+'.'+fileType;
 	}
-	return fileName;
+	else if (deviceId && file.name) {
+		return deviceId+'/'+file.name;
+	}
+	else if (fileType){
+		var millis = new Date().getTime();
+		return '0/'+millis+'.'+fileType;
+	} else {
+		var millis = new Date().getTime();
+		return '0/'+millis;
+	}
 }
 
 this.isValid = function(){
-	if (hardware && software && location && mainData && file){
-		//TODO add more validation checks
-		return true;
-	} else {
-		if (!this.hardware) { log.error("Hardware is invalid", this.hardware); }
-		if (!this.software) { log.error("Software is invalid", this.software); }
-		if (!this.location) { log.error("Location is invalid", this.location); }
-		if (!this.mainData) { log.error("MainData is invalid", this.mainData); }
-		if (!file) { log.error("File is invalid", file); }
-		return false;
+	return true;
+}
+
+this.getFileType = function(){
+	if (typeof this.childModels['recording'].dataValues.file_type == 'string') {
+		return this.childModels['recording'].dataValues.file_type;
+	} else if (file.name.lastIndexOf('.') != -1){
+		var exten = file.name.substr(file.name.lastIndexOf('.')+1);
+		if (exten.length <= 5) {
+			return exten;
+		}
+	} else if (file.type) {
+		return file.type;
 	}
+	return null;
 }
 };

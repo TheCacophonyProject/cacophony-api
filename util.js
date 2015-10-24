@@ -37,9 +37,9 @@ return new Promise(function(resolve, reject) {
 	});
 
 	var tempFilePath = dataPoint.tempFilePath;
-	var fileName = dataPoint.getFileName();
-	log.debug("Uploading file as:", fileName);
-	client.putFile(tempFilePath, fileName, function(err, res){
+	var filePath = dataPoint.getFilePath();
+	log.debug("Uploading file as:", filePath);
+	client.putFile(tempFilePath, filePath, function(err, res){
 		if (err) {
 			log.error("Error with uploading file.");
 			reject(err);
@@ -60,15 +60,6 @@ return new Promise(function(resolve, reject) {
 //TODO there is probably a better way to send a JSON back to the device.
 function generateSuccessResponse(dataPoint) {
 	var jsonResponse = {response: 'success'};
-	if(dataPoint.newId['hardware']){
-		jsonResponse.newHardwareId = dataPoint.hardware.id;
-	}
-	if(dataPoint.newId['software']){
-		jsonResponse.newSoftwareId = dataPoint.software.id;
-	}
-	if(dataPoint.newId['location']){
-		jsonResponse.newLocationId = dataPoint.location.id;
-	}
 	return JSON.stringify(jsonResponse);
 }
 
@@ -86,6 +77,59 @@ return new Promise(function(resolve, reject) {
 });
 }
 
+function equivalentModels(model1, model2){
+	var values1 = model1.dataValues;
+	var values2 = model2.dataValues;
+	delete values1.createdAt;
+	delete values1.updatedAt;
+	delete values2.createdAt;
+	delete values2.updatedAt;
+	for (var key in values1) {
+		if (typeof values1[key] == 'object' && values1[key] != null) {
+			if (!equivalentJSON(values1[key], values2[key])){
+				return false;
+			}
+		}
+		else if (values1[key] != values2[key]) {
+			return false;
+		}
+	}
+	for (var key in values2) {
+		if (typeof values2[key] == 'object' && values2[key] != null) {
+			if (!equivalentJSON(values1[key], values2[key])){
+				return false;
+			}
+		}
+		else if (values1[key] != values2[key]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function equivalentJSON(json1, json2){
+	if (typeof json1 != 'object') return false;
+	if (typeof json2 != 'object') return false;
+	for (var key in json1) {
+		if (typeof json1[key] == 'object' && !equivalentJSON(json1[key], json2[key])) {
+			return false;
+		}
+		if (json1[key] != json2[key]) {
+			return false;
+		}
+	}
+	for (var key in json2) {
+		if (typeof json1[key] == 'object' && !equivalentJSON(json1[key], json2[key])) {
+			return false;
+		}
+		if (json1[key] != json2[key]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 exports.registerDeviceIfNotAlready = registerDeviceIfNotAlready;
 exports.uploadFile = uploadFile;
 exports.generateSuccessResponse = generateSuccessResponse;
+exports.equivalentModels = equivalentModels;
