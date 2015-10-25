@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "dependencies": {
     "bluebird": "^2.9.34",
+    "express": "^4.13.3",
     "formidable": "^1.0.17",
+    "jade": "^1.11.0",
     "knox": "^0.9.2",
     "pg": "^4.4.1",
     "pg-hstore": "^2.3.2",

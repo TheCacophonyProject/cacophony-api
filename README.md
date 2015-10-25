@@ -9,6 +9,6 @@ Setup
 
 ## Starting Server
 ```
-node index.js
+node Server.js
 ````
 server is on port 8888, can be changed in server.js
