@@ -6,7 +6,12 @@ var util = require('../util'),
 module.exports = function(app) {
 
   app.get('/',function(request, response){
-      response.render('index.jade');
+    response.render('index.jade');
+  });
+
+  app.get('/upload', function(request, response) {
+    log.debug("Get request for 'upload' was called.");
+    response.render('upload.jade')
   });
 
   app.post('/upload',function(request, response) {
@@ -16,7 +21,7 @@ module.exports = function(app) {
    	dataValidation.validUploadRequest(request)
    	.then(util.registerDeviceIfNotAlready)
    	.then(dataValidation.dataIDs)
-   	.then(util.uploadFile)
+   	//.then(util.uploadFile)
    	.then(util.uploadDataPoint)
    	.then(function(dataPoint){
    		log.debug("Responding to device.");
@@ -26,6 +31,7 @@ module.exports = function(app) {
    		response.end();
    		log.debug("Responded back to device.");
    		log.verbose('Responded to device with:', responseBody);
+      util.uploadFile(dataPoint);
    	}).catch(function(err) {
    		log.error('Error with upload:', err);
    		response.writeHead(400, {"Content-Type": "text/html"});
