@@ -252,7 +252,7 @@ var Hardware = sequelize.define('hardware', {
       isInt: true
     }
   },
-  batter_size: {
+  battery_size: {
     type: Sequelize.FLOAT,
     defaultValue: null,
     validate: {
