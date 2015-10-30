@@ -65,10 +65,15 @@ function generateSuccessResponse(dataPoint) {
 
 function uploadDataPoint(dataPoint) {
 return new Promise(function(resolve, reject) {
-	orm.uploadDataPoint(dataPoint)
+	for (var model in dataPoint.childModels) {
+		var modelName =  dataPoint.childModels[model].__options.name.singular;
+		var id = dataPoint.childModels[model].dataValues.id;
+		dataPoint.parentModel.setDataValue(modelName+'_id', id);
+	}
+	dataPoint.parentModel.save()
 	.then(function(result) {
 		log.info("Uploaded dataPoint.");
-		reolve(dataPoint);
+		resolve(dataPoint);
 	})
 	.error(function(er) {
 		log.error('Error with uploading dataPoint.');
@@ -129,6 +134,7 @@ function equivalentJSON(json1, json2){
 	return true;
 }
 
+exports.uploadDataPoint = uploadDataPoint;
 exports.registerDeviceIfNotAlready = registerDeviceIfNotAlready;
 exports.uploadFile = uploadFile;
 exports.generateSuccessResponse = generateSuccessResponse;
