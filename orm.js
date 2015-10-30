@@ -481,7 +481,7 @@ function getClassFromModel(model) {
     modelClass = parentModel;
   }
   for (var i = 0; i < childModels.length; i++) {
-    if (childModels[i].name == singular || childModels[i] == plural) {
+    if (childModels[i].name == singular || childModels[i].name == plural) {
       if (modelClass) {
         log.error('More than one model have similar names');
         error = true;
@@ -496,74 +496,11 @@ function getClassFromModel(model) {
   }
 }
 
-function uploadLocation(location){
-  var locationJson = {};
-  if (location.longitude) locationJson.longitude = location.longitude;
-  if (location.latitude) locationJson.latitude = location.latitude;
-  if (location.utc) locationJson.utc = location.utc;
-  if (location.altitude) locationJson.altitude = location.altitude;
-  if (location.accuracy) locationJson.accuracy = location.accuracy;
-  if (location.userLocationInput) locationJson.userLocationInput = location.userLocationInput;
-  return Location.create(locationJson);
-}
-
-function uploadHardware(hardware) {
-  var hardwareJson = {};
-  if (hardware.model) hardwareJson.model = hardware.model;
-  if (hardware.manufacturer) hardwareJson.manufacturer = hardware.manufacturer;
-  if (hardware.brand) hardwareJson.brand = hardware.brand;
-  if (hardware.microphoneId) hardwareJson.microphoneId = hardware.microphoneId;
-  return Hardware.create(hardwareJson);
-}
-
-function uploadSoftware(software) {
-  var softwareJson = {};
-  if (software.osIncremental) softwareJson.osIncremental = software.osIncremental;
-  if (software.osCodename) softwareJson.osCodename = software.osCodename;
-  if (software.sdkInt) softwareJson.sdkInt = software.sdkInt;
-  if (software.osRelease) softwareJson.osRelease = software.osRelease;
-  if (software.appVersion) softwareJson.appVersio = software.appVersion;
-  return Software.create(softwareJson);
-}
-
-function uploadDataPoint(dataPoint) {
-  var dataPointJson = {
-    deviceId: dataPoint.deviceId,
-    hardwareId: dataPoint.hardware.id,
-    softwareId: dataPoint.software.id,
-    locationId: dataPoint.location.id,
-    file: dataPoint.file,
-    fileExtension: dataPoint.fileExtension,
-    fileName: dataPoint.fileName,
-    startTimeUtc: dataPoint.mainData.startTimeUtc,
-    duration: dataPoint.mainData.duration,
-    ruleName: dataPoint.mainData.ruleName,
-    bitRate: dataPoint.mainData.bitRate
-  };
-  return DataPoint.create(dataPointJson);
-}
-
 function sync(){
   return sequelize.sync();
 }
 
-function uploadNewRow(data, table) {
-  log.verbose('Starting new row upload');
-  if (table == Location) {
-    return uploadLocation(data);
-  } else if (table == Software) {
-    return uploadSoftware(data);
-  } else if (table == Hardware) {
-    return uploadHardware(data);
-  } else {
-    log.error('Unknown table to upload here.');
-  }
-};
-
-
-exports.uploadDataPoint = uploadDataPoint;
 exports.sync = sync;
-exports.uploadNewRow = uploadNewRow;
 exports.childModels = childModels;
 exports.parentModel = parentModel;
 exports.getClassFromModel = getClassFromModel;
