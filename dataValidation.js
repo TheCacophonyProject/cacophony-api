@@ -46,6 +46,7 @@ return new Promise(function(resolve, reject) {
       } catch (e) {
         log.error('Error: problem with processing request.');
         reject(e);
+        return;
       }
       var models = [];
       models.push(dataPoint.parentModel.validate());
