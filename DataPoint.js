@@ -87,7 +87,7 @@ this.readyForUpload = function(){
 
 //Get File Path: This function return the name/key that will be used when storing a file in the AWS S3.
 this.getFilePath = function(){
-	var startTimeUtc = this.childModels['recording'].dataValues.start_time_utc;
+	var startTimeUtc = this.childModels['recording'].dataValues.startTimeUtc;
 	var deviceId = this.childModels['device'].dataValues.id;
 	var fileType = this.getFileType();
 	if (startTimeUtc != 0 && deviceId && fileType) {
@@ -110,8 +110,8 @@ this.isValid = function(){
 }
 
 this.getFileType = function(){
-	if (typeof this.childModels['recording'].dataValues.file_type == 'string') {
-		return this.childModels['recording'].dataValues.file_type;
+	if (typeof this.childModels['recording'].dataValues.fileType == 'string') {
+		return this.childModels['recording'].dataValues.fileType;
 	} else if (file.name.lastIndexOf('.') != -1){
 		var exten = file.name.substr(file.name.lastIndexOf('.')+1);
 		if (exten.length <= 5) {

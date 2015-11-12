@@ -25,58 +25,58 @@ var sequelizeInstanceMethods = {
   }
 };
 
-var DataPoint = sequelize.define('data_point', {
+var DataPoint = sequelize.define('dataPoint', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
     autoIncrement: true,
     validate: {
       isInt: true
     }
   },
-  device_id: {
+  deviceId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  recording_rule_id: {
+  recordingRuleId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  location_id: {
+  locationId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  hardware_id: {
+  hardwareId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  software_id: {
+  softwareId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  microphone_id: {
+  microphoneId: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
     validate: {
       isInt: true
     }
   },
-  battery_level: {
+  batteryLevel: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
@@ -125,11 +125,11 @@ var Recording = sequelize.define('recording', {
       isInt: true
     }
   },
-  file_location: {
+  fileLocation: {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  start_time_utc: {
+  startTimeUtc: {
     type: Sequelize.BIGINT,
     defaultValue: 0,
     validate: {
@@ -143,11 +143,11 @@ var Recording = sequelize.define('recording', {
       isInt: true
     }
   },
-  file_type: {
+  fileType: {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  bit_rate: {
+  bitRate: {
     type: Sequelize.INTEGER,
     defaultValue: null
   },
@@ -208,7 +208,7 @@ var Location = sequelize.define('location', {
       isInt: true
     }
   },
-  user_location_input: {
+  userLocationInput: {
     type: Sequelize.STRING,
     defaultValue: null,
   },
@@ -245,14 +245,14 @@ var Hardware = sequelize.define('hardware', {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  solar_panel_power: {
+  solarPanelPower: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
       isInt: true
     }
   },
-  battery_size: {
+  batterySize: {
     type: Sequelize.FLOAT,
     defaultValue: null,
     validate: {
@@ -276,22 +276,22 @@ var Software = sequelize.define('software', {
       isInt: true
     }
   },
-  os_codename: {
+  osCodename: {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  os_incremental: {
+  osIncremental: {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  sdk_int: {
+  sdkInt: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
       isInt: true
     }
   },
-  os_release: {
+  osRelease: {
     type: Sequelize.STRING,
     defaultValue: null
   },
@@ -316,7 +316,7 @@ var Microphone = sequelize.define('microphone', {
       isInt: true
     }
   },
-  date_of_calibration: {
+  dateOfCalibration: {
     type: Sequelize.DATE,
     defaultValue: null,
   },
@@ -352,7 +352,7 @@ var Environment = sequelize.define('environment', {
       isFloat: true
     }
   },
-  local_tempreature: {
+  localTempreature: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
@@ -363,7 +363,7 @@ var Environment = sequelize.define('environment', {
       isFloat: true
     }
   },
-  local_rainfall: {
+  localRainfall: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
@@ -374,18 +374,18 @@ var Environment = sequelize.define('environment', {
       isInt: true
     }
   },
-  local_humidity: {
+  localHumidity: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
-  light_level: {
+  lightLevel: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
       isInt: true
     }
   },
-  local_light_level: {
+  localLightLevel: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
@@ -396,33 +396,33 @@ var Environment = sequelize.define('environment', {
       isInt: true
     }
   },
-  local_pressure: {
+  localPressure: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
-  wind_direction: {
+  windDirection: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
       isInt: true
     }
   },
-  local_wind_direction: {
+  localWindDirection: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
-  wind_magnitude: {
+  windMagnitude: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
       isInt: true
     }
   },
-  local_wind_mangitude: {
+  localWindMangitude: {
     type: Sequelize.BOOLEAN,
     defaultValue: null
   },
-  weather_station: {
+  weatherStation: {
     type: Sequelize.STRING,
     defaultValue: null
   },
@@ -434,7 +434,7 @@ var Environment = sequelize.define('environment', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var RecordingRule = sequelize.define('recording_rule', {
+var RecordingRule = sequelize.define('recordingule', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -443,7 +443,7 @@ var RecordingRule = sequelize.define('recording_rule', {
       isInt: true
     }
   },
-  start_time_utc: {
+  startTimeUtc: {
     type: Sequelize.INTEGER,
     defaultValue: null,
     validate: {
