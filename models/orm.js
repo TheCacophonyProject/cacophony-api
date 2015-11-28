@@ -1,12 +1,10 @@
-var Sequelize = require('sequelize'),
-  config = require('./config'),
-  log = require('./logging');
+var Sequelize = require('sequelize');
 
-var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
-  host: config.db.host,
-  port: config.db.port,
-  dialect: config.db.dialect,
-  logging: config.db.logging
+var sequelize = new Sequelize('cacophony_metadata', 'test', 'pass', {
+  host: '192.168.33.10',
+  port: '5432',
+  dialect: 'postgres',
+  logging: false
 });
 
 var sequelizeInstanceMethods = {
@@ -25,63 +23,42 @@ var sequelizeInstanceMethods = {
   }
 };
 
-var DataPoint = sequelize.define('dataPoint', {
+var audioRecording = sequelize.define('audioRecording', {
   id: {
     type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
+  },
+  audioFileId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   deviceId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   recordingRuleId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   locationId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   hardwareId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   softwareId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   microphoneId: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
-  },
-  batteryLevel: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     defaultValue: null,
-    validate: {
-      isInt: true
-    }
+  },
+  environmentId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
   },
   tags: {
     type: Sequelize.JSON,
@@ -95,14 +72,10 @@ var DataPoint = sequelize.define('dataPoint', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Device = sequelize.define('device', {
+var device = sequelize.define('device', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
   type: {
     type: Sequelize.STRING,
@@ -116,44 +89,130 @@ var Device = sequelize.define('device', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Recording = sequelize.define('recording', {
+var videoFile = sequelize.define('videoFile', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
+  },
+  uploadTimestamp: {
+    type: Sequelize.DATE,
+    defaultValue: null
   },
   fileLocation: {
     type: Sequelize.STRING,
-    defaultValue: null
-  },
-  startTimeUtc: {
-    type: Sequelize.BIGINT,
-    defaultValue: 0,
+    defaultValue: null,
     validate: {
-      isInt: true
+      notNull: true
     }
+  },
+  startTimestamp: {
+    type: Sequelize.DATE,
+    defaultValue: null
   },
   duration: {
     type: Sequelize.INTEGER,
-    defaultValue: 0,
-    validate: {
-      isInt: true
-    }
+    defaultValue: null,
   },
-  fileType: {
+  fileExtension: {
     type: Sequelize.STRING,
     defaultValue: null
   },
-  bitRate: {
+  mimeType: {
+    type: Sequelize.STRING,
+    defaultValue: null
+  },
+  videoBitrate: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  dimensionX: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  dimentionY: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  fps: {
     type: Sequelize.INTEGER,
     defaultValue: null
   },
   size: {
     type: Sequelize.INTEGER,
     defaultValue: null
+  },
+  audioChannels: {
+    type: Sequelize.STRING,
+    defaultValue: null
+  },
+  audioSampleRate: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  audioBitrate: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {}
+  },
+  extra: {
+    type: Sequelize.JSON,
+    defaultValue: {}
+  }
+}, {
+  instanceMethods: sequelizeInstanceMethods
+});
+
+var audioFile = sequelize.define('audiofile', {
+  id: {
+    type: Sequelize.STRING,
+    primaryKey: true,
+  },
+  uploadTimestamp: {
+    type: Sequelize.DATE,
+    defaultValue: null
+  },
+  fileLocation: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  startTimestamp: {
+    type: Sequelize.DATE,
+    defaultValue: null,
+  },
+  duration: {
+    type: Sequelize.INTEGER,
+    defaultValue: null,
+  },
+  fileExtension: {
+    type: Sequelize.STRING,
+    defaultValue: null
+  },
+  mimeType: {
+    type: Sequelize.STRING,
+    defaultValue: null
+  },
+  bitrate: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  size: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  sampleRate: {
+    type: Sequelize.INTEGER,
+    defaultValue: null
+  },
+  channels: {
+    type: Sequelize.STRING,
+    defaultValue: null
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {}
   },
   extra: {
     type: Sequelize.JSON,
@@ -164,21 +223,14 @@ var Recording = sequelize.define('recording', {
 });
 
 
-var Location = sequelize.define('location', {
+var location = sequelize.define('location', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
-  utc: {
-    type: Sequelize.BIGINT,
+  timestamp: {
+    type: Sequelize.DATE,
     defaultValue: null,
-    validate: {
-      isInt: true
-    }
   },
   latitude: {
     type: Sequelize.FLOAT,
@@ -215,19 +267,19 @@ var Location = sequelize.define('location', {
   extra: {
     type: Sequelize.JSON,
     defaultValue: {}
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {}
   }
 }, {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Hardware = sequelize.define('hardware', {
+var hardware = sequelize.define('hardware', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
   manufacturer: {
     type: Sequelize.STRING,
@@ -262,19 +314,20 @@ var Hardware = sequelize.define('hardware', {
   extra: {
     type: Sequelize.JSON,
     defaultValue: {},
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {},
   }
 }, {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Software = sequelize.define('software', {
+
+var software = sequelize.define('software', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
   osCodename: {
     type: Sequelize.STRING,
@@ -302,19 +355,19 @@ var Software = sequelize.define('software', {
   extra: {
     type: Sequelize.JSON,
     defaultValue: {},
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {},
   }
 }, {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Microphone = sequelize.define('microphone', {
+var microphone = sequelize.define('microphone', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
   dateOfCalibration: {
     type: Sequelize.DATE,
@@ -336,14 +389,10 @@ var Microphone = sequelize.define('microphone', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var Environment = sequelize.define('environment', {
+var environment = sequelize.define('environment', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
   tempreature: {
     type: Sequelize.FLOAT,
@@ -429,26 +478,23 @@ var Environment = sequelize.define('environment', {
   extra: {
     type: Sequelize.JSON,
     defaultValue: {},
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {},
   }
 }, {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var RecordingRule = sequelize.define('recordingule', {
+var recordingRule = sequelize.define('recordingule', {
   id: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     primaryKey: true,
-    autoIncrement: true,
-    validate: {
-      isInt: true
-    }
   },
-  startTimeUtc: {
-    type: Sequelize.INTEGER,
+  startTimestamp: {
+    type: Sequelize.DATE,
     defaultValue: null,
-    validate: {
-      isInt: true
-    }
   },
   duration: {
     type: Sequelize.INTEGER,
@@ -464,13 +510,14 @@ var RecordingRule = sequelize.define('recordingule', {
   extra: {
     type: Sequelize.JSON,
     defaultValue: {},
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {},
   }
 }, {
   instanceMethods: sequelizeInstanceMethods
 });
-
-var parentModel = DataPoint;
-var childModels = [Device, Recording, Location, Hardware, Software, Microphone, Environment, RecordingRule];
 
 function getClassFromModel(model) {
   var singular = model.__options.name.singular;
@@ -501,6 +548,15 @@ function sync(){
 }
 
 exports.sync = sync;
-exports.childModels = childModels;
-exports.parentModel = parentModel;
 exports.getClassFromModel = getClassFromModel;
+
+exports.audioRecording = audioRecording;
+exports.device = device;
+exports.videoFile = videoFile;
+exports.audioFile = audioFile;
+exports.location = location;
+exports.hardware = hardware;
+exports.software = software;
+exports.microphone = microphone;
+exports.environment = environment;
+exports.recordingRule = recordingRule;

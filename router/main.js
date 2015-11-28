@@ -1,6 +1,6 @@
 var util = require('../util'),
 	dataValidation = require('../dataValidation'),
-	orm = require('../orm'),
+	orm = require('../models/orm'),
 	log = require('../logging');
 
 module.exports = function(app) {
