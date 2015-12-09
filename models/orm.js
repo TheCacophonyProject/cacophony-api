@@ -1,9 +1,10 @@
 var Sequelize = require('sequelize');
+var config = require('../config');
 
-var sequelize = new Sequelize('cacophony_metadata', 'test', 'pass', {
-  host: '192.168.33.10',
-  port: '5432',
-  dialect: 'postgres',
+var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
+  host: config.db.host,
+  port: config.db.port,
+  dialect: config.db.dialect,
   logging: false
 });
 
