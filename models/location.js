@@ -3,9 +3,9 @@ var orm = require('./orm');
 var log = require('../logging');
 
 module.exports = function(data) {
-  log.verbose('New VideoFile Object');
+  log.verbose('New Location Object');
 
-  this.name = 'videoFile';
+  this.name = 'location';
   this.ormClass = orm.location;
 
   this.modelMap = {
