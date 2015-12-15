@@ -12,7 +12,7 @@ module.exports = function(app) {
 		var audioRecording;
 		var form = new formidable.IncomingForm();
 		form.parse(req, function(err, fields, files) {
-			var data = eval('('+fields.data+')');
+			var data = JSON.parse(fields.data);
 			if (!data.audioFile) {
 				log.warn('No field "audioFile" in uploaded data.');
 				data.audioFile = {};
