@@ -133,7 +133,8 @@ function uploadFile(file){
 			log.error("Error with uploading file.");
 		} else if (res.statusCode != 200) {
 			log.error("Error with uploading file. Response code of:", res.statusCode);
-			reject('Bad response code from S3 server:', res.statusCode);
+      log.error(res);
+      //reject('Bad response code from S3 server:', res.statusCode);
 		} else {
       log.info('File uploaded to S3.');
     }
