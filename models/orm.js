@@ -166,7 +166,7 @@ var videoFile = sequelize.define('videoFile', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var audioFile = sequelize.define('audiofile', {
+var audioFile = sequelize.define('audioFile', {
   id: {
     type: Sequelize.STRING,
     primaryKey: true,
