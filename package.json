@@ -4,6 +4,7 @@
   "dependencies": {
     "bluebird": "^2.9.34",
     "express": "^4.13.3",
+    "forever": "^0.15.1",
     "formidable": "^1.0.17",
     "fs": "0.0.2",
     "jade": "^1.11.0",
