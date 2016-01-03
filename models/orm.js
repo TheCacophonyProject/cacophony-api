@@ -61,6 +61,10 @@ var audioRecording = sequelize.define('audioRecording', {
     type: Sequelize.STRING,
     defaultValue: null,
   },
+  batteryPercentage: {
+    type: Sequelize.DOUBLE,
+    defaultValue: null,
+  },
   tags: {
     type: Sequelize.JSON,
     defaultValue: {},

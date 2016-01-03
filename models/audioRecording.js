@@ -25,6 +25,7 @@ module.exports = function(data) {
     software: { model: Software },
     microphone: { model: Microphone },
     environment: { model: Environment },
+    batteryPercentage: {},
     tags: {},
     extra: {}
   }
