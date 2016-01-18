@@ -77,6 +77,59 @@ var audioRecording = sequelize.define('audioRecording', {
   instanceMethods: sequelizeInstanceMethods
 });
 
+var videoRecording = sequelize.define('videoRecording', {
+  id: {
+    type: Sequelize.STRING,
+    primaryKey: true,
+  },
+  videoFileId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  deviceId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  recordingRuleId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  locationId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  hardwareId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  softwareId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  microphoneId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  environmentId: {
+    type: Sequelize.STRING,
+    defaultValue: null,
+  },
+  batteryPercentage: {
+    type: Sequelize.DOUBLE,
+    defaultValue: null,
+  },
+  tags: {
+    type: Sequelize.JSON,
+    defaultValue: {},
+  },
+  extra: {
+    type: Sequelize.JSON,
+    defaultValue: {},
+  }
+}, {
+  instanceMethods: sequelizeInstanceMethods
+});
+
 var device = sequelize.define('device', {
   id: {
     type: Sequelize.STRING,
@@ -555,6 +608,7 @@ function sync(){
 exports.sync = sync;
 exports.getClassFromModel = getClassFromModel;
 
+exports.videoRecording = videoRecording;
 exports.audioRecording = audioRecording;
 exports.device = device;
 exports.videoFile = videoFile;

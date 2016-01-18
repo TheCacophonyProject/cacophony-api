@@ -3,6 +3,7 @@ var log = require('../logging');
 var formidable = require('formidable');
 var modelUtil = require('../models/util');
 var AudioRecording = require('../models/audioRecording');
+var VideoRecording = require('../models/videoRecording');
 
 var baseUrl = '/api/v1';
 
@@ -30,4 +31,29 @@ module.exports = function(app) {
 		  });
 		});
 	});
+
+	app.post(baseUrl+'/videoRecordings', function(req, res) {
+		var audioRecording;
+		var form = new formidable.IncomingForm();
+		form.parse(req, function(err, fields, files) {
+			var data = JSON.parse(fields.data);
+			if (!data.audioFile) {
+				log.warn('No field "videoFile" in uploaded data.');
+				data.audioFile = {};
+			}
+			data.audioFile.__file = files.file;
+			var ar = new VideoRecording(data);
+			modelUtil.syncModel(ar)
+			.then(function(result) {
+				res.end('success');
+				log.info('Finished VideoRecording sync.');
+			})
+			.catch(function(err) {
+				log.error('Error with syncing videoRecoring: ', err);
+				res.end('error:' + err.message );
+			});
+		});
+	});
+
+
 }
