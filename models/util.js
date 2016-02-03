@@ -3,9 +3,20 @@ var log = require('../logging');
 var fs = require('fs');
 var config = require('../config');
 var knox = require('knox');
-// parseModel: This function will parse a model resourse by using the data and the modelMap provided.
-// model: This is the model where the parsed data is save to.
-// data: A JSON of key value pairs representing the data. Each key value will either be some raw data, file, or aother model (childModel).
+
+// Models util
+// ===========
+
+/**
+ * Parses data into a model by saving the directly related metadata to model.modelData (everything apart from child models and files).
+ * If the model has child models or a file they are saved into model.childModels and model.file.
+ * @method parseModel
+ * @public
+ *
+ * @param {Object} model    The type of model to be parsed.
+ * @param {Object} data     Object containing the data to be parsed into the model.
+ */
+
 function parseModel(model, data) {
   log.debug('Parsing model', model.name);
   var childModels = [];
@@ -17,7 +28,7 @@ function parseModel(model, data) {
 			} else {
         modelData[key] = data[key];
 			}
-	  } else if (key == '__file') {
+	  } else if (key == '__file') {  //This indicates that it is a file.
       model.file = data[key];
       model.fileParser = parseFile(model, data);
     }
@@ -30,49 +41,20 @@ function parseModel(model, data) {
   model.childModels = childModels;
 }
 
-function parseFile(model, data) {
-  log.verbose('Parsing file');
-  return new Promise(function(resolve, reject) {
-    try {
-      var date;
-      var file = data.__file;
-      if (data.startTimestamp) {
-        try {
-          date = new Date(data.startTimestamp);
-        } catch (err) {
-          log.warn('Error from parding timestamp:', err);
-          date = new Date();
-        }
-      } else {
-        date = new Date();
-      }
-      var year = date.getFullYear();
-      var month = date.getMonth();
+/**
+ * Will sync a model to the database. The model should have been generated using modelParses for the sync to properly work.
+ * All child models of the model that is being synced have to be synced before as the parent model needs the ID of the child models.
+ * After all child models are synced, if any, the ID of the child models are saved into the metadata of the model
+ * then the model it self is synced to the database.
+ *
+ * @method syncModel
+ * @public
+ *
+ * @param {Object} model  The model to be synced to the database.
+ *
+ * @return {Promise} A promise that resolves, whit the model that was synced, when the model has been saved to the database.
+ */
 
-      var md5sum = crypto.createHash('md5');
-
-      var s = fs.ReadStream(file.path);
-      s.on('data', function(d) {
-        md5sum.update(d);
-      });
-      s.on('end', function() {
-        var h = md5sum.digest('hex');
-        var path = year+'/'+month+'/'+date.toISOString()+'_'+h;
-        file.hash = h;
-        file.uploadPath = path;
-        model.fileLocationField = path;
-        resolve('file');
-      });
-
-    } catch (err) {
-      log.error('Error when parsing file.');
-      reject(err);
-    }
-  });
-}
-
-// syncModel: This function will sync the model to the database.
-// When syncing the mdodel first all the child models have to by synced to validate there IDs.
 function syncModel(model){
   log.debug('Syncing model:', model.name);
   return new Promise(function(resolve, reject) {
@@ -116,6 +98,70 @@ function syncModel(model){
   });
 }
 
+
+/**
+ * Parses a file from a model. A timestamp is generated for the file if not found.
+ * A file path is generated determined by the hash of the file and timestamp
+ * [year]/[month]/[ISO 8601 timestamp + hash fo file]
+ *
+ * @method parseFile
+ *
+ * @param {Object} model    The model that is related to the file.
+ * @param {Object} data     The data of the file. The important fields are data.__file (the file) and data.startTimestamp.
+ *
+ * @return {Promise} A promise that after hashing the file is resolved with 'file'.
+ */
+
+function parseFile(model, data) {
+  log.verbose('Parsing file');
+  return new Promise(function(resolve, reject) {
+    try {
+      var date;
+      var file = data.__file;
+      if (data.startTimestamp) {
+        try {
+          date = new Date(data.startTimestamp);
+        } catch (err) {
+          log.warn('Error from parding timestamp:', err);
+          date = new Date();
+        }
+      } else {
+        date = new Date();
+      }
+      var year = date.getFullYear();
+      var month = date.getMonth();
+
+      var md5sum = crypto.createHash('md5');
+
+      var s = fs.ReadStream(file.path);
+      s.on('data', function(d) {
+        md5sum.update(d);
+      });
+      s.on('end', function() {
+        var h = md5sum.digest('hex');
+        var path = year+'/'+month+'/'+date.toISOString()+'_'+h;
+        file.hash = h;
+        file.uploadPath = path;
+        model.fileLocationField = path;
+        resolve('file');
+      });
+
+    } catch (err) {
+      log.error('Error when parsing file.');
+      reject(err);
+    }
+  });
+}
+
+
+/**
+ * Uploads a file to the S3 service.
+ * Path used on S3 server is file.uploadPath
+ * @method uploadFile
+ *
+ * @param {Object} file   The file should have file.uploadPath and file.path (local path) set.
+ */
+
 function uploadFile(file){
   log.debug('Uploading file.');
 	var client = knox.createClient({
@@ -134,16 +180,25 @@ function uploadFile(file){
 		} else if (res.statusCode != 200) {
 			log.error("Error with uploading file. Response code of:", res.statusCode);
       log.error(res);
-      //reject('Bad response code from S3 server:', res.statusCode);
 		} else {
       log.info('File uploaded to S3.');
     }
 	});
 }
 
-// syncId: This function syncs the model to the database getting the ID of the model.
-// This should only be called after all the child models within this model have been validated
-// If the given model has an ID the ID is checked against the database to ensure they are equivalent.
+/**
+ * SyncId will take a model and 'sync the ID'.
+ * What this means is if the model has an ID the id will be checked against the database to check that the data is consistant.
+ * If the data is consistant the promise is resolved.
+ * If the data is found not to be consistant a wanring is logged and then the model is given a new ID.
+ * If the model didn't have a ID to start with it is geven an ID.
+ *
+ * @method syncId
+ *
+ * @param {Object}  model
+ *
+ * @return {Promise} A promise that resolves after the model ID is synced with the database.
+ */
 function syncId(model){
 return new Promise(function(resolve, reject) {
   //TODO add device registeration instead of giving it an id of 1
@@ -199,9 +254,16 @@ return new Promise(function(resolve, reject) {
 });
 }
 
-// getModelId: This function will get a model ID.
-// First by checking if there is an equivalent model in the database, if so it will use that ID.
-// If not the model will be saved to the database and the returned ID saved to the model.
+/**
+ * getModelId will check id the database has an equivalent model. If so the model is given this ID.
+ * If not the model data is saved to the database and the ID returned from the database is save onto the model.
+ *
+ * @method getModelId
+ *
+ * @param {Object}  model
+ *
+ * @return {Promise} A promise that resolves when the model has an ID.
+ */
 function getModelId(model){
 return new Promise(function(resolve, reject) {
   log.verbose('Get model ID for', model.name);
@@ -235,9 +297,17 @@ return new Promise(function(resolve, reject) {
 });
 };
 
-
-// findEquivalentModel: resolves a ID of an equivalent model, ignoring the id field. If no equivalent model is found 0 is resolved.
-// Will log warning if more than one equivalent model is found.
+/**
+ * findEquivalentModel will search the database for an equivalent model and resolves with that model if any are found.
+ * If no equivanent models are found the promise resolves with 0.
+ * If more than one model is found to be equivalent a warning is logged as this should not happen in the database.
+ *
+ * @method findEquivalentModel
+ *
+ * @param {Object}  model
+ *
+ * @return {Promise} A promise that resolves after checking the database for an equivalent model.
+ */
 function findEquivalentModel(model){
 return new Promise(function(resolve, reject) {
   log.verbose('Find equivalent model for', model.name);
@@ -270,7 +340,15 @@ return new Promise(function(resolve, reject) {
 });
 };
 
-// checkEquivalentModelById: Uses the ID from the model to do a query and check that the returned model is equivalent.
+/**
+ * checkEquivalentModelById will check if a model that has an ID is consistant with the database.
+ *
+ * @method checkEquivalentModelById
+ *
+ * @param {Object}  model
+ *
+ * @return {Promise} A promise that resolves with true or false depending if the model is consistant.
+ */
 function checkEquivalentModelById(model){
 return new Promise(function(resolve, reject){
   log.verbose('Equivalent model by ID for', model.name);
@@ -296,7 +374,16 @@ return new Promise(function(resolve, reject){
 });
 }
 
-// equivalentModels: returns true or false depending on if the models are equivalent.
+/**
+ * equivalentModels takes two models and compares them to see if they are equivalent.
+ *
+ * @method equivalentModels
+ *
+ * @param {Object}  model1
+ * @param {Object}  model2
+ *
+ * @return {Boolean} true if models are equivalent.
+ */
 function equivalentModels(model1, model2){
   var values1 = model1;
 	var values2 = model2;
@@ -327,6 +414,16 @@ function equivalentModels(model1, model2){
 	return true;
 }
 
+/**
+ * equivalentJson checkes to see if the models are equivalent.
+ *
+ * @method equivalentJson
+ *
+ * @param {JSON}  json1
+ * @param {JSON}  json2
+ *
+ * @return {Boolean} true if the JSONs are equivalent.
+ */
 function equivalentJson(json1, json2){
 	if (typeof json1 != 'object') return false;
 	if (typeof json2 != 'object') return false;

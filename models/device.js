@@ -2,6 +2,15 @@ var util = require('./util');
 var orm = require('./orm');
 var log = require('../logging');
 
+/**
+ * Device represents a model showing different fields and if they are a special type (file or child model).
+ * This model will be saved in the "devices" table in the database.
+ *
+ * @module device
+ *
+ * @param {Object}  data  This is the metadata of the device.
+ */
+
 module.exports = function(data) {
   log.verbose('New device Object');
 
@@ -9,14 +18,14 @@ module.exports = function(data) {
   this.ormClass = orm.device;
 
   this.modelMap = {
-    id: {},
-    type: {},
+    id: {},           // ID of the device in the database.
+    type: {},         // Type of device.
     extra: {}
   }
 
-  this.ormBuild = null;
-  this.modelData = {};
-  this.childModels = [];
+  this.ormBuild = null;   // The ORM build of this model.
+  this.modelData = {};    // JSON of the metadata excluding the child models.
+  this.childModels = [];  // List of the child models.
 
   util.parseModel(this, data);
 }

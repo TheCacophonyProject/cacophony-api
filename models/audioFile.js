@@ -2,6 +2,14 @@ var util = require('./util');
 var orm = require('./orm');
 var log = require('../logging');
 
+/**
+ * AudioFile represents a model showing the different fields and if they are a special case (file or child model).
+ * This model will be saved in the "audioFiles" table in the database.
+ *
+ * @module audioFile
+ *
+ * @param {Object}  data  This is the metadata of the file and the file it self. The file should be in data.__file
+ */
 module.exports = function(data) {
   log.verbose('New AudioFile Object');
 
@@ -9,26 +17,26 @@ module.exports = function(data) {
   this.ormClass = orm.audioFile;
 
   this.modelMap = {
-    id: {},
-    uploadTimestamp: {},
-    fileLocation: { file: true },
-    startTimestamp: {},
-    duration: {},
-    fileExtension: {},
-    mimeType: {},
-    bitrate: {},
-    size: {},
-    sampleRate: {},
-    channels: {},
+    id: {},                         // ID of the audioFile in the database.
+    uploadTimestamp: {},            // Timestamp when the file was uploaded using ISO 8601.
+    fileLocation: { file: true },   // location of file in S3 server.
+    startTimestamp: {},             // Timestamp of when the recording started.
+    duration: {},                   // Duration of audio recording in seconds.
+    fileExtension: {},              // The file extension.
+    mimeType: {},                   // The mineType.
+    bitrate: {},                    // Bitrate of recording in kbps.
+    size: {},                       // Size in kB.
+    sampleRate: {},                 // Sample rate in Hz
+    channels: {},                   // Audio channels.
     tags: {},
     extra: {}
   }
-  this.fileLocationField = this.modelMap.fileLocation;
+  this.fileLocationField = this.modelMap.fileLocation;  // Showing where the file location is to be saved.
 
   this.localFileLocation = null;
-  this.ormBuild = null;
-  this.modelData = {};
-  this.childModels = [];
+  this.ormBuild = null;             // The ORM build of this model.
+  this.modelData = {};              // JSON of the metadata excluding the child models.
+  this.childModels = [];            // List of the child models.
 
   util.parseModel(this, data);
 }
