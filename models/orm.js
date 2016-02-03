@@ -545,7 +545,7 @@ var environment = sequelize.define('environment', {
   instanceMethods: sequelizeInstanceMethods
 });
 
-var recordingRule = sequelize.define('recordingule', {
+var recordingRule = sequelize.define('recordingRule', {
   id: {
     type: Sequelize.STRING,
     primaryKey: true,
