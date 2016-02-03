@@ -23,7 +23,7 @@ module.exports = function(data) {
   log.verbose('New VideoRecording Object');
 
   this.name = 'videoRecording';
-  this.ormClass = orm.audioRecording;
+  this.ormClass = orm.videoRecording;
 
   this.modelMap = {
     id: {},                                   // ID of the videoRecording in the database.
