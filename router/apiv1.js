@@ -32,6 +32,17 @@ module.exports = function(app) {
 	 *			"tags": {},
 	 *			"extra": {}
  	 *		}
+	 * @apiSuccessExample {json} Success-Response:
+	 *     HTTP 200
+	 *    {
+	 *      "Message": "Successful AudioRecoring Post."
+	 *    }
+	 *
+	 * @apiErrorExample {json} Error-Response:
+	 *    HTTP 200
+	 *    {
+	 *      "error": [Error message]
+	 *    }
 	 */
 
 	app.post(baseUrl+'/audioRecordings', function(req, res) {
@@ -49,12 +60,14 @@ module.exports = function(app) {
 			var ar = new AudioRecording(data);
 			modelUtil.syncModel(ar)
 		  .then(function(result) {
-        res.end('success');
+				var response = { "Message" : "Successful AudioRecoring Post." };
+        res.end(JSON.stringify(response));
 		    log.info('Finished AudioRecording sync.');
 		  })
 		  .catch(function(err) {
 		    log.error('Error with syncing audioRecoring: ', err);
-        res.end('error:' + err.message );
+				var errorResponse = { "error" : err.message};
+        res.end(JSON.stringify(errorResponse));
 		  });
 		});
 	});
