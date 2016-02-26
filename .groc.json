@@ -1,3 +1,3 @@
 {
-  "glob": ["./*/*.js", "README.md", "logging.js", "Server.js", "config_TEMPLATE.js"]
+  "glob": ["./router/*.js", "./models/*.js", "README.md", "logging.js", "Server.js", "config_TEMPLATE.js"]
 }
