@@ -159,9 +159,7 @@ var videoFile = sequelize.define('videoFile', {
   fileLocation: {
     type: Sequelize.STRING,
     defaultValue: null,
-    validate: {
-      notNull: true
-    }
+    allowNull: false
   },
   startTimestamp: {
     type: Sequelize.DATE,
