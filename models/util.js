@@ -446,6 +446,92 @@ function equivalentJson(json1, json2){
 	return true;
 }
 
+/**
+ * Gets a model from the database using the id.
+ *
+ * @method getModelFromId
+ *
+ * @param {object} model
+ * @param {object} id
+ */
+function getModelFromId(model, id){
+return new Promise(function(resolve, reject) {
+  var ormClass = model.ormClass;
+  //Checking valid data.
+  if (!model) {
+    log.error('Invalid model');
+    reject('Invalid model');
+    return;
+  }
+  if (!id) {
+    log.error('Invalid id.');
+    reject('Invalid id');
+    return;
+  }
+  if (!ormClass) {
+    log.error('No ORM class found in model.');
+    reject('No ORM class found in model.');
+    return;
+  }
+  //Finding model.
+  var childModels = {};
+  for (field in model.modelMap) {
+    if (model.modelMap[field].model) {
+      childModels[field] = model.modelMap[field];
+    }
+  }
+  console.log(childModels);
+  ormClass.findAll({ where: { id: id }})
+  .then(function(result) {
+    if (result.length == 0) {
+      resolve({"Message": "No model with that id."});
+      return;
+    }
+    var modelDataValues = result[0].dataValues;
+    console.log(modelDataValues);
+    for (cm in childModels) {
+      var cmId = modelDataValues[cm+"Id"];
+      if (cmId) {
+        childModels[cm].id = cmId;
+        delete modelDataValues[cm+"Id"];
+      } else {
+        delete childModels[cm];
+      }
+    }
+    console.log(childModels);
+    var childModelsGets = [];
+    for (cm in childModels) {
+      childModelsGets.push(getModelFromId(new childModels[cm].model, childModels[cm].id));
+    }
+    Promise.all(childModelsGets)
+    .then(function(cmResults) {
+
+      console.log("Here2");
+      console.log(cmResults);
+      for (var i = 0; i < cmResults.length; i++) {
+        var r = cmResults[i];
+        for (key in r) {
+          modelDataValues[key] = r[key];
+        }
+      }
+      var finalResult = {};
+      finalResult[model.name] = modelDataValues;
+      resolve(finalResult);
+    })
+    .catch(function(cmErrors) {
+      log.error("Error when getting child models: "+cmErrors);
+      reject(cmErrors);
+    });
+
+    //resolve(result);
+  })
+  .catch(function(err) {
+    log.error("Error with finding model with id of: " + id);
+    reject(err);
+  });
+});
+}
 
 exports.parseModel = parseModel;
 exports.syncModel = syncModel;
+exports.getModelFromId = getModelFromId;

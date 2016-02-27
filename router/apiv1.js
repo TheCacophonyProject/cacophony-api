@@ -35,7 +35,7 @@ module.exports = function(app) {
 	 * @apiSuccessExample {json} Success-Response:
 	 *     HTTP 200
 	 *    {
-	 *      "Message": "Successful AudioRecoring Post."
+	 *      "Message": "Successful AudioRecording Post."
 	 *    }
 	 *
 	 * @apiErrorExample {json} Error-Response:
@@ -49,8 +49,6 @@ module.exports = function(app) {
 		var audioRecording;
 		var form = new formidable.IncomingForm();
 		form.parse(req, function(err, fields, files) {
-			console.log(fields);
-			console.log(files);
 			var data = JSON.parse(fields.data);
 			if (!data.audioFile) {
 				log.warn('No field "audioFile" in uploaded data.');
@@ -60,17 +58,41 @@ module.exports = function(app) {
 			var ar = new AudioRecording(data);
 			modelUtil.syncModel(ar)
 		  .then(function(result) {
-				var response = { "Message" : "Successful AudioRecoring Post." };
+				var response = { "Message" : "Successful AudioRecording Post." };
         res.end(JSON.stringify(response));
 		    log.info('Finished AudioRecording sync.');
 		  })
 		  .catch(function(err) {
-		    log.error('Error with syncing audioRecoring: ', err);
+		    log.error('Error with syncing audioRecording: ', err);
 				var errorResponse = { "error" : err.message};
         res.end(JSON.stringify(errorResponse));
 		  });
 		});
 	});
+
+	app.get(baseUrl+'/audioRecordings/:id', function(req, res) {
+		var id = req.params.id;
+		if (id) {
+			log.info('Request for getting audioRecording ' + id);
+			//TODO get audioRecording here
+			modelUtil.getModelFromId(new AudioRecording, id)
+			.then(function(result) {
+				console.log(result);
+				var resultJson = {"Result": result};
+				res.end(JSON.stringify(resultJson));
+			})
+			.catch(function(err) {
+				var errorJson = {"error": err};
+				log.error("Error with getting model." + err);
+				res.end(JSON.stringify(errorJson));
+			});
+		} else {
+			log.info('Request for search of audioRecording.');
+			//TODO get params from request then search database for matching params.
+		}
+	});
+
+
 
 	/**
 	 * @api {post} /api/v1/videoRecordings Add VideoRecording
