@@ -109,11 +109,11 @@ module.exports = function(app) {
 		var form = new formidable.IncomingForm();
 		form.parse(req, function(err, fields, files) {
 			var data = JSON.parse(fields.data);
-			if (!data.audioFile) {
+			if (!data.videoFile) {
 				log.warn('No field "videoFile" in uploaded data.');
-				data.audioFile = {};
+				data.videoFile = {};
 			}
-			data.audioFile.__file = files.file;
+			data.videoFile.__file = files.file;
 			var ar = new VideoRecording(data);
 			modelUtil.syncModel(ar)
 			.then(function(result) {
