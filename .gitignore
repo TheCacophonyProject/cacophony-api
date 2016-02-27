@@ -3,3 +3,5 @@ node_modules
 
 # Config file
 config.js
+
+apidoc/*
