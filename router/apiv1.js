@@ -70,16 +70,37 @@ module.exports = function(app) {
 		});
 	});
 
+	/**
+	 * @api {get} /api/v1/audioRecordings/:id Get AudioRecording
+	 * @apiName GetAudioRecording
+	 * @apiGroup AudioRecording
+	 * @apiVersion 1.0.0
+	 *
+	 * @apiParam {String} id			 ID of the AudioRecording.
+	 *
+	 * @apiSuccessExample {json} Success-Response:
+	 *     HTTP 200
+	 *    {
+	 *			"audioRecording"
+	 *			  {
+	 *					//AudioRecording metadata.
+ 	 *				}
+	 *    }
+	 *
+	 * @apiErrorExample {json} Error-Response:
+	 *    HTTP 200
+	 *    {
+	 *      "error": [Error message]
+	 *    }
+	 */
+
 	app.get(baseUrl+'/audioRecordings/:id', function(req, res) {
 		var id = req.params.id;
 		if (id) {
 			log.info('Request for getting audioRecording ' + id);
-			//TODO get audioRecording here
 			modelUtil.getModelFromId(new AudioRecording, id)
 			.then(function(result) {
-				console.log(result);
-				var resultJson = {"Result": result};
-				res.end(JSON.stringify(resultJson));
+				res.end(JSON.stringify(result));
 			})
 			.catch(function(err) {
 				var errorJson = {"error": err};
