@@ -43,5 +43,23 @@ module.exports = function(data) {
   this.modelData = {};    // JSON of the metadata excluding teh child models.
   this.childModels = [];  // List of the child models.
 
-  util.parseModel(this, data);
+  if (data) util.parseModel(this, data);
+
+  var model = this;
+  this.query = function(q, apiVersion) {
+    log.debug("Quering some "+model.name+": "+JSON.stringify(q));
+    switch(apiVersion) {
+      case 1:
+        return apiV1Query(q);
+        break;
+      default:
+        log.warn("No api version given.");
+        return;
+        break;
+    }
+  }
+
+  function apiV1Query(q) {
+    return util.getModelsJsonFromQuery(q, model, 1);
+  }
 }

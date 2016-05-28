@@ -1,0 +1,36 @@
+doctype html
+html
+  head
+    title Cacophony Upload Server
+    link(href='stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    script(type='text/javascript', src='javascripts/getAudioRecording.js')
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+
+  body
+  div(class='container bs-docs-container')
+    h2 Get Audio Recordings
+    form#form1.form-horizontal(enctype='multipart/form-data', method='post', action='Upload.aspx')
+
+      p
+        div#data_pointDiv
+          .form-group
+            label.col-sm-2.control-label(for='data_point-tags') Query
+            .col-sm-8
+              input#userQuery.form-control.metadata(type='text')
+          div#data_pointExtraDiv
+
+      .form-group
+        label.col-sm-2.control-label.text-right(for='latitude') Send
+        .col-sm-8
+          input(type='button', onclick='query();', value='sendQuery')
+html.
+  <div class="dropdown">
+      <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Keys
+      <span class="caret"></span></button>
+      <ul class="dropdown-menu" id="key-select">
+      </ul>
+  </div>
+
+  <table class="table table-striped" id="results-table">
+  </table>

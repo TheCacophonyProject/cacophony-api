@@ -3,6 +3,10 @@ var log = require('../logging');
 var fs = require('fs');
 var config = require('../config');
 var knox = require('knox');
+var pointer = require('json-pointer');
+var orm = require('./orm');
+var AudioFile = require('./audioFile');
+var Location = require('./location');
 
 // Models util
 // ===========
@@ -87,7 +91,6 @@ function syncModel(model){
       })
       .catch(function(err) {
         log.error('Error with syncing model ID');
-        console.log(model);
         reject(err);
       });
     })
@@ -334,7 +337,6 @@ return new Promise(function(resolve, reject) {
   })
   .catch(function(err) {
     log.error('Error with orm findAll request for model', model.name);
-    console.log(values);
     reject(err);
   });
 });
@@ -480,7 +482,6 @@ return new Promise(function(resolve, reject) {
       childModels[field] = model.modelMap[field];
     }
   }
-  console.log(childModels);
   ormClass.findAll({ where: { id: id }})
   .then(function(result) {
     if (result.length == 0) {
@@ -488,7 +489,6 @@ return new Promise(function(resolve, reject) {
       return;
     }
     var modelDataValues = result[0].dataValues;
-    console.log(modelDataValues);
     for (cm in childModels) {
       var cmId = modelDataValues[cm+"Id"];
       if (cmId) {
@@ -498,7 +498,6 @@ return new Promise(function(resolve, reject) {
         delete childModels[cm];
       }
     }
-    console.log(childModels);
     var childModelsGets = [];
     for (cm in childModels) {
       childModelsGets.push(getModelFromId(new childModels[cm].model, childModels[cm].id));
@@ -506,8 +505,6 @@ return new Promise(function(resolve, reject) {
     Promise.all(childModelsGets)
     .then(function(cmResults) {
 
-      console.log("Here2");
-      console.log(cmResults);
       for (var i = 0; i < cmResults.length; i++) {
         var r = cmResults[i];
         for (key in r) {
@@ -532,6 +529,196 @@ return new Promise(function(resolve, reject) {
 });
 }
 
+var logicOperations = ['$or', '$and'];
+
+function getChildModelPromises(query, model, apiVersion) {
+  var pointers = {};
+  for (var condition in query) {
+    if (logicOperations.indexOf(condition) >= 0) {
+      var recursiveResults = getChildModelPromises(query, model, apiVersion);
+      for (var rr in recursiveResults) {
+        pointers['/'+condition+rr] = recursiveResults[rr];
+      }
+    } else if(!model.modelMap[condition]) {
+      log.warn("No key in " + model.name + "called '"+condition+"'");
+    } else if(model.modelMap[condition].model) {
+      var childModel = new model.modelMap[condition].model;
+      pointers['/'+condition] = childModel.query(query[condition], apiVersion);
+
+    }
+  }
+  return pointers;
+}
+
+
+function getModelsFromQuery(query, model, apiVersion) {
+  return new Promise(function(resolve, reject) {
+    var childPromises = getChildModelPromises(query, model, apiVersion);
+    jsonPromises(childPromises)
+    .then(function(childPromisesResults) {
+      var childIds = {};
+      for (var cpr in childPromisesResults) {
+        var idList = [];
+        for (var cp in childPromisesResults[cpr]) {
+          idList.push(childPromisesResults[cpr][cp].id);
+        }
+        childIds[cpr] = {$in: idList}
+      }
+      var cat = jsonPointerJoiner(query, childIds);
+      return {ormClass: model.ormClass,
+        query: {where: cat}
+      }
+    })
+    .then(findAll)
+    .then(function(res) {
+      log.debug("Number of query results for "+model.name+":", res.length);
+      resolve(res);
+    })
+    .catch(function(err) {
+      log.error("Error in getModelsFromQuery");
+      reject(err);
+    });
+  });
+}
+
+function findAll(data) {
+  return new Promise(function(resolve, reject) {
+    data.ormClass.findAll(data.query)
+    .then(function(res) {
+      resolve(res);
+    })
+    .catch(function(err) {
+      log.error("Error with query.");
+      reject(err);
+    })
+  });
+}
+
+function itterateThroughQuery(query, model, apiVersion) {
+  log.debug('Itterate Through this:', query);
+  return new Promise(function(resolve, reject) {
+
+    var pointers = {};
+    for (var key in query) {
+      if (logicOperations.indexOf(key) >= 0) {
+        var recursiveResult = itterateThroughQuery(query[key])
+        for (var k in recursiveResult) {
+          pointers['/'+key+k] = rec[k];
+        }
+      } else if (!model.modelMap[key]) {
+        log.warn("No key in " + model.name + " called '" + key+"'");
+        reject("No key in " + model.name + " called '" + key+"'");
+        return;
+      } else if (model.modelMap[key].model){
+        pointers['/'+key] = model.modelMap[key].model(query[key], apiVersion);
+      }
+    }
+    jsonPromises(pointers)
+    .then(function(result) {
+      resolve(jsonPointerJoiner(query, pointers));
+    })
+    .catch(function(err) {
+      log.error("Error:", err);
+    })
+  });
+}
+
+function jsonPointerJoiner(json, pointers) {
+  for (key in pointers) {
+    pointer.remove(json, key);
+    pointer.set(json, key+"Id", pointers[key]);
+  }
+  return json;
+}
+
+function jsonPromises(promiseJson){
+  return new Promise(function(resolve, reject) {
+    var jsonKeys = [];
+    var promises = [];
+    var res = {};
+    for (var key in promiseJson) {
+      jsonKeys.push(key);
+      promises.push(promiseJson[key]);
+    }
+    Promise.all(promises)
+    .then(function(values) {
+      for (var i = 0; i<values.length; i++) {
+        res[jsonKeys[i]] = values[i]
+      }
+      resolve(res);
+    }, function(error) {
+      reject(error);
+    });
+  });
+}
+
+function getModelsJsonFromQuery(q, model, apiVersion) {
+  return new Promise(function(resolve, reject) {
+    getModelsFromQuery(q, model, apiVersion)  //Get list of models
+    .then(function(res) {
+
+      //Get list of dataValues
+      var models = [];
+      for (var modelResult in res) {
+        models.push(res[modelResult].dataValues);
+      }
+      //Get list of childModels to query
+      var childModels = {};
+      var childModelPromises = {};
+      for (var i in models) {
+        data = models[i];
+        //Going thrugh child models in data.
+
+        for (var key in data) {
+          var len = key.length;
+          var idStr = key.substr(len-2, 2);
+          var modelName = key.substr(0, len-2);
+          var isModel = (idStr == "Id" && model.modelMap[modelName]);
+
+          if (isModel) {
+            var childModel = new model.modelMap[modelName].model();
+
+            //Exit if not audioFile, used for testing.
+            //if (model.modelMap[modelName].model == AudioFile || model.modelMap[modelName].model == Location) {
+            if ( data[key] ) {
+              var queryJson = {"id":data[key]};
+              childModelPromises[data[key]] = childModel.query(queryJson, apiVersion);
+            }
+
+          }
+        }
+      }
+
+
+      //Getting child model data
+      jsonPromises(childModelPromises)
+      .then(function(childModelResults) {
+        for (var i in models) {
+          var dataValues = models[i];
+          for (var d in dataValues) {
+            if(childModelResults[dataValues[d]]) {
+              models[i][d] = childModelResults[dataValues[d]][0];
+
+            }
+          }
+        }
+        resolve(models);
+      })
+      .catch(function(err) {
+        log.error("Error with child promises.");
+        reject(err);
+      })
+    })
+    .catch(function(err) {
+      log.error("Error with model query.");
+      reject(err);
+    })
+  });
+}
+
 exports.parseModel = parseModel;
 exports.syncModel = syncModel;
 exports.getModelFromId = getModelFromId;
+exports.itterateThroughQuery = itterateThroughQuery;
+exports.getModelsFromQuery = getModelsFromQuery;
+exports.getModelsJsonFromQuery = getModelsJsonFromQuery;

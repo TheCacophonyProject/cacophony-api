@@ -96,24 +96,42 @@ module.exports = function(app) {
 
 	app.get(baseUrl+'/audioRecordings/:id', function(req, res) {
 		var id = req.params.id;
-		if (id) {
-			log.info('Request for getting audioRecording ' + id);
-			modelUtil.getModelFromId(new AudioRecording, id)
-			.then(function(result) {
-				res.end(JSON.stringify(result));
-			})
-			.catch(function(err) {
-				var errorJson = {"error": err};
-				log.error("Error with getting model." + err);
-				res.end(JSON.stringify(errorJson));
-			});
-		} else {
-			log.info('Request for search of audioRecording.');
-			//TODO get params from request then search database for matching params.
-		}
+
+		log.info('Request for getting audioRecording ' + id);
+		modelUtil.getModelFromId(new AudioRecording, id)
+		.then(function(result) {
+			res.end(JSON.stringify(result));
+		})
+		.catch(function(err) {
+			var errorJson = {"error": err};
+			log.error("Error with getting model." + err);
+			res.end(JSON.stringify(errorJson));
+		});
 	});
 
 
+	app.get(baseUrl+'/audioRecordings', function(req, res) {
+		var query = req.query.q;
+		log.info("Getting Audio recording query:", query);
+		if (query) {
+
+			query = JSON.parse(query);
+			ar = new AudioRecording();
+			ar.query(query, 1)
+			.then(function(result) {
+				log.info("Number of results:", result.length)
+				res.end(JSON.stringify(result));
+			})
+			.catch(function(err) {
+				log.error("Error in AudioRecording query.", err);
+				res.end("Error with query", err)
+			})
+			//res.end("Query found:" + query+"\n");
+		} else {
+			log.info('Get request with no params found.');
+			res.end("Error: No query found in URL params.\n");
+		}
+	});
 
 	/**
 	 * @api {post} /api/v1/videoRecordings Add VideoRecording
