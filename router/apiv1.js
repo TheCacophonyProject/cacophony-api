@@ -113,8 +113,7 @@ module.exports = function(app) {
 	app.get(baseUrl+'/audioRecordings', function(req, res) {
 		var query = req.query.q;
 		log.info("Getting Audio recording query:", query);
-		if (query) {
-
+		try {
 			query = JSON.parse(query);
 			ar = new AudioRecording();
 			ar.query(query, 1)
@@ -124,12 +123,13 @@ module.exports = function(app) {
 			})
 			.catch(function(err) {
 				log.error("Error in AudioRecording query.", err);
+				res.status(500);
 				res.end("Error with query", err)
 			})
-			//res.end("Query found:" + query+"\n");
-		} else {
-			log.info('Get request with no params found.');
-			res.end("Error: No query found in URL params.\n");
+		} catch (err) {
+			log.warn("Error with user query.", err);
+			res.status(400);
+			res.end("Error with query.", err);
 		}
 	});
 

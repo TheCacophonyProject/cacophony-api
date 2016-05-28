@@ -76,6 +76,7 @@ function queryDone(fullRes) {
 }
 
 function queryError(err) {
+  window.alert(JSON.stringify(err));
   console.log("Error with query");
   document.getElementById('result').value = "err"
 }
