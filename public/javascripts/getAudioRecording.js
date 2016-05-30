@@ -10,69 +10,40 @@ function query() {
 }
 
 function queryDone(fullRes) {
-  console.log(fullRes);
   fullRes = JSON.parse(fullRes);
-  res = [];
-  for (var dp in fullRes) {
-    var dataPoint = {};
-    dataPoint["id"] = fullRes[dp].id
-    dataPoint["startTimestamp"] = fullRes[dp].audioFileId.startTimestamp;
-    dataPoint["duration"] = fullRes[dp].audioFileId.duration;
-    dataPoint["fileLocation"] = fullRes[dp].audioFileId.fileLocation;
-    dataPoint["latitude"] = fullRes[dp].locationId.latitude;
-    dataPoint["longitude"] = fullRes[dp].locationId.longitude;
-    res.push(dataPoint);
-  }
+  console.log(fullRes);
+  clearTable();
+  for (var res in fullRes) {
+    var row = addEmptyRow();
 
+    // Parsing through Audio Recording fields.
+    for (var field in arFields) {
+      var index;  // Column index
+      var cell;     // Cell element
+      if (arFields[field].isChildModel) {
+        var arCmFields = arFields[field];
 
+        // Parsing through fields of child models.
+        for (cmField in arCmFields) {
+          if (cmField != "isChildModel") {
+            // Adding child field.
+            index = arCmFields[cmField].columnIndex;
+            cell = row.cells[index];
+            cell.innerHTML = fullRes[res][field][cmField];
+            if (!arFields[field][cmField].show) {
+              $(cell).hide();
+            }
+          }
+        }
+      } else {
+        // Adding field
+        index = arFields[field].columnIndex;
+        cell = row.cells[index];
+        cell.innerHTML = fullRes[res][field];
+      }
 
-
-  console.log(res);
-  var tbl = document.getElementById('results-table') // table reference
-  $("#results-table tr").remove();
-  $("#key-select li").remove();
-  console.log(tbl);
-  var row;
-  var cell;
-  var i = 0;
-
-  //Creating column lables and dropdown
-  row = tbl.insertRow(0);
-  var dropdown = document.getElementById("key-select");
-  console.log(dropdown);
-  var ddKey;
-  console.log(res[0]);
-  for (var key in res[0]) {
-    cell = row.insertCell(i);
-    cell.id = key+"-column";
-    cell.innerHTML = key;
-
-    ddKey = document.createElement("li");
-    var id = "dd-"+key;
-    var child = document.createElement("a");
-    child.innerHTML = "&#10004"+key;
-    child.id = "dd-"+key;
-    child.col = i;
-    child.onclick = toggleColumn;
-    ddKey.appendChild(child);
-    queryColums[key] = ddKey;
-    dropdown.appendChild(ddKey);
-    i++;
-  }
-
-
-
-  //Filling table with results.
-  for (var model in res) {
-    row = tbl.insertRow(tbl.rows.length);
-    i = 0;
-    for (var key in res[model]) {
-      cell = row.insertCell(i);
-      cell.innerHTML = res[model][key];
-      i++
     }
   }
-  document.getElementById('result').value = res;
 }
 
 function queryError(err) {
@@ -84,14 +55,26 @@ function queryError(err) {
 function toggleColumn(ele) {
   ele = ele.target;
   var key = ele.key;
-  console.log(ele.col);
-  if (ele.innerHTML.substr(0, 1) == "✔") {
-    ele.innerHTML = ele.innerHTML.substr(1);
-    showHideColumn(ele.col, false);
+  var show;
+
+  //Finding if the element is to be hidden or not.
+  if (ele.isChildField) {
+    show = !arFields[ele.field][ele.childField].show; //Oposite of what is currently is
+    arFields[ele.field][ele.childField].show = !arFields[ele.field][ele.childField].show;
   } else {
-    ele.innerHTML = "&#10004"+ele.innerHTML;
-    showHideColumn(ele.col, true);
+    show = !arFields[ele.field].show; //Oposite of what it currently is.
+    arFields[ele.field].show = !arFields[ele.field].show;
   }
+  //console.log(show);
+
+  if (show) {
+    ele.innerHTML = "&#10004"+ele.innerHTML;
+    showHideColumn(ele.columnIndex, true);
+  } else {
+    ele.innerHTML = ele.innerHTML.substr(1);
+    showHideColumn(ele.columnIndex, false);
+  }
+
 }
 
 function showHideColumn(nthChild, show) {
@@ -105,3 +88,114 @@ function showHideColumn(nthChild, show) {
 
 
 var queryColums = {};
+
+function generateTableColumns() {
+  var table = document.getElementById('results-table');
+  var dm = document.getElementById('key-select');
+  table.insertRow(0);
+  for (var field in arFields) {
+    var liElement = document.createElement("li");
+    var aElement = document.createElement("a");
+    aElement.href = "#";
+    //aElement.onclick = "toggleColumn";
+    aElement.innerHTML = field;
+    // Parse through child model fields
+    if (arFields[field].isChildModel) {
+      var childModelFields = arFields[field];
+      var childUlElement = document.createElement("ul");
+      childUlElement.className = "dropdown-menu";
+      liElement.className = "dropdown-submenu";
+
+      for (var childField in childModelFields) {
+        if (childField != "isChildModel") {
+          // Add new column for child field and saving index of column.
+          var childFieldName = field+"_"+childField
+          childModelFields[childField].columnIndex = appendColumn(childFieldName);
+          // Adding child submenu element.
+          var childLiElement = document.createElement("li");
+          var childAElement = document.createElement("a");
+          childAElement.href = "#";
+          if (childModelFields[childField].show) {
+            childAElement.innerHTML = "✔"+childField;
+          } else {
+            childAElement.innerHTML = childField;
+          }
+          showHideColumn(childModelFields[childField].columnIndex, childModelFields[childField].show);
+          childAElement.onclick = toggleColumn;
+          childAElement.columnIndex = childModelFields[childField].columnIndex;
+          childAElement.childField = childField;
+          childAElement.isChildField = true;
+          childAElement.field = field;
+          //childLiElement.onclick = toggleColumn;
+          childLiElement.appendChild(childAElement);
+          childUlElement.appendChild(childLiElement);
+        }
+      }
+      // Add dropdown-menu
+      liElement.appendChild(aElement);
+      liElement.appendChild(childUlElement);
+      dm.appendChild(liElement);
+    }
+    // Add new column for field and saving index of column.
+    else {
+      arFields[field].columnIndex = appendColumn(field);
+      if (arFields[field].show) {
+        aElement.innerHTML = "✔"+field;
+      } else {
+        aElement.innerHTML = field;
+      }
+      showHideColumn(arFields[field].columnIndex, arFields[field].show);
+      aElement.onclick = toggleColumn;
+      aElement.columnIndex = arFields[field].columnIndex;
+      aElement.isChildField = false;
+      aElement.field = field;
+      liElement.appendChild(aElement);
+      dm.appendChild(liElement);
+    }
+  }
+  console.log(arFields);
+}
+
+function appendColumn(name) {
+  console.log("Appending column:", name);
+  var table = document.getElementById('results-table');
+  var row = table.rows[0];
+  var index = row.cells.length;
+  var columnLable = row.insertCell(index);
+  columnLable.innerHTML = name;
+  return index;
+}
+
+function addEmptyRow() {
+  var table = document.getElementById('results-table');
+  var row = table.insertRow(table.rows.length);
+  for (var i = 0; i < table.rows[0].cells.length; i++) {
+    var cell = row.insertCell(i);
+  }
+  return row;
+}
+
+var arFields = {
+  id: {show: true},
+  audioFileId: {
+    isChildModel: true,
+    startTimestamp: {show: true},
+    duration: {show: true},
+    fileLocation: {show: true}
+  },
+  locationId: {
+    isChildModel: true,
+    latitude: {show: true},
+    longitude: {show: false}
+  }
+}
+
+function clearTable() {
+  var table = document.getElementById('results-table');
+  var rowCount = table.rows.length;
+  while(--rowCount) table.deleteRow(rowCount);
+}
+
+window.onload = function() {
+  generateTableColumns();
+}
