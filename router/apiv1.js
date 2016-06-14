@@ -167,4 +167,20 @@ module.exports = function(app) {
 	});
 
 
+	/**
+	 *
+	 */
+	app.get(baseUrl+'/getFile', function(req, res) {
+		var fileDir = req.query.file;
+		modelUtil.getFileSignedUrl(fileDir)
+		.then(function(fileUrl) {
+			res.end("<a href="+fileUrl+">"+fileUrl+"</a>");
+		})
+		.catch(function(err) {
+			log.error("Error with getting file", err);
+			res.status(500);
+			res.end("Error with query", err)
+		});
+	});
+
 }

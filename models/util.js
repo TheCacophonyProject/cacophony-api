@@ -7,6 +7,7 @@ var pointer = require('json-pointer');
 var orm = require('./orm');
 var AudioFile = require('./audioFile');
 var Location = require('./location');
+var AWS  = require('aws-sdk');
 
 // Models util
 // ===========
@@ -716,9 +717,35 @@ function getModelsJsonFromQuery(q, model, apiVersion) {
   });
 }
 
+function getFileSignedUrl(fileDir) {
+  
+  return new Promise(function(resolve, reject) {
+    AWS.config.update({
+      accessKeyId: config.s3.publicKey,
+      secretAccessKey: config.s3.privateKey,
+      region: config.s3.region}
+    );
+    var s3 = new AWS.S3();
+
+    var params = {
+      Bucket: config.s3.bucket,
+      Key: fileDir
+    };
+
+    s3.getSignedUrl('getObject', params, function(err, url) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(url);
+      }
+    });
+  });
+};
+
 exports.parseModel = parseModel;
 exports.syncModel = syncModel;
 exports.getModelFromId = getModelFromId;
 exports.itterateThroughQuery = itterateThroughQuery;
 exports.getModelsFromQuery = getModelsFromQuery;
 exports.getModelsJsonFromQuery = getModelsJsonFromQuery;
+exports.getFileSignedUrl = getFileSignedUrl;
