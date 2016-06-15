@@ -29,7 +29,12 @@ function queryDone(fullRes) {
             // Adding child field.
             index = arCmFields[cmField].columnIndex;
             cell = row.cells[index];
-            cell.innerHTML = fullRes[res][field][cmField];
+            if (cmField == "fileLocation") {
+              cell.appendChild(fileLink(fullRes[res][field][cmField]));
+            } else {
+              cell.innerHTML = fullRes[res][field][cmField];
+            }
+
             if (!arFields[field][cmField].show) {
               $(cell).hide();
             }
@@ -194,6 +199,14 @@ function clearTable() {
   var table = document.getElementById('results-table');
   var rowCount = table.rows.length;
   while(--rowCount) table.deleteRow(rowCount);
+}
+
+function fileLink(fileName) {
+  linkElement = document.createElement("a");
+  uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
+  linkElement.setAttribute('href', uri);
+  linkElement.innerHTML = fileName;
+  return linkElement;
 }
 
 window.onload = function() {
