@@ -25,13 +25,9 @@ html
         label.col-sm-2.control-label.text-right(for='latitude') Send
         .col-sm-8
           input(type='button', onclick='query();', value='sendQuery')
-html.
-  <div class="dropdown">
-      <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Keys
-      <span class="caret"></span></button>
-      <ul class="dropdown-menu" id="key-select">
-      </ul>
-  </div>
 
-  <table class="table table-striped" id="results-table">
-  </table>
+  div(class="dropdown")
+      button(class="btn btn-default dropdown-toggle", type="button" data-toggle="dropdown") Keys
+        span(class="caret")
+      ul(class="dropdown-menu" id="key-select")
+  table(class="table table-striped" id="results-table")

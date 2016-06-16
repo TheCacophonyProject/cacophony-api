@@ -1,3 +1,6 @@
+/**
+ * Does an API get request for an audio recording using the value in the userQuery element.
+ */
 function query() {
   console.log("Quering with:");
   var q = document.getElementById('userQuery').value;
@@ -9,9 +12,12 @@ function query() {
   });
 }
 
+/**
+ * Called on an successful query.
+ * Clears the results-table and fill with new results
+ */
 function queryDone(fullRes) {
   fullRes = JSON.parse(fullRes);
-  console.log(fullRes);
   clearTable();
   for (var res in fullRes) {
     var row = addEmptyRow();
@@ -46,7 +52,6 @@ function queryDone(fullRes) {
         cell = row.cells[index];
         cell.innerHTML = fullRes[res][field];
       }
-
     }
   }
 }
@@ -57,21 +62,24 @@ function queryError(err) {
   document.getElementById('result').value = "err"
 }
 
+/**
+ * Toggle the column view for the given element.
+ */
 function toggleColumn(ele) {
   ele = ele.target;
   var key = ele.key;
   var show;
 
   //Finding if the element is to be hidden or not.
-  if (ele.isChildField) {
+  if (ele.isChildField) { //Methods of getting the current state differ if is is a child fied.
     show = !arFields[ele.field][ele.childField].show; //Oposite of what is currently is
-    arFields[ele.field][ele.childField].show = !arFields[ele.field][ele.childField].show;
+    arFields[ele.field][ele.childField].show = show;
   } else {
     show = !arFields[ele.field].show; //Oposite of what it currently is.
-    arFields[ele.field].show = !arFields[ele.field].show;
+    arFields[ele.field].show = show;
   }
-  //console.log(show);
 
+  // Adding/removing the <tick> symbol from the dropdown menu
   if (show) {
     ele.innerHTML = "&#10004"+ele.innerHTML;
     showHideColumn(ele.columnIndex, true);
@@ -79,11 +87,10 @@ function toggleColumn(ele) {
     ele.innerHTML = ele.innerHTML.substr(1);
     showHideColumn(ele.columnIndex, false);
   }
-
 }
 
 function showHideColumn(nthChild, show) {
-  console.log(++nthChild);
+  nthChild++;
   if (show){
     $('td:nth-child('+nthChild+')').show();
   } else {
@@ -94,6 +101,12 @@ function showHideColumn(nthChild, show) {
 
 var queryColums = {};
 
+/**
+ * Generates the colums for the results-table.
+ * Makes a column from each field in the arFields variable.
+ * Will
+ *
+ */
 function generateTableColumns() {
   var table = document.getElementById('results-table');
   var dm = document.getElementById('key-select');
@@ -161,6 +174,10 @@ function generateTableColumns() {
   console.log(arFields);
 }
 
+/**
+ * Adds a column to the resuts table with the given name.
+ * Returns the column index.
+ */
 function appendColumn(name) {
   console.log("Appending column:", name);
   var table = document.getElementById('results-table');
@@ -171,6 +188,10 @@ function appendColumn(name) {
   return index;
 }
 
+/**
+ * Adds an empty row to results-table.
+ * Returns the row number.
+ */
 function addEmptyRow() {
   var table = document.getElementById('results-table');
   var row = table.insertRow(table.rows.length);
@@ -180,6 +201,10 @@ function addEmptyRow() {
   return row;
 }
 
+
+// JSON of the fields in the audio recording.
+// TODO, auto generate this from model.
+// This is used in creting the table and getting the results from a query.
 var arFields = {
   id: {show: true},
   audioFileId: {
@@ -195,12 +220,18 @@ var arFields = {
   }
 }
 
+/**
+ * This clears the result table apart from the first row.
+ */
 function clearTable() {
   var table = document.getElementById('results-table');
   var rowCount = table.rows.length;
   while(--rowCount) table.deleteRow(rowCount);
 }
 
+/**
+ * Returns a hyperlink eement (a) that links to a download page for the file given.
+ */
 function fileLink(fileName) {
   linkElement = document.createElement("a");
   uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
