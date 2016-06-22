@@ -22,6 +22,7 @@ module.exports = function(data) {
     uploadTimestamp: {},            // Timestamp when the file was uploaded using ISO 8601.
     fileLocation: { file: true },   // Location of the file in the S3 server.
     startTimestamp: {},             // Timestamp of when the recording started using ISO 8601.
+    recordingDate: {},              // Date of recording.
     duration: {},                   // Duration of recording in seconds.
     fileExtension: {},              // The file extension.
     mimeType: {},                   // MimeType of file.

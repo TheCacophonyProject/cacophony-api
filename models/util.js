@@ -124,7 +124,7 @@ function parseFile(model, data) {
       var file = data.__file;
       if (data.startTimestamp) {
         try {
-          date = new Date(data.startTimestamp);
+          date = new Date(data.recordingDate+" "+data.startTimestamp);
         } catch (err) {
           log.warn('Error from parding timestamp:', err);
           date = new Date();
@@ -718,7 +718,7 @@ function getModelsJsonFromQuery(q, model, apiVersion) {
 }
 
 function getFileSignedUrl(fileDir) {
-  
+
   return new Promise(function(resolve, reject) {
     AWS.config.update({
       accessKeyId: config.s3.publicKey,
