@@ -37,8 +37,9 @@ function queryDone(fullRes) {
               // Adding child field.
               index = arCmFields[cmField].columnIndex;
               cell = row.cells[index];
-              if (cmField == "fileLocation") {
-                cell.appendChild(fileLink(fullRes[res][field][cmField]));
+              var parseFunction = arCmFields[cmField].parseFunction;
+              if (parseFunction) { // Has customem parse function.
+                cell.appendChild(parseFunction(fullRes[res][field][cmField]));
               } else {
                 cell.innerHTML = fullRes[res][field][cmField];
               }
@@ -205,23 +206,6 @@ function addEmptyRow() {
 }
 
 
-// JSON of the fields in the audio recording.
-// TODO, auto generate this from model.
-// This is used in creting the table and getting the results from a query.
-var arFields = {
-  id: {show: true},
-  audioFileId: {
-    isChildModel: true,
-    startTimestamp: {show: true},
-    duration: {show: true},
-    fileLocation: {show: true}
-  },
-  locationId: {
-    isChildModel: true,
-    latitude: {show: true},
-    longitude: {show: false}
-  }
-}
 
 /**
  * This clears the result table apart from the first row.
@@ -230,17 +214,6 @@ function clearTable() {
   var table = document.getElementById('results-table');
   var rowCount = table.rows.length;
   while(--rowCount) table.deleteRow(rowCount);
-}
-
-/**
- * Returns a hyperlink eement (a) that links to a download page for the file given.
- */
-function fileLink(fileName) {
-  linkElement = document.createElement("a");
-  uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
-  linkElement.setAttribute('href', uri);
-  linkElement.innerHTML = fileName;
-  return linkElement;
 }
 
 window.onload = function() {
@@ -284,4 +257,55 @@ function generateQuery() {
 
   $("#query-input")[0].value = JSON.stringify(query);
 
+}
+
+// JSON of the fields in the audio recording.
+// TODO, auto generate this from model.
+// This is used in creting the table and getting the results from a query.
+// The parseunctions are uses to generate the element that spans the cell in the tabe.
+var arFields = {
+  id: {show: true},
+  audioFileId: {
+    isChildModel: true,
+    startTimestamp: {show: true},
+    recordingDateTime: {show: true, parseFunction: parseRecordingDateTime},
+    duration: {show: true, parseFunction: parseDuration},
+    fileLocation: {show: true, parseFunction: parseFileLocation}
+  },
+  locationId: {
+    isChildModel: true,
+    latitude: {show: false},
+    longitude: {show: false}
+  }
+}
+
+/**
+ * Returns a hyperlink eement (a) that links to a download page for the file given.
+ */
+function parseFileLocation(fileName) {
+  linkElement = document.createElement("a");
+  uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
+  linkElement.setAttribute('href', uri);
+  linkElement.innerHTML = 'Download';
+  return linkElement;
+}
+
+function parseRecordingDateTime(date) {
+  var pElement = document.createElement("p");
+  var d = new Date(date);
+  pElement.innerHTML = d.getDay() +"/"+d.getMonth()+1+"/"+d.getFullYear();
+  return pElement;
+}
+
+function parseDuration(duration) {
+  var pElement = document.createElement("p");
+  var minutes = Math.floor(duration / 60);
+  var seconds = duration % 60;
+  pElement.innerHTML = pad(minutes, 2)+":"+pad(seconds, 2);
+  return pElement;
+}
+
+function pad(n, width) {
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
 }
