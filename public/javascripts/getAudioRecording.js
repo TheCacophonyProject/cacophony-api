@@ -3,7 +3,7 @@
  */
 function query() {
   console.log("Quering with:");
-  var q = document.getElementById('userQuery').value;
+  var q = document.getElementById('query-input').value;
   $.ajax({
     url: '/api/v1/audioRecordings\?q\='+encodeURI(q),
     type: 'GET',
@@ -24,33 +24,36 @@ function queryDone(fullRes) {
 
     // Parsing through Audio Recording fields.
     for (var field in arFields) {
-      var index;  // Column index
-      var cell;     // Cell element
-      if (arFields[field].isChildModel) {
-        var arCmFields = arFields[field];
+      if (fullRes[res][field]) {
 
-        // Parsing through fields of child models.
-        for (cmField in arCmFields) {
-          if (cmField != "isChildModel") {
-            // Adding child field.
-            index = arCmFields[cmField].columnIndex;
-            cell = row.cells[index];
-            if (cmField == "fileLocation") {
-              cell.appendChild(fileLink(fullRes[res][field][cmField]));
-            } else {
-              cell.innerHTML = fullRes[res][field][cmField];
-            }
+        var index;  // Column index
+        var cell;     // Cell element
+        if (arFields[field].isChildModel) {
+          var arCmFields = arFields[field];
 
-            if (!arFields[field][cmField].show) {
-              $(cell).hide();
+          // Parsing through fields of child models.
+          for (cmField in arCmFields) {
+            if (cmField != "isChildModel") {
+              // Adding child field.
+              index = arCmFields[cmField].columnIndex;
+              cell = row.cells[index];
+              if (cmField == "fileLocation") {
+                cell.appendChild(fileLink(fullRes[res][field][cmField]));
+              } else {
+                cell.innerHTML = fullRes[res][field][cmField];
+              }
+
+              if (!arFields[field][cmField].show) {
+                $(cell).hide();
+              }
             }
           }
+        } else {
+          // Adding field
+          index = arFields[field].columnIndex;
+          cell = row.cells[index];
+          cell.innerHTML = fullRes[res][field];
         }
-      } else {
-        // Adding field
-        index = arFields[field].columnIndex;
-        cell = row.cells[index];
-        cell.innerHTML = fullRes[res][field];
       }
     }
   }
@@ -242,4 +245,43 @@ function fileLink(fileName) {
 
 window.onload = function() {
   generateTableColumns();
+
+  // set onclick functions
+  $("#start-time-check").click(function(){
+      $("#start-time-start").attr('disabled', !this.checked);
+      $("#start-time-end").attr('disabled', !this.checked);
+  });
+  $("#date-check").click(function(){
+      $("#date-start").attr('disabled', !this.checked);
+      $("#date-end").attr('disabled', !this.checked);
+  });
+  $("#duration-check").click(function(){
+      $("#duration-min").attr('disabled', !this.checked);
+      $("#duration-max").attr('disabled', !this.checked);
+  });
+  $("#generate-query-button").click(generateQuery);
+  $("#send-query").click(query);
+}
+
+function generateQuery() {
+  console.log("Generating query.");
+  var query = {};
+  // Recording Time
+  if ($("#start-time-check")[0].checked) {
+    if (!query.audioFile) query.audioFile = {};
+    query.audioFile.startTimestamp = {$gte: $("#start-time-start")[0].value, $lte: $("#start-time-end")[0].value};
+  }
+  // Recording Date
+  if ($("#date-check")[0].checked) {
+    if (!query.audioFile) query.audioFile = {};
+    query.audioFile.recordingDate = {$gte: $("#date-start")[0].value, $lte: $("#date-end")[0].value};
+  }
+  // Recording Duration
+  if ($("#duration-check")[0].checked) {
+    if (!query.audioFile) query.audioFile = {};
+    query.audioFile.duration = {$gte: $("#duration-min")[0].value, $lte: $("#duration-max")[0].value};
+  }
+
+  $("#query-input")[0].value = JSON.stringify(query);
+
 }
