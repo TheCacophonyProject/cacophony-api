@@ -21,7 +21,7 @@ module.exports = function(data) {
     uploadTimestamp: {},            // Timestamp when the file was uploaded using ISO 8601.
     fileLocation: { file: true },   // location of file in S3 server.
     startTimestamp: {},             // Timestamp of when the recording started.
-    recordingDate: {},               // Date of recording.
+    recordingDateTime: {},          // DateTime of recording.
     duration: {},                   // Duration of audio recording in seconds.
     fileExtension: {},              // The file extension.
     mimeType: {},                   // The mineType.

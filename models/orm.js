@@ -165,7 +165,7 @@ var videoFile = sequelize.define('videoFile', {
     type: Sequelize.TIME,
     defaultValue: null
   },
-  recordingDate: {
+  recordingDateTime: {
     type: Sequelize.DATE,
     defaultValue: null
   },
@@ -242,7 +242,7 @@ var audioFile = sequelize.define('audioFile', {
     type: Sequelize.TIME,
     defaultValue: null,
   },
-  recordingDate: {
+  recordingDateTime: {
     type: Sequelize.DATE,
     defaultValue: null,
   },
