@@ -16,4 +16,9 @@ module.exports = function(app) {
     log.debug("Get audio recording page");
     response.render('getAudioRecordings.jade')
   })
+
+  app.get('/GetVideoRecording', function(request, response) {
+    log.debug("Get video recording page");
+    response.render('getVideoRecordings.jade')
+  })
 }

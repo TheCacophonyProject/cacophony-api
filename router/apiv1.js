@@ -166,6 +166,28 @@ module.exports = function(app) {
 		});
 	});
 
+	app.get(baseUrl+'/videoRecordings', function(req, res) {
+		var query = req.query.q;
+		log.info("Getting Video recording query:", query);
+		try {
+			query = JSON.parse(query);
+			vr = new VideoRecording();
+			vr.query(query, 1)
+			.then(function(result) {
+				log.info("Number of results:", result.length)
+				res.end(JSON.stringify(result));
+			})
+			.catch(function(err) {
+				log.error("Error in VideoRecording query.", err);
+				res.status(500);
+				res.end("Error with query", err)
+			})
+		} catch (err) {
+			log.warn("Error with user query.", err);
+			res.status(400);
+			res.end("Error with query.", err);
+		}
+	});
 
 	/**
 	 *
