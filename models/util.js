@@ -124,7 +124,7 @@ function parseFile(model, data) {
       var file = data.__file;
       if (data.startTimestamp) {
         try {
-          date = new Date(data.recordingDateTime+" "+data.startTimestamp);
+          date = new Date(data.recordingDateTime);
         } catch (err) {
           log.warn('Error from parding timestamp:', err);
           date = new Date();

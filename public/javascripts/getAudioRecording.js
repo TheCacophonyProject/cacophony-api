@@ -247,7 +247,7 @@ function generateQuery() {
   // Recording Date
   if ($("#date-check")[0].checked) {
     if (!query.audioFile) query.audioFile = {};
-    query.audioFile.recordingDate = {$gte: $("#date-start")[0].value, $lte: $("#date-end")[0].value};
+    query.audioFile.recordingDateTime = {$gte: $("#date-start")[0].value, $lte: $("#date-end")[0].value};
   }
   // Recording Duration
   if ($("#duration-check")[0].checked) {
@@ -293,7 +293,7 @@ function parseFileLocation(fileName) {
 function parseRecordingDateTime(date) {
   var pElement = document.createElement("p");
   var d = new Date(date);
-  pElement.innerHTML = d.getDay() +"/"+d.getMonth()+1+"/"+d.getFullYear();
+  pElement.innerHTML = d.getDate() +"/"+(d.getMonth()+1)+"/"+d.getFullYear();
   return pElement;
 }
 
