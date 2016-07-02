@@ -21,4 +21,9 @@ module.exports = function(app) {
     log.debug("Get video recording page");
     response.render('getVideoRecordings.jade')
   })
+
+  app.get('/ping', function(request, response) {
+    log.debug("Ping!");
+    response.end('pong');
+  })
 }
