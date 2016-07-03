@@ -8,6 +8,7 @@ var orm = require('./orm');
 var AudioFile = require('./audioFile');
 var Location = require('./location');
 var AWS  = require('aws-sdk');
+var path = require('path');
 
 // Models util
 // ===========
@@ -141,14 +142,14 @@ function parseFile(model, data) {
       var month = date.getMonth();
 
       var md5sum = crypto.createHash('md5');
-
+      var extension = path.extname(file.name);
       var s = fs.ReadStream(file.path);
       s.on('data', function(d) {
         md5sum.update(d);
       });
       s.on('end', function() {
         var h = md5sum.digest('hex');
-        var path = year+'/'+month+'/'+dateISOString+'_'+h;
+        var path = year+'/'+month+'/'+dateISOString+'_'+h+extension;
         file.hash = h;
         file.uploadPath = path;
         model.fileLocationField = path;
