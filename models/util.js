@@ -121,16 +121,21 @@ function parseFile(model, data) {
   return new Promise(function(resolve, reject) {
     try {
       var date;
+      var dateISOString;
       var file = data.__file;
       if (data.startTimestamp) {
         try {
           date = new Date(data.recordingDateTime);
+          dateISOString = date.toISOString();
         } catch (err) {
-          log.warn('Error from parding timestamp:', err);
+          log.warn('Error from parsing recordingDateTime:', err);
+          log.warn('recordingDateTime', data.recordingDateTime);
           date = new Date();
+          dateISOString = date.toISOString();
         }
       } else {
         date = new Date();
+        dateISOString = date.toISOString();
       }
       var year = date.getFullYear();
       var month = date.getMonth();
@@ -143,7 +148,7 @@ function parseFile(model, data) {
       });
       s.on('end', function() {
         var h = md5sum.digest('hex');
-        var path = year+'/'+month+'/'+date.toISOString()+'_'+h;
+        var path = year+'/'+month+'/'+dateISOString+'_'+h;
         file.hash = h;
         file.uploadPath = path;
         model.fileLocationField = path;
