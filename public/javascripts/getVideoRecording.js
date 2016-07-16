@@ -53,7 +53,13 @@ function queryDone(fullRes) {
           // Adding field
           index = vrFields[field].columnIndex;
           cell = row.cells[index];
-          cell.innerHTML = fullRes[res][field];
+          var parseFunction = vrFields[field].parseFunction;
+          var fieldVal = fullRes[res][field];
+          if (parseFunction) {
+            cell.appendChild(parseFunction(fieldVal))
+          } else {
+            cell.innerHTML = fullRes[res][field];
+          }
         }
       }
     }
@@ -264,7 +270,7 @@ function generateQuery() {
 // This is used in creting the table and getting the results from a query.
 // The parseunctions are uses to generate the element that spans the cell in the tabe.
 var vrFields = {
-  id: {show: true},
+  id: {show: true, parseFunction: parseId},
   videoFileId: {
     isChildModel: true,
     startTimestamp: {show: true},
@@ -286,6 +292,7 @@ function parseFileLocation(fileName) {
   linkElement = document.createElement("a");
   uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
   linkElement.setAttribute('href', uri);
+  linkElement.setAttribute('target', '_blank');
   linkElement.innerHTML = 'Download';
   return linkElement;
 }
@@ -303,6 +310,15 @@ function parseDuration(duration) {
   var seconds = duration % 60;
   pElement.innerHTML = pad(minutes, 2)+":"+pad(seconds, 2);
   return pElement;
+}
+
+function parseId(id) {
+  var linkElement = document.createElement("a");
+  uri = "/ViewVideo/"+id
+  linkElement.setAttribute('href', uri);
+  linkElement.setAttribute('target', '_blank');
+  linkElement.innerHTML = 'View Recording'
+  return linkElement;
 }
 
 function pad(n, width) {

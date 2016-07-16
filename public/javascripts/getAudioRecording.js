@@ -286,6 +286,7 @@ function parseFileLocation(fileName) {
   linkElement = document.createElement("a");
   uri = "/api/v1/getFile\?file\="+encodeURI(fileName);
   linkElement.setAttribute('href', uri);
+  linkElement.setAttribute('target', '_blank');
   linkElement.innerHTML = 'Download';
   return linkElement;
 }
