@@ -11,7 +11,8 @@ var modelLayout = {
     _childModel: true,
     latitude: {show: false},
     longitude: {show: false}
-  }
+  },
+  tags: {show: true, parseFunction: parseTags}
 }
 
 var apiUrl = '/api/v1/audioRecordings';

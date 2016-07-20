@@ -70,6 +70,33 @@ module.exports = function(app) {
 		});
 	});
 
+	app.put(baseUrl+'/audioRecordingsTags/:id', function(request, response) {
+		var types = ['replace'];	// more types will be added, (add, delete, deleteAll)
+		var tags = request.query.tags;
+		var type = 'replace';	// default value.
+		if (request.query.type)
+			type = request.query.type;
+		var id = request.params.id;
+		log.debug('AudioRecording put request for ', id);
+		try {
+			tags = JSON.parse(tags);
+		} catch (err) {
+			log.debug('Error with parsing tags', tags);
+			response.status(400);
+			response.end('Error with parsing tags: ' + tags);
+		}
+		modelUtil.updateTags(new AudioRecording, id, tags, type)
+		.then(function(result) {
+			log.debug('Updated AudioRecording tags');
+			response.end('Updated tags');
+		})
+		.catch(function(err) {
+			log.debug('Error with updating tags', err);
+			response.status(500);
+			response.end('Error with updating tags: '+ err);
+		});
+	});
+
 	/**
 	 * @api {get} /api/v1/audioRecordings/:id Get AudioRecording
 	 * @apiName GetAudioRecording
@@ -165,6 +192,34 @@ module.exports = function(app) {
 			});
 		});
 	});
+
+	app.put(baseUrl+'/videoRecordingsTags/:id', function(request, response) {
+		var types = ['replace'];	// more types will be added, (add, delete, deleteAll)
+		var tags = request.query.tags;
+		var type = 'replace';	// default value.
+		if (request.query.type)
+			type = request.query.type;
+		var id = request.params.id;
+		log.debug('VideoRecording put request for ', id);
+		try {
+			tags = JSON.parse(tags);
+		} catch (err) {
+			log.debug('Error with parsing tags', tags);
+			response.status(400);
+			response.end('Error with parsing tags: ' + tags);
+		}
+		modelUtil.updateTags(new VideoRecording, id, tags, type)
+		.then(function(result) {
+			log.debug('Updated AudioRecording tags');
+			response.end('Updated tags');
+		})
+		.catch(function(err) {
+			log.debug('Error with updating tags', err);
+			response.status(500);
+			response.end('Error with updating tags: '+ err);
+		});
+	});
+
 
 	app.get(baseUrl+'/videoRecordings', function(req, res) {
 		var query = req.query.q;

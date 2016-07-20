@@ -748,6 +748,33 @@ function getFileSignedUrl(fileDir) {
   });
 };
 
+function updateTags(model, id, tags, type){
+  switch (type) {
+    case 'replace':
+      return replaceTags(model, id, tags);
+      break;
+    default:
+      log.warn('No tags type opperation:', type);
+  }
+};
+
+function replaceTags(model, id, tags) {
+  log.verbose("Replacing tags on "+model.name+": "+id+" to "+JSON.stringify(tags));
+  return new Promise(function(resolve, reject) {
+    model.ormClass.update({tags:tags}, {where:{id:id}})
+    .then(function(result) {
+      if (result[0] < 1)
+        reject("No models changed.");
+      else
+        resolve("Finished tag replacing.");
+    })
+    .catch(function(err) {
+      log.warn("Error with replacing tags.");
+      reject(err);
+    });
+  });
+};
+
 exports.parseModel = parseModel;
 exports.syncModel = syncModel;
 exports.getModelFromId = getModelFromId;
@@ -755,3 +782,4 @@ exports.itterateThroughQuery = itterateThroughQuery;
 exports.getModelsFromQuery = getModelsFromQuery;
 exports.getModelsJsonFromQuery = getModelsJsonFromQuery;
 exports.getFileSignedUrl = getFileSignedUrl;
+exports.updateTags = updateTags;

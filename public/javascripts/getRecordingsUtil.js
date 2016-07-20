@@ -36,6 +36,19 @@ function queryDone(models) {
     addEmptyRow();
     appendModelToTable(models[model])
   }
+  hideColums();
+  console.log(fields);
+}
+
+function hideColums() {
+  for (field in fields) {
+    if (fields[field].show) {
+      $('td:nth-child('+(fields[field].index+1)+')').show();
+      console.log(fields[field].index)
+    } else {
+      $('td:nth-child('+(fields[field].index+1)+')').hide();
+    }
+  }
 }
 
 /**
@@ -301,6 +314,12 @@ function parseVideoId(id) {
   linkElement.setAttribute('target', '_blank');
   linkElement.innerHTML = 'View Recording'
   return linkElement;
+}
+
+function parseTags(tags) {
+  var p = document.createElement("p");
+  p.innerHTML = JSON.stringify(tags);
+  return p;
 }
 
 function pad(n, width) {
