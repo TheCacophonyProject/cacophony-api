@@ -12,6 +12,7 @@ window.onload = function(){
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
   document.getElementById('location-text').innerHTML = getLocationText();
+  document.getElementById('tags-text').innerHTML = getTagsText();
 }
 
 function getRecordingDateText() {
@@ -35,5 +36,13 @@ function getLocationText(){
     return "Latitude: " + video.locationId.latitude + "  Longitude: " + video.locationId.longitude;
   } else {
     return "No location info given."
+  }
+}
+
+function getTagsText() {
+  if (video.tags) {
+    return JSON.stringify(video.tags);
+  } else {
+    return "No tags for recording."
   }
 }
