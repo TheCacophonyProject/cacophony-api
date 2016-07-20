@@ -3,6 +3,7 @@ html
   head
     title Cacophony Video Player
     link(href='../stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
     script(type='text/javascript').
       console.log('Console log test');
       var video = !{video};
@@ -23,6 +24,7 @@ html
         div.form-group
           label.col-xs-2.text-right Location:
           div#location-text.col-xs-6 Some Location
-        div.form-group
+        div.form-group.row
           label.col-xs-2.text-right Tags:
-          div#tags-text.col-xs-6 Some Tags
+          input#tags-text.col-xs-8(type='text')
+          input#update-tags.col-xs-1(type='button', value='Update', )

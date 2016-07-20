@@ -12,7 +12,8 @@ window.onload = function(){
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
   document.getElementById('location-text').innerHTML = getLocationText();
-  document.getElementById('tags-text').innerHTML = getTagsText();
+  document.getElementById('tags-text').value = getTagsText();
+  $("#update-tags").click(updateTags);
 }
 
 function getRecordingDateText() {
@@ -45,4 +46,33 @@ function getTagsText() {
   } else {
     return "No tags for recording."
   }
+}
+
+function updateTags() {
+  console.log("Update tags.");
+  var tags = document.getElementById('tags-text').value;
+  var id = video.id;
+  try {
+    JSON.parse(tags);
+    console.log("ID", id);
+    console.log("Tags", tags);
+    tags = encodeURIComponent(tags);
+    $.ajax({
+      url: '/api/v1/videoRecordingsTags/'+id+"?type=replace&tags="+tags,
+      type: 'PUT',
+      success: updateTagsSuccess,
+      error: updateTagsError
+    });
+  } catch (err) {
+    console.log("Error with updating tags", err);
+    window.alert("Error with updating tags: " +err);
+  }
+}
+
+function updateTagsSuccess() {
+  window.alert("Tags Updated.");
+}
+
+function updateTagsError(err) {
+  window.alert("Error with updating tags: "+JSON.stringify(err));
 }
