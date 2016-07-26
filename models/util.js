@@ -9,6 +9,7 @@ var AudioFile = require('./audioFile');
 var Location = require('./location');
 var AWS  = require('aws-sdk');
 var path = require('path');
+var cmd = require('node-cmd');
 
 // Models util
 // ===========
@@ -34,11 +35,14 @@ function parseModel(model, data) {
 			} else {
         modelData[key] = data[key];
 			}
-	  } else if (key == '__file') {  //This indicates that it is a file.
+	  }
+    /*
+    else if (key == '__file') {
       model.file = data[key];
       model.fileParser = parseFile(model, data);
     }
-    else {
+    */
+    else if (key != '__file') {
 	    log.error('Unrecognised key "' + key + '" in ' + model.name);
       log.error('Data:', data);
 		}
@@ -68,9 +72,11 @@ function syncModel(model){
     for (var childModel of model.childModels) {
       childModelsPromise.push(syncModel(childModel));
     }
+    /*
     if (model.fileParser) {
       childModelsPromise.push(model.fileParser);
     }
+    */
     Promise.all(childModelsPromise)
     .then(function(childModelResults) {
       for (var modelResult of childModelResults) {
@@ -104,75 +110,7 @@ function syncModel(model){
 }
 
 
-/**
- * Parses a file from a model. A timestamp is generated for the file if not found.
- * A file path is generated determined by the hash of the file and timestamp
- * [year]/[month]/[ISO 8601 timestamp + hash fo file]
- *
- * @method parseFile
- *
- * @param {Object} model    The model that is related to the file.
- * @param {Object} data     The data of the file. The important fields are data.__file (the file) and data.startTimestamp.
- *
- * @return {Promise} A promise that after hashing the file is resolved with 'file'.
- */
-
-function parseFile(model, data) {
-  log.verbose('Parsing file');
-  return new Promise(function(resolve, reject) {
-    try {
-      var date;
-      var dateISOString;
-      var file = data.__file;
-      if (data.startTimestamp) {
-        try {
-          date = new Date(data.recordingDateTime);
-          dateISOString = date.toISOString();
-        } catch (err) {
-          log.warn('Error from parsing recordingDateTime:', err);
-          log.warn('recordingDateTime', data.recordingDateTime);
-          date = new Date();
-          dateISOString = date.toISOString();
-        }
-      } else {
-        date = new Date();
-        dateISOString = date.toISOString();
-      }
-      var year = date.getFullYear();
-      var month = date.getMonth();
-
-      var md5sum = crypto.createHash('md5');
-      var extension = path.extname(file.name);
-      var s = fs.ReadStream(file.path);
-      s.on('data', function(d) {
-        md5sum.update(d);
-      });
-      s.on('end', function() {
-        var h = md5sum.digest('hex');
-        var path = year+'/'+month+'/'+dateISOString+'_'+h+extension;
-        file.hash = h;
-        file.uploadPath = path;
-        model.fileLocationField = path;
-        resolve('file');
-      });
-
-    } catch (err) {
-      log.error('Error when parsing file.');
-      reject(err);
-    }
-  });
-}
-
-
-/**
- * Uploads a file to the S3 service.
- * Path used on S3 server is file.uploadPath
- * @method uploadFile
- *
- * @param {Object} file   The file should have file.uploadPath and file.path (local path) set.
- */
-
-function uploadFile(file){
+function uploadFile(localPath, s3Path) {
   log.debug('Uploading file.');
 	var client = knox.createClient({
 		key: config.s3.publicKey
@@ -181,12 +119,10 @@ function uploadFile(file){
 	  , region: config.s3.region
 	});
 
-	var tempFilePath = file.path;
-	var filePath = file.uploadPath;
-	log.debug("Uploading file as:", filePath);
-	client.putFile(tempFilePath, filePath, function(err, res){
+	log.debug("Uploading file as:", s3Path);
+	client.putFile(localPath, s3Path, function(err, res){
 		if (err) {
-			log.error("Error with uploading file.");
+			log.error("Error with uploading file.", err);
 		} else if (res.statusCode != 200) {
 			log.error("Error with uploading file. Response code of:", res.statusCode);
       log.error(res);
@@ -783,3 +719,4 @@ exports.getModelsFromQuery = getModelsFromQuery;
 exports.getModelsJsonFromQuery = getModelsJsonFromQuery;
 exports.getFileSignedUrl = getFileSignedUrl;
 exports.updateTags = updateTags;
+exports.uploadFile = uploadFile;

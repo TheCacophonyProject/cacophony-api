@@ -1,6 +1,7 @@
 var util = require('./util');
 var orm = require('./orm');
 var log = require('../logging');
+var cmd = require('node-cmd');
 
 /**
  * VideoFile represents a model showing the different fields and if they are a special case (file or child model).
@@ -38,12 +39,12 @@ module.exports = function(data) {
     extra: {},
   }
   this.fileLocationField = this.modelMap.fileLocation;  // Showing where the file location is to be saved.
-
   this.localFileLocation = null;
   this.ormBuild = null;   // The ORM build of this model.
   this.modelData = {};    // JSON of the metadata excluding teh child models.
   this.childModels = [];  // List of the child models.
 
+  if (data && data.__file) parseVideoFile(this, data);
   if (data) util.parseModel(this, data);
 
   var model = this;
@@ -62,5 +63,40 @@ module.exports = function(data) {
 
   function apiV1Query(q) {
     return util.getModelsJsonFromQuery(q, model, 1);
+  }
+
+  function parseVideoFile(model, data) {
+    var file = data.__file;
+    var date;
+    var dateISOString;
+    if (data.recordingDateTime) {
+      try {
+        date = new Date(data.recordingDateTime);
+        dateISOString = date.toISOString();
+      } catch (err) {
+        log.warn('Error from paring recordingDateTime:', err);
+        log.warn('recordingDateTime', data.recordingDateTime);
+        date = new Date();
+        dateISOString = date.toISOString();
+      }
+    } else {
+      date = new Date();
+      dateISOString = date.toISOString();
+    }
+    var year = date.getFullYear();
+    var month = date.getMonth();
+    var randStr = Math.random().toString(36).substr(2);
+    var uploadPath = year+'/'+month+'/'+dateISOString+'_'+randStr+'.mp4'
+    var localPath = data.__file.path;
+    if (file.type != 'video/mp4') {
+      var ffmpegCmd = 'ffmpeg -i '+file.path+' '+file.path+'.mp4';
+      cmd.get(ffmpegCmd, function() {
+        log.debug("Finished converting file.");
+        util.uploadFile(file.path+'.mp4', uploadPath);
+      });
+    } else {
+      util.uploadFile(file.path, uploadPath);
+    }
+    data.fileLocation = uploadPath;
   }
 }
