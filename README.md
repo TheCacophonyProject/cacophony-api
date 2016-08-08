@@ -14,5 +14,5 @@ node Server.js
 server is on port 8888, can be changed in server.js
 
 ## License
-This project is licensed under the GPL-V3
+This project is licensed under the AGPL
 
