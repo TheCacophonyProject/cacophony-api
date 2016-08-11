@@ -111,25 +111,30 @@ function syncModel(model){
 
 
 function uploadFile(localPath, s3Path) {
-  log.debug('Uploading file.');
-	var client = knox.createClient({
-		key: config.s3.publicKey
-	  , secret: config.s3.privateKey
-	  , bucket: config.s3.bucket
-	  , region: config.s3.region
-	});
+  return new Promise(function(resolve, reject) {
+    log.debug('Uploading file.');
+    var client = knox.createClient({
+      key: config.s3.publicKey
+      , secret: config.s3.privateKey
+      , bucket: config.s3.bucket
+      , region: config.s3.region
+    });
 
-	log.debug("Uploading file as:", s3Path);
-	client.putFile(localPath, s3Path, function(err, res){
-		if (err) {
-			log.error("Error with uploading file.", err);
-		} else if (res.statusCode != 200) {
-			log.error("Error with uploading file. Response code of:", res.statusCode);
-      log.error(res);
-		} else {
-      log.info('File uploaded to S3.');
-    }
-	});
+    log.debug("Uploading file as:", s3Path);
+    client.putFile(localPath, s3Path, function(err, res){
+      if (err) {
+        log.error("Error with uploading file.", err);
+        reject();
+      } else if (res.statusCode != 200) {
+        log.error("Error with uploading file. Response code of:", res.statusCode);
+        log.error(res);
+        reject();
+      } else {
+        log.info('File uploaded to S3.');
+        resolve();
+      }
+    });
+  });
 }
 
 /**

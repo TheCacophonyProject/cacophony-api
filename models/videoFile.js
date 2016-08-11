@@ -92,7 +92,10 @@ module.exports = function(data) {
       var ffmpegCmd = 'ffmpeg -i '+file.path+' '+file.path+'.mp4';
       cmd.get(ffmpegCmd, function() {
         log.debug("Finished converting file.");
-        util.uploadFile(file.path+'.mp4', uploadPath);
+        util.uploadFile(file.path+'.mp4', uploadPath)
+        .then(function () {
+          cmd.get('rm '+file.path+'.mp4');
+        });
       });
     } else {
       util.uploadFile(file.path, uploadPath);
