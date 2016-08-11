@@ -1,6 +1,7 @@
 var util = require('./util');
 var orm = require('./orm');
 var log = require('../logging');
+var path = require('path')
 
 /**
  * AudioFile represents a model showing the different fields and if they are a special case (file or child model).
@@ -39,6 +40,7 @@ module.exports = function(data) {
   this.modelData = {};              // JSON of the metadata excluding the child models.
   this.childModels = [];            // List of the child models.
 
+  if (data && data.__file) parseAudioFile(this, data);
   if (data) {util.parseModel(this, data);}
 
   var model = this;
@@ -58,5 +60,33 @@ module.exports = function(data) {
   function apiV1Query(q) {
     return util.getModelsJsonFromQuery(q, model, 1);
   }
+
+  function parseAudioFile(model, data) {
+    var file = data.__file;
+    var date;
+    var dateISOString;
+    if (data.recordingDateTime) {
+      try {
+        date = new Date(data.recordingDateTime);
+        dateISOString = date.toISOString();
+      } catch (err) {
+        log.warn('Error from paring recordingDateTime:', err);
+        log.warn('recordingDateTime', data.recordingDateTime);
+        date = new Date();
+        dateISOString = date.toISOString();
+      }
+    } else {
+      date = new Date();
+      dateISOString = date.toISOString();
+    }
+    var year = date.getFullYear();
+    var month = date.getMonth();
+    var randStr = Math.random().toString(36).substr(2);
+    var ext = path.extname(file.name);
+    var uploadPath = year+'/'+month+'/'+dateISOString+'_'+randStr+ext;
+    util.uploadFile(file.path, uploadPath);
+    data.fileLocation = uploadPath;
+  }
+
 
 }
