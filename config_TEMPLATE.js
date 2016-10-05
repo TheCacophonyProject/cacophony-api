@@ -6,6 +6,7 @@ config.db = {}; //Holds config data fot the database
 config.s3 = {}; //Holds config data for the AWS S3
 config.logger = {};
 config.server = {};
+config.passport = {};
 
 config.db.name = 'cacophony_metadata';
 config.db.username = 'username';
@@ -23,5 +24,7 @@ config.s3.region = 'us-west-2';
 config.logger.level = 'debug';
 
 config.server.port = 8888;
+
+config.passport.secret = secret;
 
 module.exports = config;
