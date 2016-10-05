@@ -1,13 +1,12 @@
 doctype html
 html
   head
-    title Cacophony Video Player
+    title IR Video Recording
     link(href='../stylesheets/bootstrap.css', rel='stylesheet', media='screen')
     script(src='http://code.jquery.com/jquery-1.9.1.js')
     script(type='text/javascript').
-      console.log('Console log test');
-      var video = !{video};
-    script(type='text/javascript', src='../javascripts/viewVideoRecording.js')
+      var recording = !{recording};
+    script(type='text/javascript', src='/javascripts/viewIrVideoRecording.js')
 
   body
     div.container
@@ -27,4 +26,3 @@ html
         div.form-group.row
           label.col-xs-2.text-right Tags:
           input#tags-text.col-xs-8(type='text')
-          input#update-tags.col-xs-1(type='button', value='Update', )

@@ -1,23 +1,31 @@
-var express = require('express'),
-  http = require('http'),
-  path = require('path'),
-  orm = require('./models/orm'),
-  log = require('./logging'),
-  config = require('./config');
+//var Sequelize = require('sequelize');
+var models = require('./models');
+var express = require('express');
+var bodyParser = require('body-parser');
+var morgan = require('morgan');
+var passport = require('passport');
+var config = require('./config');
+var path = require('path');
 
 var app = express();
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
 
-require('./router/main')(app);
-require('./router/apiv1')(app);
+app.use(morgan('dev'));
+
+app.use(passport.initialize());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(express.static(path.join(__dirname, 'public')));
 
-log.info('Syncing to database.');
-orm.sync()
+require('./api/V1')(app);
+require('./router')(app);
+
+app.listen(config.server.port);
+console.log('Open on http://localhost:8080');
+
+console.log("Connecting to database.....");
+models.sequelize.sync()
 .then(function() {
-  log.info('Sync to Database finished.');
-  var server = app.listen(config.server.port, function() {
-    log.info("Server has started on port", config.server.port);
-  });
+  console.log("Connected to database.");
 });
