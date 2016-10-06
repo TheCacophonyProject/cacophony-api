@@ -43,6 +43,7 @@ var apiSettableFields = [
 function addAssociations(models) {
   models.Device.hasMany(models.ThermalVideoRecording);
   models.Device.hasMany(models.IrVideoRecording);
+  models.Device.hasMany(models.AudioRecording);
 }
 
 function afterValidate(device) {
