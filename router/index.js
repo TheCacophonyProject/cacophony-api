@@ -7,7 +7,7 @@ module.exports = function(app) {
     res.render('home.jade')
   });
 
-  app.get('/GetAudioRecordings', function(req, res) {
+  app.get('/get_audio_recordings', function(req, res) {
     res.render('getAudioRecordings.jade')
   });
 
