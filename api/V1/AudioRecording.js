@@ -32,7 +32,6 @@ module.exports = function(app, baseUrl) {
           data, {
             fields: models.AudioRecording.apiSettableFields // Limit what fields can be set by the user.
           });
-        model.fileUrl = "https://cacophonytestbucket1.s3-us-west-2.amazonaws.com/" + s3Path;
 
         // Add device data to recording.
         if (typeof device != 'undefined') {
@@ -65,7 +64,7 @@ module.exports = function(app, baseUrl) {
           .then(function(res) {
             if (res.statusCode == 200) {
               console.log("Uploaded File.");
-              //model.uploadFileSuccess();  //TODO add
+              model.uploadFileSuccess(res);  //TODO add
             } else {
               console.log("Upload failed.");
               //model.uploadFileError(res); //TODO add
