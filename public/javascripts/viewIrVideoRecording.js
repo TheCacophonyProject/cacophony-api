@@ -2,9 +2,12 @@ window.onload = function(){
   console.log(recording);
   var videoPlayer = document.getElementById('video-player');
   var videoSource = document.createElement('source');
-  var videoFileUrl = recording.fileUrl;
-  videoSource.src = videoFileUrl;
-  videoPlayer.appendChild(videoSource);
+
+  if (recording.fileUrl) {
+    var videoFileUrl = recording.fileUrl;
+    videoSource.src = videoFileUrl;
+    videoPlayer.appendChild(videoSource);
+  }
 
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
