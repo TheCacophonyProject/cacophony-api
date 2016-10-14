@@ -49,7 +49,7 @@ appendModelToTable = function(model) {
 
 modelViewElement = function(model) {
   var link = document.createElement("a");
-  link.setAttribute('href', '/view_ir_video_recording/'+model.id);
+  link.setAttribute('href', '/view_audio_recording/'+model.id);
   link.setAttribute('target', '_blank');
   link.innerHTML = 'View';
   var td = document.createElement("td");

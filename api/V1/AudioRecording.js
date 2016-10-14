@@ -60,11 +60,14 @@ module.exports = function(app, baseUrl) {
           });
 
         // Upload file. //TODO convert to mp4.
-        util.uploadToS3(file.path, s3Path)
+        util.convertAudio(file)
+          .then(function(convertedAudio) {
+            return util.uploadToS3(convertedAudio, s3Path);
+          })
           .then(function(res) {
             if (res.statusCode == 200) {
               console.log("Uploaded File.");
-              model.uploadFileSuccess(res);  //TODO add
+              model.uploadFileSuccess(res);
             } else {
               console.log("Upload failed.");
               //model.uploadFileError(res); //TODO add

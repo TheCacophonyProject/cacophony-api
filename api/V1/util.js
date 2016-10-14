@@ -180,6 +180,22 @@ function convertVideo(file) {
   })
 }
 
+function convertAudio(file) {
+  return new Promise(function(resolve, reject) {
+    if (file.type != 'audio/mp3') {
+      var convertedAudioPath = file.path + '.mp3';
+      var ffmpegCmd = 'ffmpeg -i ' + file.path + ' ' + convertedAudioPath;
+      cmd.get(ffmpegCmd, function() {
+        //TODO check that it
+        resolve(convertedAudioPath);
+      })
+    } else {
+      resolve();
+    }
+  })
+}
+
+exports.convertAudio = convertAudio;
 exports.convertVideo = convertVideo;
 exports.uploadToS3 = uploadToS3;
 exports.fileAndDataFromPost = fileAndDataFromPost;
