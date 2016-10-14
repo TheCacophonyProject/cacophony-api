@@ -1,0 +1,28 @@
+doctype html
+html
+  head
+    title Audio Recording
+    link(href='../stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    script(type='text/javascript').
+      var recording = !{recording};
+    script(type='text/javascript', src='/javascripts/viewAudioRecording.js')
+
+  body
+    div.container
+      h3.center-block Audio Player
+      audio#player.center-block(controls)
+        Brouser not supported for playing audio.
+      div.form-horizontal
+        div.form-group
+          label.col-xs-2.text-right Time:
+          div#time-text.col-xs-6 Some Time
+        div.form-group
+          label.col-xs-2.text-right Date:
+          div#date-text.col-xs-6 Some Date
+        div.form-group
+          label.col-xs-2.text-right Location:
+          div#location-text.col-xs-6 Some Location
+        div.form-group.row
+          label.col-xs-2.text-right Tags:
+          input#tags-text.col-xs-8(type='text')
