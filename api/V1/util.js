@@ -2,9 +2,11 @@ var formidable = require('formidable');
 var knox = require('knox');
 var config = require('../../config.js');
 var cmd = require('node-cmd');
-  /**
-   * Gets the query from the headers in the request.
-   */
+var ffmpeg = require('fluent-ffmpeg');
+var fs = require('fs');
+/**
+ * Gets the query from the headers in the request.
+ */
 function getSequelizeQueryFromHeaders(req) {
   var query = {};
   var validData = true;
@@ -169,11 +171,11 @@ function convertVideo(file) {
   return new Promise(function(resolve, reject) {
     if (file.type != 'video/mp4') {
       var convertedVideoPath = file.path + '.mp4';
-      var ffmpegCmd = 'ffmpeg -i ' + file.path + ' ' + convertedVideoPath;
-      cmd.get(ffmpegCmd, function() {
-        //TODO check that it
-        resolve(convertedVideoPath);
-      })
+      ffmpeg(file.path)
+      .output(convertedVideoPath)
+      .on('end', function() { resolve(convertedVideoPath) })
+      .on('error', function(err) { reject(err) })
+      .run();
     } else {
       resolve();
     }
@@ -184,11 +186,11 @@ function convertAudio(file) {
   return new Promise(function(resolve, reject) {
     if (file.type != 'audio/mp3') {
       var convertedAudioPath = file.path + '.mp3';
-      var ffmpegCmd = 'ffmpeg -i ' + file.path + ' ' + convertedAudioPath;
-      cmd.get(ffmpegCmd, function() {
-        //TODO check that it
-        resolve(convertedAudioPath);
-      })
+      ffmpeg(file.path)
+        .output(convertedAudioPath)
+        .on('end', function() { resolve(convertedAudioPath); })
+        .on('error', function(err) { reject(err); })
+        .run();
     } else {
       resolve();
     }
