@@ -1,0 +1,80 @@
+doctype html
+html
+  head
+    title Cacophony Upload Server
+    link(href='stylesheets/bootstrapSubmenu.css', rel='stylesheet', media='screen')
+    link(href='stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    script(type='text/javascript', src='javascripts/util.js')
+    script(type='text/javascript', src='javascripts/getThermalVideoRecordings.js')
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+
+  body
+  div(class='container bs-docs-container')
+    h2.
+      Get Thermal Video Recordings
+    form#form1.form-horizontal()
+
+      // Time Selector
+      .form-group
+        span.col-md-2.control-label Start Time
+        input#start-time-check.col-md-1(type='checkbox', checked)
+        .col-md-6
+          .form-group.row
+            label.col-md-1.control-label From:
+            .col-md-4
+              input#start-time-start.form-control(type='time')
+            label.col-md-1.control-label To:
+            .col-md-4
+              input#start-time-end.form-control(type='time')
+
+      // Date Selector
+      .form-group
+        span.col-md-2.control-label Recording Date
+        input#date-check.col-md-1(type='checkbox', checked)
+        .col-md-6
+          .form-group.row
+            label.col-md-1.control-label From:
+            .col-md-4
+              input#date-start.form-control(type='date')
+            label.col-md-1.control-label To:
+            .col-md-4
+              input#date-end.form-control(type='date')
+
+      // Duration Selector
+      .form-group
+        span.col-md-2.control-label Duration
+        input#duration-check.col-md-1(type='checkbox', checked)
+        .col-md-6
+          .form-group.row
+            label.col-md-1.control-label Min:
+            .col-md-2
+              input#duration-min.form-control(type='number')
+            label.col-md-1.control-label Max:
+            .col-md-2
+              input#duration-max.form-control(type='number')
+
+      // Query
+      .form-group
+        span.col-md-2.control-label Query
+        .col-md-6
+          .form-group.row
+            input#query-input.col-md-9(type='text')
+            input#generate-query-button.col-md-3(type='button', value='Generate Query')
+
+      // Send query
+      .form-group
+        .col-md-2
+        .col-md-6
+          input#send-query.col-sm-12(type='button', value='Send Query')
+
+  table#results-table(class="table table-striped")
+    tr
+      th View
+      th ID
+      th Device ID
+      th File
+      th Time
+      th Date
+      th Duration
+      th File

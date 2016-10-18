@@ -2,7 +2,7 @@ module.exports = function(sequelize, DataTypes) {
   // Define table
   return sequelize.define("ThermalVideoRecording", {
     recordingDateTime: DataTypes.DATE,
-    fileUri: DataTypes.STRING,
+    fileUrl: DataTypes.STRING,
     recordingTime: DataTypes.TIME,
     fileType: DataTypes.STRING,
     fps: DataTypes.INTEGER,
@@ -23,13 +23,39 @@ module.exports = function(sequelize, DataTypes) {
     },
     passedFilter: {
       type: DataTypes.BOOLEAN
-    }
+    },
+    public: {type: DataTypes.BOOLEAN}
   }, {
     classMethods: {
       addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields
+      apiSettableFields: apiSettableFields,
+      findAllWithUser: findAllWithUser
+    },
+    instanceMethods: {
+      getFrontendFields: getFrontendFields,
+      uploadFileSuccess: uploadFileSuccess
     }
   })
+}
+
+function uploadFileSuccess(res) {
+  this.setDataValue('fileUrl', res.req.url);
+  this.save();
+}
+
+function getFrontendFields() {
+  var model = this;
+  return {
+    id: model.getDataValue('id'),
+    recordingDateTime: model.getDataValue('recordingDateTime'),
+    recordingTime: model.getDataValue('recordingTime'),
+    duration: model.getDataValue('duration'),
+    location: model.getDataValue('location'),
+    tags: model.getDataValue('tags'),
+    fileUrl: model.getDataValue('fileUrl'),
+    deviceId: model.getDataValue('DeviceId'),
+    groupId: model.getDataValue('GroupId')
+  }
 }
 
 var apiSettableFields = [
@@ -45,6 +71,32 @@ var apiSettableFields = [
   'additionalMetadata',
   'tags'
 ]
+
+function findAllWithUser(user, queryParams) {
+  //var model = this;
+  // Find what devices the user can see.
+  //
+  var models = require('./');
+  if (!user) {
+    return models.ThermalVideoRecording.findAll({
+      where: { "$and": [queryParams.where, { public: true }] }
+    })
+  } else {
+    return models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
+      .then(function(user) {
+        return user.getGroupsIds();
+      })
+      .then(function(ids) {
+        queryParams.where = {
+          "$and": [
+            queryParams.where,
+            { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
+          ]
+        }
+        return models.ThermalVideoRecording.findAll(queryParams)
+      })
+  }
+}
 
 function addAssociations(models) {
 

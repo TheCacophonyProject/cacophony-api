@@ -23,6 +23,9 @@ module.exports = function(app) {
     res.render('userHome.jade')
   })
 
+  app.get('/get_thermal_video_recordings', function(req, res) {
+    res.render('getThermalVideoRecordings.jade')
+  })
 
   var apiRouts = fs.readdirSync(__dirname);
   apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
