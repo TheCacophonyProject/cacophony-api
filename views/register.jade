@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    title Cacophony register
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    link(href='stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+    script(type='text/javascript', src='javascripts/register.js')
+
+
+  body
+  div(class='container bs-docs-container')
+    h2.
+      Register
+    form#register-form.form-horizontal()
+      .form-group
+        label.col-sm-2 Username
+        .col-sm-4
+          input.form-control#username(type='text')
+
+      .form-group
+        label.col-sm-2 Password
+        .col-sm-4
+          input.form-control#password(type='password')
+
+      .form-group
+        label.col-sm-2 Retype Password
+        .col-sm-4
+          input.form-control#passwordRetype(type='password')
+
+      .form-group
+        input.btn#register(type='button', value='Register')

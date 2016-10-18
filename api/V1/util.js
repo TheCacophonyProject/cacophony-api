@@ -120,6 +120,7 @@ function handleResponse(response, data) { //code, success, messages, err) {
 
 function serverErrorResponse(response, err) {
   //TODO log this error.
+  console.log(err);
   return response.status(500).json({
     success: false,
     messages: ["Server error."]

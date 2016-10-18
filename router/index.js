@@ -15,6 +15,13 @@ module.exports = function(app) {
     res.render('getIrVideoRecordings.jade')
   });
 
+  app.get('/register', function(req, res) {
+    res.render('register.jade')
+  })
+
+  app.get('/user_home', function(req, res) {
+    res.render('userHome.jade')
+  })
 
 
   var apiRouts = fs.readdirSync(__dirname);

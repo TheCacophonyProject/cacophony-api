@@ -24,7 +24,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       comparePassword: comparePassword,
-      getGroupsIds: getGroupsIds
+      getGroupsIds: getGroupsIds,
+      getJwtDataValues: getJwtDataValues,
+      getDataValues: getDataValues
     },
     hooks: {
       afterValidate: afterValidate
@@ -36,6 +38,22 @@ var apiSettableFields = [
   'firstName',
   'lastName'
 ]
+
+function getJwtDataValues() {
+  return {
+    id: this.getDataValue('id'),
+    _type: 'user'
+  }
+}
+
+function getDataValues() {
+  return {
+    username: this.getDataValue('username'),
+    firstName: this.getDataValue('firstName'),
+    lastName: this.getDataValue('lastName'),
+    email: this.getDataValue('email')
+  }
+}
 
 function addAssociations(models) {
   models.User.belongsToMany(models.Group, { through: 'UserGroup' });
