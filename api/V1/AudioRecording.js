@@ -28,7 +28,7 @@ module.exports = function(app, baseUrl) {
         var s3Path = util.s3PathFromDate(date) + path.extname(file.name);
 
         // Create IR Video Recording and save to database.
-        model = models.AudioRecording.build(
+        var model = models.AudioRecording.build(
           data, {
             fields: models.AudioRecording.apiSettableFields // Limit what fields can be set by the user.
           });
