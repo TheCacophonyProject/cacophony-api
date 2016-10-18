@@ -54,6 +54,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
+      uploadFileSuccess: uploadFileSuccess
     }
   })
   return IrVideoRecording
@@ -72,6 +73,11 @@ function getFrontendFields() {
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId')
   }
+}
+
+function uploadFileSuccess(res) {
+  this.setDataValue('fileUrl', res.req.url);
+  this.save();
 }
 
 // Fields that are directly settable by the user when uploading.
