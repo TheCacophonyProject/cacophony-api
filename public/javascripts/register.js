@@ -29,7 +29,7 @@ function register() {
   }
 
   $.ajax({
-    url: '/api/v1/User',
+    url: '/api/v1/Users',
     type: 'post',
     data: "password="+password.value+"&username="+username.value,
     success: registerSuccess,

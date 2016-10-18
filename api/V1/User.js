@@ -6,7 +6,7 @@ var passport = require('passport');
 require('../../passportConfig')(passport);
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/user'
+  var apiUrl = baseUrl + '/users'
   app.post(apiUrl, function(req, res) {
     console.log(req.body);
     if (!req.body.username || req.body.username == 'undefined' ||

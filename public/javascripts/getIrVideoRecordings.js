@@ -16,7 +16,7 @@ function query() {
   util.clearTable();
   var q = $("#query-input")[0].value;
   $.ajax({
-    url: "api/v1/irVideoRecording",
+    url: "api/v1/irVideoRecordings",
     type: 'GET',
     headers: { where: q },
     success: queryDone,

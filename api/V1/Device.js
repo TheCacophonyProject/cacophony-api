@@ -1,7 +1,7 @@
 var models = require('../../models');
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/device';
+  var apiUrl = baseUrl + '/devices';
 
   app.post(apiUrl, function(req, res) {
     // Check that required data is given.

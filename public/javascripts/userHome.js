@@ -1,6 +1,6 @@
 window.onload = function() {
   $.ajax({
-    url: '/api/v1/user',
+    url: '/api/v1/users',
     type: 'get',
     beforeSend: function(request) {
       request.setRequestHeader('Authorization', sessionStorage.getItem('token'));

@@ -9,7 +9,7 @@ require('../../passportConfig')(passport);
 
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/irvideorecording';
+  var apiUrl = baseUrl + '/irvideorecordings';
 
   app.post(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }), function(req,
     res) {
