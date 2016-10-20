@@ -22,7 +22,7 @@ require('./api/V1')(app);
 require('./router')(app);
 
 app.listen(config.server.port);
-console.log('Open on http://localhost:8080');
+console.log('Open on http://localhost:'+config.server.port);
 
 console.log("Connecting to database.....");
 models.sequelize.sync()
