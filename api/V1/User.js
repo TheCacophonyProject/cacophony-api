@@ -8,7 +8,6 @@ require('../../passportConfig')(passport);
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users'
   app.post(apiUrl, function(req, res) {
-    console.log(req.body);
     if (!req.body.username || req.body.username == 'undefined' ||
       !req.body.password || req.body.password == 'undefined') {
       return util.handleResponse(res, {
@@ -40,7 +39,6 @@ module.exports = function(app, baseUrl) {
   });
 
   app.get(apiUrl, passport.authenticate('jwt', { session: false }), function(req, res) {
-    console.log(req.user);
     if (!req.user) {
       return util.handleResponse(res, {
         success: false,
