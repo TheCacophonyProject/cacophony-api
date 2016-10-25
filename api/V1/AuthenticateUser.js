@@ -32,7 +32,7 @@ module.exports = function(app) {
               });
             } else {
               return util.handleResponse(res, {
-                statusCode: 400,
+                statusCode: 401,
                 success: false,
                 mesages: ["Wrong password or username."]
               })
