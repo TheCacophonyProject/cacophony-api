@@ -1,8 +1,11 @@
 var bcrypt = require('bcrypt');
+var models = require('./')
+
+var Device;
 
 module.exports = function(sequelize, DataTypes) {
   // Define table
-  return sequelize.define("Device", {
+  Device =  sequelize.define("Device", {
     devicename: {
       type: DataTypes.STRING,
       unique: true
@@ -23,15 +26,18 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields
+      apiSettableFields: apiSettableFields,
+      freeDevicename: freeDevicename
     },
     instanceMethods: {
-      comparePassword: comparePassword
+      comparePassword: comparePassword,
+      getJwtDataValues: getJwtDataValues
     },
     hooks: {
       afterValidate: afterValidate
     }
   })
+  return Device
 }
 
 // Fields that are directly settable by the API.
@@ -39,6 +45,28 @@ var apiSettableFields = [
   'location',
   'newConfig'
 ]
+
+// Returns a promise that resolves true or false depending on if the devicename is used.
+function freeDevicename(devicename) {
+  return new Promise(function(resolve, reject) {
+    Device.findOne({ where: { devicename: devicename } })
+      .then(function(device) {
+        if (device) {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+  })
+}
+
+
+function getJwtDataValues() {
+  return {
+    id: this.getDataValue('id'),
+    _type: 'device'
+  }
+}
 
 function addAssociations(models) {
   models.Device.hasMany(models.ThermalVideoRecording);
