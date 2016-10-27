@@ -11,7 +11,7 @@ module.exports = function(app) {
           return res.status(400).json({message: "No recording found."});
         } else {
           var recording = JSON.stringify(modelRes[0].dataValues);
-          res.render('viewThermalVideoRecording.jade', { 'recording': recording })
+          res.render('viewThermalVideoRecording.pug', { 'recording': recording })
         }
       })
       .catch(function(err) {

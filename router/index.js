@@ -4,27 +4,27 @@ var path = require('path');
 module.exports = function(app) {
 
   app.get('/', function(req, res) {
-    res.render('home.jade')
+    res.render('home.pug')
   });
 
   app.get('/get_audio_recordings', function(req, res) {
-    res.render('getAudioRecordings.jade')
+    res.render('getAudioRecordings.pug')
   });
 
   app.get('/get_ir_video_recordings', function(req, res) {
-    res.render('getIrVideoRecordings.jade')
+    res.render('getIrVideoRecordings.pug')
   });
 
   app.get('/register', function(req, res) {
-    res.render('register.jade')
+    res.render('register.pug')
   })
 
   app.get('/user_home', function(req, res) {
-    res.render('userHome.jade')
+    res.render('userHome.pug')
   })
 
   app.get('/get_thermal_video_recordings', function(req, res) {
-    res.render('getThermalVideoRecordings.jade')
+    res.render('getThermalVideoRecordings.pug')
   })
 
   app.get('/ping', function(req, res) {
