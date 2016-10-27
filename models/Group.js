@@ -5,7 +5,7 @@ var Group;
 module.exports = function(sequelize, DataTypes) {
   // Define table
   Group = sequelize.define("Group", {
-    name: DataTypes.STRING, //TODO limit len of this
+    groupname: DataTypes.STRING, //TODO limit len of this
   }, {
     classMethods: {
       addAssociations: addAssociations,
@@ -20,7 +20,7 @@ var apiSettableFields = [];
 
 function getIdFromName(name) {
   return new Promise(function(resolve, reject) {
-    Group.findOne({ where: { name: name } })
+    Group.findOne({ where: { groupname: name } })
       .then(function(group) {
         if (!group) {
           resolve(false);
@@ -32,9 +32,8 @@ function getIdFromName(name) {
 }
 
 function addAssociations(models) {
-  models.Group.belongsToMany(models.User, { through: 'UserGroup' });
   models.Group.hasMany(models.Device);
   models.Group.hasMany(models.IrVideoRecording);
   models.Group.hasMany(models.AudioRecording);
-  models.Group.hasMany(models.User, { as: 'Admins' });
+  models.Group.belongsToMany(models.User, { through: models.GroupUsers });
 }

@@ -56,7 +56,6 @@ function getDataValues() {
 }
 
 function addAssociations(models) {
-  models.User.belongsToMany(models.Group, { through: 'UserGroup' });
   models.User.hasMany(models.Device);
 }
 
