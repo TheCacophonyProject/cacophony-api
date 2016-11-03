@@ -1,21 +1,21 @@
 window.onload = function() {
-  $.ajax({
-    url: '/api/v1/users',
-    type: 'get',
-    beforeSend: function(request) {
-      request.setRequestHeader('Authorization', sessionStorage.getItem('token'));
-    },
-    success: userRequestSuccess,
-    error: userRequestError
-  })
-}
+  var userData = JSON.parse(sessionStorage.getItem('userData'));
+  console.log(userData);
+  var token = sessionStorage.getItem('token');
+  if (!userData || !token) {
+    // TODO redirect to login page.
+  } else {
+    loadUserData(userData);
+  }
+};
 
-function userRequestSuccess(res) {
-  $('#username')[0].innerText = res.userData.username;
-  $('#first-name')[0].innerText = res.userData.firstName;
-  $('#last-name')[0].innerText = res.userData.lastName;
-  $('#email')[0].innerText = res.userData.email;
-  console.log(res);
+function loadUserData(userData) {
+  document.getElementById('username').innerText = userData.username;
+  $('#username')[0].innerText = userData.username;
+  $('#first-name')[0].innerText = userData.firstName;
+  $('#last-name')[0].innerText = userData.lastName;
+  $('#email')[0].innerText = userData.email;
+  console.log(userData);
 }
 
 function userRequestError(res) {

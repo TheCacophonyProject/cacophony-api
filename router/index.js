@@ -4,34 +4,38 @@ var path = require('path');
 module.exports = function(app) {
 
   app.get('/', function(req, res) {
-    res.render('home.pug')
+    res.render('home.pug');
   });
 
   app.get('/get_audio_recordings', function(req, res) {
-    res.render('getAudioRecordings.pug')
+    res.render('getAudioRecordings.pug');
   });
 
   app.get('/get_ir_video_recordings', function(req, res) {
-    res.render('getIrVideoRecordings.pug')
+    res.render('getIrVideoRecordings.pug');
   });
 
   app.get('/register', function(req, res) {
-    res.render('register.pug')
-  })
+    res.render('register.pug');
+  });
 
   app.get('/user_home', function(req, res) {
-    res.render('userHome.pug')
-  })
+    res.render('userHome.pug');
+  });
 
   app.get('/get_thermal_video_recordings', function(req, res) {
-    res.render('getThermalVideoRecordings.pug')
-  })
+    res.render('getThermalVideoRecordings.pug');
+  });
 
   app.get('/ping', function(req, res) {
-    res.end("pong...")
-  })
+    res.end("pong...");
+  });
+
+  app.get('/login', function(req, res) {
+    res.render('login.pug');
+  });
 
   var apiRouts = fs.readdirSync(__dirname);
   apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
-  for (i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
-}
+  for (var i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
+};

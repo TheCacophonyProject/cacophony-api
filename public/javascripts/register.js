@@ -1,6 +1,6 @@
 window.onload = function() {
-  $("#register").click(register)
-}
+  $("#register").click(register);
+};
 
 function register() {
   var password = document.getElementById("password");
@@ -40,6 +40,7 @@ function register() {
 function registerSuccess(res) {
   console.log(res);
   sessionStorage.setItem('token', res.token);
+  sessionStorage.setItem('userData', JSON.stringify(res.userData));
   window.location.assign("/user_home");
 }
 

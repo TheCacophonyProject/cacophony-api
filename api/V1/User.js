@@ -6,7 +6,7 @@ var passport = require('passport');
 require('../../passportConfig')(passport);
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/users'
+  var apiUrl = baseUrl + '/users';
   app.post(apiUrl, function(req, res) {
     if (!req.body.username || req.body.username == 'undefined' ||
       !req.body.password || req.body.password == 'undefined') {
@@ -22,15 +22,14 @@ module.exports = function(app, baseUrl) {
         username: req.body.username,
         password: req.body.password
       })
-      .then(function(user) { // Created new User'user', .
-        //console.log('user', user);
-        // TODO add JWT for the user.
+      .then(function(user) { // Created new User
         var data = user.getJwtDataValues();
         util.handleResponse(res, {
           statusCode: 200,
           success: true,
           messages: ['Created new user.'],
-          token: 'JWT ' + jwt.sign(data, config.passport.secret)
+          token: 'JWT ' + jwt.sign(data, config.passport.secret),
+          userData: user.getDataValues()
         });
       })
       .catch(function(err) { // Error with creating user.
@@ -44,7 +43,7 @@ module.exports = function(app, baseUrl) {
         success: false,
         statusCode: 400,
         messages: ['JWT auth failed.']
-      })
+      });
     }
 
     models.User.findOne({ where: { id: req.user.id } })
@@ -54,10 +53,10 @@ module.exports = function(app, baseUrl) {
           statusCode: 200,
           messages: ['Successful request.'],
           userData: user.getDataValues()
-        })
+        });
       })
       .catch(function(err) {
         util.serverErrorResponse(res, err);
-      })
-  })
-}
+      });
+  });
+};

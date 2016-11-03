@@ -20,27 +20,28 @@ module.exports = function(app) {
         // Compare password.
         user.comparePassword(req.body.password)
           .then(function(passwordMatch) {
-            // Password is valid, send JWT in response.
+            // Password is valid, send JWT and user data values in response.
             if (passwordMatch) {
               var data = user.getJwtDataValues();
               data._type = 'user';
               return util.handleResponse(res, {
                 statusCode: 200,
                 success: true,
-                messsages: ["Successfull login."],
-                token: 'JWT ' + jwt.sign(data, config.secret)
+                messages: ["Successfull login."],
+                token: 'JWT ' + jwt.sign(data, config.passport.secret),
+                userData: user.getDataValues()
               });
             } else {
               return util.handleResponse(res, {
                 statusCode: 401,
                 success: false,
                 mesages: ["Wrong password or username."]
-              })
+              });
             }
-          })
+          });
       })
       .catch(function(err) {
         return util.serverErrorResponse(res, err);
-      })
+      });
   });
-}
+};

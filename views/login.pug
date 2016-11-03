@@ -1,0 +1,27 @@
+doctype html
+html
+  head
+    title Cacophony login
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    link(href='stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+    script(type='text/javascript', src='javascripts/login.js')
+
+
+  body
+  div(class='container bs-docs-container')
+    h2.
+      Login
+    form#register-form.form-horizontal()
+      .form-group
+        label.col-sm-2 Username
+        .col-sm-4
+          input.form-control#username(type='text')
+
+      .form-group
+        label.col-sm-2 Password
+        .col-sm-4
+          input.form-control#password(type='password')
+
+      .form-group
+        input.btn#login(type='button', value='Login')
