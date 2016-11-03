@@ -174,11 +174,11 @@ function convertVideo(file) {
       var convertedVideoPath = file.path + '.mp4';
       ffmpeg(file.path)
       .output(convertedVideoPath)
-      .on('end', function() { resolve(convertedVideoPath) })
-      .on('error', function(err) { reject(err) })
+      .on('end', function() { resolve(convertedVideoPath); })
+      .on('error', function(err) { reject(err); })
       .run();
     } else {
-      resolve();
+      resolve(file.path);
     }
   })
 }
@@ -193,9 +193,9 @@ function convertAudio(file) {
         .on('error', function(err) { reject(err); })
         .run();
     } else {
-      resolve();
+      resolve(file.path);
     }
-  })
+  });
 }
 
 exports.convertAudio = convertAudio;

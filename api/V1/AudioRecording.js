@@ -59,7 +59,7 @@ module.exports = function(app, baseUrl) {
             util.serverErrorResponse(res, err);
           });
 
-        // Upload file. //TODO convert to mp4.
+        // Upload file.
         util.convertAudio(file)
           .then(function(convertedAudio) {
             return util.uploadToS3(convertedAudio, s3Path);
@@ -77,11 +77,11 @@ module.exports = function(app, baseUrl) {
             console.log("Upload error");
             console.log(err);
             //model.uploadFileError(err); //TODO add
-          })
+          });
       })
       .catch(function(err) { // Erorr with parsing post.
         handleResponse(err);
-      })
+      });
   });
 
   /**
