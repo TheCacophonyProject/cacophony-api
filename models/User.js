@@ -57,15 +57,16 @@ function getDataValues() {
 
 function addAssociations(models) {
   models.User.hasMany(models.Device);
+  models.User.belongsToMany(models.Group, { through: models.GroupUsers });
 }
 
 function getGroupsIds() {
   return this.getGroups()
     .then(function(groups) {
-      var idList = []
-      for (key in groups) { idList.push(groups[key].dataValues.id) }
+      var idList = [];
+      for (var key in groups) { idList.push(groups[key].dataValues.id); }
       return idList;
-    })
+    });
 }
 
 function afterValidate(user) {
