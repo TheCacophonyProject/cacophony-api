@@ -92,7 +92,7 @@ function findAllWithUser(user, queryParams) {
             { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
           ]
         }
-        return models.IrVideoRecording.findAll(queryParams)
+        return models.AudioRecording.findAll(queryParams)
       })
   }
 }
