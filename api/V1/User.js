@@ -24,13 +24,16 @@ module.exports = function(app, baseUrl) {
       })
       .then(function(user) { // Created new User
         var data = user.getJwtDataValues();
-        util.handleResponse(res, {
-          statusCode: 200,
-          success: true,
-          messages: ['Created new user.'],
-          token: 'JWT ' + jwt.sign(data, config.passport.secret),
-          userData: user.getDataValues()
-        });
+        user.getDataValues()
+          .then(function(userData) {
+            util.handleResponse(res, {
+              statusCode: 200,
+              success: true,
+              messages: ['Created new user.'],
+              token: 'JWT ' + jwt.sign(data, config.passport.secret),
+              userData: userData
+            });
+          });
       })
       .catch(function(err) { // Error with creating user.
         util.serverErrorResponse(res, err);
@@ -48,11 +51,14 @@ module.exports = function(app, baseUrl) {
 
     models.User.findOne({ where: { id: req.user.id } })
       .then(function(user) {
+        return user.getDataValues();
+      })
+      .then(function(userData) {
         return util.handleResponse(res, {
           success: true,
           statusCode: 200,
           messages: ['Successful request.'],
-          userData: user.getDataValues()
+          userData: userData
         });
       })
       .catch(function(err) {

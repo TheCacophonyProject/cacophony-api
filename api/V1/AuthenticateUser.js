@@ -22,14 +22,17 @@ module.exports = function(app) {
           .then(function(passwordMatch) {
             // Password is valid, send JWT and user data values in response.
             if (passwordMatch) {
-              var data = user.getJwtDataValues();
-              data._type = 'user';
-              return util.handleResponse(res, {
-                statusCode: 200,
-                success: true,
-                messages: ["Successfull login."],
-                token: 'JWT ' + jwt.sign(data, config.passport.secret),
-                userData: user.getDataValues()
+              user.getDataValues()
+              .then(function(userData) {
+                var data = user.getJwtDataValues();
+                data._type = 'user';
+                return util.handleResponse(res, {
+                  statusCode: 200,
+                  success: true,
+                  messages: ["Successfull login."],
+                  token: 'JWT ' + jwt.sign(data, config.passport.secret),
+                  userData: userData
+                });
               });
             } else {
               return util.handleResponse(res, {

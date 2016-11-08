@@ -47,12 +47,19 @@ function getJwtDataValues() {
 }
 
 function getDataValues() {
-  return {
-    username: this.getDataValue('username'),
-    firstName: this.getDataValue('firstName'),
-    lastName: this.getDataValue('lastName'),
-    email: this.getDataValue('email')
-  }
+  var user = this;
+  return new Promise(function(resolve, reject) {
+    user.getGroups()
+    .then(function(groups) {
+      resolve({
+        username: user.getDataValue('username'),
+        firstName: user.getDataValue('firstName'),
+        lastName: user.getDataValue('lastName'),
+        email: user.getDataValue('email'),
+        groups: groups
+      });
+    });
+  });
 }
 
 function addAssociations(models) {

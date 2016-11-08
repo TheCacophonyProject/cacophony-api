@@ -2,6 +2,7 @@ navbar = {};
 
 navbar.setup = function() {
   // setup functions for navbar
+  console.log(sessionStorage.getItem('userData'));
   var userData = JSON.parse(sessionStorage.getItem('userData'));
   if (userData) {
     var navbarUserDetails = document.getElementById("navbar-user-details");
