@@ -35,5 +35,6 @@ function addAssociations(models) {
   models.Group.hasMany(models.Device);
   models.Group.hasMany(models.IrVideoRecording);
   models.Group.hasMany(models.AudioRecording);
+  models.Group.hasMany(models.ThermalVideoRecording);
   models.Group.belongsToMany(models.User, { through: models.GroupUsers });
 }

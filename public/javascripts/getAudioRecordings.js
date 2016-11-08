@@ -15,10 +15,15 @@ var queryJson = {};
 function query() {
   util.clearTable();
   var q = $("#query-input")[0].value;
+  headers = { where: q };
+  var jwt = sessionStorage.getItem('token');
+  if (jwt) {
+    headers.Authorization = jwt;
+  }
   $.ajax({
     url: "api/v1/audiorecordings",
     type: 'GET',
-    headers: { where: q },
+    headers: headers,
     success: queryDone,
     error: queryError
   });
@@ -49,7 +54,7 @@ appendModelToTable = function(model) {
 
 modelViewElement = function(model) {
   var link = document.createElement("a");
-  link.setAttribute('href', '/view_audio_recording/'+model.id);
+  link.setAttribute('href', '/view_audio_recording/' + model.id);
   link.setAttribute('target', '_blank');
   link.innerHTML = 'View';
   var td = document.createElement("td");

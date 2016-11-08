@@ -15,10 +15,15 @@ var queryJson = {};
 function query() {
   util.clearTable();
   var q = $("#query-input")[0].value;
+  headers = { where: q };
+  var jwt = sessionStorage.getItem('token');
+  if (jwt) {
+    headers.Authorization = jwt;
+  }
   $.ajax({
     url: "api/v1/thermalVideoRecordings",
     type: 'GET',
-    headers: { where: q },
+    headers: headers,
     success: queryDone,
     error: queryError
   });
