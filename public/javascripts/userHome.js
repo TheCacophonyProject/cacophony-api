@@ -54,3 +54,7 @@ function userRequestError(res) {
   console.log('Request Error');
   console.log(res);
 }
+
+function newGroup() {
+  window.location.assign('/new_group');
+}

@@ -35,6 +35,10 @@ module.exports = function(app) {
     res.render('login.pug');
   });
 
+  app.get('/new_group', function(req, res) {
+    res.render('newGroup.pug');
+  });
+
   var apiRouts = fs.readdirSync(__dirname);
   apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
   for (var i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
