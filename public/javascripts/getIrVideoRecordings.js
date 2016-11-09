@@ -37,6 +37,9 @@ function queryError(err) {
 
 function queryDone(models) {
   console.log(models);
+  if (models.result.length === 0) {
+    window.alert('No results for query.');
+  }
   for (var model in models.result) {
     appendModelToTable(models.result[model]);
   }
