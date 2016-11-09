@@ -39,7 +39,19 @@ module.exports = function(app) {
     res.render('newGroup.pug');
   });
 
-  var apiRouts = fs.readdirSync(__dirname);
-  apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
-  for (var i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
+  app.get('/view_audio_recording/:id', function(req, res) {
+    res.render('viewAudioRecording.pug', { 'id': req.params.id });
+  });
+
+  app.get('/view_ir_video_recording/:id', function(req, res) {
+    res.render('viewIrVideoRecording.pug', { 'id': req.params.id });
+  });
+
+  app.get('/view_thermal_video_recording/:id', function(req, res) {
+    res.render('viewThermalVideoRecording.pug', { 'id': req.params.id });
+  });
+
+  //var apiRouts = fs.readdirSync(__dirname);
+  //apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
+  //for (var i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
 };
