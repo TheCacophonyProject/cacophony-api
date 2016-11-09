@@ -56,12 +56,16 @@ module.exports = function(sequelize, DataTypes) {
       getFrontendFields: getFrontendFields,
       uploadFileSuccess: uploadFileSuccess
     }
-  })
-  return IrVideoRecording
-}
+  });
+  return IrVideoRecording;
+};
 
 function getFrontendFields() {
   var model = this;
+  var group = null;
+  if (model.dataValues.Group) {
+    group = model.dataValues.Group.dataValues.groupname;
+  }
   return {
     id: model.getDataValue('id'),
     recordingDateTime: model.getDataValue('recordingDateTime'),
@@ -71,8 +75,9 @@ function getFrontendFields() {
     tags: model.getDataValue('tags'),
     fileUrl: model.getDataValue('fileUrl'),
     deviceId: model.getDataValue('DeviceId'),
-    groupId: model.getDataValue('GroupId')
-  }
+    groupId: model.getDataValue('GroupId'),
+    group: group
+  };
 }
 
 function uploadFileSuccess(res) {
@@ -94,9 +99,11 @@ var apiSettableFields = [
   'locationDatetime',
   'aditionalMetadata',
   'tags'
-]
+];
 
-function addAssociations(models) {}
+function addAssociations(models) {
+  models.IrVideoRecording.belongsTo(models.Group);
+}
 
 function findAllWithUser(user, queryParams) {
   //var model = this;
@@ -105,8 +112,9 @@ function findAllWithUser(user, queryParams) {
   var models = require('./');
   if (!user) {
     return models.IrVideoRecording.findAll({
-      where: { "$and": [queryParams.where, { public: true }] }
-    })
+      where: { "$and": [queryParams.where, { public: true }] },
+      include: [models.Group]
+    });
   } else {
     return models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
       .then(function(user) {
@@ -119,8 +127,9 @@ function findAllWithUser(user, queryParams) {
             queryParams.where,
             { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
           ]
-        }
-        return models.IrVideoRecording.findAll(queryParams)
-      })
+        };
+        queryParams.include = [models.Group];
+        return models.IrVideoRecording.findAll(queryParams);
+      });
   }
 }

@@ -1,7 +1,7 @@
 function getTableData() {
   return [
     { tableName: "ID", modelField: "id", parseFunction: util.parseNumber },
-    { tableName: "Group ID", modelsField: "groupId", parseFunction: util.parseGroup },
+    { tableName: "Group", modelField: "group", parseFunction: util.parseGroup },
     { tableName: "Device ID", modelField: "deviceId", parseFunction: util.parseNumber },
     { tableName: "Location", modelField: "location", parseFunction: util.parseLocation },
     { tableName: "Time", modelField: "recordingTime", parseFunction: util.parseTimeOnly },

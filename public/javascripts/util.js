@@ -116,12 +116,13 @@ util.parseUrl = function(url) {
   return td;
 };
 
-util.parseGroup = function(groupId) {
+util.parseGroup = function(group) {
+  console.log(group);
   var td = document.createElement("td");
-  if (typeof groupId !== 'number') {
+  if (typeof group !== 'string') {
     td.innerHTML = 'No group';
   } else {
-    td.innerHTML = groupId;
+    td.innerHTML = group;
   }
   return td;
 };

@@ -10,7 +10,7 @@ module.exports = function(sequelize, DataTypes) {
     duration: DataTypes.INTEGER,
     resx: DataTypes.INTEGER,
     resy: DataTypes.INTEGER,
-    location: DataTypes.STRING,   //TODO add geometry
+    location: DataTypes.STRING, //TODO add geometry
     aditionalMetadata: DataTypes.JSONB,
     tags: DataTypes.JSONB,
     filtered: {
@@ -24,7 +24,7 @@ module.exports = function(sequelize, DataTypes) {
     passedFilter: {
       type: DataTypes.BOOLEAN
     },
-    public: {type: DataTypes.BOOLEAN}
+    public: { type: DataTypes.BOOLEAN }
   }, {
     classMethods: {
       addAssociations: addAssociations,
@@ -35,8 +35,8 @@ module.exports = function(sequelize, DataTypes) {
       getFrontendFields: getFrontendFields,
       uploadFileSuccess: uploadFileSuccess
     }
-  })
-}
+  });
+};
 
 function uploadFileSuccess(res) {
   this.setDataValue('fileUrl', res.req.url);
@@ -45,6 +45,10 @@ function uploadFileSuccess(res) {
 
 function getFrontendFields() {
   var model = this;
+  var group = null;
+  if (model.dataValues.Group) {
+    group = model.dataValues.Group.dataValues.groupname;
+  }
   return {
     id: model.getDataValue('id'),
     recordingDateTime: model.getDataValue('recordingDateTime'),
@@ -54,8 +58,9 @@ function getFrontendFields() {
     tags: model.getDataValue('tags'),
     fileUrl: model.getDataValue('fileUrl'),
     deviceId: model.getDataValue('DeviceId'),
-    groupId: model.getDataValue('GroupId')
-  }
+    groupId: model.getDataValue('GroupId'),
+    group: group
+  };
 }
 
 var apiSettableFields = [
@@ -70,7 +75,7 @@ var apiSettableFields = [
   'location',
   'additionalMetadata',
   'tags'
-]
+];
 
 function findAllWithUser(user, queryParams) {
   //var model = this;
@@ -79,8 +84,9 @@ function findAllWithUser(user, queryParams) {
   var models = require('./');
   if (!user) {
     return models.ThermalVideoRecording.findAll({
-      where: { "$and": [queryParams.where, { public: true }] }
-    })
+      where: { "$and": [queryParams.where, { public: true }] },
+      include: [models.Group]
+    });
   } else {
     return models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
       .then(function(user) {
@@ -92,12 +98,13 @@ function findAllWithUser(user, queryParams) {
             queryParams.where,
             { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
           ]
-        }
-        return models.ThermalVideoRecording.findAll(queryParams)
-      })
+        };
+        queryParams.include = [models.Group];
+        return models.ThermalVideoRecording.findAll(queryParams);
+      });
   }
 }
 
 function addAssociations(models) {
-
+  models.ThermalVideoRecording.belongsTo(models.Group);
 }
