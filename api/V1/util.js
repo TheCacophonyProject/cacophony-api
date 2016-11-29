@@ -139,6 +139,7 @@ function uploadToS3(localPath, s3Path) {
       bucket: config.s3.bucket,
       region: config.s3.region
     }).putFile(localPath, s3Path, function(err, res) {
+      fs.unlink(localPath);
       if (err) {
         return reject(err);
       } else {
@@ -173,10 +174,16 @@ function convertVideo(file) {
     if (file.type != 'video/mp4') {
       var convertedVideoPath = file.path + '.mp4';
       ffmpeg(file.path)
-      .output(convertedVideoPath)
-      .on('end', function() { resolve(convertedVideoPath); })
-      .on('error', function(err) { reject(err); })
-      .run();
+        .output(convertedVideoPath)
+        .on('end', function() {
+          fs.unlink(file.path);
+          resolve(convertedVideoPath);
+        })
+        .on('error', function(err) {
+          fs.unlink(file.path);
+          reject(err);
+        })
+        .run();
     } else {
       resolve(file.path);
     }
@@ -189,8 +196,14 @@ function convertAudio(file) {
       var convertedAudioPath = file.path + '.mp3';
       ffmpeg(file.path)
         .output(convertedAudioPath)
-        .on('end', function() { resolve(convertedAudioPath); })
-        .on('error', function(err) { reject(err); })
+        .on('end', function() {
+          fs.unlink(file.path);
+          resolve(convertedAudioPath);
+        })
+        .on('error', function(err) {
+          fs.unlink(file.path);
+          reject(err);
+        })
         .run();
     } else {
       resolve(file.path);
