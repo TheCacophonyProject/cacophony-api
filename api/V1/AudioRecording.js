@@ -15,6 +15,14 @@ module.exports = function(app, baseUrl) {
     res) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
     //TODO check that device is valid. Id not redirect to device authentication..
+    if (typeof device == 'undefined') {
+      console.log("No device found in audio recordign.");
+      return util.handleResponse(res, {
+        success: false,
+        statusCode: 400,
+        messages: ['No device with audio recording.']
+      });
+    }
 
     util.fileAndDataFromPost(req)
       .then(function(result) {
@@ -34,16 +42,12 @@ module.exports = function(app, baseUrl) {
           });
 
         // Add device data to recording.
-        if (typeof device != 'undefined') {
-          console.log(device.id);
-          model.setDataValue('DeviceId', device.id); // From JWT.
-          model.setDataValue('GroupId', device.GroupId); // FROM JWT.
-          if (typeof device.public == 'boolean')
-            model.setDataValue('public', device.public); // From JWT TODO Check if this has been updated.
-        } else {
-          console.log("No device found");
-          model.public = true; //TODO Remove this after add redirect for failed device authentication is added.
-        }
+        model.setDataValue('DeviceId', device.id); // From JWT.
+        model.setDataValue('GroupId', device.GroupId); // FROM JWT.
+        if (typeof device.public == 'boolean')
+          model.setDataValue('public', device.public); // From JWT TODO Check if this has been updated.
+        else
+          model.setDataValue('public', false);  // Not public by defult.
 
         // Save model to database.
         model.save()
@@ -75,12 +79,12 @@ module.exports = function(app, baseUrl) {
           })
           .catch(function(err) {
             console.log("Upload error");
-            console.log(err);
             //model.uploadFileError(err); //TODO add
           });
       })
       .catch(function(err) { // Erorr with parsing post.
-        handleResponse(err);
+        console.log("Error with parsing post.");
+        util.serverErrorResponse(res, err);
       });
   });
 
@@ -112,13 +116,13 @@ module.exports = function(app, baseUrl) {
       models.AudioRecording.findAllWithUser(req.user, queryParams)
         .then(function(models) {
           var result = [];
-          for (key in models) result.push(models[key].getFrontendFields());
+          for (var key in models) result.push(models[key].getFrontendFields());
           return util.handleResponse(res, {
             success: true,
             statusCode: 200,
             messages: ["Successful request."],
             result: result
-          })
-        })
+          });
+        });
     });
-}
+};
