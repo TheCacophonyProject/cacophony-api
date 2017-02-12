@@ -1,3 +1,5 @@
+var util = require('./util');
+
 module.exports = function(sequelize, DataTypes) {
   // Define table
   return sequelize.define("ThermalVideoRecording", {
@@ -78,31 +80,7 @@ var apiSettableFields = [
 ];
 
 function findAllWithUser(user, queryParams) {
-  //var model = this;
-  // Find what devices the user can see.
-  //
-  var models = require('./');
-  if (!user) {
-    return models.ThermalVideoRecording.findAll({
-      where: { "$and": [queryParams.where, { public: true }] },
-      include: [models.Group]
-    });
-  } else {
-    return models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
-      .then(function(user) {
-        return user.getGroupsIds();
-      })
-      .then(function(ids) {
-        queryParams.where = {
-          "$and": [
-            queryParams.where,
-            { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
-          ]
-        };
-        queryParams.include = [models.Group];
-        return models.ThermalVideoRecording.findAll(queryParams);
-      });
-  }
+  return util.findAllWithUser(this, user, queryParams);
 }
 
 function addAssociations(models) {

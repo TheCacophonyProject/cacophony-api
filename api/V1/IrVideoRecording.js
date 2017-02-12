@@ -11,10 +11,17 @@ require('../../passportConfig')(passport);
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/irvideorecordings';
 
-  app.post(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }), function(req,
-    res) {
+  app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
-    //TODO check that device is valid. Id not redirect to device authentication..
+
+    // Chech that they validated as a device. Not a user.
+    if (req.device.$modelOptions.name.singular != 'Device') {
+      return util.handleResponse(res, {
+        success: false,
+        statusCode: 401,
+        messages: ["JWT was not from a device."]
+      });
+    }
 
     util.fileAndDataFromPost(req)
       .then(function(result) {
@@ -33,17 +40,12 @@ module.exports = function(app, baseUrl) {
             fields: models.IrVideoRecording.apiSettableFields // Limit what fields can be set by the user.
           });
 
-        // Add device data to recording.
-        if (typeof device != 'undefined') {
-          console.log(device.id);
-          model.setDataValue('DeviceId', device.id); // From JWT.
-          model.setDataValue('GroupId', device.GroupId); // FROM JWT.
-          if (typeof device.public == 'boolean')
-            model.setDataValue('public', device.public); // From JWT TODO Check if this has been updated.
-        } else {
-          console.log("No device found");
-          model.public = true; //TODO Remove this after add redirect for failed device authentication is added.
-        }
+        model.setDataValue('DeviceId', device.id); // From JWT.
+        model.setDataValue('GroupId', device.GroupId); // FROM JWT.
+        if (typeof device.public == 'boolean')
+          model.setDataValue('public', device.public); // From JWT TODO Check if this has been updated.
+        else
+          model.setDataValue('public', false); // Not public by default.
 
         // Save model to database.
         model.save()
@@ -61,13 +63,11 @@ module.exports = function(app, baseUrl) {
 
         // Process and upload file.
         util.convertVideo(file)
-          .then(function(convertVideo) {
-            return util.uploadToS3(convertVideo, s3Path);
-          })
+          .then((convertVideo) => util.uploadToS3(convertVideo, s3Path))
           .then(function(res) {
             if (res.statusCode == 200) {
               console.log("Uploaded File.");
-              model.uploadFileSuccess(res);  //TODO add
+              model.uploadFileSuccess(res); //TODO add
             } else {
               console.log("Upload failed.");
               //model.uploadFileError(res); //TODO add
@@ -75,13 +75,13 @@ module.exports = function(app, baseUrl) {
           })
           .catch(function(err) {
             console.log("Upload error");
-            console.log(err);
             //model.uploadFileError(err); //TODO add
-          })
+          });
       })
       .catch(function(err) { // Erorr with parsing post.
-        handleResponse(err);
-      })
+        console.log("Error with parsing post.");
+        util.serverErrorResponse(err);
+      });
   });
 
   /*
@@ -137,6 +137,7 @@ module.exports = function(app, baseUrl) {
   app.get(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       var queryParams = util.getSequelizeQueryFromHeaders(req);
+
       // Return HTTP 400 if error when getting query from headers.
       if (queryParams.error) {
         return util.handleResponse(res, {
@@ -146,23 +147,34 @@ module.exports = function(app, baseUrl) {
         });
       }
 
-      // Check if authorization of a User by JWT failed.
+      // Check if authorization by a JWT failed.
       if (!req.user && req.headers.authorization) {
-        //TODO Redirect to login page, note on login page that can can query an anonymous user but will not see recording private to that user.
-        //TODO maybe I can set up the anonymous passport to do this?
+        return util.handleResponse(res, {
+          success: false,
+          statusCode: 401,
+          messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
+        });
+      }
+
+      if (req.user.$modelOptions.name.singular != 'User') {
+        return util.handleResponse(res, {
+          success: false,
+          statusCode: 401,
+          messages: ["JWT was not from a user."]
+        });
       }
 
       // Request was valid. Now quering database.
       models.IrVideoRecording.findAllWithUser(req.user, queryParams)
         .then(function(models) {
           var result = [];
-          for (key in models) result.push(models[key].getFrontendFields());
+          for (var key in models) result.push(models[key].getFrontendFields()); // Just save the fromt end fields for each model.
           return util.handleResponse(res, {
             success: true,
             statusCode: 200,
             messages: ["Successful request."],
             result: result
-          })
-        })
+          });
+        });
     });
-}
+};

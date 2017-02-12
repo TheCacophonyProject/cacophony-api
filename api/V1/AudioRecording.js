@@ -11,16 +11,15 @@ require('../../passportConfig')(passport);
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/audiorecordings';
 
-  app.post(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }), function(req,
-    res) {
+  app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
-    //TODO check that device is valid. Id not redirect to device authentication..
-    if (typeof device == 'undefined') {
-      console.log("No device found in audio recordign.");
+
+    // Chech that they validated as a device. Not a user.
+    if (req.device.$modelOptions.name.singular != 'Device') {
       return util.handleResponse(res, {
         success: false,
-        statusCode: 400,
-        messages: ['No device with audio recording.']
+        statusCode: 401,
+        messages: ["JWT was not from a device."]
       });
     }
 
@@ -35,7 +34,7 @@ module.exports = function(app, baseUrl) {
         var date = util.getDateFromMetadata(data);
         var s3Path = util.s3PathFromDate(date) + path.extname(file.name);
 
-        // Create IR Video Recording and save to database.
+        // Create Audio Recording and save to database.
         var model = models.AudioRecording.build(
           data, {
             fields: models.AudioRecording.apiSettableFields // Limit what fields can be set by the user.
@@ -47,7 +46,7 @@ module.exports = function(app, baseUrl) {
         if (typeof device.public == 'boolean')
           model.setDataValue('public', device.public); // From JWT TODO Check if this has been updated.
         else
-          model.setDataValue('public', false);  // Not public by defult.
+          model.setDataValue('public', false); // Not public by defult.
 
         // Save model to database.
         model.save()
@@ -63,11 +62,9 @@ module.exports = function(app, baseUrl) {
             util.serverErrorResponse(res, err);
           });
 
-        // Upload file.
+        // Process and upload file.
         util.convertAudio(file)
-          .then(function(convertedAudio) {
-            return util.uploadToS3(convertedAudio, s3Path);
-          })
+          .then((convertedAudio) => util.uploadToS3(convertedAudio, s3Path))
           .then(function(res) {
             if (res.statusCode == 200) {
               console.log("Uploaded File.");
@@ -97,6 +94,7 @@ module.exports = function(app, baseUrl) {
   app.get(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       var queryParams = util.getSequelizeQueryFromHeaders(req);
+
       // Return HTTP 400 if error when getting query from headers.
       if (queryParams.error) {
         return util.handleResponse(res, {
@@ -106,17 +104,29 @@ module.exports = function(app, baseUrl) {
         });
       }
 
-      // Check if authorization of a User by JWT failed.
+      // Check if authorization by a JWT failed.
       if (!req.user && req.headers.authorization) {
-        //TODO Redirect to login page, note on login page that can can query an anonymous user but will not see recording private to that user.
-        //TODO maybe I can set up the anonymous passport to do this?
+        return util.handleResponse(res, {
+          success: false,
+          statusCode: 401,
+          messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
+        });
+      }
+
+      // Chech that they validated as a user. Not a device.
+      if (req.user.$modelOptions.name.singular != 'User') {
+        return util.handleResponse(res, {
+          success: false,
+          statusCode: 401,
+          messages: ["JWT was not from a user."]
+        });
       }
 
       // Request was valid. Now quering database.
       models.AudioRecording.findAllWithUser(req.user, queryParams)
         .then(function(models) {
           var result = [];
-          for (var key in models) result.push(models[key].getFrontendFields());
+          for (var key in models) result.push(models[key].getFrontendFields()); // Just save the fromt end fields for each model.
           return util.handleResponse(res, {
             success: true,
             statusCode: 200,
