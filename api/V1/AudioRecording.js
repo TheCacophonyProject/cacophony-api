@@ -91,48 +91,11 @@ module.exports = function(app, baseUrl) {
    *  headres.offset, Query offset.
    *  headers.limit,  Query results limit.
    */
-  app.get(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }),
+  app.get(
+    apiUrl,
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
-      var queryParams = util.getSequelizeQueryFromHeaders(req);
-
-      // Return HTTP 400 if error when getting query from headers.
-      if (queryParams.error) {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 400,
-          messages: queryParams.errMsgs
-        });
-      }
-
-      // Check if authorization by a JWT failed.
-      if (!req.user && req.headers.authorization) {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 401,
-          messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
-        });
-      }
-
-      // Chech that they validated as a user. Not a device.
-      if (req.user.$modelOptions.name.singular != 'User') {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 401,
-          messages: ["JWT was not from a user."]
-        });
-      }
-
-      // Request was valid. Now quering database.
-      models.AudioRecording.findAllWithUser(req.user, queryParams)
-        .then(function(models) {
-          var result = [];
-          for (var key in models) result.push(models[key].getFrontendFields()); // Just save the fromt end fields for each model.
-          return util.handleResponse(res, {
-            success: true,
-            statusCode: 200,
-            messages: ["Successful request."],
-            result: result
-          });
-        });
+      // Same code used for getting recordings (Audio, Thermal Video, and IR Video)
+      return util.getRecordingsFromModel(models.AudioRecording, req, res);
     });
 };

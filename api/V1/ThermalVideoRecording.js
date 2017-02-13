@@ -86,48 +86,11 @@ module.exports = function(app, baseUrl) {
       });
   });
 
-  app.get(apiUrl, passport.authenticate(['jwt', 'anonymous'], { session: false }),
+  app.get(
+    apiUrl,
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
-
-      // Check if authorization of a User by JWT failed.
-      if (!req.user && req.headers.authorization) {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 401,
-          messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
-        });
-      }
-
-      // Chech that they validated as a user. Not a device.
-      if (req.user.$modelOptions.name.singular != 'User') {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 401,
-          messages: ["JWT was not from a user."]
-        });
-      }
-
-      var queryParams = util.getSequelizeQueryFromHeaders(req);
-      // Return HTTP 400 if error when getting query from headers.
-      if (queryParams.error) {
-        return util.handleResponse(res, {
-          success: false,
-          statusCode: 400,
-          messages: queryParams.errMsgs
-        });
-      }
-
-      // Request was valid. Now quering database.
-      models.ThermalVideoRecording.findAllWithUser(req.user, queryParams)
-        .then(function(models) {
-          var result = [];
-          for (var key in models) result.push(models[key].getFrontendFields());
-          return util.handleResponse(res, {
-            success: true,
-            statusCode: 200,
-            messages: ["Successful request."],
-            result: result
-          });
-        });
+      // Same code used for getting recordings (Audio, Thermal Video, and IR Video)
+      return util.getRecordingsFromModel(models.ThermalVideoRecording, req, res);
     });
 };

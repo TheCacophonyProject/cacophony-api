@@ -12,7 +12,7 @@ function findAllWithUser(model, user, queryParams) {
         include: [models.Group],
         limit: queryParams.limit,
         offset: queryParams.offset
-      }).then((result) => resolve(result));   
+      }).then((result) => resolve(result));
     } else {
       models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
         .then((user) => user.getGroupsIds())
@@ -27,8 +27,12 @@ function findAllWithUser(model, user, queryParams) {
           queryParams.include = [models.Group];
           queryParams.limit = queryParams.limit;
           queryParams.offset = queryParams.offset;
-          return model.findAll(queryParams);
-        }).then((result) => resolve(result));
+          return model.findAndCount(queryParams);
+        }).then(function(result) {
+          result.limit = queryParams.limit;
+          result.offset = queryParams.offset;
+          resolve(result);
+        });
     }
   });
 }

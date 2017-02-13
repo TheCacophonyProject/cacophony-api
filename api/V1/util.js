@@ -25,7 +25,7 @@ function getSequelizeQueryFromHeaders(req) {
       validData = false;
       errMsgs.push("Error: Field 'offset' in headers must be a number.");
     } else
-      query.offset = offset;
+      query.offset = parseInt(offset, 10);
   }
 
   // Validate 'limit' field and add to query if it is valid.
@@ -35,7 +35,7 @@ function getSequelizeQueryFromHeaders(req) {
       validData = false;
       errMsgs.push("Error: Field 'limit' in headers must be a number.");
     } else
-      query.limit = limit;
+      query.limit = parseInt(limit, 10);
   }
 
   // Validate 'where' field and add to query if it is valid.
@@ -211,6 +211,57 @@ function convertAudio(file) {
   });
 }
 
+function getRecordingsFromModel(model, request, response) {
+  var queryParams = getSequelizeQueryFromHeaders(request);
+
+  // Check if authorization by a JWT failed.
+  if (!request.user && request.headers.authorization) {
+    return handleResponse(response, {
+      success: false,
+      statusCode: 401,
+      messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
+    });
+  }
+
+  // Chech that they validated as a user. Not a device.
+  if (request.user.$modelOptions.name.singular != 'User') {
+    return handleResponse(response, {
+      success: false,
+      statusCode: 401,
+      messages: ["JWT was not from a user."]
+    });
+  }
+
+  // Return HTTP 400 if error when getting query from headers.
+  if (queryParams.error) {
+    return handleResponse(response, {
+      success: false,
+      statusCode: 400,
+      messages: queryParams.errMsgs
+    });
+  }
+
+  // Request was valid. Now quering database.
+  model.findAllWithUser(request.user, queryParams)
+    .then(function(models) {
+      var result = {};
+      result.rows = [];
+      result.limit = models.limit;
+      result.offset = models.offset;
+      result.count = models.count;
+      for (var key in models.rows) result.rows.push(models.rows[key].getFrontendFields()); // Just save the fromt end fields for each model.
+      return handleResponse(response, {
+        success: true,
+        statusCode: 200,
+        messages: ["Successful request."],
+        result: result
+      });
+    })
+    .catch(function(err) {
+      serverErrorResponse(response, err);
+    });
+}
+
 exports.convertAudio = convertAudio;
 exports.convertVideo = convertVideo;
 exports.uploadToS3 = uploadToS3;
@@ -220,3 +271,4 @@ exports.s3PathFromDate = s3PathFromDate;
 exports.getDateFromMetadata = getDateFromMetadata;
 exports.serverErrorResponse = serverErrorResponse;
 exports.getSequelizeQueryFromHeaders = getSequelizeQueryFromHeaders;
+exports.getRecordingsFromModel = getRecordingsFromModel;
