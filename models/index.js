@@ -2,11 +2,18 @@ var Sequelize = require('sequelize');
 var fs = require('fs');
 var path = require('path');
 var config = require('../config');
+var log = require('../logging');
+
+function sequelizeLog(msg) {
+  log.debug(msg, { sequelize: true });
+}
 
 var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
   host: config.db.host,
   port: config.db.port,
-  dialect: config.db.dialect
+  dialect: config.db.dialect,
+  logging: sequelizeLog,
+  benchmark: true
 });
 
 var models = {};

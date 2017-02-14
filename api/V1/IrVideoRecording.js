@@ -15,7 +15,7 @@ module.exports = function(app, baseUrl) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
 
     // Chech that they validated as a device. Not a user.
-    if (req.device.$modelOptions.name.singular != 'Device') {
+    if (device.$modelOptions.name.singular != 'Device') {
       return util.handleResponse(res, {
         success: false,
         statusCode: 401,

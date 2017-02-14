@@ -5,6 +5,7 @@ var knox = require('knox');
 var path = require('path');
 var util = require('./util');
 var passport = require('passport');
+var log = require('../../logging');
 require('../../passportConfig')(passport);
 
 
@@ -15,7 +16,7 @@ module.exports = function(app, baseUrl) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
 
     // Chech that they validated as a device. Not a user.
-    if (req.device.$modelOptions.name.singular != 'Device') {
+    if (device.$modelOptions.name.singular != 'Device') {
       return util.handleResponse(res, {
         success: false,
         statusCode: 401,
@@ -51,6 +52,7 @@ module.exports = function(app, baseUrl) {
         // Save model to database.
         model.save()
           .then(function() { // Successful post.
+            log.info("Successful Audio Recording PSOT.");
             messages.push("Thanks for the Audio Recording!");
             util.handleResponse(res, {
               success: true,
@@ -67,20 +69,20 @@ module.exports = function(app, baseUrl) {
           .then((convertedAudio) => util.uploadToS3(convertedAudio, s3Path))
           .then(function(res) {
             if (res.statusCode == 200) {
-              console.log("Uploaded File.");
+              log.debug("Uploaded Audio File.");
               model.uploadFileSuccess(res);
             } else {
-              console.log("Upload failed.");
+              log.error("Upload of audio file failed.");
               //model.uploadFileError(res); //TODO add
             }
           })
           .catch(function(err) {
-            console.log("Upload error");
+            log.error(err.stack);
             //model.uploadFileError(err); //TODO add
           });
       })
       .catch(function(err) { // Erorr with parsing post.
-        console.log("Error with parsing post.");
+        log.error("Error when parsing post from AudioRecording");
         util.serverErrorResponse(res, err);
       });
   });

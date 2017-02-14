@@ -4,6 +4,8 @@ var config = require('../../config.js');
 var cmd = require('node-cmd');
 var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
+var log = require('../../logging');
+
 /**
  * Gets the query from the headers in the request.
  */
@@ -46,11 +48,11 @@ function getSequelizeQueryFromHeaders(req) {
       query.where = where;
     } catch (err) {
       validData = false;
-      errMsgs.push("Error: Could not parse 'where' field in headers to a JSON.")
+      errMsgs.push("Error: Could not parse 'where' field in headers to a JSON.");
     }
   } else {
     validData = false;
-    errMsgs.push("Error: No 'where' field found in headers.")
+    errMsgs.push("Error: No 'where' field found in headers.");
   }
 
   if (!validData) return { error: true, errMsgs: errMsgs };
@@ -64,6 +66,7 @@ function fileAndDataFromPost(req) {
       errMsgs = [];
       if (err) {
         errMsgs.push("Error with parsing form."); //TODO pull error message from err.
+        log.err("Error with parsing form.", err);
         return reject({ statusCode: 400, messages: errMsgs, success: false });
       }
 
@@ -73,12 +76,17 @@ function fileAndDataFromPost(req) {
       var data = fields.data;
       if (!data) {
         errMsgs.push("Error: Missing 'data' field in body.");
+        log.warn("No data field in request body.");
         validRequest = false;
       } else {
         try {
           data = JSON.parse(data);
-        } catch (err) {
+        } catch (error) {
           errMsgs.push("Error: Could not parse 'data' field as a JSON.");
+          log.warn("Could not parse 'data' from request.", {
+            stack: error.stack,
+            data: data,
+          });
           validRequest = false;
         }
       }
@@ -87,17 +95,20 @@ function fileAndDataFromPost(req) {
       var file = files.file;
       if (!file) {
         errMsgs.push("Error: No field 'file' found that is a file.");
+        log.warn("No field 'file' in request that is a file.");
         validRequest = false;
       }
 
       // Reject if bad request.
-      if (!validRequest)
+      if (!validRequest) {
+        log.info("Bad request", { messages: errMsgs });
         return reject({ statusCode: 400, messages: errMsgs, success: false });
+      }
 
       // Resolve parsing the data and file.
       return resolve({ data: data, file: file });
-    })
-  })
+    });
+  });
 }
 
 function handleResponse(response, data) { //code, success, messages, err) {
@@ -110,7 +121,7 @@ function handleResponse(response, data) { //code, success, messages, err) {
     typeof data.success != 'boolean'
   ) {
     // Responde with server error if data is invalid.
-    return serverErrorResponse(response, data)
+    return serverErrorResponse(response, data);
   }
   // Responde if data is valid.
   var statusCode = data.statusCode;
@@ -145,8 +156,8 @@ function uploadToS3(localPath, s3Path) {
       } else {
         return resolve(res);
       }
-    })
-  })
+    });
+  });
 }
 
 
@@ -154,7 +165,7 @@ function s3PathFromDate(date) {
   if (!date) date = new Date();
   return date.getFullYear() + '/' + date.getMonth() + '/' +
     date.toISOString().replace(/\..+/, '') + '_' +
-    Math.random().toString(36).substr(2)
+    Math.random().toString(36).substr(2);
 }
 
 function getDateFromMetadata(data) {
@@ -187,7 +198,7 @@ function convertVideo(file) {
     } else {
       resolve(file.path);
     }
-  })
+  });
 }
 
 function convertAudio(file) {

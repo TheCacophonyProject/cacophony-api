@@ -15,7 +15,7 @@ module.exports = function(app, baseUrl) {
     var device = req.user; // passport put the jwt in the user field. But for us it's a device.
 
     // Chech that they validated as a device. Not a user.
-    if (req.device.$modelOptions.name.singular != 'Device') {
+    if (device.$modelOptions.name.singular != 'Device') {
       return util.handleResponse(res, {
         success: false,
         statusCode: 401,
@@ -76,7 +76,7 @@ module.exports = function(app, baseUrl) {
             }
           })
           .catch(function(err) {
-            console.log("Upload error");
+            log.error("Upload error");
             //model.uploadFileError(err); //TODO add
           });
       })
@@ -90,6 +90,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
+
       // Same code used for getting recordings (Audio, Thermal Video, and IR Video)
       return util.getRecordingsFromModel(models.ThermalVideoRecording, req, res);
     });
