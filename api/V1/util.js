@@ -5,6 +5,7 @@ var cmd = require('node-cmd');
 var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var log = require('../../logging');
+var path = require('path');
 
 /**
  * Gets the query from the headers in the request.
@@ -59,15 +60,38 @@ function getSequelizeQueryFromHeaders(req) {
   else return query;
 }
 
+
+/**
+ * Processes the POST request checking that the request is valid then saving the
+ *  metadata in a sequelize model and uploading the file to the file storage.
+ * @param {Object} model - Sequelize Model of the type of the recording.
+ * @param {Object} request - Express request object.
+ * @param {Object} response - Express response object.
+ * @param {Object} device - Sequelize model instnace of the Device that did the request.
+ */
+
+/**
+ * Processes a http POST request and returns a JSON with the following fields.
+ *  data: JSON object of the metadata.
+ *  file: file of the recording.
+ * If the request was invalid (could nto parse JSON...) a JSON object is
+ *  returned with the following fields.
+ *  errMsgs: Array of error messages.
+ *  statusCode: HTTP status code to be used.
+ * @param {Object} res - Express request object.
+ * @return {Promise} resolves with a JSON Object.
+ */
 function fileAndDataFromPost(req) {
   return new Promise(function(resolve, reject) {
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files) {
       errMsgs = [];
+
+      // Check that form was parsed.
       if (err) {
-        errMsgs.push("Error with parsing form."); //TODO pull error message from err.
-        log.err("Error with parsing form.", err);
-        return reject({ statusCode: 400, messages: errMsgs, success: false });
+        errMsgs.push("Error with parsing form.");
+        log.err("Error with parsing form.", err.stack);
+        return resolve({ statusCode: 400, errMsgs: errMsgs });
       }
 
       var validRequest = true;
@@ -76,7 +100,7 @@ function fileAndDataFromPost(req) {
       var data = fields.data;
       if (!data) {
         errMsgs.push("Error: Missing 'data' field in body.");
-        log.warn("No data field in request body.");
+        log.warn("No 'data' field in request body.");
         validRequest = false;
       } else {
         try {
@@ -99,10 +123,10 @@ function fileAndDataFromPost(req) {
         validRequest = false;
       }
 
-      // Reject if bad request.
+      // If invalid resolve the statusCode and error messages.
       if (!validRequest) {
         log.info("Bad request", { messages: errMsgs });
-        return reject({ statusCode: 400, messages: errMsgs, success: false });
+        return reject({ statusCode: 400, errMsgs: errMsgs });
       }
 
       // Resolve parsing the data and file.
@@ -130,8 +154,7 @@ function handleResponse(response, data) { //code, success, messages, err) {
 }
 
 function serverErrorResponse(response, err) {
-  //TODO log this error.
-  console.log(err);
+  log.error(err.stack);
   return response.status(500).json({
     success: false,
     messages: ["Server error."]
@@ -143,7 +166,7 @@ function serverErrorResponse(response, err) {
  */
 function uploadToS3(localPath, s3Path) {
   return new Promise(function(resolve, reject) {
-    console.log("Uploading.");
+    log.debug("Uploading file to S3.");
     knox.createClient({
       key: config.s3.publicKey,
       secret: config.s3.privateKey,
@@ -273,6 +296,100 @@ function getRecordingsFromModel(model, request, response) {
     });
 }
 
+/**
+ * Processes the POST request checking that the request is valid then saving the
+ *  metadata in a sequelize model and uploading the file to the file storage.
+ * @param {Object} model - Sequelize Model of the type of the recording.
+ * @param {Object} request - Express request object.
+ * @param {Object} response - Express response object.
+ * @param {Object} device - Sequelize model instnace of the Device that did the request.
+ */
+function addRecordingFromPost(model, request, response, device) {
+  // Check that the POST request is comming from a Device, Not a user.
+  if (device.$modelOptions.name.singular != 'Device') {
+    log.warn("User tried to upload a recording. Must be a Device to upload.");
+    return util.handleResponse(res, {
+      success: false,
+      statusCode: 401,
+      messages: ["JWT was not from a device."]
+    });
+  }
+  var m = model;  // Save model in a new variable so it isn't undefined after the promise.
+  // Get file and data from post request.
+  fileAndDataFromPost(request)
+    .then(function(result) {
+      // Responde with error messages if parsing failed.
+      if (result.errMsgs) {
+        return handleResponse(response, {
+          success: false,
+          statusCode: result.statusCode,
+          messages: result.errMsgs
+        });
+      }
+      // Successful parsing of file and data.
+      var file = result.file;
+      var data = result.data;
+      var messages = [];
+      var errMsgs = [];
+
+      // Generate URL for recording file.
+      // TODO add random string onto end.
+      var date = getDateFromMetadata(data);
+      var s3Path = s3PathFromDate(date) + path.extname(file.name);
+
+      // Build model and save to database.
+      var model = m.build(
+        data, {
+          fields: m.apiSettableFields // Limit what fields can be set by user.
+        });
+
+      model.setDataValue('DeviceId', device.id); // From JWT.
+      model.setDataValue('GroupId', device.GroupId); // From JWT.
+      if (typeof device.public == 'boolean')
+        model.setDataValue('public', device.public);
+      else
+        model.setDataValue('public', false);
+
+      // Save model to database.
+      model.save()
+        .then(function() {
+          log.info("Successful recording POST.");
+          messages.push("Thanks fo the recording");
+          handleResponse(response, {
+            success: true,
+            statusCode: 200,
+            messages: messages
+          });
+        })
+        .catch(function(error) {
+          serverErrorResponse(result, error);
+        });
+
+      // Process and upload file.
+      model.processRecording(file)
+        .then((processedRec) => uploadToS3(processedRec, s3Path))
+        .then(function(res) {
+          if (res.statusCode == 200) {
+            log.debug("Uploaded recording.");
+            model.uploadFileSuccess(res);
+          } else {
+            log.debug("Upload of a recording failed.");
+            //model.uploadFileError(res); //TODO add
+          }
+        })
+        .catch(function(error) {
+          log.error("Error with saving recording.");
+          log.error(error.stack);
+          //model.uploadFileError(err); //TODO add
+        });
+
+    })
+    .catch(function(error) { // Error when processing request.
+      log.error("Error when processing a POST request.");
+      serverErrorResponse(response, error);
+    });
+}
+
 exports.convertAudio = convertAudio;
 exports.convertVideo = convertVideo;
 exports.uploadToS3 = uploadToS3;
@@ -283,3 +400,4 @@ exports.getDateFromMetadata = getDateFromMetadata;
 exports.serverErrorResponse = serverErrorResponse;
 exports.getSequelizeQueryFromHeaders = getSequelizeQueryFromHeaders;
 exports.getRecordingsFromModel = getRecordingsFromModel;
+exports.addRecordingFromPost = addRecordingFromPost;

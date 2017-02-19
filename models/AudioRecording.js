@@ -32,7 +32,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
-      uploadFileSuccess: uploadFileSuccess
+      uploadFileSuccess: uploadFileSuccess,
+      processRecording: util.processAudio,
     }
   });
 };

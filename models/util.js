@@ -1,3 +1,7 @@
+var log = require('../logging');
+var ffmpeg = require('fluent-ffmpeg');
+var fs = require('fs');
+
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {
     var models = require('./');
@@ -37,4 +41,60 @@ function findAllWithUser(model, user, queryParams) {
   });
 }
 
+/**
+ * Converts the audio file to a mp3, if not one already.
+ * @param {Object} file - Audio file.
+ * @return {Promise} resolves with the file path.
+ */
+function processAudio(file) {
+  log.debug('Processing audio file.');
+  return new Promise(function(resolve, reject) {
+    if (file.type != 'audio/mp3') {
+      var convertedAudioPath = file.path + '.mp3';
+      ffmpeg(file.path)
+        .output(convertedAudioPath)
+        .on('end', function() {
+          fs.unlink(file.path);
+          resolve(convertedAudioPath);
+        })
+        .on('error', function(err) {
+          fs.unlink(file.path);
+          reject(err);
+        })
+        .run();
+    } else {
+      resolve(file.path);
+    }
+  });
+}
+
+/**
+ * Converts the video file to a mp4, if not one already.
+ * @param {Object} file - Audio file.
+ * @return {Promise} resolves with the file path.
+ */
+function processVideo(file) {
+  log.debug('Processing video file.');
+  return new Promise(function(resolve, reject) {
+    if (file.type != 'video/mp4') {
+      var convertedVideoPath = file.path + '.mp4';
+      ffmpeg(file.path)
+        .output(convertedVideoPath)
+        .on('end', function() {
+          fs.unlink(file.path);
+          resolve(convertedVideoPath);
+        })
+        .on('error', function(err) {
+          fs.unlink(file.path);
+          reject(err);
+        })
+        .run();
+    } else {
+      resolve(file.path);
+    }
+  });
+}
+
 exports.findAllWithUser = findAllWithUser;
+exports.processAudio = processAudio;
+exports.processVideo = processVideo;
