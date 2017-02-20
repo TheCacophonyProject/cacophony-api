@@ -24,7 +24,7 @@ function requestError(err) {
 
 function requestSuccess(res) {
   console.log(res);
-  recording = res.result[0];
+  recording = res.result.rows[0];
   console.log(recording);
 
   var videoPlayer = document.getElementById('video-player');
