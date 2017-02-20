@@ -6,6 +6,7 @@ var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var log = require('../../logging');
 var path = require('path');
+var AWS = require('aws-sdk');
 
 /**
  * Gets the query from the headers in the request.
@@ -162,23 +163,37 @@ function serverErrorResponse(response, err) {
 }
 
 /**
- * Uploads the file to the S3 server.
+ * Upload the file to the S3/LeoFS file storage and deletes origional file.
+ * @param {String} localPath - Path to the file.
+ * @param {String} s3Path - Key of the file on the S3/LeoFS file storage.
+ * @return {Promise} Promise that .
  */
-function uploadToS3(localPath, s3Path) {
+function uploadToS3(localPath, key) {
   return new Promise(function(resolve, reject) {
-    log.debug("Uploading file to S3.");
-    knox.createClient({
-      key: config.s3.publicKey,
-      secret: config.s3.privateKey,
-      bucket: config.s3.bucket,
-      region: config.s3.region
-    }).putFile(localPath, s3Path, function(err, res) {
-      fs.unlink(localPath);
-      if (err) {
-        return reject(err);
-      } else {
-        return resolve(res);
-      }
+
+    var s3 = new AWS.S3({
+      endpoint: config.s3.endpoint,
+      accessKeyId: config.s3.publicKey,
+      secretAccessKey: config.s3.privateKey,
+    });
+
+    fs.readFile(localPath, function(err, data) {
+      var params = {
+        Bucket: config.s3.bucket,
+        Key: key,
+        Body: data
+      };
+      s3.upload(params, function(err, data) {
+        if (err) {
+          log.error("Error with saving to S3.");
+          log.error(err);
+          return reject(err);
+        } else {
+          fs.unlink(localPath);
+          log.info("Successful saving to S3.");
+          return resolve(data);
+        }
+      });
     });
   });
 }
@@ -314,7 +329,7 @@ function addRecordingFromPost(model, request, response, device) {
       messages: ["JWT was not from a device."]
     });
   }
-  var m = model;  // Save model in a new variable so it isn't undefined after the promise.
+  var m = model; // Save model in a new variable so it isn't undefined after the promise.
   // Get file and data from post request.
   fileAndDataFromPost(request)
     .then(function(result) {
@@ -369,13 +384,7 @@ function addRecordingFromPost(model, request, response, device) {
       model.processRecording(file)
         .then((processedRec) => uploadToS3(processedRec, s3Path))
         .then(function(res) {
-          if (res.statusCode == 200) {
-            log.debug("Uploaded recording.");
-            model.uploadFileSuccess(res);
-          } else {
-            log.debug("Upload of a recording failed.");
-            //model.uploadFileError(res); //TODO add
-          }
+          model.uploadFileSuccess(res);
         })
         .catch(function(error) {
           log.error("Error with saving recording.");

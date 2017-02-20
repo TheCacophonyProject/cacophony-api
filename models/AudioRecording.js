@@ -32,16 +32,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
-      uploadFileSuccess: uploadFileSuccess,
+      uploadFileSuccess: util.uploadFileSuccess,
       processRecording: util.processAudio,
     }
   });
 };
-
-function uploadFileSuccess(res) {
-  this.setDataValue('fileUrl', res.req.url);
-  this.save();
-}
 
 var apiSettableFields = [
   'recordingDateTime',

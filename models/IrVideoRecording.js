@@ -56,7 +56,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
-      uploadFileSuccess: uploadFileSuccess,
+      uploadFileSuccess: util.uploadFileSuccess,
       processRecording: util.processVideo,
     }
   });
@@ -81,11 +81,6 @@ function getFrontendFields() {
     groupId: model.getDataValue('GroupId'),
     group: group
   };
-}
-
-function uploadFileSuccess(res) {
-  this.setDataValue('fileUrl', res.req.url);
-  this.save();
 }
 
 // Fields that are directly settable by the user when uploading.

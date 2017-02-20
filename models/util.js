@@ -95,6 +95,12 @@ function processVideo(file) {
   });
 }
 
+function uploadFileSuccess(res) {
+  this.setDataValue('fileUrl', res.Location);
+  this.save();
+}
+
 exports.findAllWithUser = findAllWithUser;
 exports.processAudio = processAudio;
 exports.processVideo = processVideo;
+exports.uploadFileSuccess = uploadFileSuccess;
