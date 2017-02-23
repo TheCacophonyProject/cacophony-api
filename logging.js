@@ -23,7 +23,7 @@ var logger = new(winston.Logger)({
     }),
     new(winston.transports.Console)({
       name: 'console',
-      level: 'debug',
+      level: config.logger.level,
       colorize: true,
       handleExceptions: true,
       humanReadableUnhandledException: true
