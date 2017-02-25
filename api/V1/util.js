@@ -7,6 +7,7 @@ var fs = require('fs');
 var log = require('../../logging');
 var path = require('path');
 var AWS = require('aws-sdk');
+var jwt = require('jsonwebtoken');
 
 /**
  * Gets the query from the headers in the request.
@@ -168,16 +169,18 @@ function serverErrorResponse(response, err) {
  * @param {String} s3Path - Key of the file on the S3/LeoFS file storage.
  * @return {Promise} Promise that .
  */
-function uploadToS3(localPath, key) {
-  return new Promise(function(resolve, reject) {
+function uploadToS3(file, date) {
+  console.log(file);
+  date = date || new Date();
 
+  return new Promise(function(resolve, reject) {
     var s3 = new AWS.S3({
       endpoint: config.s3.endpoint,
       accessKeyId: config.s3.publicKey,
       secretAccessKey: config.s3.privateKey,
     });
 
-    fs.readFile(localPath, function(err, data) {
+    fs.readFile(file.path, function(err, data) {
       var params = {
         Bucket: config.s3.bucket,
         Key: key,
@@ -189,74 +192,13 @@ function uploadToS3(localPath, key) {
           log.error(err);
           return reject(err);
         } else {
-          fs.unlink(localPath);
+          fs.unlink(file.path);
           log.info("Successful saving to S3.");
-          return resolve(data);
+          file.key = key;
+          return resolve(file);
         }
       });
     });
-  });
-}
-
-
-function s3PathFromDate(date) {
-  if (!date) date = new Date();
-  return date.getFullYear() + '/' + date.getMonth() + '/' +
-    date.toISOString().replace(/\..+/, '') + '_' +
-    Math.random().toString(36).substr(2);
-}
-
-function getDateFromMetadata(data) {
-  // TODO try a few more things to get the date from the data if the datetime is not found.
-  var date;
-  try {
-    date = new Date(data.recordingDateTime);
-    date.toISOString(); //Check that date is a valid date. Will throw error if not.
-  } catch (err) {
-    //TODO log error
-    return null;
-  }
-}
-
-function convertVideo(file) {
-  return new Promise(function(resolve, reject) {
-    if (file.type != 'video/mp4') {
-      var convertedVideoPath = file.path + '.mp4';
-      ffmpeg(file.path)
-        .output(convertedVideoPath)
-        .on('end', function() {
-          fs.unlink(file.path);
-          resolve(convertedVideoPath);
-        })
-        .on('error', function(err) {
-          fs.unlink(file.path);
-          reject(err);
-        })
-        .run();
-    } else {
-      resolve(file.path);
-    }
-  });
-}
-
-function convertAudio(file) {
-  return new Promise(function(resolve, reject) {
-    if (file.type != 'audio/mp3') {
-      var convertedAudioPath = file.path + '.mp3';
-      ffmpeg(file.path)
-        .output(convertedAudioPath)
-        .on('end', function() {
-          fs.unlink(file.path);
-          resolve(convertedAudioPath);
-        })
-        .on('error', function(err) {
-          fs.unlink(file.path);
-          reject(err);
-        })
-        .run();
-    } else {
-      resolve(file.path);
-    }
   });
 }
 
@@ -266,8 +208,6 @@ function getRecordingsFromModel(model, request, response) {
   // Check if authorization by a JWT failed.
   if (!request.user && request.headers.authorization) {
     return handleResponse(response, {
-      success: false,
-      statusCode: 401,
       messages: ["Invalid JWT. login to get valid JWT or remove 'authorization' header to do an anonymous request."]
     });
   }
@@ -347,16 +287,8 @@ function addRecordingFromPost(model, request, response, device) {
       var messages = [];
       var errMsgs = [];
 
-      // Generate URL for recording file.
-      // TODO add random string onto end.
-      var date = getDateFromMetadata(data);
-      var s3Path = s3PathFromDate(date) + path.extname(file.name);
-
-      // Build model and save to database.
-      var model = m.build(
-        data, {
-          fields: m.apiSettableFields // Limit what fields can be set by user.
-        });
+      // Build model. But limit what fields can be set by user.
+      var model = m.build(data, { fields: m.apiSettableFields });
 
       model.setDataValue('DeviceId', device.id); // From JWT.
       model.setDataValue('GroupId', device.GroupId); // From JWT.
@@ -365,33 +297,25 @@ function addRecordingFromPost(model, request, response, device) {
       else
         model.setDataValue('public', false);
 
-      // Save model to database.
+      // Save model, process file, save file.
       model.save()
         .then(function() {
           log.info("Successful recording POST.");
-          messages.push("Thanks fo the recording");
+          messages.push("Thanks for the data.");
           handleResponse(response, {
             success: true,
             statusCode: 200,
             messages: messages
           });
         })
+        .then(() => model.processRecording(file))
+        .then((processedFile) => model.saveFile(processedFile))
         .catch(function(error) {
-          serverErrorResponse(result, error);
+          // TODO sometime this is not a server error but invalid data,
+          // Find a good way to tell the difference between the two so they can
+          // be logged and send the apropriate response.
+          serverErrorResponse(response, error);
         });
-
-      // Process and upload file.
-      model.processRecording(file)
-        .then((processedRec) => uploadToS3(processedRec, s3Path))
-        .then(function(res) {
-          model.uploadFileSuccess(res);
-        })
-        .catch(function(error) {
-          log.error("Error with saving recording.");
-          log.error(error.stack);
-          //model.uploadFileError(err); //TODO add
-        });
-
     })
     .catch(function(error) { // Error when processing request.
       log.error("Error when processing a POST request.");
@@ -399,14 +323,44 @@ function addRecordingFromPost(model, request, response, device) {
     });
 }
 
-exports.convertAudio = convertAudio;
-exports.convertVideo = convertVideo;
+function getRecordingFile(model, request, response) {
+  var id = parseInt(request.params.id);
+  model.getFileData(id, request.user)
+    .then(function(fileData) {
+      if (!fileData) {
+        return handleResponse(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["No file found with given id or don't have permissions to view"],
+        });
+      }
+
+      var data = {
+        _type: 'fileDownload',
+        key: fileData.key,
+        filename: fileData.name,
+        mimeType: fileData.mimeType,
+      };
+
+      return handleResponse(response, {
+        statusCode: 200,
+        success: true,
+        messages: ["Successful authorization. This jwt will last for 10 minutes."],
+        jwt: jwt.sign(data, config.passport.secret, { expiresIn: 60 * 10 }),
+      });
+
+    })
+    .catch(function(err) {
+      log.error("Erorr");
+      serverErrorResponse(response, err);
+    });
+}
+
 exports.uploadToS3 = uploadToS3;
 exports.fileAndDataFromPost = fileAndDataFromPost;
 exports.handleResponse = handleResponse;
-exports.s3PathFromDate = s3PathFromDate;
-exports.getDateFromMetadata = getDateFromMetadata;
 exports.serverErrorResponse = serverErrorResponse;
 exports.getSequelizeQueryFromHeaders = getSequelizeQueryFromHeaders;
 exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
+exports.getRecordingFile = getRecordingFile;

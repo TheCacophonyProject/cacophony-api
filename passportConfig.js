@@ -7,9 +7,17 @@ var config = require('./config');
 module.exports = function(passport) {
   passport.use(new AnonymousStrategy());
   var opts = {
-    jwtFromRequest: ExtractJwt.fromAuthHeader(),
+    jwtFromRequest: getJWT,
     secretOrKey: config.passport.secret
   };
+
+function getJWT(request) {
+  if (request.query.jwt)
+    return ExtractJwt.fromUrlQueryParameter('jwt')(request);
+  else
+    return ExtractJwt.fromAuthHeader()(request);
+}
+
   passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
     if (!jwt_payload._type) {
       return done("No 'type' field in JWT.", false);
@@ -21,10 +29,13 @@ module.exports = function(passport) {
       case 'device':
         validateDevice(jwt_payload, done);
         break;
+      case 'fileDownload':
+        validateFileDownload(jwt_payload, done);
+        break;
       default:
         return done("Unknown field type: " + jwt_payload._type, false);
     }
-  }))
+  }));
 };
 
 function validateUser(jwt_payload, done) {
@@ -42,7 +53,7 @@ function validateUser(jwt_payload, done) {
     })
     .catch(function(err) {
       return done(err, false);
-    })
+    });
 }
 
 function validateDevice(jwt_payload, done) {
@@ -60,5 +71,9 @@ function validateDevice(jwt_payload, done) {
     })
     .catch(function(err) {
       return done(err, false);
-    })
+    });
+}
+
+function validateFileDownload(jwt_payload, done) {
+  done(null, jwt_payload);
 }

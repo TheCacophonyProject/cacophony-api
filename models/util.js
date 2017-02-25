@@ -1,6 +1,10 @@
 var log = require('../logging');
 var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
+var mime = require('mime');
+var path = require('path');
+var AWS = require('aws-sdk');
+var config = require('../config.js')
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {
@@ -11,15 +15,18 @@ function findAllWithUser(model, user, queryParams) {
     // Find what devices the user can see.
     if (!user) {
       // Not logged in, can onnly see public recordings.
-      model.findAll({
+      model.findAndCount({
         where: { "$and": [queryParams.where, { public: true }] },
         include: [models.Group],
         limit: queryParams.limit,
         offset: queryParams.offset
-      }).then((result) => resolve(result));
+      }).then(function(result) {
+        result.limit = queryParams.limit;
+        result.offset = queryParams.offset;
+        resolve(result);
+      });
     } else {
-      models.User.findOne({ where: user.id }) //TODO find a better way do deal with the require.
-        .then((user) => user.getGroupsIds())
+      user.getGroupsIds()
         .then(function(ids) {
           // Adding filter so they only see recordings that they are allowed to.
           queryParams.where = {
@@ -55,7 +62,7 @@ function processAudio(file) {
         .output(convertedAudioPath)
         .on('end', function() {
           fs.unlink(file.path);
-          resolve(convertedAudioPath);
+          resolve(getMetadataFromFile(convertedAudioPath));
         })
         .on('error', function(err) {
           fs.unlink(file.path);
@@ -63,7 +70,7 @@ function processAudio(file) {
         })
         .run();
     } else {
-      resolve(file.path);
+      resolve(getMetadataFromFile(file.path, file.type));
     }
   });
 }
@@ -82,7 +89,7 @@ function processVideo(file) {
         .output(convertedVideoPath)
         .on('end', function() {
           fs.unlink(file.path);
-          resolve(convertedVideoPath);
+          resolve(getMetadataFromFile(convertedVideoPath));
         })
         .on('error', function(err) {
           fs.unlink(file.path);
@@ -90,17 +97,110 @@ function processVideo(file) {
         })
         .run();
     } else {
-      resolve(file.path);
+      resolve(getMetadataFromFile(file.path, file.type));
     }
   });
 }
 
-function uploadFileSuccess(res) {
-  this.setDataValue('fileUrl', res.Location);
-  this.save();
+function getMetadataFromFile(filePath, mimeType) {
+  return new Promise(function(resolve, reject) {
+    var size = fs.statSync(filePath).size || 0;
+    mimeType = mimeType || mime.lookup(filePath);
+    var extname = path.extname(filePath) || '';
+    var fileData = {
+      path: filePath,
+      mimeType: mimeType,
+      extname: extname,
+      size: size,
+    };
+    resolve(fileData);
+  });
 }
 
+function getFileData(model, id, user) {
+  return new Promise(function(resolve, reject) {
+    findAllWithUser(model, user, { where: { id } })
+      .then(function(result) {
+        if (result.rows !== null && result.rows.length >= 1) {
+          var model = result.rows[0];
+          var fileData = {
+            key: model.getDataValue('fileKey'),
+            name: getFileName(model),
+            mimeType: model.getDataValue('mimeType'),
+          };
+          return resolve(fileData);
+        } else
+          return resolve(null);
+      })
+      .catch(function(err) {
+        log.error("Error at models/util.js getFileKey:");
+        reject(err);
+      });
+  });
+}
+
+function getFileName(model) {
+  var fileName;
+  var dateStr = model.getDataValue('recordingDateTime');
+  if (dateStr)
+    fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g, '');
+  else
+    fileName = 'file';
+
+  var ext = mime.extension(model.getDataValue('mimeType') || '');
+  if (ext) fileName = fileName + '.' + ext;
+  return fileName;
+}
+
+function saveFile(file) {
+  var model = this;
+  return new Promise(function(resolve, reject) {
+
+    // Gets date object set to recordingDateTime field or now if field not set.
+    var date = new Date(model.getDataValue('recordingDateTime') || new Date());
+
+    // Generate key for file using the date.
+    var key = date.getFullYear() + '/' + date.getMonth() + '/' +
+      date.toISOString().replace(/\..+/, '').replace(/:/g, '') + '_' +
+      Math.random().toString(36).substr(2);
+
+    // Create AWS S3 object
+    var s3 = new AWS.S3({
+      endpoint: config.s3.endpoint,
+      accessKeyId: config.s3.publicKey,
+      secretAccessKey: config.s3.privateKey,
+    });
+
+    // Save file with key.
+    fs.readFile(file.path, function(err, data) {
+      var params = {
+        Bucket: config.s3.bucket,
+        Key: key,
+        Body: data
+      };
+      s3.upload(params, function(err, data) {
+        if (err) {
+          log.error("Error with saving to S3.");
+          log.error(err);
+          return reject(err);
+        } else {
+          fs.unlink(file.path); // Delete local file.
+          log.info("Successful saving to S3.");
+          file.key = key;
+
+          model.setDataValue('filename', file.name);
+          model.setDataValue('mimeType', file.mimeType);
+          model.setDataValue('size', file.size);
+          model.setDataValue('fileKey', file.key);
+          return resolve(model.save());
+        }
+      });
+    });
+  });
+}
+
+exports.saveFile = saveFile;
 exports.findAllWithUser = findAllWithUser;
 exports.processAudio = processAudio;
 exports.processVideo = processVideo;
-exports.uploadFileSuccess = uploadFileSuccess;
+exports.getFileData = getFileData;

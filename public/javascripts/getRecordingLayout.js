@@ -1,4 +1,3 @@
-
 var queryJson = {};
 var limit = 20;
 var offset = 0;
@@ -108,8 +107,6 @@ function previousResults() {
 }
 
 window.onload = function() {
-  console.log("On load func.");
-
   $("#start-time-check").click(function() {
     $("#start-time-start").attr('disabled', !this.checked);
     $("#start-time-end").attr('disabled', !this.checked);

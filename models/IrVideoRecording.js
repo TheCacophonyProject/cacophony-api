@@ -6,15 +6,13 @@ module.exports = function(sequelize, DataTypes) {
     recordingDateTime: { // Datetime stamp of when the recording started in ISO 8601 format.
       type: DataTypes.DATE
     },
-    fileUrl: { // Location of the recording file.
+    fileKey: { // Location of the recording file.
       type: DataTypes.STRING,
     },
     recordingTime: { // Timestamp of when the recording started. Just time without timezone.
       type: DataTypes.TIME,
     },
-    fileType: { // MIME file type of the recording. //TODO make this an ENUM.
-      type: DataTypes.STRING
-    },
+    mimeType: DataTypes.STRING,
     fps: { // FPS of the recording.
       type: DataTypes.INTEGER
     },
@@ -52,12 +50,13 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
-      findAllWithUser: findAllWithUser
+      findAllWithUser: findAllWithUser,
+      getFileData: getFileData,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
-      uploadFileSuccess: util.uploadFileSuccess,
       processRecording: util.processVideo,
+      saveFile: util.saveFile,
     }
   });
   return IrVideoRecording;
@@ -76,7 +75,7 @@ function getFrontendFields() {
     duration: model.getDataValue('duration'),
     location: model.getDataValue('location'),
     tags: model.getDataValue('tags'),
-    fileUrl: model.getDataValue('fileUrl'),
+    fileKey: model.getDataValue('fileKey'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
@@ -105,4 +104,8 @@ function addAssociations(models) {
 
 function findAllWithUser(user, queryParams) {
   return util.findAllWithUser(this, user, queryParams);
+}
+
+function getFileData(id, user) {
+  return util.getFileData(this, id, user);
 }

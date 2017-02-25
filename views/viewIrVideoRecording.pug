@@ -7,12 +7,13 @@ html
     script(type='text/javascript').
       var id = !{id};
     script(type='text/javascript', src='/javascripts/viewIrVideoRecording.js')
+    script(type='text/javascript', src='/javascripts/viewRecordingLayout.js')
 
   body
     include includes/navbar.pug
     div.container
       h3.center-block Video Player
-      video#video-player.center-block(controls)
+      video#player.center-block(controls)
         Brouser not supported for playing video.
       div.form-horizontal
         div.form-group

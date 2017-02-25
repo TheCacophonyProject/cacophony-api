@@ -4,9 +4,9 @@ module.exports = function(sequelize, DataTypes) {
   // Define table
   return sequelize.define("ThermalVideoRecording", {
     recordingDateTime: DataTypes.DATE,
-    fileUrl: DataTypes.STRING,
+    fileKey: DataTypes.STRING,
+    mimeType: DataTypes.STRING,
     recordingTime: DataTypes.TIME,
-    fileType: DataTypes.STRING,
     fps: DataTypes.INTEGER,
     size: DataTypes.INTEGER,
     duration: DataTypes.INTEGER,
@@ -31,12 +31,13 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
-      findAllWithUser: findAllWithUser
+      findAllWithUser: findAllWithUser,
+      getFileData: getFileData,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
-      uploadFileSuccess: util.uploadFileSuccess,
       processRecording: util.processVideo,
+      saveFile: util.saveFile,
     }
   });
 };
@@ -54,7 +55,7 @@ function getFrontendFields() {
     duration: model.getDataValue('duration'),
     location: model.getDataValue('location'),
     tags: model.getDataValue('tags'),
-    fileUrl: model.getDataValue('fileUrl'),
+    fileKey: model.getDataValue('fileKey'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
@@ -81,4 +82,8 @@ function findAllWithUser(user, queryParams) {
 
 function addAssociations(models) {
   models.ThermalVideoRecording.belongsTo(models.Group);
+}
+
+function getFileData(id, user) {
+  return util.getFileData(this, id, user);
 }

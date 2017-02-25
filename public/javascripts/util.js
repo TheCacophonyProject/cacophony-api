@@ -61,6 +61,7 @@ util.clearTable = function() {
 
 util.appendModelToTable = function(model) {
   var newRow = util.getNewEmptyRow();
+  console.log(newRow);
   var tableData = getTableData();
   for (var i in tableData) {
     var value = model[tableData[i].modelField];
@@ -103,21 +104,44 @@ util.parseDateOnly = function(date) {
   return td;
 };
 
-util.parseUrl = function(url) {
+util.parseDownload = function(id) {
   var td = document.createElement("td");
-  if (typeof url != 'string') {
-    td.innerHTML = "No file.";
-    return td;
+  var button = document.createElement("button");
+  button.innerHTML = "Download";
+
+  var headers = {};
+  var jwt = sessionStorage.getItem('token');
+  if (jwt) {
+    headers.Authorization = jwt;
   }
-  var a = document.createElement("a");
-  a.href = url;
-  a.innerHTML = "Download";
-  td.appendChild(a);
+
+  button.onclick = function() {
+    var headers = {};
+    var jwt = sessionStorage.getItem('token');
+    if (jwt) {
+      headers.Authorization = jwt;
+    }
+    var url = apiUrl + '/' + id;
+    $.ajax({
+      url: url,
+      type: 'GET',
+      headers: headers,
+      success: function(res) {
+        var url = "/api/v1/signedUrl?jwt=" + res.jwt;
+        var linkElement = document.createElement('a');
+        linkElement.href = url;
+        var click = document.createEvent('MouseEvents');
+        click.initEvent('click', true, true);
+        linkElement.dispatchEvent(click);
+      },
+      error: console.log,
+    });
+  };
+  td.appendChild(button);
   return td;
 };
 
 util.parseGroup = function(group) {
-  console.log(group);
   var td = document.createElement("td");
   if (typeof group !== 'string') {
     td.innerHTML = 'No group';

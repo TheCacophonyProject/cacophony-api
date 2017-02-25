@@ -31,6 +31,24 @@ app.use(expressWinston.logger({
   humanReadableUnhandledException: true
 }));
 
+app.use(expressWinston.logger({
+  transports: [new winston.transports.Console({ colorize: true, })],
+  ignoredRoutes: [
+    "/stylesheets/bootstrapSubmenu.css",
+    "/stylesheets/bootstrap.css",
+    "/javascripts/util.js",
+    "/javascripts/getAudioRecordings.js",
+    "/javascripts/getRecordingLayout.js",
+    "/javascripts/includes/navbar.js",
+    "/stylesheets/bootstrap.css.map"
+  ],
+  meta: false,
+  expressFormat: true,
+  handleExceptions: true,
+  humanReadableUnhandledException: true
+}));
+
+
 app.use(passport.initialize());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');

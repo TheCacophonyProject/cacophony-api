@@ -7,7 +7,7 @@ function getTableData() {
     { tableName: "Time", modelField: "recordingTime", parseFunction: util.parseTimeOnly },
     { tableName: "Date", modelField: "recordingDateTime", parseFunction: util.parseDateOnly },
     { tableName: "Duration", modelField: "duration", parseFunction: util.parseDuration },
-    { tableName: "File", modelField: "fileUrl", parseFunction: util.parseUrl }
+    { tableName: "File", modelField: "id", parseFunction: util.parseDownload }
   ];
 }
 
