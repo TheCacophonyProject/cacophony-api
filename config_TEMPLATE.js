@@ -20,6 +20,7 @@ config.s3.publicKey = publicKey;
 config.s3.privateKey = privateKey;
 config.s3.bucket = 'bucket name';
 config.s3.region = 'us-west-2';
+config.s3.endpoint = endpoint_to_bucket;
 
 config.logger.level = 'debug';
 
