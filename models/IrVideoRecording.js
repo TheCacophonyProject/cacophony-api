@@ -52,6 +52,7 @@ module.exports = function(sequelize, DataTypes) {
       apiSettableFields: apiSettableFields,
       findAllWithUser: findAllWithUser,
       getFileData: getFileData,
+      apiUpdateableFields: apiUpdateableFields,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
@@ -81,6 +82,13 @@ function getFrontendFields() {
     group: group
   };
 }
+
+var apiUpdateableFields = [
+  'recordingDateTime',
+  'recordingTime',
+  'location',
+  'additionalMetadata',
+];
 
 // Fields that are directly settable by the user when uploading.
 var apiSettableFields = [

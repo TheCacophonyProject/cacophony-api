@@ -33,6 +33,7 @@ module.exports = function(sequelize, DataTypes) {
       apiSettableFields: apiSettableFields,
       findAllWithUser: findAllWithUser,
       getFileData: getFileData,
+      apiUpdateableFields: apiUpdateableFields,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
@@ -41,6 +42,13 @@ module.exports = function(sequelize, DataTypes) {
     }
   });
 };
+
+var apiUpdateableFields = [
+  'recordingDateTime',
+  'recordingTime',
+  'location',
+  'additionalMetadata',
+];
 
 function getFrontendFields() {
   var model = this;

@@ -29,6 +29,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
+      apiUpdateableFields: apiUpdateableFields,
       findAllWithUser: findAllWithUser,
       getFileData: getFileData,
     },
@@ -39,6 +40,13 @@ module.exports = function(sequelize, DataTypes) {
     }
   });
 };
+
+var apiUpdateableFields = [
+  'recordingDateTime',
+  'recordingTime',
+  'location',
+  'additionalMetadata',
+];
 
 var apiSettableFields = [
   'recordingDateTime',

@@ -16,6 +16,18 @@ module.exports = function(app, baseUrl) {
     });
 
   /**
+   *  Put request to update an Audio Recording.
+   *  headers.data,  JSON of data to update.
+   */
+  app.put(
+    apiUrl + "/:id",
+    passport.authenticate(['jwt'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.updateDataFromPut(models.AudioRecording, req, res);
+    });
+
+  /**
    *  Get request for Audio Recordings.
    *  headers.where,  Sequelize conditions for query,
    *  headres.offset, Query offset.

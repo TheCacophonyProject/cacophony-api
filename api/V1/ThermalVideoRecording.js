@@ -15,6 +15,18 @@ module.exports = function(app, baseUrl) {
       return util.addRecordingFromPost(models.ThermalVideoRecording, req, res, device);
     });
 
+  /**
+   *  Put request to update a Thermal Video Recording.
+   *  headers.data,  JSON of data to update.
+   */
+  app.put(
+    apiUrl + "/:id",
+    passport.authenticate(['jwt'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.updateDataFromPut(models.ThermalVideoRecording, req, res);
+    });
+
   app.get(
     apiUrl,
     passport.authenticate(['jwt', 'anonymous'], { session: false }),

@@ -8,6 +8,7 @@ var log = require('../../logging');
 var path = require('path');
 var AWS = require('aws-sdk');
 var jwt = require('jsonwebtoken');
+var models = require('../../models');
 
 /**
  * Gets the query from the headers in the request.
@@ -356,6 +357,90 @@ function getRecordingFile(model, request, response) {
     });
 }
 
+function updateDataFromPut(model, request, response) {
+
+  // Request should be from a user.
+  if (!isRequestFromAUser(request)) return handleResponse(response, {
+    statusCode: 400,
+    success: false,
+    messages: ["Authentication was not from a User."],
+  });
+
+  // Data shoudl be in a JSON format.
+  var data = parseJsonFromString(request.body.data);
+  if (data === null) return handleResponse(response, {
+    statusCode: 400,
+    success: false,
+    messages: ["Could not parse data field in body to JSON."]
+  });
+
+  var id = parseInt(request.params.id);
+  if (!id) {
+    return handleResponse(response, {
+      statusCode: 400,
+      success: false,
+      messages: ["Invalid model id."],
+    });
+  }
+
+  model
+    .findAllWithUser(request.user, { where: { id: 1 } })
+    .then(function(modelInstances) {
+      if (modelInstances.rows.length !== 1) {
+        return handleResponse(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["No data found with given id or don't have permissions to view"],
+        });
+      }
+      var modelInstance = modelInstances.rows[0];
+      modelInstance
+        .update(data, {
+          fields: model.apiUpdateableFields,
+        })
+        .then((result) => {
+          return handleResponse(response, {
+            success: true,
+            statusCode: 200,
+            messages: ["Updated data."],
+          });
+        })
+        .catch((error) => {
+          // TODO update can fail because of bad request, invalid time for sequelize..
+          // If this is the error the user should be told why the update failed.
+          log.error("Error with updating data.");
+          return serverErrorResponse(response, error);
+        });
+    })
+    .catch(function(error) {
+      log.error("Error with update data.");
+      log.error(error);
+    });
+}
+
+function isRequestFromAUser(request) {
+  return request && // Check that request isn't null.
+    request.user && // Check that request.user isn't null.
+    request.user.Model === models.User; // Check that it is is a User model.
+}
+
+function isRequestFromDevice(request) {
+  return request && // Check that request isn't null.
+    request.user && // Check that request.user isn't null.
+    request.user.Model === models.Device; // Check that it is is a Device model.
+}
+
+// Returns a JSON of the string, if parsing to a JSON failes null is returned.
+function parseJsonFromString(jsonString) {
+  try {
+    var json = JSON.parse(jsonString);
+    return json;
+  } catch (error) {
+    log.info("Could not parse string to JSON: ", jsonString);
+    return null;
+  }
+}
+
 exports.uploadToS3 = uploadToS3;
 exports.fileAndDataFromPost = fileAndDataFromPost;
 exports.handleResponse = handleResponse;
@@ -364,3 +449,4 @@ exports.getSequelizeQueryFromHeaders = getSequelizeQueryFromHeaders;
 exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
 exports.getRecordingFile = getRecordingFile;
+exports.updateDataFromPut = updateDataFromPut;

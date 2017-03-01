@@ -15,29 +15,17 @@ module.exports = function(app, baseUrl) {
       return util.addRecordingFromPost(models.IrVideoRecording, req, res, device);
     });
 
-  /*
-    app.put(apiUrl, function(req, res) {
-      // TODO check if the user is able to update this model instance.
-      // For now anybody can change it....
-
-      // Validate query data.
-      models.IrVideoRecording.findOne({ where: { id: req.body.id } })
-        .then(function(model) {
-          try {
-            data = JSON.parse(req.body.data);
-            return model.update(data);
-          } catch (err) {
-            //TODO Throw error here saying couldn't parse data
-          }
-        })
-        .then(function(model) {
-          res.status(200).json({ success: true, msg: ["Updated model."] })
-        })
-        .catch(function(err) {
-          res.status(400).json({ success: false, msg: ["Failed to update model."] })
-        })
+  /**
+   *  Put request to update a IR Video Recording.
+   *  headers.data,  JSON of data to update.
+   */
+  app.put(
+    apiUrl + "/:id",
+    passport.authenticate(['jwt'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.updateDataFromPut(models.IrVideoRecording, req, res);
     });
-    */
 
   /*
     app.delete(apiUrl, function(req, res) {
