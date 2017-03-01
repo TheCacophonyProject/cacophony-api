@@ -27,6 +27,14 @@ module.exports = function(app, baseUrl) {
       return util.updateDataFromPut(models.ThermalVideoRecording, req, res);
     });
 
+  app.delete(
+    apiUrl + '/:id',
+    passport.authenticate(['jwt'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.deleteDataPoint(models.ThermalVideoRecording, req, res);
+    });
+
   app.get(
     apiUrl,
     passport.authenticate(['jwt', 'anonymous'], { session: false }),

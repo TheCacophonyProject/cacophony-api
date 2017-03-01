@@ -418,6 +418,56 @@ function updateDataFromPut(model, request, response) {
     });
 }
 
+function deleteDataPoint(model, request, response) {
+  // Request should be from a user.
+  if (!isRequestFromAUser(request)) return handleResponse(response, {
+    statusCode: 400,
+    success: false,
+    messages: ["Authentication was not from a User."],
+  });
+
+  var id = parseInt(request.params.id);
+  if (!id) {
+    return handleResponse(response, {
+      statusCode: 400,
+      success: false,
+      messages: ["Invalid model id."],
+    });
+  }
+
+  model
+    .findAllWithUser(request.user, { where: { id: id } })
+    .then(function(modelInstances) {
+      if (modelInstances.rows.length !== 1) {
+        return handleResponse(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["No data found with given id or don't have permissions to view"],
+        });
+      }
+      var modelInstance = modelInstances.rows[0];
+      modelInstance
+        .destroy()
+        .then((result) => {
+          return handleResponse(response, {
+            success: true,
+            statusCode: 200,
+            messages: ["Deleted datapoint."],
+          });
+        })
+        .catch((error) => {
+          // TODO update can fail because of bad request, invalid time for sequelize..
+          // If this is the error the user should be told why the update failed.
+          log.error("Error with updating data.");
+          return serverErrorResponse(response, error);
+        });
+    })
+    .catch(function(error) {
+      log.error("Error with update data.");
+      log.error(error);
+    });
+}
+
 function isRequestFromAUser(request) {
   return request && // Check that request isn't null.
     request.user && // Check that request.user isn't null.
@@ -450,3 +500,4 @@ exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
 exports.getRecordingFile = getRecordingFile;
 exports.updateDataFromPut = updateDataFromPut;
+exports.deleteDataPoint = deleteDataPoint;

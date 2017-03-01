@@ -27,6 +27,14 @@ module.exports = function(app, baseUrl) {
       return util.updateDataFromPut(models.AudioRecording, req, res);
     });
 
+  app.delete(
+    apiUrl + '/:id',
+    passport.authenticate(['jwt'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.deleteDataPoint(models.AudioRecording, req, res);
+    });
+
   /**
    *  Get request for Audio Recordings.
    *  headers.where,  Sequelize conditions for query,
