@@ -384,7 +384,7 @@ function updateDataFromPut(model, request, response) {
   }
 
   model
-    .findAllWithUser(request.user, { where: { id: 1 } })
+    .findAllWithUser(request.user, { where: { id: id } })
     .then(function(modelInstances) {
       if (modelInstances.rows.length !== 1) {
         return handleResponse(response, {
