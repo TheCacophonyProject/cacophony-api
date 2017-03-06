@@ -6,6 +6,7 @@ var count = 0;
 function query() {
   util.clearTable();
   var q = $("#query-input")[0].value;
+  limit = $("#respult-per-page")[0].value;
   headers = { where: q, limit: limit, offset: offset };
   var jwt = sessionStorage.getItem('token');
   if (jwt) {
@@ -35,9 +36,11 @@ function queryDone(response) {
     appendModelToTable(response.result.rows[row]);
   }
   var text = document.getElementById('results-text');
-  var start = response.result.offset + 1;
-  var end = response.result.offset +
-    Math.min(response.result.rows.length, response.result.limit);
+  offset = response.result.offset;
+  limit = response.result.limit;
+  var start = offset + 1;
+  var end = offset +
+    Math.min(response.result.rows.length, limit);
   count = response.result.count;
   var str = "Showing " + start + "-" + end + " of " + count;
 
