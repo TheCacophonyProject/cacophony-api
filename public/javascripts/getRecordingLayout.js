@@ -37,7 +37,7 @@ function queryDone(response) {
   var text = document.getElementById('results-text');
   var start = response.result.offset + 1;
   var end = response.result.offset +
-  Math.min(response.result.rows.length, response.result.limit);
+    Math.min(response.result.rows.length, response.result.limit);
   count = response.result.count;
   var str = "Showing " + start + "-" + end + " of " + count;
 
@@ -52,7 +52,38 @@ appendModelToTable = function(model) {
     var value = model[tableData[i].modelField];
     newRow.appendChild(tableData[i].parseFunction(value));
   }
+  newRow.appendChild(modelDeleteDatapoint(model, newRow));
 };
+
+function modelDeleteDatapoint(model, row) {
+  var td = document.createElement("td");
+  var button = document.createElement("button");
+  button.innerHTML = "Delete";
+  var headers = {};
+  var jwt = sessionStorage.getItem('token');
+  if (jwt) { headers.Authorization = jwt; }
+  var id = model.id;
+  button.onclick = function() {
+    var url = apiUrl + '/' + id;
+    $.ajax({
+      url: url,
+      type: 'DELETE',
+      headers: headers,
+      success: function(result) {
+        console.log("File deleted. ", result);
+        console.log(row);
+        row.parentNode.removeChild(row);
+        window.alert("Datapoint deleted.");
+      },
+      error: function(err) {
+        console.log(err);
+        window.alert("Failed deleting datapoint.");
+      },
+    });
+  };
+  td.appendChild(button);
+  return td;
+}
 
 modelViewElement = function(model) {
   var link = document.createElement("a");
@@ -90,7 +121,7 @@ function generateQuery() {
 }
 
 function nextResults() {
-  if (offset+limit < count) {
+  if (offset + limit < count) {
     offset = offset + limit;
     query();
   }

@@ -12,6 +12,7 @@ window.onload = function() {
     error: requestError
   });
   getPlayerSource(document.getElementById('player')); // Gets a tempory URL (10 minutes) that can be used as the audio source
+  $("#delete-button").click(deleteDatapoint);
 };
 
 var recording = null;
@@ -70,6 +71,23 @@ function getPlayerSource(player) {
     },
     error: function(err) {
       console.log("Error with getting temp file url.", err);
+    }
+  });
+}
+
+function deleteDatapoint() {
+  var headers = { Authorization: sessionStorage.getItem('token') };
+  $.ajax({
+    url: apiUrl + '/' + id,
+    type: 'DELETE',
+    headers: headers,
+    success: function() {
+      console.log("Datapoiint deleted.");
+      window.alert("Datapoint deleted.");
+    },
+    error: function(err) {
+      console.log(err);
+      window.alert("Failed to delete datapoint.");
     }
   });
 }
