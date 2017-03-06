@@ -2,6 +2,7 @@ var models = require('../../models');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
 var util = require('./util');
+var responseUtil = require('./responseUtil');
 
 module.exports = function(app) {
   app.post('/authenticate_user', function(req, res) {
@@ -44,7 +45,7 @@ module.exports = function(app) {
           });
       })
       .catch(function(err) {
-        return util.serverErrorResponse(res, err);
+        responseUtil.serverError(res, err);
       });
   });
 };

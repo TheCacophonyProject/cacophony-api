@@ -3,6 +3,7 @@ var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
 var passport = require('passport');
+var responseUtil = require('./responseUtil');
 require('../../passportConfig')(passport);
 
 module.exports = function(app, baseUrl) {
@@ -11,11 +12,11 @@ module.exports = function(app, baseUrl) {
   app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
     // Check that required data is given.
     if (!req.body.groupname) {
-      return util.handleResponse(res, {
+      return responseUtil.send(res, {
         statusCode: 400,
         success: false,
         messages: ['Missing groupname.']
-      })
+      });
     }
 
     // Checks that groupname is free, creates group
@@ -29,13 +30,13 @@ module.exports = function(app, baseUrl) {
         }
         return models.Group.create({ // Create new Group.
           groupname: req.body.groupname,
-        })
+        });
       })
       .then(function(group) { // Created new Group.
         return group.addUser(req.user.id, {admin: true});
       })
       .then(function() {
-        util.handleResponse(res, {
+        responseUtil.send(res, {
           statusCode: 200,
           success: true,
           messages: ['Created new group.']
@@ -43,14 +44,14 @@ module.exports = function(app, baseUrl) {
       })
       .catch(function(err) { // Error with creating Group.
         if (err.invalidRequest) {
-          return util.handleResponse(res, {
+          return responseUtil.send(res, {
             statusCode: 400,
             success: false,
             messages: [err.message]
-          })
+          });
         } else {
-          util.serverErrorResponse(res, err);
+          responseUtil.serverError(res, err);
         }
       });
   });
-}
+};

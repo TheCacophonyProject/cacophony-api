@@ -4,6 +4,7 @@ var log = require('../../logging');
 var passport = require('passport');
 var config = require('../../config');
 var AWS = require('aws-sdk');
+var responseUtil = require('./responseUtil');
 
 module.exports = function(app, baseUrl) {
 
@@ -14,7 +15,7 @@ module.exports = function(app, baseUrl) {
 
       // Check that the JWT is for a file download.
       if (request.user._type !== 'fileDownload') {
-        return util.handleResponse(response, {
+        return responseUtil.send(response, {
           statusCode: 400,
           success: false,
           messages: ["JWT was not a 'fileDownload' token..."]
@@ -41,7 +42,7 @@ module.exports = function(app, baseUrl) {
         if (err) {
           log.error("Error with s3 getObject.");
           log.error(err.stack);
-          util.serverErrorResponse(response, err);
+          responseUtil.serverError(response, err);
         } else {
           response.setHeader('Content-disposition', 'attachment; filename='+filename);
           response.setHeader('Content-type', mimeType);

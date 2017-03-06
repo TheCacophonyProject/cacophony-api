@@ -11,8 +11,7 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      var device = req.user; // passport put the jwt in the user field. But for us it's a device.
-      return util.addRecordingFromPost(models.IrVideoRecording, req, res, device);
+      return util.addRecordingFromPost(models.IrVideoRecording, req, res);
     });
 
   /**

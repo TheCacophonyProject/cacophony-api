@@ -3,6 +3,7 @@ var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
 var passport = require('passport');
+var responseUtil = require('./responseUtil');
 require('../../passportConfig')(passport);
 
 module.exports = function(app, baseUrl) {
@@ -10,7 +11,7 @@ module.exports = function(app, baseUrl) {
   app.post(apiUrl, function(req, res) {
     if (!req.body.username || req.body.username == 'undefined' ||
       !req.body.password || req.body.password == 'undefined') {
-      return util.handleResponse(res, {
+      return responseUtil.send(res, {
         statusCode: 400,
         success: false,
         messages: ['Missing username or password.']
@@ -26,7 +27,7 @@ module.exports = function(app, baseUrl) {
         var data = user.getJwtDataValues();
         user.getDataValues()
           .then(function(userData) {
-            util.handleResponse(res, {
+            responseUtil.send(res, {
               statusCode: 200,
               success: true,
               messages: ['Created new user.'],
@@ -36,13 +37,13 @@ module.exports = function(app, baseUrl) {
           });
       })
       .catch(function(err) { // Error with creating user.
-        util.serverErrorResponse(res, err);
+        responseUtil.serverError(res, err);
       });
   });
 
   app.get(apiUrl, passport.authenticate('jwt', { session: false }), function(req, res) {
     if (!req.user) {
-      return util.handleResponse(res, {
+      return responseUtil.send(res, {
         success: false,
         statusCode: 400,
         messages: ['JWT auth failed.']
@@ -54,7 +55,7 @@ module.exports = function(app, baseUrl) {
         return user.getDataValues();
       })
       .then(function(userData) {
-        return util.handleResponse(res, {
+        return responseUtil.send(res, {
           success: true,
           statusCode: 200,
           messages: ['Successful request.'],
@@ -62,7 +63,7 @@ module.exports = function(app, baseUrl) {
         });
       })
       .catch(function(err) {
-        util.serverErrorResponse(res, err);
+        responseUtil.serverError(res, err);
       });
   });
 };

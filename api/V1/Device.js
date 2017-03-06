@@ -2,6 +2,7 @@ var models = require('../../models');
 var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
+var responseUtil = require('./responseUtil');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -9,11 +10,11 @@ module.exports = function(app, baseUrl) {
   app.post(apiUrl, function(req, res) {
     // Check that required data is given.
     if (!req.body.devicename || !req.body.password || !req.body.group) {
-      return util.handleResponse(res, {
+      return responseUtil.send(res, {
         statusCode: 400,
         success: false,
         messages: ['Missing devicename or password or group.']
-      })
+      });
     }
 
     // Checks that devicename is free, group exists, creates device
@@ -25,7 +26,7 @@ module.exports = function(app, baseUrl) {
           err.invalidRequest = true;
           throw err;
         }
-        return models.Group.getIdFromName(req.body.group) // Promise is rejected if no group with given name.
+        return models.Group.getIdFromName(req.body.group); // Promise is rejected if no group with given name.
       })
       .then(function(groupId) {
         if (!groupId) {  //Throw error if the group doesn't exist.
@@ -37,11 +38,11 @@ module.exports = function(app, baseUrl) {
           devicename: req.body.devicename,
           password: req.body.password,
           GroupId: groupId
-        })
+        });
       })
       .then(function(device) { // Created new Device.
         var data = device.getJwtDataValues();
-        util.handleResponse(res, {
+        responseUtil.send(res, {
           statusCode: 200,
           success: true,
           messages: ["Created new device."],
@@ -50,14 +51,14 @@ module.exports = function(app, baseUrl) {
       })
       .catch(function(err) { // Error with creating Device.
         if (err.invalidRequest) {
-          return util.handleResponse(res, {
+          return responseUtil.send(res, {
             statusCode: 400,
             success: false,
             messages: [err.message]
-          })
+          });
         } else {
-          util.serverErrorResponse(res, err);
+          responseUtil.serverError(res, err);
         }
       });
   });
-}
+};
