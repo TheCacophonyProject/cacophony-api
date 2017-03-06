@@ -1,7 +1,7 @@
 {
   "name": "Full_Noise",
   "license": "AGPL-3.0",
-  "repository" : {
+  "repository": {
     "type": "git",
     "url": "https://github.com/TheCacophonyProject/Full_Noise.git"
   },
@@ -31,6 +31,7 @@
     "pg-native": "^1.10.0",
     "pug": "^2.0.0-beta6",
     "sequelize": "^3.8.0",
+    "tcp-port-used": "^0.1.2",
     "winston": "^1.0.1"
   }
 }
