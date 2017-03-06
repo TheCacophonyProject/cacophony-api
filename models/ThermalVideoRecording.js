@@ -15,6 +15,9 @@ module.exports = function(sequelize, DataTypes) {
     location: DataTypes.STRING, //TODO add geometry
     aditionalMetadata: DataTypes.JSONB,
     tags: DataTypes.JSONB,
+    batteryCharging: DataTypes.STRING,
+    batteryLevel: DataTypes.DOUBLE,
+    airplaneModeOn: DataTypes.BOOLEAN,
     filtered: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -64,6 +67,9 @@ function getFrontendFields() {
     location: model.getDataValue('location'),
     tags: model.getDataValue('tags'),
     fileKey: model.getDataValue('fileKey'),
+    batteryCharging: model.get('batteryCharging'),
+    batteryLevel: model.get('batteryLevel'),
+    airplaneModeOn: model.get('airplaneModeOn'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
@@ -81,7 +87,10 @@ var apiSettableFields = [
   'resy',
   'location',
   'additionalMetadata',
-  'tags'
+  'tags',
+  'batteryLevel',
+  'batteryCharging',
+  'airplaneModeOn',
 ];
 
 function findAllWithUser(user, queryParams) {

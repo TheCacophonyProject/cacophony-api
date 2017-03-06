@@ -141,6 +141,20 @@ util.parseDownload = function(id) {
   return td;
 };
 
+util.parseString = function(string) {
+  var td = document.createElement("td");
+  td.innerHTML = string;
+  return td;
+};
+
+util.parseBoolean = function(boolean) {
+  var td = document.createElement("td");
+  td.innerHTML = boolean;
+  return td;
+};
+
+
+
 util.parseGroup = function(group) {
   var td = document.createElement("td");
   if (typeof group !== 'string') {

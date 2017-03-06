@@ -6,6 +6,9 @@ module.exports = function(sequelize, DataTypes) {
     recordingDateTime: { // Datetime stamp of when the recording started in ISO 8601 format.
       type: DataTypes.DATE
     },
+    batteryCharging: DataTypes.STRING,
+    batteryLevel: DataTypes.DOUBLE,
+    airplaneModeOn: DataTypes.BOOLEAN,
     fileKey: { // Location of the recording file.
       type: DataTypes.STRING,
     },
@@ -77,6 +80,9 @@ function getFrontendFields() {
     location: model.getDataValue('location'),
     tags: model.getDataValue('tags'),
     fileKey: model.getDataValue('fileKey'),
+    batteryCharging: model.get('batteryCharging'),
+    batteryLevel: model.get('batteryLevel'),
+    airplaneModeOn: model.get('airplaneModeOn'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
@@ -103,7 +109,10 @@ var apiSettableFields = [
   'location',
   'locationDatetime',
   'aditionalMetadata',
-  'tags'
+  'tags',
+  'batteryLevel',
+  'batteryCharging',
+  'airplaneModeOn',
 ];
 
 function addAssociations(models) {
