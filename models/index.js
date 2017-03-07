@@ -20,8 +20,10 @@ var models = {};
 models.sequelize = sequelize;
 
 var modelFiles = fs.readdirSync(__dirname);
-modelFiles.splice(modelFiles.indexOf('index.js'), 1); // Remove self from list.
-modelFiles.splice(modelFiles.indexOf('util.js'), 1); // Remove util from list.
+// Remove files that are not models from list.
+modelFiles.splice(modelFiles.indexOf('index.js'), 1);
+modelFiles.splice(modelFiles.indexOf('util.js'), 1);
+modelFiles.splice(modelFiles.indexOf('validation.js'), 1);
 for (var i in modelFiles) {
   var model = sequelize.import(path.join(__dirname, modelFiles[i]));
   models[model.name] = model;

@@ -4,7 +4,7 @@ var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
 var AWS = require('aws-sdk');
-var config = require('../config.js')
+var config = require('../config.js');
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {
@@ -143,7 +143,8 @@ function getFileName(model) {
   var fileName;
   var dateStr = model.getDataValue('recordingDateTime');
   if (dateStr)
-    fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g, '');
+    fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g,
+      '');
   else
     fileName = 'file';
 
@@ -199,6 +200,14 @@ function saveFile(file) {
   });
 }
 
+function geometrySetter(val) {
+  // Put here so old apps that send location in a string still work.
+  // TODO remove this when nobody is using the old app that sends a string.
+  if (typeof val === 'string') return;
+  this.setDataValue('location', { type: 'Point', coordinates: val });
+}
+
+exports.geometrySetter = geometrySetter;
 exports.saveFile = saveFile;
 exports.findAllWithUser = findAllWithUser;
 exports.processAudio = processAudio;

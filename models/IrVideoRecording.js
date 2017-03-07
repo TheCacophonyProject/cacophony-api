@@ -1,4 +1,5 @@
 var util = require('./util');
+var validation = require('./validation');
 
 module.exports = function(sequelize, DataTypes) {
   // Define table
@@ -9,6 +10,11 @@ module.exports = function(sequelize, DataTypes) {
     batteryCharging: DataTypes.STRING,
     batteryLevel: DataTypes.DOUBLE,
     airplaneModeOn: DataTypes.BOOLEAN,
+    location: {
+      type: DataTypes.GEOMETRY,
+      set: util.geometrySetter,
+      validate: { isLatLon: validation.isLatLon },
+    },
     fileKey: { // Location of the recording file.
       type: DataTypes.STRING,
     },
@@ -30,9 +36,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     resy: { // Resolution height.
       type: DataTypes.INTEGER
-    },
-    location: { // Location of the device when the recording was taken. //TODO put this into three fields, latitude, longitude and height.
-      type: DataTypes.STRING
     },
     locationDatetime: { // Datetime of when the location data was recorded.
       type: DataTypes.DATE

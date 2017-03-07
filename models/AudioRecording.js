@@ -1,4 +1,5 @@
 var util = require('./util');
+var validation = require('./validation');
 
 module.exports = function(sequelize, DataTypes) {
   // Define table
@@ -10,7 +11,11 @@ module.exports = function(sequelize, DataTypes) {
     fileType: DataTypes.STRING,
     size: DataTypes.INTEGER,
     duration: DataTypes.INTEGER,
-    location: DataTypes.STRING, //TODO add geometry
+    location: {
+      type: DataTypes.GEOMETRY,
+      set: util.geometrySetter,
+      validate: { isLatLon: validation.isLatLon },
+    },
     aditionalMetadata: DataTypes.JSONB,
     tags: DataTypes.JSONB,
     batteryCharging: DataTypes.STRING,

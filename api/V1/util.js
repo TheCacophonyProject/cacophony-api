@@ -75,8 +75,9 @@ function addRecordingFromPost(model, request, response) {
         modelInstance.set('public', device.public);
       else
         model.setDataValue('public', false);
-      return modelInstance.save();
+      return modelInstance.validate();
     })
+    .then(() => modelInstance.save())
     .then(() => responseUtil.validDatapointUpload(response))
     .then(() => modelInstance.processRecording(file))
     .then((processedFile) => modelInstance.saveFile(processedFile))
@@ -185,6 +186,10 @@ function catchError(error, response, responseFunction) {
   if (error.badRequest) {
     responseFunction(response, error.badRequest);
     return log.info('Bad request: ', error.badRequest);
+  }
+  if (error.name === 'SequelizeValidationError') {
+    responseFunction(response, error.message);
+    return log.info('Bad request: ', error.message);
   }
   return responseUtil.serverError(response, error);
 }
