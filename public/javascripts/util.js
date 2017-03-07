@@ -77,9 +77,15 @@ util.parseNumber = function(number) {
 };
 
 util.parseLocation = function(location) {
-  //TODO parse this....
   var td = document.createElement("td");
-  td.innerHTML = location;
+  if (location && typeof location === 'object') {
+    var latitude = location.coordinates[0];
+    var longitude = location.coordinates[1];
+    //TODO parse this....
+    td.innerHTML = latitude + ', ' + longitude;
+    return td;
+  }
+  td.innerHTML = 'No location.';
   return td;
 };
 
