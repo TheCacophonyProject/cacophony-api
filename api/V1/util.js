@@ -80,7 +80,9 @@ function addRecordingFromPost(model, request, response) {
     .then(() => responseUtil.validDatapointUpload(response))
     .then(() => modelInstance.processRecording(file))
     .then((processedFile) => modelInstance.saveFile(processedFile))
-    .catch((error) => catchError(error, response));
+    .catch((error) => {
+      catchError(error, response, responseUtil.invalidDatapointUpload);
+    });
 }
 
 function getRecordingFile(modelClass, request, response) {
@@ -109,7 +111,9 @@ function getRecordingFile(modelClass, request, response) {
         mimeType: fileData.mimeType,
       });
     })
-    .catch((error) => catchError(error, response));
+    .catch((error) => {
+      catchError(error, response, responseUtil.invalidDatapointGet);
+    });
 }
 
 function updateDataFromPut(modelClass, request, response) {
@@ -138,7 +142,9 @@ function updateDataFromPut(modelClass, request, response) {
       });
     })
     .then(() => responseUtil.validDatapointUpdate(response))
-    .catch((error) => catchError(error, response));
+    .catch((error) => {
+      catchError(error, response, responseUtil.invalidDatapointUpdate);
+    });
 }
 
 function deleteDataPoint(modelClass, request, response) {
@@ -160,7 +166,9 @@ function deleteDataPoint(modelClass, request, response) {
       return modelInstance.destroy();
     })
     .then(() => { responseUtil.validDatapointDelete(response); })
-    .catch((error) => catchError(error, response));
+    .catch((error) => {
+      catchError(error, response, responseUtil.invalidDatapointDelete);
+    });
 }
 
 // Returns a JSON of the string, if parsing to a JSON failes null is returned.
@@ -173,9 +181,11 @@ function parseJsonFromString(jsonString) {
   }
 }
 
-function catchError(error, response) {
-  if (error.badRequest)
+function catchError(error, response, responseFunction) {
+  if (error.badRequest) {
+    responseFunction(response, error.badRequest);
     return log.info('Bad request: ', error.badRequest);
+  }
   return responseUtil.serverError(response, error);
 }
 

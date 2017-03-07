@@ -47,7 +47,7 @@ function send(response, data) {
 
 
 //===========INVALID REQUESTS=============
-function invalidDatapointUpload(response, messages) {
+function invalidDatapointUpload(response, message) {
   badRequest(response, [INVALID_DATAPOINT_UPLOAD_REQUEST, message]);
 }
 

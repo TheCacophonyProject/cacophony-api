@@ -61,12 +61,12 @@ function getFileAndDataField(request) {
       if (error) return reject(error);
 
       var data = util.parseJsonFromString(fields.data);
-      if (typeof data !== 'object')
+      if (data === null || typeof data !== 'object')
         return reject({ badRequest: INVALID_FORM_POST_DATA });
 
       // TODO do more checks that it is a valid file.
       var file = files.file;
-      if (typeof file !== 'object')
+      if (file === null || typeof file !== 'object')
         return reject({ badRequest: INVALDI_FORM_POST_FILE });
 
       return resolve([data, file]);
