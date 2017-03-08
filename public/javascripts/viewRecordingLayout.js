@@ -13,6 +13,7 @@ window.onload = function() {
   });
   getPlayerSource(document.getElementById('player')); // Gets a tempory URL (10 minutes) that can be used as the audio source
   $("#delete-button").click(deleteDatapoint);
+  $("#add-tag-button").click(addTag);
 };
 
 var recording = null;
@@ -29,7 +30,7 @@ function requestSuccess(res) {
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
   document.getElementById('location-text').innerHTML = getLocationText();
-  document.getElementById('tags-text').value = getTagsText();
+  loadTags(recording.tags);
 }
 
 function getRecordingDateText() {
@@ -43,6 +44,102 @@ function getStartTimeText() {
 function getLocationText() {
   return recording.location;
 }
+
+function deleteTagFunc(event) {
+  var button = event.target;
+  var tagId = button.tagId;
+  var row = button.parentNode.parentNode;
+  console.log('Delete: ', tagId);
+  $.ajax({
+    url: apiUrl + '/' + id + '/tags',
+    type: 'DELETE',
+    headers: { Authorization: sessionStorage.getItem('token') },
+    data: 'tagsIds=[' + tagId + ']',
+    success: function() {
+      row.parentNode.removeChild(row);
+    },
+    error: function() {},
+  });
+}
+
+function addTag(tag) {
+  // Get tag from input field
+  var tagInput = document.getElementById('new-tag-text');
+  var tagJson;
+  try {
+    tagJson = JSON.parse(tagInput.value);
+  } catch (err) {
+    window.alert("Tag is not a valid JSON");
+    return;
+  }
+  // Send tag to be saved.
+  $.ajax({
+    url: apiUrl + '/' + id + '/tags',
+    type: 'POST',
+    headers: { Authorization: sessionStorage.getItem('token') },
+    data: 'tags=[' + JSON.stringify(tagJson) + ']',
+    success: reloadTags,
+    error: function(err) {
+      console.log(err);
+    }
+  });
+}
+
+function reloadTags() {
+  $.ajax({
+    url: apiUrl + '/' + id + '/tags',
+    type: 'GET',
+    headers: { Authorization: sessionStorage.getItem('token') },
+    success: function(result) {
+      loadTags(result.tags);
+    },
+    error: function(err) {
+      console.log(err);
+    }
+  });
+}
+
+function loadTags(tags) {
+  console.log(tags);
+  // Clear table
+  var table = document.getElementById('tags-table');
+  var rowCount = table.rows.length;
+  while (--rowCount) table.deleteRow(rowCount);
+
+  delete tags.length;
+  delete tags.nextId;
+  for (var id in tags)
+    addTagToTable(id, tags[id]);
+}
+
+function addTagToTable(id, tag) {
+  var table = document.getElementById('tags-table');
+  var newRow = table.insertRow(table.rows.length);
+  console.log("Adding Tag: ", tag);
+  // Adding tag value to row.
+  var valueTd = document.createElement("td");
+  valueTd.innerHTML = JSON.stringify(tag);
+  newRow.appendChild(valueTd);
+  // Adding Delete button to row.
+  var buttonTd = document.createElement("td");
+  var deleteButton = document.createElement("button");
+  deleteButton.innerHTML = "Delete";
+  deleteButton.tagId = id;
+  deleteButton.onclick = deleteTagFunc;
+  buttonTd.appendChild(deleteButton);
+  newRow.appendChild(buttonTd);
+}
+
+appendModelToTable = function(model) {
+  var newRow = util.getNewEmptyRow();
+  var tableData = getTableData();
+  newRow.appendChild(modelViewElement(model));
+  for (var i in tableData) {
+    var value = model[tableData[i].modelField];
+    newRow.appendChild(tableData[i].parseFunction(value));
+  }
+  newRow.appendChild(modelDeleteDatapoint(model, newRow));
+};
 
 function getTagsText() {
   if (recording.tags) {
