@@ -55,4 +55,20 @@ module.exports = function(app, baseUrl) {
       log.info(req.method + " Request: " + req.url);
       return util.getRecordingFile(models.AudioRecording, req, res);
     });
+
+  app.post(
+    apiUrl + "/:id/tags",
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.addTags(models.AudioRecording, req, res);
+    });
+
+  app.delete(
+    apiUrl + '/:id/tags',
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.deleteTags(models.AudioRecording, req, res);
+    });
 };

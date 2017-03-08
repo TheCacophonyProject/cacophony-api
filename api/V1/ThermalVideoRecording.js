@@ -11,7 +11,8 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      return util.addRecordingFromPost(models.ThermalVideoRecording, req, res);
+      return util.addRecordingFromPost(models.ThermalVideoRecording, req,
+        res);
     });
 
   /**
@@ -39,7 +40,8 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      return util.getRecordingsFromModel(models.ThermalVideoRecording, req, res);
+      return util.getRecordingsFromModel(models.ThermalVideoRecording, req,
+        res);
     });
 
   app.get(
@@ -48,5 +50,21 @@ module.exports = function(app, baseUrl) {
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
       return util.getRecordingFile(models.ThermalVideoRecording, req, res);
+    });
+
+  app.post(
+    apiUrl + "/:id/tags",
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.addTags(models.ThermalVideoRecording, req, res);
+    });
+
+  app.delete(
+    apiUrl + '/:id/tags',
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return util.deleteTags(models.ThermalVideoRecording, req, res);
     });
 };

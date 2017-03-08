@@ -194,6 +194,54 @@ function catchError(error, response, responseFunction) {
   return responseUtil.serverError(response, error);
 }
 
+function addTags(modelClass, request, response) {
+  if (!requestUtil.isFromAUser(request))
+    return responseUtil.notFromAUser(response);
+
+  var id = parseInt(request.params.id);
+  if (!id)
+    return responseUtil.invalidDataId(response);
+
+  var tags = requestUtil.getTags(request);
+  if (tags.badRequest)
+    return responseUtil.invalidAddTag(response, tags.badRequest);
+
+  modelClass
+    .findAllWithUser(request.user, { where: { id: id } })
+    .then((modelInstances) => {
+      var modelInstance = modelInstances.rows[0];
+      if (modelInstance === null || modelInstance === undefined)
+        throw { badRequest: NO_DATAPOINT_FOUND };
+      return modelInstance.addTags(tags);
+    })
+    .then(() => responseUtil.validAddTags(response))
+    .catch((err) => catchError(err, response, responseUtil.invalidAddTags));
+}
+
+function deleteTags(modelClass, request, response) {
+  if (!requestUtil.isFromAUser(request))
+    return responseUtil.notFromAUser(response);
+
+  var id = parseInt(request.params.id);
+  if (!id)
+    return responseUtil.invalidDataId(response);
+
+  var tagsIds = requestUtil.getTagsIds(request);
+  if (tagsIds.badRequest)
+    return responseUtil.invalidAddTag(response, tagsIds.badRequest);
+
+  modelClass
+    .findAllWithUser(request.user, { where: { id: id } })
+    .then((modelInstances) => {
+      var modelInstance = modelInstances.rows[0];
+      if (modelInstance === null || modelInstance === undefined)
+        throw { badRequest: NO_DATAPOINT_FOUND };
+      return modelInstance.deleteTags(tagsIds);
+    })
+    .then(() => responseUtil.validDeleteTags(response))
+    .catch((err) => catchError(err, response, responseUtil.invalidDeleteTags));
+}
+
 exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
 exports.updateDataFromPut = updateDataFromPut;
@@ -201,3 +249,5 @@ exports.getRecordingFile = getRecordingFile;
 exports.deleteDataPoint = deleteDataPoint;
 exports.parseJsonFromString = parseJsonFromString;
 exports.handleResponse = responseUtil.send;
+exports.addTags = addTags;
+exports.deleteTags = deleteTags;

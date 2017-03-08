@@ -12,6 +12,10 @@ var INVALID_DATAPOINT_GET_REQUEST =
   'Request for getting datapoints was invalid';
 var INVALID_FILE_REQUEST =
   'Request for file download was invalid';
+var INVALID_ADD_TAGS_REQUEST =
+  'Request to add tags was invalid';
+var INVALID_DELETE_TAGS_REQUEST =
+  'Request to delete tags was invalid';
 var VALID_DATAPOINT_UPLOAD_REQUEST =
   'Thanks for the data.';
 var VALID_DATAPOINT_DELETE_REQUEST =
@@ -22,11 +26,15 @@ var VALID_DATAPOINT_GET_REQUEST =
   'Successful datapoint get request.';
 var VALID_FILE_REQUEST =
   'Successful file request.';
+var VALID_ADD_TAGS_REQUEST =
+  'Tags were added successfuly.';
+var VALID_DELETE_TAGS_REQUEST =
+  'Tags were deleted successfuly.';
 var NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
 var NOT_FROM_A_DEVICE =
   'Request was authenticated with a valid JWT but the JWT was not from' +
-   ' a Device';
+  ' a Device';
 
 function send(response, data) {
   // Check that the data is valid.
@@ -65,6 +73,14 @@ function invalidDatapointGet(response, message) {
 
 function invalidFileRequest(response, message) {
   badRequest(response, [INVALID_FILE_REQUEST, message]);
+}
+
+function invalidAddTags(response, message) {
+  badRequest(response, [INVALID_ADD_TAG_REQUEST, message]);
+}
+
+function invalidDeleteTags(response, message) {
+  badRequest(resonse, [INVALID_DELETE_TAG_REQUEST, message]);
 }
 
 function badRequest(response, messages) {
@@ -114,6 +130,22 @@ function validFileRequest(response, data) {
   });
 }
 
+function validAddTags(response) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_ADD_TAGS_REQUEST],
+  });
+}
+
+function validDeleteTags(response) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_DELETE_TAGS_REQUEST]
+  });
+}
+
 function serverError(response, err) {
   log.error(err);
   return response.status(500).json({
@@ -144,11 +176,15 @@ exports.invalidDatapointDelete = invalidDatapointDelete;
 exports.invalidDatapointUpdate = invalidDatapointUpdate;
 exports.invalidDatapointGet = invalidDatapointGet;
 exports.invalidFileRequest = invalidFileRequest;
+exports.invalidAddTags = invalidAddTags;
+exports.invalidDeleteTags = invalidDeleteTags;
 exports.validDatapointUpload = validDatapointUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;
 exports.validDatapointGet = validDatapointGet;
 exports.validFileRequest = validFileRequest;
+exports.validAddTags = validAddTags;
+exports.validDeleteTags = validDeleteTags;
 exports.serverError = serverError;
 exports.notFromAUser = notFromAUser;
 exports.notFromADevice = notFromADevice;

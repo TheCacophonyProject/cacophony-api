@@ -47,6 +47,8 @@ module.exports = function(sequelize, DataTypes) {
       getFrontendFields: getFrontendFields,
       processRecording: util.processVideo,
       saveFile: util.saveFile,
+      addTags: util.addTags,
+      deleteTags: util.deleteTags,
     }
   });
 };

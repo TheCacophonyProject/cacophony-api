@@ -15,6 +15,10 @@ var INVALID_FORM_POST_DATA =
   '"data" field in form was not found or a valid JSON.';
 var INVALDI_FORM_POST_FILE =
   '"file" field was not found or valid file.';
+var INVALID_TAGS_FIELD =
+  '"tags" field was not found or a valid JSON.';
+var INVALDI_TAGS_IDS_FIELD =
+  '"tagsIds" field was not found or a valid List.';
 
 function getSequelizeQueryFromHeaders(request) {
   if (typeof request.headers !== 'object')
@@ -74,7 +78,25 @@ function getFileAndDataField(request) {
   });
 }
 
+function getTags(request) {
+  var tags = util.parseJsonFromString(request.body.tags);
+  if (tags && typeof tags === 'object')
+    return tags;
+  else
+    return { badRequest: INVALID_TAGS_FIELD };
+}
+
+function getTagsIds(request) {
+  var tagsIds = util.parseJsonFromString(request.body.tagsIds);
+  if (tagsIds && typeof tagsIds === 'object')
+    return tagsIds;
+  else
+    return { badRequest: INVALDI_TAGS_IDS_FIELD };
+}
+
 exports.getSequelizeQueryFromHeaders = getSequelizeQueryFromHeaders;
 exports.isFromAUser = isFromAUser;
 exports.isFromADevice = isFromADevice;
 exports.getFileAndDataField = getFileAndDataField;
+exports.getTags = getTags;
+exports.getTagsIds = getTagsIds;
