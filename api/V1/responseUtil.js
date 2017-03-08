@@ -16,6 +16,8 @@ var INVALID_ADD_TAGS_REQUEST =
   'Request to add tags was invalid';
 var INVALID_DELETE_TAGS_REQUEST =
   'Request to delete tags was invalid';
+var INVALID_GET_TAGS_REQUEST =
+  'Request to get tags from datapoint was invalid.';
 var VALID_DATAPOINT_UPLOAD_REQUEST =
   'Thanks for the data.';
 var VALID_DATAPOINT_DELETE_REQUEST =
@@ -30,6 +32,8 @@ var VALID_ADD_TAGS_REQUEST =
   'Tags were added successfuly.';
 var VALID_DELETE_TAGS_REQUEST =
   'Tags were deleted successfuly.';
+var VALID_GET_TAGS_REQUEST =
+  'Successful GET tags request.';
 var NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
 var NOT_FROM_A_DEVICE =
@@ -81,6 +85,10 @@ function invalidAddTags(response, message) {
 
 function invalidDeleteTags(response, message) {
   badRequest(resonse, [INVALID_DELETE_TAG_REQUEST, message]);
+}
+
+function invalidGetTags(response, message) {
+  badRequest(response, [INVALID_GET_TAGS_REQUEST, message]);
 }
 
 function badRequest(response, messages) {
@@ -146,6 +154,15 @@ function validDeleteTags(response) {
   });
 }
 
+function validGetTags(response, tags) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_GET_TAGS_REQUEST],
+    tags: tags,
+  });
+}
+
 function serverError(response, err) {
   log.error(err);
   return response.status(500).json({
@@ -178,6 +195,7 @@ exports.invalidDatapointGet = invalidDatapointGet;
 exports.invalidFileRequest = invalidFileRequest;
 exports.invalidAddTags = invalidAddTags;
 exports.invalidDeleteTags = invalidDeleteTags;
+exports.invalidGetTags = invalidGetTags;
 exports.validDatapointUpload = validDatapointUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;
@@ -185,6 +203,7 @@ exports.validDatapointGet = validDatapointGet;
 exports.validFileRequest = validFileRequest;
 exports.validAddTags = validAddTags;
 exports.validDeleteTags = validDeleteTags;
+exports.validGetTags = validGetTags;
 exports.serverError = serverError;
 exports.notFromAUser = notFromAUser;
 exports.notFromADevice = notFromADevice;

@@ -2,6 +2,7 @@ var models = require('../../models');
 var util = require('./util');
 var passport = require('passport');
 var log = require('../../logging');
+var tagsUtil = require('./tagsUtil');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/irvideorecordings';
@@ -61,7 +62,7 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      return util.addTags(models.IrVideoRecording, req, res);
+      return tagsUtil.add(models.IrVideoRecording, req, res);
     });
 
   app.delete(
@@ -69,6 +70,14 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      return util.deleteTags(models.IrVideoRecording, req, res);
+      return tagsUtil.remove(models.IrVideoRecording, req, res);
+    });
+
+  app.get(
+    apiUrl + '/:id/tags',
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+      log.info(req.method + " Request: " + req.url);
+      return tagsUtil.get(models.AudioRecording, req, res);
     });
 };
