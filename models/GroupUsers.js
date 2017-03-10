@@ -1,15 +1,21 @@
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define("GroupUsers", {
+  var name = 'GroupUsers';
+
+  var attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
-    }
-  }, {
+      defaultValue: false,
+    },
+  };
+
+  var options = {
     classMethods: {
       addAssociations: addAssociations,
-    }
-  })
-}
+    },
+  };
+
+  return sequelize.define(name, attributes, options);
+};
 
 function addAssociations(models) {
 }

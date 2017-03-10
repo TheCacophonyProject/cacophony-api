@@ -1,20 +1,22 @@
-var models = require('./')
-
-var Group;
-
 module.exports = function(sequelize, DataTypes) {
-  // Define table
-  Group = sequelize.define("Group", {
-    groupname: DataTypes.STRING, //TODO limit len of this
-  }, {
+  var name = 'Group';
+
+  var attributes = {
+    groupname: {
+      type: DataTypes.STRING,
+    },
+  };
+
+  var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
       getIdFromName: getIdFromName
     }
-  })
-  return Group;
-}
+  };
+
+  return sequelize.define(name, attributes, options);
+};
 
 var apiSettableFields = [];
 
@@ -27,8 +29,8 @@ function getIdFromName(name) {
         } else {
           resolve(group.getDataValue('id'));
         }
-      })
-  })
+      });
+  });
 }
 
 function addAssociations(models) {

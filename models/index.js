@@ -1,38 +1,40 @@
-var Sequelize = require('sequelize');
 var fs = require('fs');
 var path = require('path');
-var config = require('../config');
-var log = require('../logging');
+var Sequelize = require('sequelize');
+var basename = path.basename(module.filename);
+var env = process.env.NODE_ENV || 'development';
+var config = require(__dirname + '/../config/database.json')[env];
+var db = {};
 
-function sequelizeLog(msg) {
-  log.debug(msg, { sequelize: true });
+if (config.use_env_variable) {
+  var sequelize = new Sequelize(process.env[config.use_env_variable]);
+} else {
+  var sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config);
 }
 
-var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
-  host: config.db.host,
-  port: config.db.port,
-  dialect: config.db.dialect,
-  logging: sequelizeLog,
-  benchmark: true
-});
+fs
+  .readdirSync(__dirname)
+  .filter(function(file) {
+    return (file.indexOf('.') !== 0) &&
+      (file !== basename) &&
+      (file.slice(-3) === '.js');
+  })
+  .forEach(function(file) {
+    var model = sequelize['import'](path.join(__dirname, file));
+    db[model.name] = model;
+  });
 
-var models = {};
-models.sequelize = sequelize;
-
-var modelFiles = fs.readdirSync(__dirname);
-// Remove files that are not models from list.
-modelFiles.splice(modelFiles.indexOf('index.js'), 1);
-modelFiles.splice(modelFiles.indexOf('util.js'), 1);
-modelFiles.splice(modelFiles.indexOf('validation.js'), 1);
-for (var i in modelFiles) {
-  var model = sequelize.import(path.join(__dirname, modelFiles[i]));
-  models[model.name] = model;
-}
-
-Object.keys(models).forEach(function(modelName) {
-  if ("addAssociations" in models[modelName]) {
-    models[modelName].addAssociations(models);
+Object.keys(db).forEach(function(modelName) {
+  if (db[modelName].addAssociations) {
+    db[modelName].addAssociations(db);
   }
 });
 
-module.exports = models;
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;

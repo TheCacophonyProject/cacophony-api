@@ -1,23 +1,30 @@
 var bcrypt = require('bcrypt');
 
 module.exports = function(sequelize, DataTypes) {
-  // Define table
-  return sequelize.define("User", {
-    username: { // Unique username
+  var name = 'User';
+
+  var attributes = {
+    username: {
       type: DataTypes.STRING,
       unique: true
     },
-    firstName: DataTypes.STRING, //TODO limit len of this
-    lastName: DataTypes.STRING, //TODO limit len of this
+    firstName: {
+      type: DataTypes.STRING,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+    },
     email: {
       type: DataTypes.STRING,
-      validate: { isEmail: true }
+      validate: { isEmail: true },
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
-  }, {
+      allowNull: false,
+    },
+  };
+
+  var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields
@@ -31,34 +38,36 @@ module.exports = function(sequelize, DataTypes) {
     hooks: {
       afterValidate: afterValidate
     }
-  })
-}
+  };
+  // Define table
+  return sequelize.define(name, attributes, options);
+};
 
 var apiSettableFields = [
   'firstName',
   'lastName'
-]
+];
 
 function getJwtDataValues() {
   return {
     id: this.getDataValue('id'),
     _type: 'user'
-  }
+  };
 }
 
 function getDataValues() {
   var user = this;
   return new Promise(function(resolve, reject) {
     user.getGroups()
-    .then(function(groups) {
-      resolve({
-        username: user.getDataValue('username'),
-        firstName: user.getDataValue('firstName'),
-        lastName: user.getDataValue('lastName'),
-        email: user.getDataValue('email'),
-        groups: groups
+      .then(function(groups) {
+        resolve({
+          username: user.getDataValue('username'),
+          firstName: user.getDataValue('firstName'),
+          lastName: user.getDataValue('lastName'),
+          email: user.getDataValue('email'),
+          groups: groups
+        });
       });
-    });
   });
 }
 
@@ -86,8 +95,8 @@ function afterValidate(user) {
         user.password = hash;
         resolve();
       }
-    })
-  })
+    });
+  });
 }
 
 function comparePassword(password) {
@@ -99,6 +108,6 @@ function comparePassword(password) {
       } else {
         resolve(isMatch);
       }
-    })
-  })
+    });
+  });
 }

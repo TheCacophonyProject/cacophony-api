@@ -1,29 +1,38 @@
 var bcrypt = require('bcrypt');
-var models = require('./')
 
 var Device;
 
 module.exports = function(sequelize, DataTypes) {
-  // Define table
-  Device =  sequelize.define("Device", {
+  var name = 'Device';
+
+  var attributes = {
     devicename: {
       type: DataTypes.STRING,
-      unique: true
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
-    location: DataTypes.STRING,
-    lastConnectionTime: DataTypes.DATE,
+    location: {
+      type:DataTypes.STRING,
+    },
+    lastConnectionTime: {
+      type: DataTypes.DATE,
+    },
     public: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      allowNull: false,
     },
-    currentConfig: DataTypes.JSONB,
-    newConfig: DataTypes.JSONB
-  }, {
+    currentConfig: {
+      type: DataTypes.JSONB,
+    },
+    newConfig: {
+      type: DataTypes.JSONB,
+    },
+  };
+
+  var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
@@ -36,15 +45,16 @@ module.exports = function(sequelize, DataTypes) {
     hooks: {
       afterValidate: afterValidate
     }
-  })
-  return Device
-}
+  };
+
+  return sequelize.define(name, attributes, options);
+};
 
 // Fields that are directly settable by the API.
 var apiSettableFields = [
   'location',
   'newConfig'
-]
+];
 
 // Returns a promise that resolves true or false depending on if the devicename is used.
 function freeDevicename(devicename) {
@@ -52,12 +62,12 @@ function freeDevicename(devicename) {
     Device.findOne({ where: { devicename: devicename } })
       .then(function(device) {
         if (device) {
-          resolve(false)
+          resolve(false);
         } else {
-          resolve(true)
+          resolve(true);
         }
-      })
-  })
+      });
+  });
 }
 
 
@@ -65,7 +75,7 @@ function getJwtDataValues() {
   return {
     id: this.getDataValue('id'),
     _type: 'device'
-  }
+  };
 }
 
 function addAssociations(models) {
@@ -86,8 +96,8 @@ function afterValidate(device) {
         device.password = hash;
         resolve();
       }
-    })
-  })
+    });
+  });
 }
 
 function comparePassword(password) {
@@ -99,6 +109,6 @@ function comparePassword(password) {
       } else {
         resolve(isMatch);
       }
-    })
-  })
+    });
+  });
 }

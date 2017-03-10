@@ -1,14 +1,14 @@
-var log = require('../logging');
+var log = require('../../logging');
 var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
 var AWS = require('aws-sdk');
-var config = require('../config.js');
+var config = require('../../config.js');
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {
-    var models = require('./');
+    var models = require('../');
     if (typeof queryParams.limit == 'undefined') queryParams.limit = 20;
     if (typeof queryParams.offset == 'undefined') queryParams.offset = 0;
 

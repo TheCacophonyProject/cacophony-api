@@ -1,39 +1,71 @@
-var util = require('./util');
-var validation = require('./validation');
+var util = require('./util/util');
+var validation = require('./util/validation');
 
 module.exports = function(sequelize, DataTypes) {
-  // Define table
-  return sequelize.define("AudioRecording", {
-    recordingDateTime: DataTypes.DATE,
-    fileKey: DataTypes.STRING,
-    mimeType: DataTypes.STRING,
-    recordingTime: DataTypes.TIME,
-    fileType: DataTypes.STRING,
-    size: DataTypes.INTEGER,
-    duration: DataTypes.INTEGER,
-    location: {
+  var name = 'AudioRecording';
+
+  var attributes = {
+    // Fields for a file.
+    fileKey: { // Key for S3 file storage.
+      type: DataTypes.STRING,
+    },
+    mimeType: { // MIME of file.
+      type: DataTypes.STRING,
+    },
+    size: { // Size of file.
+      type: DataTypes.INTEGER,
+    },
+    // Fields for a file that is a audio recording.
+    duration: { // Duration of audio recording in seconds.
+      type: DataTypes.INTEGER,
+    },
+    recordingDateTime: { // Date of when the recording started.
+      type: DataTypes.DATE,
+    },
+    recordingTime: { // Local time of recording.
+      type: DataTypes.TIME,
+    },
+    // Fields for location.
+    location: { // Latitude and longitude of where the datapoint was collected.
       type: DataTypes.GEOMETRY,
       set: util.geometrySetter,
       validate: { isLatLon: validation.isLatLon },
     },
-    aditionalMetadata: DataTypes.JSONB,
-    tags: DataTypes.JSONB,
-    batteryCharging: DataTypes.STRING,
-    batteryLevel: DataTypes.DOUBLE,
-    airplaneModeOn: DataTypes.BOOLEAN,
-    filtered: {
+    // Battery relevant fields.
+    batteryLevel: { // Battery level, 1 being full.
+      type: DataTypes.DOUBLE,
+    },
+    batteryCharging: { // Status of the battery [CHARGING, FULL..]
+      type: DataTypes.STRING,
+    },
+    airplaneModeOn: { // If airplane mode was on at time of recording.
       type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
     },
-    filterMetadata: {
-      type: DataTypes.JSONB
+    // Fields from filter functions.
+    filtered: { // If the recording has been filtered.
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
-    passedFilter: {
-      type: DataTypes.BOOLEAN
+    filterMetadata: { // Metadata from filter function.
+      type: DataTypes.JSONB,
     },
-    public: { type: DataTypes.BOOLEAN }
-  }, {
+    passedFilter: { // If the recording passed the filter.
+      type: DataTypes.BOOLEAN,
+    },
+    // Other fields.
+    public: { // If this datapoint can be viewed by the public.
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    additionalMetadata: { // Random metadata can be put here.
+      type: DataTypes.JSONB,
+    },
+    tags: { // Tagging data like animal sightings.
+      type: DataTypes.JSONB,
+    },
+  };
+
+  var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
@@ -47,8 +79,10 @@ module.exports = function(sequelize, DataTypes) {
       saveFile: util.saveFile,
       addTags: util.addTags,
       deleteTags: util.deleteTags,
-    }
-  });
+    },
+  };
+
+  return sequelize.define(name, attributes, options);
 };
 
 var apiUpdateableFields = [
