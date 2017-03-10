@@ -21,6 +21,7 @@ module.exports = function(sequelize, DataTypes) {
 var apiSettableFields = [];
 
 function getIdFromName(name) {
+  var Group = this;
   return new Promise(function(resolve, reject) {
     Group.findOne({ where: { groupname: name } })
       .then(function(group) {

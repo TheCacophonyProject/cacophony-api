@@ -58,6 +58,7 @@ var apiSettableFields = [
 
 // Returns a promise that resolves true or false depending on if the devicename is used.
 function freeDevicename(devicename) {
+  var Device = this;
   return new Promise(function(resolve, reject) {
     Device.findOne({ where: { devicename: devicename } })
       .then(function(device) {
