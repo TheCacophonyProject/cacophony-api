@@ -239,6 +239,78 @@ function deleteTags(tagsIds) {
   });
 }
 
+function migrationAddBelongsTo(queryInterface, childTable, parentTable) {
+  var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
+  var constraintName = childTable + '_' + columnName + '_fkey';
+  return new Promise(function(resolve, reject) {
+    queryInterface.sequelize.query(
+        'ALTER TABLE "' + childTable +
+        '" ADD COLUMN "' + columnName +
+        '" INTEGER;'
+      )
+      .then(() => {
+        return queryInterface.sequelize.query(
+          'ALTER TABLE "' + childTable +
+          '" ADD CONSTRAINT "' + constraintName +
+          '" FOREIGN KEY ("' + columnName +
+          '") REFERENCES "' + parentTable +
+          '" (id) ON DELETE SET NULL ON UPDATE CASCADE;');
+      })
+      .then(() => resolve())
+      .catch((err) => {
+        console.log(err);
+        reject(err);
+      });
+  });
+}
+
+function belongsToMany(queryInterface, viaTable, table1, table2) {
+  var columnName1 = table1.substring(0, table1.length - 1) + 'Id';
+  var constraintName1 = viaTable + '_' + columnName1 + '_fkey';
+  var columnName2 = table2.substring(0, table2.length - 1) + 'Id';
+  var constraintName2 = viaTable + '_' + columnName2 + '_fkey';
+  console.log('Adding belongs to many columns.');
+  return new Promise(function(resolve, reject) {
+    Promise.all([
+        queryInterface.sequelize.query(
+          'ALTER TABLE "' + viaTable +
+          '" ADD COLUMN "' + columnName1 +
+          '" INTEGER;'
+        ),
+        queryInterface.sequelize.query(
+          'ALTER TABLE "' + viaTable +
+          '" ADD COLUMN "' + columnName2 +
+          '" INTEGER;'
+        ),
+      ]).then(() => {
+        console.log('Adding belongs to many constraint.');
+        return Promise.all([
+          queryInterface.sequelize.query(
+            'ALTER TABLE "' + viaTable +
+            '" ADD CONSTRAINT "' + constraintName1 +
+            '" FOREIGN KEY ("' + columnName1 +
+            '") REFERENCES "' + table1 +
+            '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
+          queryInterface.sequelize.query(
+            'ALTER TABLE "' + viaTable +
+            '" ADD CONSTRAINT "' + constraintName2 +
+            '" FOREIGN KEY ("' + columnName2 +
+            '") REFERENCES "' + table2 +
+            '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
+        ]);
+      })
+      .then(() => resolve())
+      .catch((err) => reject(err));
+  });
+}
+
+function addSerial(queryInterface, tableName) {
+  return queryInterface.sequelize.query(
+    'ALTER TABLE "' + tableName +
+    '" ADD COLUMN id SERIAL PRIMARY KEY;'
+  );
+}
+
 exports.geometrySetter = geometrySetter;
 exports.saveFile = saveFile;
 exports.findAllWithUser = findAllWithUser;
@@ -247,3 +319,6 @@ exports.processVideo = processVideo;
 exports.getFileData = getFileData;
 exports.addTags = addTags;
 exports.deleteTags = deleteTags;
+exports.migrationAddBelongsTo = migrationAddBelongsTo;
+exports.belongsToMany = belongsToMany;
+exports.addSerial = addSerial;
