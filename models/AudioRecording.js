@@ -63,6 +63,12 @@ module.exports = function(sequelize, DataTypes) {
     tags: { // Tagging data like animal sightings.
       type: DataTypes.JSONB,
     },
+    relativeToDawn: {
+      type: DataTypes.INTEGER,
+    },
+    relativeToDusk: {
+      type: DataTypes.INTEGER,
+    },
   };
 
   var options = {
@@ -104,6 +110,8 @@ var apiSettableFields = [
   'batteryLevel',
   'batteryCharging',
   'airplaneModeOn',
+  'relativeToDawn',
+  'relativeToDusk',
 ];
 
 function addAssociations(models) {
@@ -127,6 +135,8 @@ function getFrontendFields() {
     batteryCharging: model.get('batteryCharging'),
     batteryLevel: model.get('batteryLevel'),
     airplaneModeOn: model.get('airplaneModeOn'),
+    relativeToDawn: model.get('relativeToDawn'),
+    relativeToDusk: model.get('relativeToDusk'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
