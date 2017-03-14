@@ -3,5 +3,6 @@ node_modules
 
 # Config file
 config.js
+config/database.js
 
 apidoc/*
