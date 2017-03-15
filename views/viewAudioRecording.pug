@@ -30,7 +30,7 @@ html
           div#relative-to-dawn-text.col-xs-6
         div.form-group
           label.col-xs-2.text-right relativeToDusk:
-          div#relative-to-dusk-text.col-xs-6 
+          div#relative-to-dusk-text.col-xs-6
         div.form-group
           label.col-xs-2.text-right Delete Recording:
           input#delete-button(type='button', value='Delete')
@@ -38,6 +38,7 @@ html
           label.col-xs-2.text-right Add tag:
           input#new-tag-text.col-xs-8(type='text')
           input#add-tag-button(type='button', value='Add Tag')
+        include includes/newTag.pug
         table#tags-table(class="table table-striped")
           tr
             th Data
