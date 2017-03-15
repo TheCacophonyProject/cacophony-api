@@ -30,7 +30,20 @@ function requestSuccess(res) {
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
   document.getElementById('location-text').innerHTML = getLocationText();
+  document.getElementById('relative-to-dawn-text').innerHTML =
+    getRelativeToDawnText();
+  document.getElementById('relative-to-dusk-text').innerHTML =
+    getRelativeToDuskText();
+
   loadTags(recording.tags);
+}
+
+function getRelativeToDawnText() {
+  return recording.relativeToDawn;
+}
+
+function getRelativeToDuskText() {
+  return recording.relativeToDusk;
 }
 
 function getRecordingDateText() {
