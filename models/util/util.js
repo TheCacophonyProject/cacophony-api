@@ -11,7 +11,9 @@ function findAllWithUser(model, user, queryParams) {
     var models = require('../');
     if (typeof queryParams.limit == 'undefined') queryParams.limit = 20;
     if (typeof queryParams.offset == 'undefined') queryParams.offset = 0;
-
+    queryParams.order = [
+      ['recordingDateTime','DESC'],
+    ];
     // Find what devices the user can see.
     if (!user) {
       // Not logged in, can onnly see public recordings.
