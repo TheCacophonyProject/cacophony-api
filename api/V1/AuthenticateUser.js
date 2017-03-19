@@ -39,7 +39,7 @@ module.exports = function(app) {
               return util.handleResponse(res, {
                 statusCode: 401,
                 success: false,
-                mesages: ["Wrong password or username."]
+                messages: ["Wrong password or username."]
               });
             }
           });
