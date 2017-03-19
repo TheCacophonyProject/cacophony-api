@@ -157,4 +157,8 @@ window.onload = function() {
   $("#send-query").click(query);
   $("#next-results").click(nextResults);
   $("#previous-results").click(previousResults);
+  $("#get-all").click(function() {
+    $("#query-input")[0].value = '{}';
+    query();
+  });
 };
