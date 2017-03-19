@@ -3,77 +3,8 @@ h4.center-block New Tag.
 
 div.col-lg-3
   label Type
-  select#event-type(onchange="newTag.pestSelect(this)")
-    option pest
-    option bird
-    option human
-    option trap
-    option nothing
-    optoin other
-div.col-lg-4
-  // Pest tag form.
-  div.form-horizontal#pest()
-    div.form-group.row
-      label Start
-      input#pest-start-time(type='time')
-      label End
-      input#pest-end-time(type='time')
-    div.form-group.row
-      label Type
-      select#pest-type
-        option Cat
-        option Possum
-  // Bird tag form
-  div.form-horizontal#bird(hidden)
-    div.form-group.row
-      label Start
-      input#animal-start-time(type='time')
-      label End
-      input#animal-end-time(type='time')
-    div.form-group.row
-      label Type
-      select#animal-type
-        option Kea
-        option Fantail
-
-
-  // Human tag form
-  div.form-horizontal#human(hidden)
-    div.form-group.row
-      label Start
-      input#human-start-time(type='time')
-      label End
-      input#human-end-time(type='time')
-
-  // Trap interaction form
-  div.form-horizontal#trap(hidden)
-    div.form-group.row
-      label Start
-      input#trap-start-time(type='time')
-      label End
-      input#trap-end-time(type='time')
-    div.form-group.row
-      label Triggered
-      input#trap-triggered(type='checkbox')
-
-  // Nothing form
-  div.form-horizontal#nothing(hidden)
-    div.form-group.row
-      label Start
-      input#nothing-start-time(type='time')
-      label End
-      input#nothing-end-time(type='time')
-
-  // Other form
-  div.form-horizontal#other(hidden)
-    div.form-group.row
-      label Start
-      input#other-start-time(type='time')
-      label End
-      input#other-end-time(type='time')
-    div.form-group.row
-      label Comment
-      input#other-comment
-
+  select#event-type
+div.col-lg-4#tags-dev
 div.col-lg-1
-  input#new-tag(type='button', value='Add', onclick="newTag.pestSelect()")
+  input#new-tag(type='button', value='Add', onclick="newTag.addTag()")
+div.col-lg-4#error-box

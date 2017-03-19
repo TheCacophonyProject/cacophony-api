@@ -14,6 +14,7 @@ window.onload = function() {
   getPlayerSource(document.getElementById('player')); // Gets a tempory URL (10 minutes) that can be used as the audio source
   $("#delete-button").click(deleteDatapoint);
   $("#add-tag-button").click(addTag);
+  newTag.setup();
 };
 
 var recording = null;
@@ -75,16 +76,7 @@ function deleteTagFunc(event) {
   });
 }
 
-function addTag(tag) {
-  // Get tag from input field
-  var tagInput = document.getElementById('new-tag-text');
-  var tagJson;
-  try {
-    tagJson = JSON.parse(tagInput.value);
-  } catch (err) {
-    window.alert("Tag is not a valid JSON");
-    return;
-  }
+function addTag(tagJson) {
   // Send tag to be saved.
   $.ajax({
     url: apiUrl + '/' + id + '/tags',
