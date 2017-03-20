@@ -228,18 +228,22 @@ newTag.field.number = function(field) {
 
 newTag.field.timeRange = function(field) {
   var formRow = newTag.getNewFieldFormRow(field);
-  var time1 = document.createElement('input');
-  time1.setAttribute('type', 'time');
-  var time2 = document.createElement('input');
-  time2.setAttribute('type', 'time');
+  var time1m = document.createElement('input');
+  time1m.setAttribute('type', 'text');
+  time1m.value = '00:00';
+  var time2m = document.createElement('input');
+  time2m.setAttribute('type', 'text');
+  time2m.value = '00:00';
   var label1 = document.createElement('Label');
   label1.innerHTML = 'Start:';
   var label2 = document.createElement('label');
   label2.innerHTML = 'End:';
+  formRow.appendChild(document.createElement('br'));
   formRow.appendChild(label1);
-  formRow.appendChild(time1);
+  formRow.appendChild(time1m);
+  formRow.appendChild(document.createElement('br'));
   formRow.appendChild(label2);
-  formRow.appendChild(time2);
+  formRow.appendChild(time2m);
   return formRow;
 };
 
@@ -290,7 +294,7 @@ newTag.addTag = function() {
         }
         if (childDiv.required && childResult[key] === null) {
           validTag = false;
-          errorMessages.push("Field '"+childDiv.disName+"' is required.");
+          errorMessages.push("Field '" + childDiv.disName + "' is required.");
         }
         result[key] = childResult[key];
       }
@@ -313,7 +317,7 @@ function displayErrorMessages(errorMessages) {
   var errorBox = document.getElementById('error-box');
   var message = '';
   for (var i in errorMessages) {
-    message = message + errorMessages[i]+'<br>';
+    message = message + errorMessages[i] + '<br>';
   }
   errorBox.innerHTML = message;
 }
@@ -370,8 +374,8 @@ newTag.getField.number = function(element) {
 
 newTag.getField.timeRange = function(element) {
   var result = {};
-  var start = element.children[2].value;
-  var end = element.children[4].value;
+  var start = element.children[3].value;
+  var end = element.children[6].value;
   result.start = start;
   result.end = end;
   if (start > end)
