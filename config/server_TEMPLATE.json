@@ -1,0 +1,10 @@
+{
+  "http": {
+    "active": true,
+    "port": 80,
+  },
+  "https": {
+    "active": true,
+    "port": 443,
+  },
+}

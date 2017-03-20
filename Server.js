@@ -6,6 +6,9 @@ var winston = require('winston');
 var AWS = require('aws-sdk');
 var fs = require('fs');
 var tcpPortUsed = require('tcp-port-used');
+var http = require('http');
+var https = require('https');
+var serverConfig = require('./config/server.json');
 
 try {
   fs.statSync('./config.js');
@@ -35,23 +38,38 @@ models.sequelize
   .sync()
   .then(() => log.info("Connected to database."))
   .then(() => checkS3Connection())
-  .then(() => listenToPort(app, config.server.port))
+  .then(() => openHttpServer(app))
+  .then(() => openHttpsServer(app))
   .catch(function(error) {
     log.error(error);
   });
 
-function listenToPort(app, port) {
-  return tcpPortUsed.check(port)
-    .then((used) => {
-      if (used) throw new Error("Port in use");
-      log.info("Trying to listen to port: " + port);
-      try {
-        app.listen(port);
-        log.info("Listneing to port: " + port);
-      } catch (err) {
-        log.error("Failed to listen to port: " + port);
-      }
-    });
+function openHttpsServer(app) {
+  return new Promise(function(resolve, reject) {
+    if (!serverConfig.https.active)
+      return resolve();
+    try {
+      log.info('Starting https server on ', serverConfig.https.port);
+      https.createServer(app).listen(serverConfig.https.port);
+      return resolve();
+    } catch (err) {
+      return reject(err);
+    }
+  });
+}
+
+function openHttpServer(app) {
+  return new Promise(function(resolve, reject) {
+    if (!serverConfig.http.active)
+      return resolve();
+    try {
+      log.info('Starting http server on ', serverConfig.http.port);
+      http.createServer(app).listen(serverConfig.http.port);
+      return resolve();
+    } catch (err) {
+      return reject(err);
+    }
+  });
 }
 
 // Returns a Promise that will reolve if it could connect to the S3 file storage
