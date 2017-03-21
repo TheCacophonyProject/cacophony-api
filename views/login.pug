@@ -9,19 +9,13 @@ html
 
 
   body
-  div(class='container bs-docs-container')
-    h2.
-      Login
-    form#register-form.form-horizontal()
-      .form-group
-        label.col-sm-2 Username
-        .col-sm-4
-          input.form-control#username(type='text')
-
-      .form-group
-        label.col-sm-2 Password
-        .col-sm-4
-          input.form-control#password(type='password')
-
-      .form-group
-        input.btn#login(type='button', value='Login')
+    include includes/navbar.pug
+    div(class='container bs-docs-container')
+      form.form-signin.col-md-5
+        h2.
+          Login
+        input.form-control#inputUsername(placeholder='Username')
+        input.form-control#inputPassword(placeholder='Password', type='password')
+        input#login(type='button', value='Sign in')
+        br
+        label#messages
