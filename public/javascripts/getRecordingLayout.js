@@ -1,3 +1,4 @@
+/*
 var queryJson = {};
 var limit = 20;
 var offset = 0;
@@ -6,7 +7,7 @@ var count = 0;
 function query() {
   util.clearTable();
   var q = $("#query-input")[0].value;
-  limit = $("#respult-per-page")[0].value;
+  limit = Number($("#respult-per-page")[0].value);
   headers = { where: q, limit: limit, offset: offset };
   var jwt = sessionStorage.getItem('token');
   if (jwt) {
@@ -46,48 +47,11 @@ function queryDone(response) {
 
   text.innerHTML = str;
 }
+*/
 
-appendModelToTable = function(model) {
-  var newRow = util.getNewEmptyRow();
-  var tableData = getTableData();
-  newRow.appendChild(modelViewElement(model));
-  for (var i in tableData) {
-    var value = model[tableData[i].modelField];
-    newRow.appendChild(tableData[i].parseFunction(value));
-  }
-  newRow.appendChild(modelDeleteDatapoint(model, newRow));
-};
 
-function modelDeleteDatapoint(model, row) {
-  var td = document.createElement("td");
-  var button = document.createElement("button");
-  button.innerHTML = "Delete";
-  var headers = {};
-  var jwt = sessionStorage.getItem('token');
-  if (jwt) { headers.Authorization = jwt; }
-  var id = model.id;
-  button.onclick = function() {
-    var url = apiUrl + '/' + id;
-    $.ajax({
-      url: url,
-      type: 'DELETE',
-      headers: headers,
-      success: function(result) {
-        console.log("File deleted. ", result);
-        console.log(row);
-        row.parentNode.removeChild(row);
-        window.alert("Datapoint deleted.");
-      },
-      error: function(err) {
-        console.log(err);
-        window.alert("Failed deleting datapoint.");
-      },
-    });
-  };
-  td.appendChild(button);
-  return td;
-}
 
+/*
 modelViewElement = function(model) {
   var link = document.createElement("a");
   link.setAttribute('href', viewUrl + model.id);
@@ -162,3 +126,4 @@ window.onload = function() {
     query();
   });
 };
+*/

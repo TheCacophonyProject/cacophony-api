@@ -1,23 +1,27 @@
-header.bs-docs-nav.navbar.navbar-static-top
-  .container
-    nav.collapse.navbar-collapse
-      ul.nav.navbar-nav
-        li
-          a(href='/user_home') Home
-        li
-          a(href='/get_ir_video_recordings') IR Video
-        li
-          a(href='/get_thermal_video_recordings') Thermal Video
-        li
-          a(href='/get_audio_recordings') Audio
-      ul#navbar-user-details.nav.navbar-nav.navbar-right(style="display: none;")
-        li
-          a#navbar-hello-user User
-        li
-          a#navbar-logout Logout
-      ul#navbar-login.nav.navbar-nav.navbar-right(style="display: none;")
-        li
-          a(href='/login') Login
-        li
-          a(href='/register') Register
+nav.navbar.navbar-default
+  .navbar-header
+    a.navbar-brand(href='#') Cacophony Project
+  .navbar-collapse.collapse
+    ul.nav.navbar-nav
+      li#navbar-home
+        a(href='/user_home') Home
+      li#navbar-ir-video
+        a(href='/get_ir_video_recordings') IR Video
+      li#navbar-thermal-video
+        a(href='/get_thermal_video_recordings') Thermal Video
+      li#navbar-audio
+        a(href='/get_audio_recordings') Audio
+    // Shown when the user is logged in.
+    ul#navbar-user-details.nav.navbar-nav.navbar-right(style="display: none;")
+      li
+        a#navbar-hello-user User
+      li
+        a#navbar-logout Logout
+    // Shown when the user is not logged in.
+    ul#navbar-login.nav.navbar-nav.navbar-right(style="display: none;")
+      li
+        a(href='/login') Login
+      li
+        a(href='/register') Register
+
 script(type='text/javascript', src='/javascripts/includes/navbar.js')
