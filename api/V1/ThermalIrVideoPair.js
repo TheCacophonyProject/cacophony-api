@@ -58,8 +58,10 @@ module.exports = function(app, baseUrl) {
           // Add models device and group.
           thermalModel.set('DeviceId', req.user.id);
           thermalModel.set('GroupId', req.user.GroupId);
+          thermalModel.set('videoPair', true);
           irModel.set('DeviceId', req.user.id);
           irModel.set('GroupId', req.user.GroupId);
+          irModel.set('videoPair', true);
 
           //return irModel.validate();
           return irModel.save();

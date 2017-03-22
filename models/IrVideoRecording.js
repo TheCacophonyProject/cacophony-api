@@ -69,6 +69,9 @@ module.exports = function(sequelize, DataTypes) {
     relativeToDusk: {
       type: DataTypes.INTEGER,
     },
+    videoPair: {
+      type: DataTypes.BOOLEAN,
+    },
   };
 
   var options = {
@@ -110,6 +113,7 @@ function getFrontendFields() {
     airplaneModeOn: model.get('airplaneModeOn'),
     relativeToDawn: model.get('relativeToDawn'),
     relativeToDusk: model.get('relativeToDusk'),
+    videoPair: model.getDataValue('videoPair'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
