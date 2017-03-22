@@ -19,6 +19,15 @@ var INVALID_TAGS_FIELD =
   '"tags" field was not found or a valid JSON.';
 var INVALDI_TAGS_IDS_FIELD =
   '"tagsIds" field was not found or a valid List.';
+var INVALID_IR_VIDEO =
+  'A file with the key "irVideo" was not found or invalid.';
+var INVALID_THERMAL_VIDEO =
+  'A file with the key "thermalVideo" was not found or invalid.';
+var INVALID_IR_DATA =
+  'A JSON string with the key "irData" was not found or invalid.';
+var INVALID_THERMAL_DATA =
+  'A JSON string with the key "thermalData" was not found or invalid.';
+
 
 function getSequelizeQueryFromHeaders(request) {
   if (typeof request.headers !== 'object')
@@ -78,6 +87,16 @@ function getFileAndDataField(request) {
   });
 }
 
+function getFieldsAndFiles(request) {
+  return new Promise(function(resolve, reject) {
+    var form = new formidable.IncomingForm();
+    form.parse(request, function(err, fields, files) {
+      if (err) return reject(err);
+      return resolve([files, fields]);
+    });
+  });
+}
+
 function getTags(request) {
   var tags = util.parseJsonFromString(request.body.tags);
   if (tags && typeof tags === 'object')
@@ -100,3 +119,4 @@ exports.isFromADevice = isFromADevice;
 exports.getFileAndDataField = getFileAndDataField;
 exports.getTags = getTags;
 exports.getTagsIds = getTagsIds;
+exports.getFieldsAndFiles = getFieldsAndFiles;

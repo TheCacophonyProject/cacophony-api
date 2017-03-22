@@ -12,7 +12,7 @@ function findAllWithUser(model, user, queryParams) {
     if (typeof queryParams.limit == 'undefined') queryParams.limit = 20;
     if (typeof queryParams.offset == 'undefined') queryParams.offset = 0;
     queryParams.order = [
-      ['recordingDateTime','DESC'],
+      ['recordingDateTime', 'DESC'],
     ];
     // Find what devices the user can see.
     if (!user) {
@@ -266,6 +266,14 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable) {
   });
 }
 
+function migrationRemoveBelongsTo(queryInterface, childTable, parentTable) {
+  var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
+  return queryInterface.sequelize.query(
+    'ALTER TABLE "' + childTable +
+    '" DROP COLUMN "' + columnName + '";'
+  );
+}
+
 function belongsToMany(queryInterface, viaTable, table1, table2) {
   var columnName1 = table1.substring(0, table1.length - 1) + 'Id';
   var constraintName1 = viaTable + '_' + columnName1 + '_fkey';
@@ -322,5 +330,6 @@ exports.getFileData = getFileData;
 exports.addTags = addTags;
 exports.deleteTags = deleteTags;
 exports.migrationAddBelongsTo = migrationAddBelongsTo;
+exports.migrationRemoveBelongsTo = migrationRemoveBelongsTo;
 exports.belongsToMany = belongsToMany;
 exports.addSerial = addSerial;

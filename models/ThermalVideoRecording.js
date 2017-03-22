@@ -145,6 +145,7 @@ function findAllWithUser(user, queryParams) {
 
 function addAssociations(models) {
   models.ThermalVideoRecording.belongsTo(models.Group);
+  models.ThermalVideoRecording.belongsTo(models.IrVideoRecording);
 }
 
 function getFileData(id, user) {

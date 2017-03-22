@@ -18,6 +18,8 @@ var INVALID_DELETE_TAGS_REQUEST =
   'Request to delete tags was invalid';
 var INVALID_GET_TAGS_REQUEST =
   'Request to get tags from datapoint was invalid.';
+var INVALID_VIDEO_PAIR_REQUEST =
+  'Request to upload video pair was invalid.';
 var VALID_DATAPOINT_UPLOAD_REQUEST =
   'Thanks for the data.';
 var VALID_DATAPOINT_DELETE_REQUEST =
@@ -34,6 +36,8 @@ var VALID_DELETE_TAGS_REQUEST =
   'Tags were deleted successfuly.';
 var VALID_GET_TAGS_REQUEST =
   'Successful GET tags request.';
+var VALID_VIDEO_PAIR_UPLOAD =
+  'Successful upload of video pair.';
 var NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
 var NOT_FROM_A_DEVICE =
@@ -93,6 +97,10 @@ function invalidGetTags(response, message) {
 
 function badRequest(response, messages) {
   send(response, { statusCode: 400, success: false, messages: messages });
+}
+
+function invalidVideoPair(response, message) {
+  badRequest(response, [INVALID_VIDEO_PAIR_REQUEST, message]);
 }
 
 //======VALID REQUESTS=========
@@ -163,6 +171,14 @@ function validGetTags(response, tags) {
   });
 }
 
+function validThermalIrVideoPair(response) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_VIDEO_PAIR_UPLOAD],
+  });
+}
+
 function serverError(response, err) {
   log.error(err);
   return response.status(500).json({
@@ -196,6 +212,7 @@ exports.invalidFileRequest = invalidFileRequest;
 exports.invalidAddTags = invalidAddTags;
 exports.invalidDeleteTags = invalidDeleteTags;
 exports.invalidGetTags = invalidGetTags;
+exports.invalidVideoPair = invalidVideoPair;
 exports.validDatapointUpload = validDatapointUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;
@@ -204,6 +221,7 @@ exports.validFileRequest = validFileRequest;
 exports.validAddTags = validAddTags;
 exports.validDeleteTags = validDeleteTags;
 exports.validGetTags = validGetTags;
+exports.validThermalIrVideoPair = validThermalIrVideoPair;
 exports.serverError = serverError;
 exports.notFromAUser = notFromAUser;
 exports.notFromADevice = notFromADevice;

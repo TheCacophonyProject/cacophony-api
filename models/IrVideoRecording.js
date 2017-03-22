@@ -143,6 +143,7 @@ var apiSettableFields = [
 
 function addAssociations(models) {
   models.IrVideoRecording.belongsTo(models.Group);
+  models.IrVideoRecording.hasOne(models.ThermalVideoRecording);
 }
 
 function findAllWithUser(user, queryParams) {
