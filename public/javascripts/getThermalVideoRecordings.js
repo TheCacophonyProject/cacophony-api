@@ -2,57 +2,57 @@ function getTableData() {
   return [{
       tableName: "ID",
       modelField: "id",
-      parseFunction: util.parseNumber
+      parseFunction: queryUtil.parseNumber
     },
     {
       tableName: "Group",
       modelField: "group",
-      parseFunction: util.parseGroup
+      parseFunction: queryUtil.parseGroup
     },
     {
       tableName: "Device ID",
       modelField: "deviceId",
-      parseFunction: util.parseNumber
+      parseFunction: queryUtil.parseNumber
     },
     {
       tableName: "Location",
       modelField: "location",
-      parseFunction: util.parseLocation
+      parseFunction: queryUtil.parseLocation
     },
     {
       tableName: "Time",
       modelField: "recordingTime",
-      parseFunction: util.parseTimeOnly
+      parseFunction: queryUtil.parseTimeOnly
     },
     {
       tableName: "Date",
       modelField: "recordingDateTime",
-      parseFunction: util.parseDateOnly
+      parseFunction: queryUtil.parseDateOnly
     },
     {
       tableName: "Duration",
       modelField: "duration",
-      parseFunction: util.parseDuration
+      parseFunction: queryUtil.parseDuration
     },
     {
       tableName: "BatteryLevel",
       modelField: "batteryLevel",
-      parseFunction: util.parseNumber
+      parseFunction: queryUtil.parseNumber
     },
     {
       tableName: "BatteryCharging",
       modelField: "batteryCharging",
-      parseFunction: util.parseString,
+      parseFunction: queryUtil.parseString,
     },
     {
       tableName: "AirplaneMode",
       modelField: "airplaneModeOn",
-      parseFunction: util.parseBoolean,
+      parseFunction: queryUtil.parseBoolean,
     },
     {
       tableName: "File",
       modelField: "id",
-      parseFunction: util.parseDownload
+      parseFunction: queryUtil.parseDownload
     }
   ];
 }
