@@ -81,6 +81,7 @@ module.exports = function(sequelize, DataTypes) {
       findAllWithUser: findAllWithUser,
       getFileData: getFileData,
       apiUpdateableFields: apiUpdateableFields,
+      getFromId: util.getFromId,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,

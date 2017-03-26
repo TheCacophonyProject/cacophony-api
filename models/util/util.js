@@ -321,6 +321,32 @@ function addSerial(queryInterface, tableName) {
   );
 }
 
+function getFromId(id, user) {
+  var modelClass = this;
+  return new Promise((resolve, reject) => {
+    // Get just public models if no user was given
+    if (!user)
+      return modelClass
+        .findOne({ where: { id: id, public: true } })
+        .then(resolve);
+
+    user
+      .getGroupsIds()
+      .then(ids => {
+        // Condition where you get a public recordin or a recording that you
+        // have permission to view (in same group).
+        var condition = {
+          where: {
+            id: id,
+            "$or": [{ GroupId: { "$in": ids } }, { public: true }],
+          }
+        };
+        return modelClass.findOne(condition);
+      })
+      .then(resolve);
+  });
+}
+
 exports.geometrySetter = geometrySetter;
 exports.saveFile = saveFile;
 exports.findAllWithUser = findAllWithUser;
@@ -333,3 +359,4 @@ exports.migrationAddBelongsTo = migrationAddBelongsTo;
 exports.migrationRemoveBelongsTo = migrationRemoveBelongsTo;
 exports.belongsToMany = belongsToMany;
 exports.addSerial = addSerial;
+exports.getFromId = getFromId;

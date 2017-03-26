@@ -35,8 +35,13 @@ function requestSuccess(res) {
     getRelativeToDawnText();
   document.getElementById('relative-to-dusk-text').innerHTML =
     getRelativeToDuskText();
+  document.getElementById('isVideoPairText').innerHTML = getIsVideoPairTest();
 
   loadTags(recording.tags);
+}
+
+function getIsVideoPairTest() {
+  return recording.videoPair;
 }
 
 function getRelativeToDawnText() {

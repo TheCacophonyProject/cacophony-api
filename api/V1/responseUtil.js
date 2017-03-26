@@ -38,6 +38,8 @@ var VALID_GET_TAGS_REQUEST =
   'Successful GET tags request.';
 var VALID_VIDEO_PAIR_UPLOAD =
   'Successful upload of video pair.';
+var VALID_GET_MODEL =
+  'Successful get datapoint.';
 var NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
 var NOT_FROM_A_DEVICE =
@@ -179,6 +181,15 @@ function validThermalIrVideoPair(response) {
   });
 }
 
+function validGetDatapoint(response, model) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_GET_MODEL],
+    datapoint: model.getFrontendFields(),
+  });
+}
+
 function serverError(response, err) {
   log.error(err);
   return response.status(500).json({
@@ -222,6 +233,7 @@ exports.validAddTags = validAddTags;
 exports.validDeleteTags = validDeleteTags;
 exports.validGetTags = validGetTags;
 exports.validThermalIrVideoPair = validThermalIrVideoPair;
+exports.validGetDatapoint = validGetDatapoint;
 exports.serverError = serverError;
 exports.notFromAUser = notFromAUser;
 exports.notFromADevice = notFromADevice;

@@ -1,0 +1,26 @@
+div
+  div#singleVideoDiv(hidden)
+    video
+      source#signgleVideoSource
+  div#doubleVideoDiv.double-vid(hidden)
+    video#primaryVideo.primary-vid
+    video#secondaryVideo.secondary-vid
+  div
+    div#doubleVideoCon
+      button#play(onclick="viewVideo.playPause(this)") Play
+      button#back(onclick="viewVideo.videoBack()") <
+      button#forward(onclick="viewVideo.videoForward()") >
+      input#videoSlider(type='range', min=0, value=0)
+      label#videoTime 0:00
+  div
+    label.text-right Recording time:
+    div#recordingTimeText
+    br
+    label.text-right Location:
+    div#locationText
+  include newTag.pug
+  table#tags-table.table.table-striped
+    tr
+      th Data
+      th Delete
+script(type='text/javascript', src='/javascripts/includes/viewVideo.js')

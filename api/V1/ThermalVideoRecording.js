@@ -3,6 +3,7 @@ var util = require('./util');
 var passport = require('passport');
 var log = require('../../logging');
 var tagsUtil = require('./tagsUtil');
+var responseUtil = require('./responseUtil');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/thermalvideorecordings';
@@ -74,6 +75,25 @@ module.exports = function(app, baseUrl) {
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
     function(req, res) {
       log.info(req.method + " Request: " + req.url);
-      return tagsUtil.get(models.AudioRecording, req, res);
+      return tagsUtil.get(models.ThermalVideoRecording, req, res);
+    });
+
+  app.get(
+    apiUrl + '/:id/videopair',
+    passport.authenticate(['jwt', 'anonymous'], { session: false }),
+    function(req, res) {
+
+      var id = parseInt(req.params.id);
+      if (!id)
+        return responseUtil.invalidDataId(res);
+
+      models.ThermalVideoRecording
+        .getFromId(id, req.user)
+        .then((thermalM) => {
+          return models.IrVideoRecording
+            .getFromId(thermalM.get('IrVideoRecordingId'), req.user);
+        })
+        .then(irM => responseUtil.validGetDatapoint(res, irM));
+
     });
 };
