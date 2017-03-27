@@ -157,18 +157,10 @@ function deleteDataPoint(modelClass, request, response) {
     return responseUtil.invalidDataId(response);
 
   modelClass
-    .findAllWithUser(request.user, { where: { id: id } })
-    .then((modelInstances) => {
-      var modelInstance = modelInstances.rows[0];
-      if (modelInstance === null || modelInstance === undefined) {
-        responseUtil.invalidDatapointDelete(response, NO_DATAPOINT_FOUND);
-        throw { badRequest: NO_DATAPOINT_FOUND };
-      }
-      return modelInstance.destroy();
-    })
-    .then(() => { responseUtil.validDatapointDelete(response); })
-    .catch((error) => {
-      catchError(error, response, responseUtil.invalidDatapointDelete);
+    .deleteModelInstance(id, request.user)
+    .then(() => responseUtil.validDatapointDelete(response))
+    .catch(err => {
+      catchError(err, response, responseUtil.invalidDatapointDelete);
     });
 }
 

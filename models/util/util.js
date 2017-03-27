@@ -321,7 +321,7 @@ function addSerial(queryInterface, tableName) {
   );
 }
 
-function getFromId(id, user) {
+function getFromId(id, user, attributes) {
   var modelClass = this;
   return new Promise((resolve, reject) => {
     // Get just public models if no user was given
@@ -339,11 +339,55 @@ function getFromId(id, user) {
           where: {
             id: id,
             "$or": [{ GroupId: { "$in": ids } }, { public: true }],
-          }
+          },
+          attributes: attributes,
         };
         return modelClass.findOne(condition);
       })
       .then(resolve);
+  });
+}
+
+/**
+ * Deletes the deleteModelInstance and the file attached to the model with the
+ * given id.
+ * A promise is returned that will resolve if successful and reject if failed
+ * to delete the file and modelInstance.
+ */
+function deleteModelInstance(id, user) {
+  var modelClass = this;
+  var modelInstance = null;
+  return new Promise((resolve, reject) => {
+    modelClass
+      .getFromId(id, user, ['fileKey', 'id'])
+      .then(mi => {
+        modelInstance = mi;
+        if (modelInstance === null)
+          throw {badRequest: 'No file found'};
+        return modelInstance.fileKey;
+      })
+      .then(fileKey => deleteFile(fileKey))
+      .then(() => modelInstance.destroy())
+      .then(resolve)
+      .catch(reject);
+  });
+}
+
+function deleteFile(fileKey) {
+  return new Promise((resolve, reject) => {
+    var s3 = new AWS.S3({
+      endpoint: config.s3.endpoint,
+      accessKeyId: config.s3.publicKey,
+      secretAccessKey: config.s3.privateKey,
+    });
+    var params = {
+      Bucket: config.s3.bucket,
+      Key: fileKey,
+    };
+    s3.deleteObject(params, function(err, data) {
+      if (err) return reject(err);
+      else return resolve(data);
+    });
   });
 }
 
@@ -360,3 +404,4 @@ exports.migrationRemoveBelongsTo = migrationRemoveBelongsTo;
 exports.belongsToMany = belongsToMany;
 exports.addSerial = addSerial;
 exports.getFromId = getFromId;
+exports.deleteModelInstance = deleteModelInstance;
