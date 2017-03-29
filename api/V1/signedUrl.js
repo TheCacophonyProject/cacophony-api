@@ -5,6 +5,8 @@ var passport = require('passport');
 var config = require('../../config');
 var AWS = require('aws-sdk');
 var responseUtil = require('./responseUtil');
+var fs = require('fs');
+var stream = require('stream');
 
 module.exports = function(app, baseUrl) {
 
@@ -42,13 +44,35 @@ module.exports = function(app, baseUrl) {
         if (err) {
           log.error("Error with s3 getObject.");
           log.error(err.stack);
-          responseUtil.serverError(response, err);
-        } else {
-          response.setHeader('Content-disposition', 'attachment; filename='+filename);
-          response.setHeader('Content-type', mimeType);
-          response.write(data.Body, 'binary');
-          response.end(null, 'binary');
+          return responseUtil.serverError(response, err);
         }
+
+        var range = request.headers.range ?
+          request.headers.range :
+          'bytes=0-';
+        var positions = range.replace(/bytes=/, "").split("-");
+        var start = parseInt(positions[0], 10);
+        var total = data.Body.length;
+        var end = positions[1] ?
+          parseInt(positions[1], 10) :
+          total - 1;
+        var chunksize = (end - start) + 1;
+
+        var headers = {
+          'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
+          'Content-Length': chunksize,
+          'Accept-Ranges': 'bytes',
+          'Content-type': mimeType,
+        };
+
+        response.writeHead(206, headers);
+
+        var bufStream = new stream.PassThrough();
+        var b2 = data.Body.slice(start, end + 1);
+        bufStream.end(b2);
+        bufStream.pipe(response);
+        bufStream.end();
+
       });
 
     });
