@@ -73,6 +73,9 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    version: {
+      type: DataTypes.STRING,
+    },
   };
 
   var options = {
@@ -123,6 +126,7 @@ function getFrontendFields() {
     airplaneModeOn: model.get('airplaneModeOn'),
     relativeToDawn: model.get('relativeToDawn'),
     relativeToDusk: model.get('relativeToDusk'),
+    version: model.get('version'),
     videoPair: model.getDataValue('videoPair'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
@@ -144,6 +148,7 @@ var apiSettableFields = [
   'airplaneModeOn',
   'relativeToDawn',
   'relativeToDusk',
+  'version',
 ];
 
 function findAllWithUser(user, queryParams) {

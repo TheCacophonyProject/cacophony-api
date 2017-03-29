@@ -69,6 +69,9 @@ module.exports = function(sequelize, DataTypes) {
     relativeToDusk: {
       type: DataTypes.INTEGER,
     },
+    version: {
+      type: DataTypes.STRING,
+    },
   };
 
   var options = {
@@ -114,6 +117,7 @@ var apiSettableFields = [
   'airplaneModeOn',
   'relativeToDawn',
   'relativeToDusk',
+  'version',
 ];
 
 function addAssociations(models) {
@@ -139,6 +143,7 @@ function getFrontendFields() {
     airplaneModeOn: model.get('airplaneModeOn'),
     relativeToDawn: model.get('relativeToDawn'),
     relativeToDusk: model.get('relativeToDusk'),
+    version: model.get('version'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group

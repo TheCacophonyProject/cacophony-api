@@ -72,6 +72,9 @@ module.exports = function(sequelize, DataTypes) {
     videoPair: {
       type: DataTypes.BOOLEAN,
     },
+    version: {
+      type: DataTypes.STRING,
+    },
   };
 
   var options = {
@@ -115,6 +118,7 @@ function getFrontendFields() {
     airplaneModeOn: model.get('airplaneModeOn'),
     relativeToDawn: model.get('relativeToDawn'),
     relativeToDusk: model.get('relativeToDusk'),
+    version: model.get('version'),
     videoPair: model.getDataValue('videoPair'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
@@ -145,6 +149,7 @@ var apiSettableFields = [
   'airplaneModeOn',
   'relativeToDawn',
   'relativeToDusk',
+  'version',
 ];
 
 function addAssociations(models) {
