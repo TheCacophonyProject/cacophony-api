@@ -110,7 +110,7 @@ queryUtil.addShorterThan = function() {
 queryUtil.addDeviceId = function() {
   var id = Number(document.getElementById('device-id').value);
   var sequelizeCondition = {
-    id: id,
+    DeviceId: id,
   };
   queryUtil.addCondition(sequelizeCondition);
 };
