@@ -42,14 +42,22 @@ queryUtil.fromConditions = function() {
     var condition = queryUtil.conditions[i];
     for (var key in condition) {
       if (query[key] === undefined) query[key] = {};
-      for (var j in condition[key]) {
-        query[key][j] = condition[key][j];
+      // If condition is an object append each condition. {duration: {$lt: 4}}
+      if (typeof condition[key] === 'object') {
+        for (var j in condition[key])
+          query[key][j] = condition[key][j];
+      }
+      // If not a object just set key to that value. {id: 1}
+      else {
+        query[key] = condition[key];
       }
     }
   }
   document.getElementById('active-query').value = JSON.stringify(query);
   queryUtil.sendQuery();
 };
+
+// Add conditions
 
 queryUtil.addBeforeDate = function() {
   var date = document.getElementById('before-date').value;
@@ -95,6 +103,14 @@ queryUtil.addShorterThan = function() {
   var duration = document.getElementById('shorter-than').value;
   var sequelizeCondition = {
     duration: { "$lt": duration }
+  };
+  queryUtil.addCondition(sequelizeCondition);
+};
+
+queryUtil.addDeviceId = function() {
+  var id = Number(document.getElementById('device-id').value);
+  var sequelizeCondition = {
+    id: id,
   };
   queryUtil.addCondition(sequelizeCondition);
 };
