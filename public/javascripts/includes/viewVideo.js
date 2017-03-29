@@ -51,10 +51,7 @@ viewVideo.loadSingelVideo = function(video) {
 };
 
 viewVideo.loadVideoPair = function(video1, video2) {
-  console.log('Video1:', video1);
-  console.log('Video2:', video2);
   console.log('Loading video pair');
-
 
   var url1 = apiUrl + '/' + video1.id;
   var url2 = pairApiUrl + '/' + video2.id;
@@ -64,9 +61,6 @@ viewVideo.loadVideoPair = function(video1, video2) {
   viewVideo.getPlayerSource(url1, (err, res) => {
     var videoEle = document.getElementById('primaryVideo');
     videoEle.addEventListener('loadedmetadata', function(res) {
-      console.log(res);
-      console.log(videoEle);
-      console.log('Duration:', videoEle.duration);
       document.getElementById('videoSlider').max = videoEle.duration;
       document.getElementById('videoSlider').oninput = viewVideo.sliderInput;
     });
@@ -90,22 +84,16 @@ viewVideo.loadVideoPair = function(video1, video2) {
 viewVideo.sliderInput = function(ele) {
   var time = Number(ele.target.value);
   time = ""+time;
-  console.log('Slider:', typeof time);
-  console.log(document.getElementById('primaryVideo').currentTime);
   document.getElementById('primaryVideo').currentTime = time;
   document.getElementById('secondaryVideo').currentTime = time;
-
-  console.log(time);
 };
 
 
 viewVideo.ontimeupdate = function() {
   if (document.getElementById('primaryVideo').paused) return;
   var t = document.getElementById('primaryVideo').currentTime;
-  console.log('Player:', typeof t);
   document.getElementById('videoSlider').value = t;
   document.getElementById('videoTime').innerHTML = Math.floor(t);
-  console.log('time update.');
 };
 
 viewVideo.getPlayerSource = function(url, callback) {
@@ -136,18 +124,23 @@ viewVideo.playPause = function(ele) {
     video2.pause();
     ele.innerHTML = 'Play';
   }
-  console.log(video1.currentTime);
-  console.log(video2.currentTime);
 };
 
 
 
 viewVideo.videoBack = function() {
-
+  viewVideo.setTime(document.getElementById('primaryVideo').currentTime - 1);
 };
 
 viewVideo.videoForward = function() {
-
+  viewVideo.setTime(document.getElementById('primaryVideo').currentTime + 1);
 };
+
+viewVideo.setTime = function(t) {
+  document.getElementById('primaryVideo').currentTime = t;
+  document.getElementById('secondaryVideo').currentTime = t;
+  document.getElementById('videoSlider').value = t;
+  document.getElementById('videoTime').innerHTML = Math.floor(t);
+}
 
 viewVideo.getVideo();
