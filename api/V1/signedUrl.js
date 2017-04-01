@@ -47,9 +47,16 @@ module.exports = function(app, baseUrl) {
           return responseUtil.serverError(response, err);
         }
 
-        var range = request.headers.range ?
-          request.headers.range :
-          'bytes=0-';
+
+        if (!request.headers.range) {
+          response.setHeader('Content-disposition',
+            'attachment; filename=' + filename);
+          response.setHeader('Content-type', mimeType);
+          response.write(data.Body, 'binary');
+          return response.end(null, 'binary');
+        }
+
+        var range = request.headers.range;
         var positions = range.replace(/bytes=/, "").split("-");
         var start = parseInt(positions[0], 10);
         var total = data.Body.length;
@@ -71,8 +78,6 @@ module.exports = function(app, baseUrl) {
         var b2 = data.Body.slice(start, end + 1);
         bufStream.end(b2);
         bufStream.pipe(response);
-        bufStream.end();
-
       });
 
     });
