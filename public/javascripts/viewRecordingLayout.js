@@ -27,7 +27,6 @@ function requestError(err) {
 function requestSuccess(res) {
   console.log(res);
   recording = res.result.rows[0];
-
   document.getElementById('time-text').innerHTML = getStartTimeText();
   document.getElementById('date-text').innerHTML = getRecordingDateText();
   document.getElementById('location-text').innerHTML = getLocationText();
@@ -35,7 +34,6 @@ function requestSuccess(res) {
     getRelativeToDawnText();
   document.getElementById('relative-to-dusk-text').innerHTML =
     getRelativeToDuskText();
-  document.getElementById('isVideoPairText').innerHTML = getIsVideoPairTest();
 
   loadTags(recording.tags);
 }

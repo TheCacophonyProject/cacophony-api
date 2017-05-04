@@ -7,7 +7,6 @@ html
     script(type='text/javascript').
       var id = !{id};
     script(type='text/javascript', src='/javascripts/viewAudioRecording.js')
-    script(type='text/javascript', src='/javascripts/viewRecordingLayout.js')
 
   body
     include includes/navbar.pug
@@ -31,6 +30,9 @@ html
         div.form-group
           label.col-xs-2.text-right relativeToDusk:
           div#relative-to-dusk-text.col-xs-6
+        div.form-group
+          label.col-xs-2.text-right Version:
+          div#version-number-text.col-xs-6
         div.form-group
           label.col-xs-2.text-right Delete Recording:
           input#delete-button(type='button', value='Delete')
