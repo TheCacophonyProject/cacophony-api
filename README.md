@@ -1,8 +1,8 @@
-#Full_Noise
+# Full_Noise
 
 Full_Noise is a node server that is used for viewing and uploading data for the cacophony project. It consists of a REST API and a basic web interface for viewing your data.
 
-##Setup  
+## Setup  
 To setup Full_Noise you will need a PostgreSQL database and a S3 file storage (AWS or LeoFS).
 ### Full_Noise Setup
 * Download and install node LTS https://nodejs.org/en/
