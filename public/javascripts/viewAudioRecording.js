@@ -35,11 +35,18 @@ function requestSuccess(res) {
     getRelativeToDawnText();
   document.getElementById('relative-to-dusk-text').innerHTML =
     getRelativeToDuskText();
-  document.getElementById('version-number-text').innerHTML = getVersionNumber();
+  document.getElementById('version-number-text').innerHTML = getVersionNumberText();
+  document.getElementById('additional-metadata-text').innerHTML =
+    getAdditionalMetadataText();
   loadTags(recording.tags);
+
 }
 
-function getVersionNumber() {
+function getAdditionalMetadataText() {
+  return JSON.stringify(recording.additionalMetadata);
+}
+
+function getVersionNumberText() {
   return recording.version;
 }
 

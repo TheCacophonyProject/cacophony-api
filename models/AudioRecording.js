@@ -144,6 +144,7 @@ function getFrontendFields() {
     relativeToDawn: model.get('relativeToDawn'),
     relativeToDusk: model.get('relativeToDusk'),
     version: model.get('version'),
+    additionalMetadata: model.get('additionalMetadata'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
     group: group
