@@ -1,0 +1,76 @@
+script(type='text/javascript', src='/javascripts/includes/tags.js')
+
+form.form-inline#tagForm(onsubmit="return false")
+  .form-group.col-md-2
+    label Animal:
+    select#tagAnimalInput
+      option rat
+      option possum
+      option hedgehog
+      option stoat
+      option ferrit
+      option weasle
+      option mouse
+      option cat
+      option dog
+      option rabbit
+      option hare
+      option human
+      option bird
+  .form-group.col-md-2
+    label Number:
+    input#tagNumberInput(type="number")
+  .form-group.col-md-2
+    label Confidence
+    label Low
+    input(name="tagConfidenceInput", type="radio", value=0.4)
+    label Mid
+    input(name="tagConfidenceInput", type="radio", value=0.6, checked)
+    label High
+    input(name="tagConfidenceInput", type="radio", value=0.8)
+
+  .form-group.col-md-2
+    label Age
+    input#tagAgeInput(type="text", placeholder="Years:Months", value="", pattern="(\\d)?(\\d):(\\d)?(\\d)", title="Years:Months (3:0)")
+  .form-group.col-md-2
+    label Start time
+    input#tagStartTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)", required)
+  .form-group.col-md-2
+    label End Time
+    input#tagStopTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)", required)
+  .form-group.col-md-2
+    label Killed time
+    input#tagKilledTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
+  .form-group.col-md-2
+    label Poisioned time
+    input#tagPoisionedTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
+  .form-group.col-md-2
+    label Trap interaction start time
+    input#tagTrapInteractionTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
+  .form-group.col-md-2
+    label Trap interaction end time
+    input#tagTrapInteractionStopTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
+  .form-group.col-md-2
+    label Trapped time
+    input#tagTrappedTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
+  .form-group.col-md-2
+    label Trap Type
+    input#tagTrapTypeInput(type="text")
+  .form-group.col-md-2
+    input(type="submit", value="Add new tag", onclick="tags.new()" )
+table#tags-table(class="table table-striped")
+  tr
+    th ID
+    th Animal
+    th Number
+    th Confidence
+    th Age
+    th Start Time
+    th Duration
+    th Killed Time
+    th Poisioned Time
+    th Trap Interaction Time
+    th Trap Interaction Duation
+    th Trapped Time
+    th Trap Type
+    th

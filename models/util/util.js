@@ -37,7 +37,10 @@ function findAllWithUser(model, user, queryParams) {
               { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
             ]
           };
-          queryParams.include = [models.Group];
+          queryParams.include = [
+            { model: models.Group },
+            { model: models.Tag },
+          ];
           queryParams.limit = queryParams.limit;
           queryParams.offset = queryParams.offset;
           return model.findAndCount(queryParams);
@@ -241,8 +244,12 @@ function deleteTags(tagsIds) {
   });
 }
 
-function migrationAddBelongsTo(queryInterface, childTable, parentTable) {
+function migrationAddBelongsTo(queryInterface, childTable, parentTable, name) {
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
+  if (name)
+    columnName = name + 'Id';
+  else
+    columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
   var constraintName = childTable + '_' + columnName + '_fkey';
   return new Promise(function(resolve, reject) {
     queryInterface.sequelize.query(
@@ -373,6 +380,22 @@ function deleteModelInstance(id, user) {
   });
 }
 
+function userCanEdit(id, user) {
+  var modelClass = this;
+  var modelInstance = null;
+  return new Promise((resolve, reject) => {
+    //models.User.where
+    modelClass
+      .getFromId(id, user, ['id'])
+      .then(result => {
+        if (result === null)
+          return resolve(false);
+        else
+          return resolve(true);
+      })
+  });
+}
+
 function deleteFile(fileKey) {
   return new Promise((resolve, reject) => {
     var s3 = new AWS.S3({
@@ -405,3 +428,4 @@ exports.belongsToMany = belongsToMany;
 exports.addSerial = addSerial;
 exports.getFromId = getFromId;
 exports.deleteModelInstance = deleteModelInstance;
+exports.userCanEdit = userCanEdit;

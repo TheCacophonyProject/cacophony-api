@@ -15,7 +15,7 @@ window.onload = function() {
   getPlayerSource(document.getElementById('player')); // Gets a tempory URL (10 minutes) that can be used as the audio source
   $("#delete-button").click(deleteDatapoint);
   $("#add-tag-button").click(addTag);
-  newTag.setup();
+  tags.recordingsIds = {audioId: id};
 };
 
 var recording = null;
@@ -38,7 +38,7 @@ function requestSuccess(res) {
   document.getElementById('version-number-text').innerHTML = getVersionNumberText();
   document.getElementById('additional-metadata-text').innerHTML =
     getAdditionalMetadataText();
-  loadTags(recording.tags);
+  tags.load(recording.tags);
 
 }
 
@@ -114,7 +114,7 @@ function reloadTags() {
     }
   });
 }
-
+/*
 function loadTags(tags) {
   if (tags === null)
     return;
@@ -129,7 +129,7 @@ function loadTags(tags) {
   for (var id in tags)
     addTagToTable(id, tags[id]);
 }
-
+*/
 function addTagToTable(id, tag) {
   var table = document.getElementById('tags-table');
   var newRow = table.insertRow(table.rows.length);

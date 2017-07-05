@@ -86,6 +86,7 @@ module.exports = function(sequelize, DataTypes) {
       apiUpdateableFields: apiUpdateableFields,
       getFromId: util.getFromId,
       deleteModelInstance: util.deleteModelInstance,
+      userCanEdit: util.userCanEdit,
     },
     instanceMethods: {
       getFrontendFields: getFrontendFields,
@@ -111,7 +112,7 @@ function getFrontendFields() {
     recordingTime: model.getDataValue('recordingTime'),
     duration: model.getDataValue('duration'),
     location: model.getDataValue('location'),
-    tags: model.getDataValue('tags'),
+    //tags: model.getDataValue('tags'),
     fileKey: model.getDataValue('fileKey'),
     batteryCharging: model.get('batteryCharging'),
     batteryLevel: model.get('batteryLevel'),
@@ -155,6 +156,7 @@ var apiSettableFields = [
 function addAssociations(models) {
   models.IrVideoRecording.belongsTo(models.Group);
   models.IrVideoRecording.hasOne(models.ThermalVideoRecording);
+  models.IrVideoRecording.hasMany(models.Tag);
 }
 
 function findAllWithUser(user, queryParams) {

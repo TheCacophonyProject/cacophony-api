@@ -17,6 +17,28 @@
 //   other values needed depending on the type as set above.
 // }
 
+var tagsLayout = [{
+  name: 'Animal',
+  id: 'animal',
+  type: 'select',
+  values: ['rat', 'possum', 'hedgehog', 'stoat', 'ferrit', 'weasle',
+    'mouse', 'cat', 'dog', 'rabbit', 'hare', 'human', 'bird'
+  ],
+  required: true,
+  description: "The animal you are tagging.",
+}, {
+  name 'Confidence',
+  id: 'confidence',
+  type: 'confidence',
+  required: true,
+  description: "How confident are you in the idenfication.",
+}, {
+  
+}]
+
+
+
+
 var tagsLayout = {
   video: [ // List of tag types for videos.
     {
