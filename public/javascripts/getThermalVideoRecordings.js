@@ -1,5 +1,10 @@
 function getTableData() {
   return [{
+      tableName: "Video Pair",
+      modelField: "model",
+      parseFunction: parseVideoPair
+    },
+    {
       tableName: "ID",
       modelField: "id",
       parseFunction: queryUtil.parseNumber
@@ -55,6 +60,17 @@ function getTableData() {
       parseFunction: queryUtil.parseDownload
     }
   ];
+}
+
+function parseVideoPair(model) {
+  var link = document.createElement("a");
+  var url = '/view_ir_and_thermal/'+model.irVideoId+'/'+model.id;
+  link.setAttribute('href', url);
+  link.setAttribute('target', '_blank');
+  link.innerHTML = 'Video Pair';
+  var td = document.createElement("td");
+  td.appendChild(link);
+  return td;
 }
 
 var apiUrl = "api/v1/thermalVideoRecordings";

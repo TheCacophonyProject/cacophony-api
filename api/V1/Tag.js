@@ -32,7 +32,7 @@ module.exports = function(app, baseUrl) {
           statusCode: 400,
           success: false,
           messages: [
-            'Missing "ThermalVideoId" or "IrVideoId" or "audioId"'
+            'Missing "thermalVideoId" or "irVideoId" or "audioId"'
           ],
         });
       }

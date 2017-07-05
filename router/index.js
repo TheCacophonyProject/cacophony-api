@@ -51,7 +51,10 @@ module.exports = function(app) {
     res.render('viewThermalVideoRecording.pug', { 'id': req.params.id });
   });
 
-  //var apiRouts = fs.readdirSync(__dirname);
-  //apiRouts.splice(apiRouts.indexOf('index.js'), 1); // Remove self from list.
-  //for (var i in apiRouts) require(path.join(__dirname, apiRouts[i]))(app);
+  app.get('/view_ir_and_thermal/:irId/:thermalId', function(req, res) {
+    res.render('viewIrAndThermal.pug', {
+      'irId': req.params.irId,
+      'thermalId': req.params.thermalId
+    });
+  });
 };

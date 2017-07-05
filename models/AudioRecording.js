@@ -129,9 +129,8 @@ function addAssociations(models) {
 function getFrontendFields() {
   var model = this;
   var group = null;
-  if (model.dataValues.Group) {
+  if (model.dataValues.Group)
     group = model.dataValues.Group.dataValues.groupname;
-  }
   var tags = [];
   for (var tag in model.getDataValue('Tags'))
     tags.push(model.getDataValue('Tags')[tag].getFrontendFields());
@@ -153,7 +152,6 @@ function getFrontendFields() {
     groupId: model.getDataValue('GroupId'),
     group: group,
     tags: tags,
-    //Tags: model.getDataValue('Tags'),
   };
 }
 

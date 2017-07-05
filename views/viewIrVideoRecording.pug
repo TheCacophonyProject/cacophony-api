@@ -7,7 +7,7 @@ html
     script(type='text/javascript').
       var id = !{id};
     script(type='text/javascript', src='/javascripts/viewIrVideoRecording.js')
-    script(type='text/javascript', src='/javascripts/viewRecordingLayout.js')
+    //script(type='text/javascript', src='/javascripts/viewRecordingLayout.js')
 
   body
     include includes/navbar.pug
@@ -34,9 +34,7 @@ html
         div.form-group
           label.col-xs-2.text-right Is a video pair.
           div#isVideoPairText.col-xs-6
-        div.form-group.row
-          label.col-xs-2.text-right Tags:
-          input#tags-text.col-xs-8(type='text')
         div.form-group
           label.col-xs-2.text-right Delete:
           input#delete-button(type='button', value='Delete')
+    include includes/tags.pug

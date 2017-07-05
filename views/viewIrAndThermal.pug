@@ -1,0 +1,34 @@
+doctype html
+html
+  head
+    title Video Recordings
+    link(href='/stylesheets/bootstrap.css', rel='stylesheet', media='screen')
+    link(href='/stylesheets/viewVideos.css', rel='stylesheet')
+    script(src='http://code.jquery.com/jquery-1.9.1.js')
+    script(type='text/javascript').
+      var irId = !{irId};
+      var thermalId = !{thermalId};
+      var id = !{thermalId};
+    script(type='text/javascript', src='/javascripts/viewIrAndThermal.js')
+
+  body
+    include includes/navbar.pug
+    div
+      div#doubleVideoDiv.double-vid
+        video#irVideo.primary-vid
+        video#thermalVideo.secondary-vid
+      div
+        div#doubleVideoCon
+          button#play(onclick="playPause(this)") Play
+          button#back(onclick="videoBack()") <
+          button#forward(onclick="videoForward()") >
+          input#videoSlider(type='range', min=0, value=0)
+          label#videoTime 0:00
+      div
+        label.text-right Recording time:
+        div#recordingTimeText
+        br
+        label.text-right Location:
+        div#locationText
+
+    include includes/tags.pug

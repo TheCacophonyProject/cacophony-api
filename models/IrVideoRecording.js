@@ -103,16 +103,17 @@ module.exports = function(sequelize, DataTypes) {
 function getFrontendFields() {
   var model = this;
   var group = null;
-  if (model.dataValues.Group) {
+  if (model.dataValues.Group)
     group = model.dataValues.Group.dataValues.groupname;
-  }
+  var tags = [];
+  for (var tag in model.getDataValue('Tags'))
+    tags.push(model.getDataValue('Tags')[tag].getFrontendFields());
   return {
     id: model.getDataValue('id'),
     recordingDateTime: model.getDataValue('recordingDateTime'),
     recordingTime: model.getDataValue('recordingTime'),
     duration: model.getDataValue('duration'),
     location: model.getDataValue('location'),
-    //tags: model.getDataValue('tags'),
     fileKey: model.getDataValue('fileKey'),
     batteryCharging: model.get('batteryCharging'),
     batteryLevel: model.get('batteryLevel'),
@@ -123,7 +124,8 @@ function getFrontendFields() {
     videoPair: model.getDataValue('videoPair'),
     deviceId: model.getDataValue('DeviceId'),
     groupId: model.getDataValue('GroupId'),
-    group: group
+    group: group,
+    tags: tags,
   };
 }
 

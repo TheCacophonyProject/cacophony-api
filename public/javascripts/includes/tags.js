@@ -4,6 +4,9 @@ Contains the tagging functions (delete, load, new).
 
 tags = { recordingsIds: {} };
 
+/**
+ * Deletes a tag.
+ */
 tags.delete = function(event) {
   var id = event.target.tagId;
   console.log("Deleting tag:", id);
@@ -24,6 +27,9 @@ tags.delete = function(event) {
   })
 };
 
+/**
+ * Adds a tag to the tag table.
+ */
 tags.addTagToTable = function(tag) {
   var tagsTable = document.getElementById('tags-table');
   // Make new row.
@@ -79,7 +85,9 @@ tags.addTagToTable = function(tag) {
   del.appendChild(deleteButton)
   row.appendChild(del);
 };
-
+/**
+ * Loads all the tags in the list given to the table.
+ */
 tags.load = function(loadingTags) {
   console.log("Loading tags into table.");
   for (var i in loadingTags) {
@@ -118,6 +126,7 @@ tags.new = function() {
   console.log("New tag:", tag);
   var data = tags.recordingsIds;
   data.tag = JSON.stringify(tag);
+  console.log(data);
   // Upload new tag
   $.ajax({
     url: '/api/v1/tags',
@@ -134,6 +143,7 @@ tags.new = function() {
     }
   })
 };
+
 /**
  * Parses a Select input, if input is invalid it will throw an error.
  * A null/empty result is not considered invalid.

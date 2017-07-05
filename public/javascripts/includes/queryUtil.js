@@ -190,7 +190,10 @@ queryUtil.appendModelToTable = function(model) {
   var tableData = getTableData();
   newRow.appendChild(queryUtil.modelViewElement(model));
   for (var i in tableData) {
-    var value = model[tableData[i].modelField];
+    if (tableData[i].modelField == 'model')
+      var value = model;
+    else
+      var value = model[tableData[i].modelField];
     newRow.appendChild(tableData[i].parseFunction(value));
   }
   newRow.appendChild(queryUtil.modelDeleteDatapoint(model, newRow));
