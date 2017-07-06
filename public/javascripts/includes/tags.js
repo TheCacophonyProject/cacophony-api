@@ -118,7 +118,7 @@ tags.new = function() {
     tag.trapInteractionDuration = tags.parseDuration(
       'tagTrapInteractionTimeInput', 'tagTrapInteractionStopTimeInput');
     tag.trappedTime = tags.parseTime('tagTrappedTimeInput');
-    tag.trapType = tags.parseString('tagTrapTypeInput');
+    tag.trapType = tags.parseSelect('tagTrapTypeInput');
   } catch (err) {
     console.log(err);
     return;

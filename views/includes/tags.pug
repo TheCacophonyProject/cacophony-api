@@ -34,10 +34,10 @@ form.form-inline#tagForm(onsubmit="return false")
     input#tagAgeInput(type="text", placeholder="Years:Months", value="", pattern="(\\d)?(\\d):(\\d)?(\\d)", title="Years:Months (3:0)")
   .form-group.col-md-2
     label Start time
-    input#tagStartTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)", required)
+    input#tagStartTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
   .form-group.col-md-2
     label End Time
-    input#tagStopTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)", required)
+    input#tagStopTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
   .form-group.col-md-2
     label Killed time
     input#tagKilledTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
@@ -55,7 +55,16 @@ form.form-inline#tagForm(onsubmit="return false")
     input#tagTrappedTimeInput(type="text", placeholder="min:sec", value="", pattern="(\\d)?(\\d):[0-5][0-9]", title="Minutes:Seconds (2:31)")
   .form-group.col-md-2
     label Trap Type
-    input#tagTrapTypeInput(type="text")
+    select#tagTrapTypeInput
+      option
+      option Good Nature possums
+      option Good nature rat
+      option Short live capture
+      option Long live capture
+      option Timms
+      option Doc 200
+      option Trapinator
+      option Rat poison station
   .form-group.col-md-2
     input(type="submit", value="Add new tag", onclick="tags.new()" )
 table#tags-table(class="table table-striped")
