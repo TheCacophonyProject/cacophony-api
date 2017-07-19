@@ -35,7 +35,7 @@ require('./router')(app);
 
 log.info("Connecting to database.....");
 models.sequelize
-  .sync()
+  .authenticate()
   .then(() => log.info("Connected to database."))
   .then(() => checkS3Connection())
   .then(() => openHttpServer(app))
