@@ -2,7 +2,7 @@ var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var AnonymousStrategy = require('passport-anonymous');
 var models = require('./models');
-var config = require('./config/confg');
+var config = require('./config/config');
 
 module.exports = function(passport) {
   passport.use(new AnonymousStrategy());
