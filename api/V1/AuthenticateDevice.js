@@ -33,7 +33,7 @@ module.exports = function(app) {
             // Password is valid, send JWT in response.
             if (passwordMatch) {
               var data = device.getJwtDataValues();
-              var token = 'JWT ' + jwt.sign(data, config.passport.secret);
+              var token = 'JWT ' + jwt.sign(data, config.server.passportSecret);
               return responseUtil.send(res, {
                 statusCode: 200,
                 success: true,

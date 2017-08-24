@@ -31,7 +31,7 @@ module.exports = function(app) {
                   statusCode: 200,
                   success: true,
                   messages: ["Successfull login."],
-                  token: 'JWT ' + jwt.sign(data, config.passport.secret),
+                  token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
                   userData: userData
                 });
               });
