@@ -1,6 +1,6 @@
 var models = require('../../models');
 var jwt = require('jsonwebtoken');
-var config = require('../../config');
+var config = require('../../config/config');
 var util = require('./util');
 var responseUtil = require('./responseUtil');
 

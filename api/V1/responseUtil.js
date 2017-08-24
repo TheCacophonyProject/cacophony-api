@@ -1,6 +1,6 @@
 var log = require('../../logging');
 var jwt = require('jsonwebtoken');
-var config = require('../../config');
+var config = require('../../config/config');
 
 var INVALID_DATAPOINT_UPLOAD_REQUEST =
   'Request for uploading a datapoint was invalid';

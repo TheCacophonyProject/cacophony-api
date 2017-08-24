@@ -4,7 +4,7 @@ var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
 var AWS = require('aws-sdk');
-var config = require('../../config.js');
+var config = require('../../config/config');
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {

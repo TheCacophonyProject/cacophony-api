@@ -2,13 +2,13 @@ var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var AnonymousStrategy = require('passport-anonymous');
 var models = require('./models');
-var config = require('./config');
+var config = require('./config/confg');
 
 module.exports = function(passport) {
   passport.use(new AnonymousStrategy());
   var opts = {
     jwtFromRequest: getJWT,
-    secretOrKey: config.passport.secret
+    secretOrKey: config.server.passportSecret,
   };
 
 function getJWT(request) {

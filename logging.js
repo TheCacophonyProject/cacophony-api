@@ -1,4 +1,4 @@
-var config = require('./config');
+var config = require('./config/config');
 var winston = require('winston');
 var expressWinston = require('express-winston');
 
@@ -24,7 +24,7 @@ var logger = new(winston.Logger)({
     }),
     new(winston.transports.Console)({
       name: 'console',
-      level: config.logger.level,
+      level: config.server.loggerLevel,
       colorize: true,
       handleExceptions: true,
       humanReadableUnhandledException: true

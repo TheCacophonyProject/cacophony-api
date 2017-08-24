@@ -8,15 +8,14 @@ var fs = require('fs');
 var tcpPortUsed = require('tcp-port-used');
 var http = require('http');
 var https = require('https');
-var serverConfig = require('./config/server.json');
 
 try {
-  fs.statSync('./config.js');
+  fs.statSync('./config/config.js');
 } catch (error) {
   console.log("Config file is not setup. Read README.md for config setup.");
   return;
 }
-var config = require('./config');
+var config = require('./config/config');
 var models = require('./models');
 var log = require('./logging');
 
@@ -46,11 +45,11 @@ models.sequelize
 
 function openHttpsServer(app) {
   return new Promise(function(resolve, reject) {
-    if (!serverConfig.https.active)
+    if (!config.server.https.active)
       return resolve();
     try {
-      log.info('Starting https server on ', serverConfig.https.port);
-      https.createServer(app).listen(serverConfig.https.port);
+      log.info('Starting https server on ', config.server.https.port);
+      https.createServer(app).listen(config.server.https.port);
       return resolve();
     } catch (err) {
       return reject(err);
@@ -60,11 +59,11 @@ function openHttpsServer(app) {
 
 function openHttpServer(app) {
   return new Promise(function(resolve, reject) {
-    if (!serverConfig.http.active)
+    if (!config.server.http.active)
       return resolve();
     try {
-      log.info('Starting http server on ', serverConfig.http.port);
-      http.createServer(app).listen(serverConfig.http.port);
+      log.info('Starting http server on ', config.server.http.port);
+      http.createServer(app).listen(config.server.http.port);
       return resolve();
     } catch (err) {
       return reject(err);
@@ -77,11 +76,11 @@ function openHttpServer(app) {
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
     var s3 = new AWS.S3({
-      endpoint: config.s3.endpoint,
-      accessKeyId: config.s3.publicKey,
-      secretAccessKey: config.s3.privateKey,
+      endpoint: config.leoFS.endpoint,
+      accessKeyId: config.leoFS.publicKey,
+      secretAccessKey: config.leoFS.privateKey,
     });
-    var params = { Bucket: config.s3.bucket, };
+    var params = { Bucket: config.leoFS.bucket };
     log.info("Connecting to S3.....");
     s3.headBucket(params, function(err, data) {
       if (err) {

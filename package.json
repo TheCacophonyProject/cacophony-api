@@ -8,7 +8,7 @@
   "version": "0.0.1",
   "dependencies": {
     "aws-sdk": "^2.3.19",
-    "bcrypt": "^0.8.7",
+    "bcrypt": "^1.0.2",
     "bluebird": "^2.9.34",
     "body-parser": "^1.15.2",
     "express": "^4.13.3",

@@ -1,7 +1,7 @@
 var models = require('../../models');
 var util = require('./util');
 var jwt = require('jsonwebtoken');
-var config = require('../../config');
+var config = require('../../config/config');
 var responseUtil = require('./responseUtil');
 
 module.exports = function(app, baseUrl) {

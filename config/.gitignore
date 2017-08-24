@@ -1,0 +1,7 @@
+# Ignore everything in this directory
+*
+# Except
+!.gitignore
+!database_TEMPLATE.js
+!config_TEMPLATE.js
+!keys/.gitignore
