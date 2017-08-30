@@ -6,10 +6,13 @@ Full_Noise is a node server that is used for viewing and uploading data for the 
 To setup Full_Noise you will need a PostgreSQL database and a LeoFS bucket setup first.
 
 ### LeoFS Setup
-http://leo-project.net/
-* Check that leofs is running with leofs-status. 
-* Create a user saving the id and secret. 
-* Create a bucket and change the /etc/hosts file as described in th LeoFS documentation. 
+
+* Download LeoFS from https://leo-project.net/leofs/download.html
+* Follow the installation instructions at https://leo-project.net/leofs/docs/installation/quick/
+* Create a user saving the id and secret: `leofs-adm create-user [username]`
+* Record the access key and secret acccess key generated.
+* Create a bucket for Full Noise to use: `leofs-adm add-bucket [bucket name] [access key]`
+* Ensure that /etc/hosts has a `[bucket name].localhost` entry as described in the LeoFS documentation.
 
 ### PostgreSQL Setup
 A postgreSQL user needs to bet setup as the ower of a database and the postgis extension needs to be enabled on that database.
