@@ -9,7 +9,8 @@ To setup Full_Noise you will need a PostgreSQL database and a LeoFS bucket setup
 
 * Download LeoFS from https://leo-project.net/leofs/download.html
 * Follow the installation instructions at https://leo-project.net/leofs/docs/installation/quick/
-* Create a user saving the id and secret.
+* Create a user saving the id and secret: `leofs-adm create-user [username]`
+* Record the access key and secret acccess key generated.
 * Create a bucket for Full Noise to use: `leofs-adm add-bucket [bucket name] [access key]`
 * Ensure that /etc/hosts has a `[bucket name].localhost` entry as described in the LeoFS documentation.
 
