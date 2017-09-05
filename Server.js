@@ -29,6 +29,16 @@ app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 log.addExpressApp(app);
 
+// Adding headers to allow cross-origin HTTP request.
+// This is so the web interface running on a different port/domain can access the API.
+// This could cause security issues with Cookies but JWTs are used instead of Cookies.
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
 require('./api/V1')(app);
 require('./router')(app);
 
