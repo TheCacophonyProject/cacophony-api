@@ -22,6 +22,7 @@
     "knox": "^0.9.2",
     "morgan": "^1.7.0",
     "node-cmd": "^1.1.1",
+    "node-gyp": "^3.6.2",
     "passport": "^0.3.2",
     "passport-anonymous": "^1.0.1",
     "passport-jwt": "^2.1.0",
