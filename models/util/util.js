@@ -172,15 +172,15 @@ function saveFile(file) {
 
     // Create AWS S3 object
     var s3 = new AWS.S3({
-      endpoint: config.s3.endpoint,
-      accessKeyId: config.s3.publicKey,
-      secretAccessKey: config.s3.privateKey,
+      endpoint: config.leoFS.endpoint,
+      accessKeyId: config.leoFS.publicKey,
+      secretAccessKey: config.leoFS.privateKey,
     });
 
     // Save file with key.
     fs.readFile(file.path, function(err, data) {
       var params = {
-        Bucket: config.s3.bucket,
+        Bucket: config.leoFS.bucket,
         Key: key,
         Body: data
       };
@@ -399,12 +399,12 @@ function userCanEdit(id, user) {
 function deleteFile(fileKey) {
   return new Promise((resolve, reject) => {
     var s3 = new AWS.S3({
-      endpoint: config.s3.endpoint,
-      accessKeyId: config.s3.publicKey,
-      secretAccessKey: config.s3.privateKey,
+      endpoint: config.leoFS.endpoint,
+      accessKeyId: config.leoFS.publicKey,
+      secretAccessKey: config.leoFS.privateKey,
     });
     var params = {
-      Bucket: config.s3.bucket,
+      Bucket: config.leoFS.bucket,
       Key: fileKey,
     };
     s3.deleteObject(params, function(err, data) {

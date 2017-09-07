@@ -29,13 +29,13 @@ module.exports = function(app, baseUrl) {
       var key = request.user.key;
 
       var s3 = new AWS.S3({
-        endpoint: config.s3.endpoint,
-        accessKeyId: config.s3.publicKey,
-        secretAccessKey: config.s3.privateKey,
+        endpoint: config.leoFS.endpoint,
+        accessKeyId: config.leoFS.publicKey,
+        secretAccessKey: config.leoFS.privateKey,
       });
 
       var params = {
-        Bucket: config.s3.bucket,
+        Bucket: config.leoFS.bucket,
         Key: key,
       };
 
