@@ -144,7 +144,7 @@ function validFileRequest(response, data) {
     statusCode: 200,
     success: true,
     messages: [VALID_FILE_REQUEST],
-    jwt: jwt.sign(data, config.passport.secret, { expiresIn: 60 * 10 }),
+    jwt: jwt.sign(data, config.server.passportSecret, { expiresIn: 60 * 10 }),
   });
 }
 
