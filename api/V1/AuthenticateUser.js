@@ -5,6 +5,18 @@ var util = require('./util');
 var responseUtil = require('./responseUtil');
 
 module.exports = function(app) {
+  /** 
+  * @api {post} /authenticate_user/ Authenticate a user
+  * @apiName AuthenticateUser
+  * @apiGroup Authentication
+  * @apiDescription Checks the username corresponds to an existing user account
+  * and the password matches the account.
+  *
+  * @apiParam {String} username Username identifying a valid user account
+  * @apiParam {String} password Password for the user account
+  *
+  * @apiSuccess {String} token JWT string to provide to further API requests
+  */
   app.post('/authenticate_user', function(req, res) {
     var username = req.body.username;
     models.User.findOne({ where: { username: username } })
@@ -30,7 +42,7 @@ module.exports = function(app) {
                 return util.handleResponse(res, {
                   statusCode: 200,
                   success: true,
-                  messages: ["Successfull login."],
+                  messages: ["Successful login."],
                   token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
                   userData: userData
                 });
