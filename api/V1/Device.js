@@ -7,6 +7,20 @@ var responseUtil = require('./responseUtil');
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
 
+  /**
+   * @api {post} /api/v1/users Register a new device.
+   * @apiName RegisterDevice
+   * @apiGroup Device
+   *
+   * @apiParam {String} devicename Unique device name.
+   * @apiParam {String} password Password for the device.
+   * @apiParam {String} group Group to assign the device to.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(apiUrl, function(req, res) {
     // Check that required data is given.
     if (!req.body.devicename || !req.body.password || !req.body.group) {
