@@ -46,7 +46,7 @@ module.exports = function(app, baseUrl) {
           statusCode: 200,
           success: true,
           messages: ["Created new device."],
-          token: 'JWT ' + jwt.sign(data, config.server.passportConfig)
+          token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
         });
       })
       .catch(function(err) { // Error with creating Device.
