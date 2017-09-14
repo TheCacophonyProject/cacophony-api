@@ -22,5 +22,10 @@ leoFS = { // Object storage used for saving recording files.
   endpoint: "localhost", // REQUIRED, URL
 };
 
+logging = {
+  folder: null, // REQUIRED Folder of the logging file.
+}
+
 exports.server = server;
 exports.leoFS = leoFS;
+exports.logging = logging;

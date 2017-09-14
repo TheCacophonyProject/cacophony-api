@@ -1,23 +1,23 @@
 var config = require('./config/config');
 var winston = require('winston');
 var expressWinston = require('express-winston');
-
+var path = require('path');
 
 var logger = new(winston.Logger)({
   transports: [
     new(winston.transports.File)({
       name: 'info',
-      filename: 'logFiles/info.log',
+      filename: path.join(config.logging.folder, 'info.log'),
       level: 'info'
     }),
     new(winston.transports.File)({
       name: 'debug',
-      filename: 'logFiles/debug.log',
+      filename: path.join(config.logging.folder, 'debug.log'),
       level: 'debug'
     }),
     new(winston.transports.File)({
       name: 'error',
-      filename: 'logFiles/error.log',
+      filename: path.join(config.logging.folder, 'error.log'),
       level: 'error',
       handleExceptions: true,
       humanReadableUnhandledException: true
@@ -33,7 +33,7 @@ var logger = new(winston.Logger)({
 });
 
 logger.handleExceptions(new winston.transports.File({
-  filename: 'logFiles/exceptions.log'
+  filename: path.join(config.logging.folder, 'exceptions.log')
 }));
 
 logger.logException = true;
@@ -71,7 +71,7 @@ logger.addExpressApp = function(app) {
   app.use(expressWinston.errorLogger({
     transports: [
       new winston.transports.File({
-        filename: 'logFiles/expressErrors.log'
+        filename: path.join(config.logging.folder, 'expressErrors.log')
       })
     ]
   }));
