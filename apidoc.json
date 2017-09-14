@@ -1,5 +1,9 @@
 {
   "name": "Cacophony API",
-  "description": "Documentation for cacophony RESTful API.",
-  "title": "Cacophony API Documentation"
+  "description": "The Cacophony Project RESTful API",
+  "title": "Cacophony Project API Documentation",
+  "header": {
+    "title": "Introduction",
+    "filename": "header.md"
+  }
 }

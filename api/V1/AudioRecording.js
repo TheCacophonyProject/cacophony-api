@@ -7,6 +7,11 @@ var tagsUtil = require('./tagsUtil');
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/audiorecordings';
 
+  /**
+  * @api {post} /api/v1/audiorecordings/ Add a new audio recording
+  * @apiName PostAudioRecording
+  * @apiGroup AudioRecordings
+  */
   app.post(
     apiUrl,
     passport.authenticate(['jwt'], { session: false }),
@@ -15,10 +20,14 @@ module.exports = function(app, baseUrl) {
       return util.addRecordingFromPost(models.AudioRecording, req, res);
     });
 
+
   /**
-   *  Put request to update an Audio Recording.
-   *  headers.data,  JSON of data to update.
-   */
+  * @api {put} /api/v1/audiorecordings/:id Update an existing audio recording
+  * @apiName PutAudioRecording
+  * @apiGroup AudioRecordings
+  *
+  * @apiHeader {String} data Data to update in JSON
+  */
   app.put(
     apiUrl + "/:id",
     passport.authenticate(['jwt'], { session: false }),
@@ -27,6 +36,11 @@ module.exports = function(app, baseUrl) {
       return util.updateDataFromPut(models.AudioRecording, req, res);
     });
 
+  /**
+  * @api {delete} /api/v1/audiorecordings/:id Delete an existing audio recording
+  * @apiName DeleteAudioRecording
+  * @apiGroup AudioRecordings
+  */
   app.delete(
     apiUrl + '/:id',
     passport.authenticate(['jwt'], { session: false }),
@@ -36,11 +50,14 @@ module.exports = function(app, baseUrl) {
     });
 
   /**
-   *  Get request for Audio Recordings.
-   *  headers.where,  Sequelize conditions for query,
-   *  headres.offset, Query offset.
-   *  headers.limit,  Query results limit.
-   */
+  * @api {get} /api/v1/audiorecordings/ Query available audio recordings.
+  * @apiName GetAudioRecordings
+  * @apiGroup AudioRecordings
+  *
+  * @apiHeader {String} where Sequelize conditions for query,
+  * @apiHeader {Number} offset Query result offset (for paging)
+  * @apiHeader {Number} limit Query result limit (for paging)
+  */
   app.get(
     apiUrl,
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
