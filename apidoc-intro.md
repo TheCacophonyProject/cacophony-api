@@ -1,5 +1,27 @@
 # Introduction 
 
-Amazing! Wow!
+The Cacophony Project API can be used to upload recorded by various devices
+(i.e. Cacophonometers and Cacophononators) and retrieve them later. Both sound
+and video recordings are supported. 
 
-XXX authentication etc
+## Users, Groups and Devices
+
+The API supports two types of clients: users and devices. User accounts are
+used for human facing applications, while device accounts are used by
+unattended devices which interact with the API.
+
+Users are members of one or more groups. A device is always owned by exactly
+one group. The current support for groups is limited but will be expanded.
+
+## Authentication
+
+The API uses JSON Web Tokens (JWT) for authentication. A valid JWT must be
+provided in the `Authenticate` header to most requests to the API. To obtain a
+token, the [/authenticate_user](#api-Authentication-AuthenticateUser) or 
+[/authenticate_device](#api-Authentication-AuthenticateDevice) APIs must be
+used. When these requests are successful they each return a JWT.
+
+## Creating Accounts
+
+XXX
+
