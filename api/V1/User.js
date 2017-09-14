@@ -18,7 +18,7 @@ module.exports = function(app, baseUrl) {
       });
     }
 
-    // TODO check that username is not allready used.
+    // TODO check that username is not already used.
     models.User.create({
         username: req.body.username,
         password: req.body.password
