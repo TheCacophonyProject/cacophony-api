@@ -11,6 +11,30 @@ module.exports = function(app, baseUrl) {
   * @api {post} /api/v1/audiorecordings/ Add a new audio recording
   * @apiName PostAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDescription This call is used to upload new audio recording. It takes a
+  * `data` field which contains JSON object string that make contain any of the
+  * following fields:
+  * - recordingDateTime
+  * - recordingTime
+  * - fileType
+  * - size
+  * - duration
+  * - location
+  * - additionalMetadata
+  * - tags
+  * - batteryLevel
+  * - batteryCharging
+  * - airplaneModeOn
+  * - relativeToDawn
+  * - relativeToDusk
+  * - version
+  *
+  * @apiUse V1DeviceAuthorizationHeader
+  *
+  * @apiParam {JSON} data Metadata about the recording (see above).
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
   */
   app.post(
     apiUrl,
@@ -22,11 +46,22 @@ module.exports = function(app, baseUrl) {
 
 
   /**
-  * @api {put} /api/v1/audiorecordings/:id Update an existing audio recording
+  * @api {put} /api/v1/audiorecordings/:id Update the metadata for an existing audio recording
   * @apiName PutAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDescription This call is used to upload the metadata for a previously
+  * uploaded audio recording. It takes a `data` field which may contain any of the following fields:
+  * - recordingDateTime
+  * - recordingTime
+  * - location
+  * - additionalMetadata
   *
-  * @apiHeader {String} data Data to update in JSON
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {JSON} data Metadata about the recording (see above).
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
   */
   app.put(
     apiUrl + "/:id",
@@ -40,6 +75,11 @@ module.exports = function(app, baseUrl) {
   * @api {delete} /api/v1/audiorecordings/:id Delete an existing audio recording
   * @apiName DeleteAudioRecording
   * @apiGroup AudioRecordings
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
   */
   app.delete(
     apiUrl + '/:id',
@@ -50,13 +90,23 @@ module.exports = function(app, baseUrl) {
     });
 
   /**
-  * @api {get} /api/v1/audiorecordings/ Query available audio recordings.
+  * @api {get} /api/v1/audiorecordings/ Query available audio recordings
   * @apiName GetAudioRecordings
   * @apiGroup AudioRecordings
+  *
+  * @apiUse V1UserAuthorizationHeader
   *
   * @apiHeader {String} where Sequelize conditions for query,
   * @apiHeader {Number} offset Query result offset (for paging)
   * @apiHeader {Number} limit Query result limit (for paging)
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {Number} offset Mirrors request offset parameter.
+  * @apiSuccess {Number} limit Mirrors request limit parameter.
+  * @apiSuccess {Number} count Total number of records which match the query.
+  * @apiSuccess {JSON} rows List of details for records which matched the query.
+  *
+  * @apiUse V1ResponseError
   */
   app.get(
     apiUrl,
@@ -66,6 +116,12 @@ module.exports = function(app, baseUrl) {
       return util.getRecordingsFromModel(models.AudioRecording, req, res);
     });
 
+  /**
+  * @api {get} /api/v1/audiorecordings/:id Generate JWT for retrieving audio recording
+  * @apiName GetAudioRecordings
+  * @apiGroup AudioRecordings
+  *
+  */
   app.get(
     apiUrl + "/:id",
     passport.authenticate(['jwt', 'anonymous'], { session: false }),
