@@ -18,7 +18,7 @@ future versions of the API.
 ## Authentication
 
 The API uses JSON Web Tokens (JWT) for authentication. A valid JWT must be
-provided in the `Authenticate` header to most requests to the API. To obtain a
+provided in the `Authorization` header to most requests to the API. To obtain a
 token, the [/authenticate_user](#api-Authentication-AuthenticateUser) or 
 [/authenticate_device](#api-Authentication-AuthenticateDevice) APIs must be
 used. When these requests are successful they each return a JWT.
@@ -31,5 +31,3 @@ using the [/api/v1/devices](#api-Device-RegisterDevice) API.
 
 These APIs do not require authentication, allowing users and devices to
 self-register.
-
-
