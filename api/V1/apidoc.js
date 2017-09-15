@@ -12,5 +12,10 @@
 
 /**
  * @apiDefine V1UserAuthorizationHeader
- * @apiHeader {String} Authorization Signed JSON web token of a user.
+ * @apiHeader {String} Authorization Signed JSON web token for a user.
+ */
+
+/**
+ * @apiDefine V1DeviceAuthorizationHeader
+ * @apiHeader {String} Authorization Signed JSON web token for a device.
  */
