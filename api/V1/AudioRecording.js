@@ -12,7 +12,7 @@ module.exports = function(app, baseUrl) {
   * @apiName PostAudioRecording
   * @apiGroup AudioRecordings
   * @apiDescription This call is used to upload new audio recording. It takes a
-  * `data` field which contains JSON object string that make contain any of the
+  * `data` field which contains JSON object string that may contain any of the
   * following fields:
   * - recordingDateTime
   * - recordingTime
@@ -47,9 +47,9 @@ module.exports = function(app, baseUrl) {
 
   /**
   * @api {put} /api/v1/audiorecordings/:id Update the metadata for an existing audio recording
-  * @apiName PutAudioRecording
+  * @apiName UpdateAudioRecording
   * @apiGroup AudioRecordings
-  * @apiDescription This call is used to upload the metadata for a previously
+  * @apiDescription This call is used to update the metadata for a previously
   * uploaded audio recording. It takes a `data` field which may contain any of the following fields:
   * - recordingDateTime
   * - recordingTime
@@ -96,7 +96,7 @@ module.exports = function(app, baseUrl) {
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiHeader {String} where Sequelize conditions for query,
+  * @apiHeader {String} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
   * @apiHeader {Number} offset Query result offset (for paging)
   * @apiHeader {Number} limit Query result limit (for paging)
   *
@@ -117,10 +117,19 @@ module.exports = function(app, baseUrl) {
     });
 
   /**
-  * @api {get} /api/v1/audiorecordings/:id Generate JWT for retrieving audio recording
-  * @apiName GetAudioRecordings
+  * @api {get} /api/v1/audiorecordings/:id Obtain token for retrieving audio recording
+  * @apiName GetAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDescription This call returns a new JSON Web Token (JWT) which
+  * can be used to retrieve a specific audio recording. This is should
+  * be used with the [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
   *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {String} jwt JSON Web Token to use to actually retrieve the recording.
+  *
+  * @apiUse V1ResponseError
   */
   app.get(
     apiUrl + "/:id",

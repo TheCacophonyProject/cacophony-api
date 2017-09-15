@@ -1,4 +1,4 @@
-# Introduction 
+# Introduction
 
 The Cacophony Project API can be used to upload recorded by various devices
 (i.e. Cacophonometers and Cacophononators) and retrieve them later. Both sound
