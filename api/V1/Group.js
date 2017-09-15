@@ -9,6 +9,21 @@ require('../../passportConfig')(passport);
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/groups';
 
+  /**
+   * @api {post} /api/v1/groups Create a new group
+   * @apiName NewGroup
+   * @apiGroup Group
+   *
+   * @apiDescription Creates a new group with the user used in the JWT as the admin.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {String} groupname Unique group name.
+   *
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
     // Check that required data is given.
     if (!req.body.groupname) {
