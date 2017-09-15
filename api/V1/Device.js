@@ -8,7 +8,7 @@ module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
 
   /**
-   * @api {post} /api/v1/users Register a new device
+   * @api {post} /api/v1/devices Register a new device
    * @apiName RegisterDevice
    * @apiGroup Device
    *
