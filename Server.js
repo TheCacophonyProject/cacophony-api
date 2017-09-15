@@ -29,6 +29,9 @@ app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 log.addExpressApp(app);
 
+// Adding API documentation
+app.use(express.static(__dirname + '/apidoc'));
+
 // Adding headers to allow cross-origin HTTP request.
 // This is so the web interface running on a different port/domain can access the API.
 // This could cause security issues with Cookies but JWTs are used instead of Cookies.
@@ -40,7 +43,6 @@ app.all('*', function(req, res, next) {
 });
 
 require('./api/V1')(app);
-require('./router')(app);
 
 log.info("Connecting to database.....");
 models.sequelize
