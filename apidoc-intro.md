@@ -2,7 +2,8 @@
 
 The Cacophony Project API can be used to upload recorded by various devices
 (i.e. Cacophonometers and Cacophononators) and retrieve them later. Both sound
-and video recordings are supported. 
+and video recordings are supported. The API uses a
+[REST](https://en.wikipedia.org/wiki/Representational_state_transfer) style.
 
 ## Users, Groups and Devices
 
@@ -11,7 +12,8 @@ used for human facing applications, while device accounts are used by
 unattended devices which interact with the API.
 
 Users are members of one or more groups. A device is always owned by exactly
-one group. The current support for groups is limited but will be expanded.
+one group. The current support for groups is limited but will be expanded in
+future versions of the API.
 
 ## Authentication
 
@@ -23,5 +25,11 @@ used. When these requests are successful they each return a JWT.
 
 ## Creating Accounts
 
-XXX
+New user accounts can be created using the
+[/api/v1/users](#api-User-RegisterUser) API. New device accounts can be created
+using the [/api/v1/devices](#api-Device-RegisterDevice) API.
+
+These APIs do not require authentication, allowing users and devices to
+self-register.
+
 
