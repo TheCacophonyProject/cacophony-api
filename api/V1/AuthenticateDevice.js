@@ -5,6 +5,18 @@ var util = require('./util');
 var responseUtil = require('./responseUtil');
 
 module.exports = function(app) {
+  /** 
+  * @api {post} /authenticate_device/ Authenticate a device
+  * @apiName AuthenticateDevice
+  * @apiGroup Authentication
+  * @apiDescription Checks the username corresponds to an existing device account
+  * and the password matches the account.
+  *
+  * @apiParam {String} devicename The name identifying a valid device account
+  * @apiParam {String} password Password for the device account
+  *
+  * @apiSuccess {String} token JWT string to provide to further API requests
+  */
   app.post('/authenticate_device', function(req, res) {
 
     // Check that required data is given.

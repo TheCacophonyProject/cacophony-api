@@ -45,8 +45,11 @@ database.
 * `node_modules/.bin/sequelize db:migrate`
 * Start server with `node Server.js`
 
+### Setup api documentation.
+* Install apiDoc `npm install apidoc -g`
+* Generate API documentation with `apidoc -i api/V1/ -o apidoc/`
+
 ## License
 
 This project is licensed under the Affero General Public License
 (https://www.gnu.org/licenses/agpl-3.0.en.html).
-

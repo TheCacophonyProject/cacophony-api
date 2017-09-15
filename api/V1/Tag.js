@@ -10,6 +10,41 @@ var responseUtil = require('./responseUtil');
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
 
+  /**
+   * @api {post} /api/v1/tags Adds a new tag
+   * @apiName AddTag
+   * @apiGroup Tag
+   *
+   * @apiDescription This call is used to tag a recording. Only users that can
+   * view a recording can tag it. It takes a `tag` field which contains a JSON
+   * object string that may contain any of the following fields:
+   * - animal
+   * - confidence
+   * - startTime
+   * - duration
+   * - number
+   * - trapType
+   * - trapInteractionTime
+   * - trapInteractionDuration
+   * - trappedTime
+   * - killedTime
+   * - poisionedTime
+   * - sex
+   * - age
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number} [thermalVideoId] ID of the thermal video recording that you want to tag.
+   * @apiParam {Number} [irVideoId] ID of the IR video recording that you want to tag.
+   * @apiParam {Number} [audioId] ID of the audio recording that you want to tag.
+   * @apiparam {JSON} tag Tag data in JSON format.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} tagId ID of the tag just added.
+   *
+   * @apiuse V1ResponseError
+   *
+   */
   app.post(apiUrl, passport.authenticate(['jwt'], { session: false }),
     async function(req, res) {
 

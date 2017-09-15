@@ -31,7 +31,7 @@ function getRecordingsFromModel(modelClass, request, response) {
         offset: modelInstances.offset,
         count: modelInstances.count,
       };
-      // Just save the fromt end fields for each model.
+      // Just save the front end fields for each model.
       for (var key in modelInstances.rows)
         result.rows.push(modelInstances.rows[key].getFrontendFields());
 

@@ -9,6 +9,20 @@ var stream = require('stream');
 
 module.exports = function(app, baseUrl) {
 
+  /**
+   * @api {get} /api/v1/signedUrl Get a file using a JWT
+   * @apiName GetFile
+   * @apiGroup SignedUrl
+   *
+   * @apiDescription Gets a file using a JWT as a method of authentication.
+   *
+   * @apiHeader {String} Authorization JWT that has the file info. If the JWT was valid the response is the raw data steam.
+   *
+   * @apiSuccess {file} file Raw data stream of the file.
+   *
+   * @apiUse V1ResponseError
+   */
+
   app.get(
     baseUrl + '/signedUrl',
     passport.authenticate(['jwt'], { session: false }),

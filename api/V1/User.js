@@ -8,6 +8,22 @@ require('../../passportConfig')(passport);
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
+
+
+  /**
+   * @api {post} /api/v1/users Register a new user
+   * @apiName RegisterUser
+   * @apiGroup User
+   *
+   * @apiParam {String} username Username for new user.
+   * @apiParam {String} password Password for new user.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {String} token JWT for authentication. Contains the user ID and type.
+   * @apiSuccess {JSON} userData Metadata of the user.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(apiUrl, function(req, res) {
     if (!req.body.username || req.body.username == 'undefined' ||
       !req.body.password || req.body.password == 'undefined') {
@@ -18,7 +34,7 @@ module.exports = function(app, baseUrl) {
       });
     }
 
-    // TODO check that username is not allready used.
+    // TODO check that username is not already used.
     models.User.create({
         username: req.body.username,
         password: req.body.password
@@ -41,6 +57,20 @@ module.exports = function(app, baseUrl) {
       });
   });
 
+  /**
+   * @api {get} api/v1/user Get user data
+   * @apiName GetUser
+   * @apiGroup User
+   *
+   * @apiDescription A user can use the JWT to get updates on there user data.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiSuccess {JSON} userData Metadata about the user.
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
   app.get(apiUrl, passport.authenticate('jwt', { session: false }), function(req, res) {
     if (!req.user) {
       return responseUtil.send(res, {
