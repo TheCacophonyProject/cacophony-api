@@ -97,8 +97,8 @@ module.exports = function(app, baseUrl) {
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiHeader {String} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
-  * @apiHeader {Number} offset Query result offset (for paging)
-  * @apiHeader {Number} limit Query result limit (for paging)
+  * @apiHeader {Number} offset Query result offset (for paging).
+  * @apiHeader {Number} limit Query result limit (for paging).
   *
   * @apiUse V1ResponseSuccess
   * @apiSuccess {Number} offset Mirrors request offset parameter.
