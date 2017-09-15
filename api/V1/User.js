@@ -11,7 +11,7 @@ module.exports = function(app, baseUrl) {
 
 
   /**
-   * @api {post} /api/v1/users Register a new user.
+   * @api {post} /api/v1/users Register a new user
    * @apiName RegisterUser
    * @apiGroup User
    *
@@ -58,7 +58,7 @@ module.exports = function(app, baseUrl) {
   });
 
   /**
-   * @api {get} api/v1/user Get user data.
+   * @api {get} api/v1/user Get user data
    * @apiName GetUser
    * @apiGroup User
    *
