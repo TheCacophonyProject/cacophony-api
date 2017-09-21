@@ -40,4 +40,5 @@ function addAssociations(models) {
   models.Group.hasMany(models.AudioRecording);
   models.Group.hasMany(models.ThermalVideoRecording);
   models.Group.belongsToMany(models.User, { through: models.GroupUsers });
+  models.Group.hasMany(models.Recording);
 }
