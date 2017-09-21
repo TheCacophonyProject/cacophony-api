@@ -7,8 +7,8 @@ var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 var multiparty = require('multiparty');
 var config = require('../../config/config')
-var randomstring = require("randomstring");
 var AWS = require('aws-sdk');
+var uuidv4 = require('uuid/v4');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -17,10 +17,12 @@ module.exports = (app, baseUrl) => {
    * @api {post} /api/v1/recordings Add a new recording.
    * @apiName PostRecording
    * @apiGroup Recordings
-   * @apiDescription This call is the new way to upload any type of recording.
-   * It takes a 'data' field which contains a JSON object string that can
-   * contain any of the following fields, Note that 'type' is required:
-   * - type: REQUIRED, one of ('thermalRaw160x120')
+   * @apiDescription This call is used for uploads of new recordings. It
+   * currently supports raw thermal video but will eventually support all
+   * recording types. It takes a 'data' field which contains a JSON object
+   * string that can contain any of the following fields, Note that 'type'
+   * is required:
+   * - type: REQUIRED, one of ('thermalRaw')
    * - duration
    * - recordingDateTime
    * - location
@@ -46,15 +48,16 @@ module.exports = (app, baseUrl) => {
       log.info(request.method + " Request: " + request.url);
 
       // Check that the request was authenticated by a device.
-      if (request.user !== null && !requestUtil.isFromADevice(request))
+      if (!requestUtil.isFromADevice(request))
         return responseUtil.notFromADevice(response);
       var device = request.user;
 
       var recording;
-      var key = randomstring.generate();
+      var key = uuidv4();
       var form = new multiparty.Form();
       var validData = false;
-      var validFile = false;
+      var uploadProcess = null;
+      var uploadStarted = false;
       var invalidMessages = [];
 
       // Make new Recording from the data field and Device.
@@ -83,28 +86,43 @@ module.exports = (app, baseUrl) => {
       // Stream file to LeoFS.
       form.on('part', (part) => {
         if (part.name != 'file') return part.resume();
-        validFile = true;
+        uploadStarted = true;
         log.debug('Streaming file to LeoFS.')
-        var s3 = new AWS.S3({
-          endpoint: config.leoFS.endpoint,
-          accessKeyId: config.leoFS.publicKey,
-          secretAccessKey: config.leoFS.privateKey,
-        });
-        s3.upload({
-          Bucket: config.leoFS.bucket,
-          Key: key,
-          Body: part,
-        }, (err, data) => {
-          if (err) return log.error(err);
-          log.info("Finished streaming file to LeoFS Key:", key);
+        uploadPromise = new Promise(function(resolve, reject) {
+          var s3 = new AWS.S3({
+            endpoint: config.leoFS.endpoint,
+            accessKeyId: config.leoFS.publicKey,
+            secretAccessKey: config.leoFS.privateKey,
+          });
+          s3.upload({
+            Bucket: config.leoFS.bucket,
+            Key: key,
+            Body: part,
+          }, (err, data) => {
+            if (err) return reject(err);
+            log.info("Finished streaming file to LeoFS Key:", key);
+            resolve();
+          });
         });
       });
 
       // Close response.
       form.on('close', async () => {
         log.info("Finished POST request.");
-        if (!validFile || !validData)
+        if (!validData || !uploadStarted)
           return responseUtil.invalidDatapointUpload(response);
+
+        // Check that th file uploaded to LeoFS.
+        try {
+          await uploadPromise;
+        } catch (e) {
+          return responseUtil.send(response, {
+            statusCode: 500,
+            success: false,
+            messages: ["Failed to upload file to LeoFS"],
+          });
+        }
+        // Validate and upload recording
         await recording.validate();
         await recording.save();
         return responseUtil.validDatapointUpload(response);
@@ -143,12 +161,12 @@ module.exports = (app, baseUrl) => {
       log.info(request.method + " Request: " + request.url);
 
       // Check that the request was authenticated by a User.
-      if (request.user !== null && !requestUtil.isFromAUser(request))
+      if (requestUtil.isFromAUser(request))
         return responseUtil.notFromAUser(response);
 
       var where = request.query.where;
-      var offset = Math.floor(parseInt(request.query.offset));
-      var limit = Math.floor(parseInt(request.query.limit));
+      var offset = parseInt(request.query.offset);
+      var limit = parseInt(request.query.limit);
 
       // Validate 'where', 'offset', and 'limit'
       var errorMessages = [];

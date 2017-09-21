@@ -1,6 +1,6 @@
 var models = require('../../models');
 var log = require('../../logging');
-var randomstring = require("randomstring");
+var uuidv4 = require('uuid/v4');
 
 module.exports = function(app) {
   var apiUrl = '/api/fileProcessing';
@@ -32,7 +32,7 @@ module.exports = function(app) {
       return response.status(204).json();
     }
 
-    await recording.set('jobKey', randomstring.generate());
+    await recording.set('jobKey', uuidv4());
     var date = new Date();
     await recording.set('processingStartTime', date.toISOString())
     await recording.save();
@@ -55,7 +55,7 @@ module.exports = function(app) {
   app.put(apiUrl, async (request, response) => {
     log.info(request.method + " Request: " + request.url);
 
-    var id = Math.floor(parseInt(request.body.id));
+    var id = parseInt(request.body.id);
     var jobKey = request.body.jobKey;
     var success = request.body.success;
     var result = request.body.result;
