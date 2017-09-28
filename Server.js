@@ -44,6 +44,13 @@ app.all('*', function(req, res, next) {
 
 require('./api/V1')(app);
 
+// Add file processing API.
+var fileProcessingApp = express();
+fileProcessingApp.use(bodyParser.urlencoded({ extended: false }));
+require('./api/fileProcessing')(fileProcessingApp);
+http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
+log.info('Starting file processing on', config.fileProcessing.port);
+
 log.info("Connecting to database.....");
 models.sequelize
   .authenticate()

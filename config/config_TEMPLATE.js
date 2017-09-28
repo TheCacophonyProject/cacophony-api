@@ -22,10 +22,17 @@ leoFS = { // Object storage used for saving recording files.
   endpoint: "localhost", // REQUIRED, URL
 };
 
+// ======= Logging =======
 logging = {
   folder: null, // REQUIRED Folder of the logging file.
 }
 
+// ======= File Processing =======
+fileProcessing = {
+  port: 2002,
+};
+
 exports.server = server;
 exports.leoFS = leoFS;
 exports.logging = logging;
+exports.fileProcessing = fileProcessing;
