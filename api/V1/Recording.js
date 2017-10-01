@@ -9,6 +9,7 @@ var multiparty = require('multiparty');
 var config = require('../../config/config')
 var AWS = require('aws-sdk');
 var uuidv4 = require('uuid/v4');
+var jsonwebtoken = require('jsonwebtoken');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -161,7 +162,7 @@ module.exports = (app, baseUrl) => {
       log.info(request.method + " Request: " + request.url);
 
       // Check that the request was authenticated by a User.
-      if (requestUtil.isFromAUser(request))
+      if (!requestUtil.isFromAUser(request))
         return responseUtil.notFromAUser(response);
 
       var where = request.query.where;
@@ -216,4 +217,80 @@ module.exports = (app, baseUrl) => {
         rows: result.rows,
       });
     });
+
+    /**
+    * @api {get} /api/v1/recordings/:id Get a recording
+    * @apiName GetRecording
+    * @apiGroup Recordings
+    * @apiDescription This call returns a recording in a JSON format and a JSON
+    * Web Token (JWT) which can be used to retrieve a specific audio recording.
+    * This is should be used with the [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
+    *
+    * @apiUse V1UserAuthorizationHeader
+    *
+    * @apiUse V1ResponseSuccess
+    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
+    * recording file.
+    * @apiSuccess {JSON} recording The recording data.
+    *
+    * @apiUse V1ResponseError
+    */
+    app.get(
+      apiUrl + '/:id',
+      passport.authenticate(['jwt'], { session: false }),
+      async (request, response) => {
+        log.info(request.method + " Request: " + request.url);
+
+        // Check that the request was authenticated by a User.
+        if (!requestUtil.isFromAUser(request))
+          return responseUtil.notFromAUser(response);
+
+        var id = parseInt(request.params.id);
+        if (!id)
+          return responseUtil.invalidDataId(response);
+
+        // Make sequelize query.
+        var userGroupIds = await request.user.getGroupsIds();
+        var query = {
+          where: {
+            "$and": [
+              { id: id },
+              { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
+            ],
+          },
+          attributes: models.Recording.userGetAttributes,
+        };
+
+        // Query database.
+        var recording = await models.Recording.findOne(query);
+
+        // Check the the processing is finished.
+        if (recording.get('processingState') !== 'FINISHED')
+          return responseUtil.send(response, {
+            status_code: 204,
+            success: false,
+            messages: ["File has not been fully processed yet."],
+          });
+
+
+        downloadFileData = {
+          _type: 'fileDownload',
+          key: recording.fileKey,
+          filename: "recording",
+          mimeType: recording.fileMimeType,
+        }
+
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: [],
+          recording: recording,
+          downloadFileJWT: jsonwebtoken.sign(
+            downloadFileData,
+            config.server.passportSecret,
+            { expiresIn: 60 * 10 }
+          ),
+        });
+      }
+    );
 };
