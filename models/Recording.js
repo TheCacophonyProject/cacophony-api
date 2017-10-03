@@ -66,6 +66,7 @@ var userGetAttributes = [
   'type',
   'additionalMetadata',
   'GroupId',
+  'fileKey'
 ];
 
 var apiSettableFields = [
