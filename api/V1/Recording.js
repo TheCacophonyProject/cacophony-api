@@ -195,6 +195,10 @@ module.exports = (app, baseUrl) => {
             { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
           ],
         },
+        order: [
+           ["recordingDateTime", "DESC"],
+           ["id", "DESC"],
+        ],
         include: [
           { model: models.Group },
           { model: models.Tag },
