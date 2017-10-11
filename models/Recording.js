@@ -45,10 +45,17 @@ module.exports = function(sequelize, DataTypes) {
       userGetAttributes: userGetAttributes,
     },
     instanceMethods: {
+      canGetRaw: canGetRaw,
     },
   };
 
   return sequelize.define(name, attributes, options);
+}
+
+function canGetRaw() {
+  if (this.get('type') == 'thermalRaw')
+    return true;
+  return false;
 }
 
 var userGetAttributes = [

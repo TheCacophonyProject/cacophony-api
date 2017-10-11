@@ -239,6 +239,8 @@ module.exports = (app, baseUrl) => {
     * @apiUse V1ResponseSuccess
     * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
     * recording file.
+    * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
+    * the raw recording data.
     * @apiSuccess {JSON} recording The recording data.
     *
     * @apiUse V1ResponseError
@@ -259,6 +261,8 @@ module.exports = (app, baseUrl) => {
 
         // Make sequelize query.
         var userGroupIds = await request.user.getGroupsIds();
+        var attributes = models.Recording.userGetAttributes;
+        attributes.push("rawFileKey");
         var query = {
           where: {
             "$and": [
@@ -266,7 +270,7 @@ module.exports = (app, baseUrl) => {
               { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
             ],
           },
-          attributes: models.Recording.userGetAttributes,
+          attributes: attributes,
         };
 
         // Query database.
@@ -288,6 +292,17 @@ module.exports = (app, baseUrl) => {
           mimeType: recording.fileMimeType,
         }
 
+        downloadRawData = null;
+        if (recording.canGetRaw()) {
+          downloadRawData = {
+            _type: 'fileDownload',
+            key: recording.rawFileKey,
+            filename: "rawData",
+            mimeType: null,
+          };
+        }
+        delete recording.rawFileKey;
+
         return responseUtil.send(response, {
           statusCode: 200,
           success: true,
@@ -295,6 +310,11 @@ module.exports = (app, baseUrl) => {
           recording: recording,
           downloadFileJWT: jsonwebtoken.sign(
             downloadFileData,
+            config.server.passportSecret,
+            { expiresIn: 60 * 10 }
+          ),
+          downloadRawJWT: jsonwebtoken.sign(
+            downloadRawData,
             config.server.passportSecret,
             { expiresIn: 60 * 10 }
           ),
