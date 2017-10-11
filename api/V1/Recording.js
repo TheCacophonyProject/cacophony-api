@@ -10,6 +10,7 @@ var config = require('../../config/config')
 var AWS = require('aws-sdk');
 var uuidv4 = require('uuid/v4');
 var jsonwebtoken = require('jsonwebtoken');
+var sequelize = require('sequelize');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -196,8 +197,10 @@ module.exports = (app, baseUrl) => {
           ],
         },
         order: [
-           ["recordingDateTime", "DESC"],
-           ["id", "DESC"],
+            // Sort by recordingDatetime but handle the case of the
+            // timestamp being missing and fallback to sorting by id.
+            [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
+            ["id", "DESC"],
         ],
         include: [
           { model: models.Group },
