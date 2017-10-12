@@ -1,7 +1,6 @@
 var util = require('./util/util');
 var validation = require('./util/validation');
 var moment = require('moment-timezone');
-moment().tz("Pacific/Auckland").format();
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -64,10 +63,8 @@ function canGetRaw() {
 function getFileName() {
   var ext = "";
   if (this.fileMimeType == 'video/mp4') ext = ".mp4"
-
-  var dateStr = moment(new Date(this.recordingDateTime)).format()
-    .replace(/:/g, "-");
-  return dateStr + ext;
+  return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
+    .format("YYYYMMDD-HHmmss") + ext;
 }
 
 var userGetAttributes = [
