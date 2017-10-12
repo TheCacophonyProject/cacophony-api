@@ -46,6 +46,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       canGetRaw: canGetRaw,
+      getFileName: getFileName,
     },
   };
 
@@ -58,10 +59,19 @@ function canGetRaw() {
   return false;
 }
 
+function getFileName() {
+  var ext = "";
+  if (this.fileMimeType == 'video/mp4') ext = ".mp4"
+  var dateStr = new Date(this.recordingDateTime)
+    .toLocaleString().replace(" ", "T").replace(/:/g, "-");
+  return dateStr + ext;
+}
+
 var userGetAttributes = [
   'id',
   'rawFileSize',
   'fileSize',
+  'fileMimeType',
   'processingState',
   'duration',
   'recordingDateTime',

@@ -288,7 +288,7 @@ module.exports = (app, baseUrl) => {
         downloadFileData = {
           _type: 'fileDownload',
           key: recording.fileKey,
-          filename: "recording",
+          filename: recording.getFileName(),
           mimeType: recording.fileMimeType,
         }
 
