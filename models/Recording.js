@@ -90,7 +90,7 @@ var apiSettableFields = [
 ];
 
 var processingStates = {
-  thermalRaw: ['toOggVideo', 'FINISHED'],
+  thermalRaw: ['toMp4', 'FINISHED'],
 }
 
 var processingAttributes = [
