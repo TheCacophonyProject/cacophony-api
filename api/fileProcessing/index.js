@@ -97,6 +97,12 @@ module.exports = function(app) {
         recording.set('processingStartTime', null);
         recording.set('fileKey', newProcessedFileKey);
         recording.set('jobKey', null);
+
+        // Process extra data from file processing
+        if (result.fieldUpdates != null)
+          for (i in result.fieldUpdates)
+            recording.set(i, result.fieldUpdates[i]);
+
         await recording.save();
         return response.status(200).json({
           messages: ["Processing finished."],
