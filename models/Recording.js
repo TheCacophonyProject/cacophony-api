@@ -1,5 +1,6 @@
 var util = require('./util/util');
 var validation = require('./util/validation');
+var moment = require('moment-timezone');
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -46,6 +47,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     instanceMethods: {
       canGetRaw: canGetRaw,
+      getFileName: getFileName,
     },
   };
 
@@ -58,10 +60,18 @@ function canGetRaw() {
   return false;
 }
 
+function getFileName() {
+  var ext = "";
+  if (this.fileMimeType == 'video/mp4') ext = ".mp4"
+  return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
+    .format("YYYYMMDD-HHmmss") + ext;
+}
+
 var userGetAttributes = [
   'id',
   'rawFileSize',
   'fileSize',
+  'fileMimeType',
   'processingState',
   'duration',
   'recordingDateTime',
@@ -90,7 +100,7 @@ var apiSettableFields = [
 ];
 
 var processingStates = {
-  thermalRaw: ['toOggVideo', 'FINISHED'],
+  thermalRaw: ['toMp4', 'FINISHED'],
 }
 
 var processingAttributes = [
