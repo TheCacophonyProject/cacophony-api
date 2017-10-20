@@ -205,6 +205,7 @@ module.exports = (app, baseUrl) => {
         include: [
           { model: models.Group },
           { model: models.Tag },
+          { model: models.Device, where: {}, attributes: ["devicename", "id"] },
         ],
         limit: limit,
         offset: offset,
