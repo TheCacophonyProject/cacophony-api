@@ -271,6 +271,7 @@ module.exports = (app, baseUrl) => {
               { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
             ],
           },
+          include: [models.Tag],
           attributes: attributes,
         };
 
