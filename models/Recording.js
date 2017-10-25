@@ -1,6 +1,7 @@
 var util = require('./util/util');
 var validation = require('./util/validation');
 var moment = require('moment-timezone');
+var models = require('./');
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -48,10 +49,36 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       canGetRaw: canGetRaw,
       getFileName: getFileName,
+      getUserPermissions: getUserPermissions,
     },
   };
 
   return sequelize.define(name, attributes, options);
+}
+
+/**
+ * Returns JSON describing what the user can do to the recording.
+ * Premission types: DELETE, TAG, VIEW,
+ * //TODO This will be edited in the future when recordings can be public.
+ */
+function getUserPermissions(user) {
+  // For now if the user is in the group that owns the recording they have all
+  // permission. This will be changed in the future.
+  var permissions = {
+    canDelete: false,
+    canTag: false,
+    canView: false,
+  }
+  var recording = this;
+  return new Promise(async (resolve, reject) => {
+    var groupIds = await user.getGroupsIds();
+    if (groupIds.indexOf(recording.GroupId) !== -1) {
+      permissions.canDelete = true;
+      permissions.canTag = true;
+      permissions.canView = true;
+    }
+    return resolve(permissions);
+  });
 }
 
 function canGetRaw() {

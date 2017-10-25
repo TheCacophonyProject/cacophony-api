@@ -34,9 +34,7 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {Number} [thermalVideoId] ID of the thermal video recording that you want to tag.
-   * @apiParam {Number} [irVideoId] ID of the IR video recording that you want to tag.
-   * @apiParam {Number} [audioId] ID of the audio recording that you want to tag.
+   * @apiParam {Number} recordingId ID of the recording that you want to tag.
    * @apiparam {JSON} tag Tag data in JSON format.
    *
    * @apiUse V1ResponseSuccess
@@ -60,69 +58,42 @@ module.exports = function(app, baseUrl) {
           messages: ['Missing "tag" field.'],
         });
       }
-      if (!req.body.thermalVideoId &&
-        !req.body.irVideoId &&
-        !req.body.audioId) {
+
+      // Check that recordingId field is valid.
+      var recordingId = parseInt(req.body.recordingId);
+      if (isNaN(recordingId)) {
         return responseUtil.send(res, {
           statusCode: 400,
           success: false,
-          messages: [
-            'Missing "thermalVideoId" or "irVideoId" or "audioId"'
-          ],
+          messages: ['"recordingId" field is missing or is not a number.']
         });
       }
 
-      // Chech that the user has required permission to tag recordings.
-      var canEditCheckPromises = [];
-      if (req.body.thermalVideoId)
-        canEditCheckPromises.push(models.ThermalVideoRecording.userCanEdit(
-          req.body.thermalVideoId, req.user))
-
-      if (req.body.irVideoId)
-        canEditCheckPromises.push(models.IrVideoRecording.userCanEdit(
-          req.body.irVideoId, req.user))
-
-      if (req.body.audioId)
-        canEditCheckPromises.push(models.AudioRecording.userCanEdit(
-          req.body.audioId, req.user))
-
-      var canEditCheck = await Promise.all(canEditCheckPromises);
-      for (i in canEditCheck) {
-        if (canEditCheck[i] !== true)
-          return responseUtil.send(res, {
-            success: false,
-            statusCode: 400,
-            messages: [
-              'User does not have premission to edit recording.'
-            ]
-          });
-      }
-
+      // Check that user has permission to tag recording.
+      var recording = await models.Recording.findById(req.body.recordingId);
+      var permissions = await recording.getUserPermissions(req.user);
+      if (permissions.canTag == false)
+        return responseUtil.send(res, {
+          statusCode: 400,
+          success: false,
+          messages: ['User does not have permission to tag recording.']
+        });
 
       // Build tag instance
       tagInstance = models.Tag.build(JSON.parse(req.body.tag), {
         fields: models.Tag.apiSettableFields,
       });
-
-      if (req.body.thermalVideoId)
-        tagInstance.set('ThermalVideoRecordingId', req.body.thermalVideoId);
-      if (req.body.irVideoId)
-        tagInstance.set('IrVideoRecordingId', req.body.irVideoId);
-      if (req.body.audioId)
-        tagInstance.set('AudioRecordingId', req.body.audioId);
-
+      tagInstance.set('RecordingId', req.body.recordingId);
       tagInstance.set('taggerId', req.user.id);
+      await tagInstance.save()
 
-      tagInstance
-        .save()
-        .then((saveRes) => {
-          responseUtil.send(res, {
-            statusCode: 200,
-            success: true,
-            messages: ['Added new Tag.'],
-            tagId: tagInstance.id,
-          })
-        })
+      // Responde to user.
+      return responseUtil.send(res, {
+        statusCode: 200,
+        success: true,
+        messages: ['Added new tag.'],
+        tagId: tagInstance.id,
+      });
     });
 
   // Delete a tag
