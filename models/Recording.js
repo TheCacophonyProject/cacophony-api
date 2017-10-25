@@ -72,7 +72,6 @@ function getUserPermissions(user) {
   var recording = this;
   return new Promise(async (resolve, reject) => {
     var groupIds = await user.getGroupsIds();
-    console.log(recording.GroupId);
     if (groupIds.indexOf(recording.GroupId) !== -1) {
       permissions.canDelete = true;
       permissions.canTag = true;
