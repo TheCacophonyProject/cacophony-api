@@ -147,6 +147,7 @@ module.exports = (app, baseUrl) => {
    * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
    * @apiParam {Number} offset Query result offset (for paging).
    * @apiParam {Number} limit Query result limit (for paging).
+   * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Exampel: [["recordingDateTime", "ASC"]]
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} offset Mirrors request offset parameter.
@@ -169,6 +170,7 @@ module.exports = (app, baseUrl) => {
       var where = request.query.where;
       var offset = parseInt(request.query.offset);
       var limit = parseInt(request.query.limit);
+      var order = request.query.order;
 
       // Validate 'where', 'offset', and 'limit'
       var errorMessages = [];
@@ -179,6 +181,20 @@ module.exports = (app, baseUrl) => {
       }
       if (isNaN(offset)) errorMessages.push("'offset' was not a number.")
       if (isNaN(limit)) errorMessages.push("'limit' was not a number.")
+      if (order != null) {
+        try {
+          order = JSON.parse(order);
+        } catch (e) {
+          errorMessages.push("'order' was not a valid JSON.")
+        }
+      } else {
+        order = [
+          // Sort by recordingDatetime but handle the case of the
+          // timestamp being missing and fallback to sorting by id.
+          [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
+          ["id", "DESC"],
+        ];
+      }
       if (errorMessages.length > 0) {
         return responseUtil.send(response, {
           statusCode: 400,
@@ -196,12 +212,7 @@ module.exports = (app, baseUrl) => {
             { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
           ],
         },
-        order: [
-            // Sort by recordingDatetime but handle the case of the
-            // timestamp being missing and fallback to sorting by id.
-            [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
-            ["id", "DESC"],
-        ],
+        order: order,
         include: [
           { model: models.Group },
           { model: models.Tag },
