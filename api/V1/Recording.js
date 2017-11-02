@@ -271,7 +271,10 @@ module.exports = (app, baseUrl) => {
               { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
             ],
           },
-          include: [models.Tag],
+          include: [
+            { model: models.Tag, },
+            { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+          ],
           attributes: attributes,
         };
 
