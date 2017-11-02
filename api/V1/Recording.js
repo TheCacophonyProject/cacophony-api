@@ -281,15 +281,6 @@ module.exports = (app, baseUrl) => {
         // Query database.
         var recording = await models.Recording.findOne(query);
 
-        // Check the the processing is finished.
-        if (recording.get('processingState') !== 'FINISHED')
-          return responseUtil.send(response, {
-            status_code: 204,
-            success: false,
-            messages: ["File has not been fully processed yet."],
-          });
-
-
         downloadFileData = {
           _type: 'fileDownload',
           key: recording.fileKey,
