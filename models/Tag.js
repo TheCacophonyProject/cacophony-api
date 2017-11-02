@@ -7,21 +7,10 @@ module.exports = function(sequelize, DataTypes) {
   var attributes = {
 
     animal: { // Name of animal for the Tag
-      type: DataTypes.ENUM(
-        'rat',
-        'possum',
-        'hedgehog',
-        'stoat',
-        'ferrit',
-        'weasle',
-        'mouse',
-        'cat',
-        'dog',
-        'rabbit',
-        'hare',
-        'human',
-        'bird'
-      ),
+      type: DataTypes.STRING,
+    },
+    event: {
+      type: DataTypes.STRING,
     },
     confidence: { // 0-Not sure at all, 1-100% positive.
       type: DataTypes.FLOAT,
@@ -38,26 +27,9 @@ module.exports = function(sequelize, DataTypes) {
     trapType: {
       type: DataTypes.STRING,
     },
-    // Time in the recording that the pest started interacting with the trap
-    trapInteractionTime: {
-      type: DataTypes.FLOAT,
+    sex: { // What sex is the animal, null if don't know.
+      type: DataTypes.ENUM('F', 'M'),
     },
-    // How long the trap is interacted for before triggering
-    trapInteractionDuration: {
-      type: DataTypes.FLOAT,
-    },
-    trappedTime: { // If the animal got trapped, time in the recording.
-      type: DataTypes.FLOAT,
-    },
-    killedTime: { // If the animal got killed, time in the recording.
-      type: DataTypes.FLOAT,
-    },
-    poisionedTime: { // If the animal got poisioned, time in the recording.
-      type: DataTypes.FLOAT,
-    },
-    //sex: { // What sex is the animal, null if don't know.
-    //  type: DataTypes.ENUM('F', 'M'),
-    //},
     age: { // Guessed age in weeks of animal
       type: DataTypes.INTEGER
     },
@@ -83,7 +55,6 @@ module.exports = function(sequelize, DataTypes) {
 async function deleteFromId(id, user) {
   var tag = await this.findOne({where: {id: id}});
   if (tag == null) {
-    console.log("No tag found");
     return false;
   }
   if (tag.taggerId = user.id) {
@@ -105,11 +76,7 @@ function getFrontendFields() {
     duration: model.getDataValue('duration'),
     number: model.getDataValue('number'),
     trapType: model.getDataValue('trapType'),
-    trapInteractionTime: model.getDataValue('trapInteractionTime'),
-    trapInteractionDuration: model.getDataValue('trapInteractionDuration'),
-    trappedTime: model.getDataValue('trappedTime'),
-    killedTime: model.getDataValue('killedTime'),
-    poisionedTime: model.getDataValue('poisionedTime'),
+    event: model.getDataValue('event'),
     sex: model.getDataValue('sex'),
     age: model.getDataValue('age'),
   };
@@ -122,11 +89,7 @@ var apiSettableFields = [
   'duration',
   'number',
   'trapType',
-  'trapInteractionTime',
-  'trapInteractionDuration',
-  'trappedTime',
-  'killedTime',
-  'poisionedTime',
+  'event',
   'sex',
   'age',
   ];
