@@ -273,8 +273,6 @@ module.exports = (app, baseUrl) => {
 
         // Make sequelize query.
         var userGroupIds = await request.user.getGroupsIds();
-        var attributes = models.Recording.userGetAttributes;
-        attributes.push("rawFileKey");
         var query = {
           where: {
             "$and": [
@@ -286,7 +284,7 @@ module.exports = (app, baseUrl) => {
             { model: models.Tag, },
             { model: models.Device, where: {}, attributes: ["devicename", "id"] },
           ],
-          attributes: attributes,
+          attributes: models.Recording.userGetAttributes.concat(['rawFileKey']),
         };
 
         // Query database.
