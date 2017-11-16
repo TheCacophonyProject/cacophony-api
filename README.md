@@ -1,22 +1,26 @@
-# Full_Noise
+# cacophony-api
 
-Full_Noise is a Node server that is used for uploading, processing and
-retrieval of media collected for the Cacophony Project. It consists of
-a REST API and a basic web interface for viewing your data.
+cacophony-api is a Node server that provides an REST API server for
+uploading, processing and retrieving media collected for the Cacophony
+Project. This server used to be known as "Full_Noise".
 
 ## Setup
 
-To run Full_Noise you will need create a PostgreSQL database and a
-LeoFS bucket first.
+To run the server you will need create a PostgreSQL database and a S3
+compatible service.
 
-### LeoFS Setup
+### S3 Service Setup
 
-* Download LeoFS from https://leo-project.net/leofs/download.html
-* Follow the installation instructions at https://leo-project.net/leofs/docs/installation/quick/
-* Create a user saving the id and secret: `leofs-adm create-user [username]`
-* Record the access key and secret acccess key generated.
-* Create a bucket for Full Noise to use: `leofs-adm add-bucket [bucket name] [access key]`
-* Ensure that /etc/hosts has a `[bucket name].localhost` entry as described in the LeoFS documentation.
+We recommend Minio for object storage.
+
+* Download and install Minio from https://minio.io/downloads.html
+  - The x64 download and install instructions are here:
+    https://minio.io/downloads.html#download-server-linux-x64
+* Once Minio is running, note the access key and secret key it
+  generated, as well as the port it's running on.
+* Connect to Minio's web interface using your browser and create a
+  bucket. The bucket name will be required later when configuring the
+  API server.
 
 ### PostgreSQL Setup
 
@@ -34,18 +38,19 @@ database.
 * `CREATE EXTENSION postgis;`
 * `\q`
 
-### Full_Noise setup.
+### API Server Setup
 
 * Install Node version 8 or later from http://nodejs.org/
 * `sudo apt install postgresql-server-dev-9.5`
-* `git clone https://github.com/TheCacophonyProject/Full_Noise.git`
-* `cd Full_Noise`
+* `git clone https://github.com/TheCacophonyProject/cacophony-api.git`
+* `cd cacophony-api`
 * `npm install`
 * Follow instructions in the TEMPLATE files in the config folder.
 * `node_modules/.bin/sequelize db:migrate`
 * Start server with `node Server.js`
 
-### Setup api documentation.
+### Generating API Documentation
+
 * Install apiDoc `npm install apidoc -g`
 * Generate API documentation with `apidoc -i api/V1/ -o apidoc/`
 

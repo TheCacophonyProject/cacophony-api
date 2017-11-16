@@ -2,10 +2,11 @@ var config = require('../../config/config');
 var util = require('./util');
 var log = require('../../logging');
 var passport = require('passport');
-var AWS = require('aws-sdk');
 var responseUtil = require('./responseUtil');
 var fs = require('fs');
 var stream = require('stream');
+var modelsUtil = require('../../models/util/util');
+
 
 module.exports = function(app, baseUrl) {
 
@@ -16,7 +17,7 @@ module.exports = function(app, baseUrl) {
    *
    * @apiDescription Gets a file using a JWT as a method of authentication.
    *
-   * @apiHeader {String} Authorization JWT that has the file info. If the JWT was valid the response is the raw data steam.
+   * @apiHeader {String} Authorization JWT for the content to retrieve. Must start with "JWT ".
    *
    * @apiSuccess {file} file Raw data stream of the file.
    *
@@ -42,14 +43,9 @@ module.exports = function(app, baseUrl) {
 
       var key = request.user.key;
 
-      var s3 = new AWS.S3({
-        endpoint: config.leoFS.endpoint,
-        accessKeyId: config.leoFS.publicKey,
-        secretAccessKey: config.leoFS.privateKey,
-      });
-
+      var s3 = modelsUtil.openS3();
       var params = {
-        Bucket: config.leoFS.bucket,
+        Bucket: config.s3.bucket,
         Key: key,
       };
 

@@ -14,8 +14,8 @@ server = { // General server settings
   },
 };
 
-// ======= LeoFS ===========
-leoFS = { // Object storage used for saving recording files.
+// ======= S3 compatible object store settings ===========
+s3 = {  // Used for storing audio & video recordings.
   publicKey: null,  // REQUIRED, String:
   privateKey: null, // REQUIRED, String
   bucket: null,   // REQUIRED, String
@@ -33,6 +33,6 @@ fileProcessing = {
 };
 
 exports.server = server;
-exports.leoFS = leoFS;
+exports.s3 = s3;
 exports.logging = logging;
 exports.fileProcessing = fileProcessing;

@@ -7,10 +7,10 @@ var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 var multiparty = require('multiparty');
 var config = require('../../config/config')
-var AWS = require('aws-sdk');
 var uuidv4 = require('uuid/v4');
 var jsonwebtoken = require('jsonwebtoken');
 var sequelize = require('sequelize');
+var modelsUtil = require('../../models/util/util');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -91,13 +91,9 @@ module.exports = (app, baseUrl) => {
         uploadStarted = true;
         log.debug('Streaming file to LeoFS.')
         uploadPromise = new Promise(function(resolve, reject) {
-          var s3 = new AWS.S3({
-            endpoint: config.leoFS.endpoint,
-            accessKeyId: config.leoFS.publicKey,
-            secretAccessKey: config.leoFS.privateKey,
-          });
+          var s3 = modelsUtil.openS3();
           s3.upload({
-            Bucket: config.leoFS.bucket,
+            Bucket: config.s3.bucket,
             Key: key,
             Body: part,
           }, (err, data) => {
