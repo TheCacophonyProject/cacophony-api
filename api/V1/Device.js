@@ -3,6 +3,9 @@ var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config/config');
 var responseUtil = require('./responseUtil');
+var passport = require('passport');
+var log = require('../../logging');
+var requestUtil = require('./requestUtil');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -75,4 +78,41 @@ module.exports = function(app, baseUrl) {
         }
       });
   });
+
+  /**
+   * @api {get} /api/v1/devices Get list of devices
+   * @apiName GetDevices
+   * @apiGroup Devices
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} devices List of devices.
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+      apiUrl,
+      passport.authenticate(['jwt'], {session: false}),
+      async (request, response) => {
+          log.info(request.method + " Request: " + request.url);
+
+          // Check that the request was authenticated by a User.
+          if (!requestUtil.isFromAUser(request))
+            return responseUtil.notFromAUser(response);
+
+          var userGroupIds = await request.user.getGroupsIds();
+          var devices = await models.Device.findAndCount({
+              where: { GroupId: { "$in": userGroupIds } },
+              attributes: ["devicename", "id"],
+              order: ['devicename'],
+          });
+
+          return responseUtil.send(response, {
+              statusCode: 200,
+              success: true,
+              messages: ["completed get devices query"],
+              devices: devices,
+          })
+      });
 };
