@@ -93,7 +93,7 @@ module.exports = (app, baseUrl) => {
         uploadPromise = new Promise(function(resolve, reject) {
           var s3 = modelsUtil.openS3();
           s3.upload({
-            Bucket: config.leoFS.bucket,
+            Bucket: config.s3.bucket,
             Key: key,
             Body: part,
           }, (err, data) => {

@@ -45,7 +45,7 @@ module.exports = function(app, baseUrl) {
 
       var s3 = modelsUtil.openS3();
       var params = {
-        Bucket: config.leoFS.bucket,
+        Bucket: config.s3.bucket,
         Key: key,
       };
 

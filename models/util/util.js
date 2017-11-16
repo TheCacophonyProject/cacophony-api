@@ -352,9 +352,9 @@ function userCanEdit(id, user) {
 
 function openS3() {
     return new AWS.S3({
-      endpoint: config.leoFS.endpoint,
-      accessKeyId: config.leoFS.publicKey,
-      secretAccessKey: config.leoFS.privateKey,
+      endpoint: config.s3.endpoint,
+      accessKeyId: config.s3.publicKey,
+      secretAccessKey: config.s3.privateKey,
       s3ForcePathStyle: true, // needed for minio
     });
 }
@@ -375,7 +375,7 @@ function saveFile(file) {
     var s3 = openS3();
     fs.readFile(file.path, function(err, data) {
       var params = {
-        Bucket: config.leoFS.bucket,
+        Bucket: config.s3.bucket,
         Key: key,
         Body: data
       };
@@ -404,7 +404,7 @@ function deleteFile(fileKey) {
   return new Promise((resolve, reject) => {
     var s3 = openS3();
     var params = {
-      Bucket: config.leoFS.bucket,
+      Bucket: config.s3.bucket,
       Key: fileKey,
     };
     s3.deleteObject(params, function(err, data) {

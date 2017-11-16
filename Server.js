@@ -92,7 +92,7 @@ function openHttpServer(app) {
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
     var s3 = modelsUtil.openS3();
-    var params = { Bucket: config.leoFS.bucket };
+    var params = { Bucket: config.s3.bucket };
     log.info("Connecting to S3.....");
     s3.headBucket(params, function(err, data) {
       if (err) {
