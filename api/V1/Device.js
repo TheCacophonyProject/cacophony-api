@@ -105,6 +105,7 @@ module.exports = function(app, baseUrl) {
           var devices = await models.Device.findAndCount({
               where: { GroupId: { "$in": userGroupIds } },
               attributes: ["devicename", "id"],
+              order: ['devicename'],
           });
 
           return responseUtil.send(response, {
