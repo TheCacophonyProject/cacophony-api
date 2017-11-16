@@ -1,10 +1,11 @@
+var AWS = require('aws-sdk');
 var log = require('../../logging');
 var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
-var AWS = require('aws-sdk');
 var config = require('../../config/config');
+
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve, reject) {
@@ -156,53 +157,6 @@ function getFileName(model) {
   var ext = mime.extension(model.getDataValue('mimeType') || '');
   if (ext) fileName = fileName + '.' + ext;
   return fileName;
-}
-
-function saveFile(file) {
-  var model = this;
-  return new Promise(function(resolve, reject) {
-
-    // Gets date object set to recordingDateTime field or now if field not set.
-    var date = new Date(model.getDataValue('recordingDateTime') || new Date());
-
-    // Generate key for file using the date.
-    var key = date.getFullYear() + '/' + date.getMonth() + '/' +
-      date.toISOString().replace(/\..+/, '').replace(/:/g, '') + '_' +
-      Math.random().toString(36).substr(2);
-
-    // Create AWS S3 object
-    var s3 = new AWS.S3({
-      endpoint: config.leoFS.endpoint,
-      accessKeyId: config.leoFS.publicKey,
-      secretAccessKey: config.leoFS.privateKey,
-    });
-
-    // Save file with key.
-    fs.readFile(file.path, function(err, data) {
-      var params = {
-        Bucket: config.leoFS.bucket,
-        Key: key,
-        Body: data
-      };
-      s3.upload(params, function(err, data) {
-        if (err) {
-          log.error("Error with saving to S3.");
-          log.error(err);
-          return reject(err);
-        } else {
-          fs.unlink(file.path); // Delete local file.
-          log.info("Successful saving to S3.");
-          file.key = key;
-
-          model.setDataValue('filename', file.name);
-          model.setDataValue('mimeType', file.mimeType);
-          model.setDataValue('size', file.size);
-          model.setDataValue('fileKey', file.key);
-          return resolve(model.save());
-        }
-      });
-    });
-  });
 }
 
 function geometrySetter(val) {
@@ -396,13 +350,59 @@ function userCanEdit(id, user) {
   });
 }
 
-function deleteFile(fileKey) {
-  return new Promise((resolve, reject) => {
-    var s3 = new AWS.S3({
+function openS3() {
+    return new AWS.S3({
       endpoint: config.leoFS.endpoint,
       accessKeyId: config.leoFS.publicKey,
       secretAccessKey: config.leoFS.privateKey,
+      s3ForcePathStyle: true, // needed for minio
     });
+}
+
+function saveFile(file) {
+  var model = this;
+  return new Promise(function(resolve, reject) {
+
+    // Gets date object set to recordingDateTime field or now if field not set.
+    var date = new Date(model.getDataValue('recordingDateTime') || new Date());
+
+    // Generate key for file using the date.
+    var key = date.getFullYear() + '/' + date.getMonth() + '/' +
+      date.toISOString().replace(/\..+/, '').replace(/:/g, '') + '_' +
+      Math.random().toString(36).substr(2);
+
+    // Save file with key.
+    var s3 = openS3();
+    fs.readFile(file.path, function(err, data) {
+      var params = {
+        Bucket: config.leoFS.bucket,
+        Key: key,
+        Body: data
+      };
+      s3.upload(params, function(err, data) {
+        if (err) {
+          log.error("Error with saving to S3.");
+          log.error(err);
+          return reject(err);
+        } else {
+          fs.unlink(file.path); // Delete local file.
+          log.info("Successful saving to S3.");
+          file.key = key;
+
+          model.setDataValue('filename', file.name);
+          model.setDataValue('mimeType', file.mimeType);
+          model.setDataValue('size', file.size);
+          model.setDataValue('fileKey', file.key);
+          return resolve(model.save());
+        }
+      });
+    });
+  });
+}
+
+function deleteFile(fileKey) {
+  return new Promise((resolve, reject) => {
+    var s3 = openS3();
     var params = {
       Bucket: config.leoFS.bucket,
       Key: fileKey,
@@ -415,7 +415,6 @@ function deleteFile(fileKey) {
 }
 
 exports.geometrySetter = geometrySetter;
-exports.saveFile = saveFile;
 exports.findAllWithUser = findAllWithUser;
 exports.processAudio = processAudio;
 exports.processVideo = processVideo;
@@ -429,3 +428,5 @@ exports.addSerial = addSerial;
 exports.getFromId = getFromId;
 exports.deleteModelInstance = deleteModelInstance;
 exports.userCanEdit = userCanEdit;
+exports.openS3 = openS3;
+exports.saveFile = saveFile;

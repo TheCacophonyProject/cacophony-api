@@ -3,7 +3,6 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var path = require('path');
 var winston = require('winston');
-var AWS = require('aws-sdk');
 var fs = require('fs');
 var tcpPortUsed = require('tcp-port-used');
 var http = require('http');
@@ -18,6 +17,7 @@ try {
 var config = require('./config/config');
 var models = require('./models');
 var log = require('./logging');
+var modelsUtil = require('./models/util/util');
 
 log.info('Starting Full Noise.');
 var app = express();
@@ -91,11 +91,7 @@ function openHttpServer(app) {
 // and reject if connection failed.
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
-    var s3 = new AWS.S3({
-      endpoint: config.leoFS.endpoint,
-      accessKeyId: config.leoFS.publicKey,
-      secretAccessKey: config.leoFS.privateKey,
-    });
+    var s3 = modelsUtil.openS3();
     var params = { Bucket: config.leoFS.bucket };
     log.info("Connecting to S3.....");
     s3.headBucket(params, function(err, data) {
