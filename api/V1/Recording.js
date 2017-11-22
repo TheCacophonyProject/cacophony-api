@@ -140,7 +140,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query. Can also add key _tagged as true or false if you just want recordings that are or aren't tagged.
    * @apiParam {Number} offset Query result offset (for paging).
    * @apiParam {Number} limit Query result limit (for paging).
    * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Exampel: [["recordingDateTime", "ASC"]]
@@ -199,19 +199,31 @@ module.exports = (app, baseUrl) => {
         });
       }
 
+      // If query should be filtered by tagged or not or ignored.
+      var sqlLiteral = '';
+      var tagRequired = false;
+      if (where._tagged == true) {
+        tagRequired = true;
+      } else if (where._tagged == false) {
+        sqlLiteral = 'NOT EXISTS (SELECT * FROM   "Tags" WHERE  "Tags".id = "Recording".id)';
+        tagRequired = false;
+      }
+      delete where._tagged;
+
       // Make sequelize query.
       var userGroupIds = await request.user.getGroupsIds();
       var query = {
         where: {
           "$and": [
             where, // User query
-            { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
+            { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] },
+            sequelize.literal(sqlLiteral),
           ],
         },
         order: order,
         include: [
           { model: models.Group },
-          { model: models.Tag },
+          { model: models.Tag, required: tagRequired },
           { model: models.Device, where: {}, attributes: ["devicename", "id"] },
         ],
         limit: limit,
