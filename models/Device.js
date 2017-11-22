@@ -1,7 +1,5 @@
 var bcrypt = require('bcrypt');
 
-var Device;
-
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
 
@@ -84,6 +82,7 @@ function addAssociations(models) {
   models.Device.hasMany(models.IrVideoRecording);
   models.Device.hasMany(models.AudioRecording);
   models.Device.hasMany(models.Recording);
+  models.Group.belongsToMany(models.User, { through: models.DeviceUsers });
 }
 
 function afterValidate(device) {

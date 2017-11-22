@@ -72,8 +72,8 @@ function getDataValues() {
 }
 
 function addAssociations(models) {
-  models.User.hasMany(models.Device);
   models.User.belongsToMany(models.Group, { through: models.GroupUsers });
+  models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
 }
 
 function getGroupsIds() {
