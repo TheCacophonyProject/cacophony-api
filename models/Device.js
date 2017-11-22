@@ -1,7 +1,5 @@
 var bcrypt = require('bcrypt');
 
-var Device;
-
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
 
@@ -32,10 +30,24 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  var allForUser = async function(user) {
+    var deviceIds = await user.getDeviceIds();
+    var userGroupIds = await user.getGroupsIds();
+    return this.findAndCount({
+      where: { "$or": [
+        {GroupId: {"$in": userGroupIds}},
+        {id: {"$in": deviceIds}},
+      ]},
+      attributes: ["devicename", "id"],
+      order: ['devicename'],
+    });
+  }
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
+      allForUser: allForUser,
       freeDevicename: freeDevicename
     },
     instanceMethods: {
@@ -84,6 +96,7 @@ function addAssociations(models) {
   models.Device.hasMany(models.IrVideoRecording);
   models.Device.hasMany(models.AudioRecording);
   models.Device.hasMany(models.Recording);
+  models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
 }
 
 function afterValidate(device) {

@@ -1,7 +1,7 @@
 var util = require('./util/util');
 var validation = require('./util/validation');
 var moment = require('moment-timezone');
-var models = require('./');
+
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -38,9 +38,89 @@ module.exports = function(sequelize, DataTypes) {
     additionalMetadata: DataTypes.JSONB,
   };
 
+  var models = sequelize.models;
+
+  /**
+    * Return one or more recordings for a user matching the query
+    * arguments given.
+    */
+  var query = async function(user, where, taggedOnly, offset, limit, order) {
+    // If query should be filtered by tagged or not or ignored.
+    var sqlLiteral = '';
+    var tagRequired = false;
+    if (taggedOnly == true) {
+      tagRequired = true;
+    } else if (taggedOnly == false) {
+      sqlLiteral = 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+      tagRequired = false;
+    }
+
+    if (order == null) {
+      order = [
+        // Sort by recordingDatetime but handle the case of the
+        // timestamp being missing and fallback to sorting by id.
+        [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
+        ["id", "DESC"],
+      ];
+    }
+
+    var q = {
+      where: {
+        "$and": [
+          where, // User query
+          await recordingsFor(user),
+          sequelize.literal(sqlLiteral),
+        ],
+      },
+      order: order,
+      include: [
+        { model: models.Group },
+        { model: models.Tag, required: tagRequired },
+        { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+      ],
+      limit: limit,
+      offset: offset,
+      attributes: userGetAttributes,
+    };
+    return this.findAndCount(q);
+  }
+
+  /**
+   * Return a single recording for a user.
+   */
+  var getOne = async function(user, id) {
+    var query = {
+      where: {
+        "$and": [
+          { id: id },
+          await recordingsFor(user),
+        ],
+      },
+      include: [
+        { model: models.Tag, },
+        { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+      ],
+      attributes: this.userGetAttributes.concat(['rawFileKey']),
+    };
+
+    return await this.findOne(query);
+  };
+
+  var recordingsFor = async function(user) {
+    var deviceIds = await user.getDeviceIds();
+    var groupIds = await user.getGroupsIds();
+    return await {"$or": [
+      {public: true},
+      {GroupId: {"$in": groupIds}},
+      {DeviceId: {"$in": deviceIds}},
+    ]};
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
+      query: query,
+      getOne: getOne,
       processingAttributes: processingAttributes,
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
@@ -58,7 +138,7 @@ module.exports = function(sequelize, DataTypes) {
 
 /**
  * Returns JSON describing what the user can do to the recording.
- * Premission types: DELETE, TAG, VIEW,
+ * Permission types: DELETE, TAG, VIEW,
  * //TODO This will be edited in the future when recordings can be public.
  */
 function getUserPermissions(user) {

@@ -32,6 +32,7 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       comparePassword: comparePassword,
       getGroupsIds: getGroupsIds,
+      getDeviceIds: getDeviceIds,
       getJwtDataValues: getJwtDataValues,
       getDataValues: getDataValues
     },
@@ -72,15 +73,24 @@ function getDataValues() {
 }
 
 function addAssociations(models) {
-  models.User.hasMany(models.Device);
   models.User.belongsToMany(models.Group, { through: models.GroupUsers });
+  models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
 }
 
 function getGroupsIds() {
   return this.getGroups()
     .then(function(groups) {
       var idList = [];
-      for (var key in groups) { idList.push(groups[key].dataValues.id); }
+      for (var key in groups) { idList.push(groups[key].id); }
+      return idList;
+    });
+}
+
+function getDeviceIds() {
+  return this.getDevices()
+    .then(function(devices) {
+      var idList = [];
+      for (var key in devices) { idList.push(devices[key].id); }
       return idList;
     });
 }

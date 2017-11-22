@@ -183,13 +183,6 @@ module.exports = (app, baseUrl) => {
         } catch (e) {
           errorMessages.push("'order' was not a valid JSON.")
         }
-      } else {
-        order = [
-          // Sort by recordingDatetime but handle the case of the
-          // timestamp being missing and fallback to sorting by id.
-          [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
-          ["id", "DESC"],
-        ];
       }
       if (errorMessages.length > 0) {
         return responseUtil.send(response, {
@@ -199,39 +192,11 @@ module.exports = (app, baseUrl) => {
         });
       }
 
-      // If query should be filtered by tagged or not or ignored.
-      var sqlLiteral = '';
-      var tagRequired = false;
-      if (where._tagged == true) {
-        tagRequired = true;
-      } else if (where._tagged == false) {
-        sqlLiteral = 'NOT EXISTS (SELECT * FROM   "Tags" WHERE  "Tags".id = "Recording".id)';
-        tagRequired = false;
-      }
+      var tagged = where._tagged;
       delete where._tagged;
 
-      // Make sequelize query.
-      var userGroupIds = await request.user.getGroupsIds();
-      var query = {
-        where: {
-          "$and": [
-            where, // User query
-            { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] },
-            sequelize.literal(sqlLiteral),
-          ],
-        },
-        order: order,
-        include: [
-          { model: models.Group },
-          { model: models.Tag, required: tagRequired },
-          { model: models.Device, where: {}, attributes: ["devicename", "id"] },
-        ],
-        limit: limit,
-        offset: offset,
-        attributes: models.Recording.userGetAttributes,
-      };
-      // Query database.
-      var result = await models.Recording.findAndCount(query);
+      var result = await models.Recording.query(request.user, where, tagged,
+                                               offset, limit, order);
 
       // Send response
       return responseUtil.send(response, {
@@ -279,24 +244,7 @@ module.exports = (app, baseUrl) => {
         if (!id)
           return responseUtil.invalidDataId(response);
 
-        // Make sequelize query.
-        var userGroupIds = await request.user.getGroupsIds();
-        var query = {
-          where: {
-            "$and": [
-              { id: id },
-              { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
-            ],
-          },
-          include: [
-            { model: models.Tag, },
-            { model: models.Device, where: {}, attributes: ["devicename", "id"] },
-          ],
-          attributes: models.Recording.userGetAttributes.concat(['rawFileKey']),
-        };
-
-        // Query database.
-        var recording = await models.Recording.findOne(query);
+        var recording = await models.Recording.getOne(request.user, id);
 
         downloadFileData = {
           _type: 'fileDownload',
