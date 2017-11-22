@@ -58,7 +58,7 @@ module.exports = function(sequelize, DataTypes) {
 
 /**
  * Returns JSON describing what the user can do to the recording.
- * Premission types: DELETE, TAG, VIEW,
+ * Permission types: DELETE, TAG, VIEW,
  * //TODO This will be edited in the future when recordings can be public.
  */
 function getUserPermissions(user) {
