@@ -1,7 +1,7 @@
 var util = require('./util/util');
 var validation = require('./util/validation');
 var moment = require('moment-timezone');
-var models = require('./');
+
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -38,9 +38,86 @@ module.exports = function(sequelize, DataTypes) {
     additionalMetadata: DataTypes.JSONB,
   };
 
+  var models = sequelize.models;
+
+  var query = async function(user, where, taggedOnly, offset, limit, order) {
+    // If query should be filtered by tagged or not or ignored.
+    var sqlLiteral = '';
+    var tagRequired = false;
+    if (taggedOnly == true) {
+      tagRequired = true;
+    } else if (taggedOnly == false) {
+      sqlLiteral = 'NOT EXISTS (SELECT * FROM   "Tags" WHERE  "Tags".id = "Recording".id)';
+      tagRequired = false;
+    }
+
+    if (order == null) {
+      order = [
+        // Sort by recordingDatetime but handle the case of the
+        // timestamp being missing and fallback to sorting by id.
+        [sequelize.fn("COALESCE", sequelize.col('recordingDateTime'), '1970-01-01'), "DESC"],
+        ["id", "DESC"],
+      ];
+    }
+
+    // Make sequelize query.
+    var deviceIds = await user.getDeviceIds();
+    var userGroupIds = await user.getGroupsIds();
+    var query = {
+      where: {
+        "$and": [
+          where, // User query
+          { "$or": [
+            { public: true },
+            { GroupId: { "$in": userGroupIds } },
+            { DeviceId: { "$in": deviceIds } },
+          ]},
+          sequelize.literal(sqlLiteral),
+        ],
+      },
+      order: order,
+      include: [
+        { model: models.Group },
+        { model: models.Tag, required: tagRequired },
+        { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+      ],
+      limit: limit,
+      offset: offset,
+      attributes: userGetAttributes,
+    };
+
+    return this.findAndCount(query);
+  }
+
+  var getOne = async function(user, id) {
+    var deviceIds = await user.getDeviceIds();
+    var userGroupIds = await user.getGroupsIds();
+    var query = {
+      where: {
+        "$and": [
+          { id: id },
+          { "$or": [
+            { public: true },
+            { GroupId: { "$in": userGroupIds } },
+            { DeviceId: { "$in": deviceIds } },
+          ]},
+        ],
+      },
+      include: [
+        { model: models.Tag, },
+        { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+      ],
+      attributes: this.userGetAttributes.concat(['rawFileKey']),
+    };
+
+    return await this.findOne(query);
+  }
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
+      query: query,
+      getOne: getOne,
       processingAttributes: processingAttributes,
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
