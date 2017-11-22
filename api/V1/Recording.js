@@ -199,19 +199,31 @@ module.exports = (app, baseUrl) => {
         });
       }
 
+      // If query should be filtered by tagged or not or ignored.
+      var sqlLiteral = '';
+      var tagRequired = false;
+      if (where._tagged == true) {
+        tagRequired = true;
+      } else if (where._tagged == false) {
+        sqlLiteral = 'NOT EXISTS (SELECT * FROM   "Tags" WHERE  "Tags".id = "Recording".id)';
+        tagRequired = false;
+      }
+      delete where._tagged;
+
       // Make sequelize query.
       var userGroupIds = await request.user.getGroupsIds();
       var query = {
         where: {
           "$and": [
             where, // User query
-            { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] }
+            { "$or": [{ public: true }, { GroupId: { "$in": userGroupIds } }] },
+            sequelize.literal(sqlLiteral),
           ],
         },
         order: order,
         include: [
           { model: models.Group },
-          { model: models.Tag },
+          { model: models.Tag, required: tagRequired },
           { model: models.Device, where: {}, attributes: ["devicename", "id"] },
         ],
         limit: limit,
