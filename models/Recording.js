@@ -51,7 +51,7 @@ module.exports = function(sequelize, DataTypes) {
     if (taggedOnly == true) {
       tagRequired = true;
     } else if (taggedOnly == false) {
-      sqlLiteral = 'NOT EXISTS (SELECT * FROM   "Tags" WHERE  "Tags".id = "Recording".id)';
+      sqlLiteral = 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
       tagRequired = false;
     }
 
