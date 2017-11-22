@@ -101,11 +101,15 @@ module.exports = function(app, baseUrl) {
           if (!requestUtil.isFromAUser(request))
             return responseUtil.notFromAUser(response);
 
+          var deviceIds = await request.user.getDeviceIds();
           var userGroupIds = await request.user.getGroupsIds();
           var devices = await models.Device.findAndCount({
-              where: { GroupId: { "$in": userGroupIds } },
-              attributes: ["devicename", "id"],
-              order: ['devicename'],
+            where: { "$or": [
+              {GroupId: {"$in": userGroupIds}},
+              {id: {"$in": deviceIds}},
+            ]},
+            attributes: ["devicename", "id"],
+            order: ['devicename'],
           });
 
           return responseUtil.send(response, {
