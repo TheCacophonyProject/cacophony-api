@@ -40,6 +40,10 @@ module.exports = function(sequelize, DataTypes) {
 
   var models = sequelize.models;
 
+  /**
+    * Return one or more recordings for a user matching the query
+    * arguments given.
+    */
   var query = async function(user, where, taggedOnly, offset, limit, order) {
     // If query should be filtered by tagged or not or ignored.
     var sqlLiteral = '';
@@ -60,18 +64,11 @@ module.exports = function(sequelize, DataTypes) {
       ];
     }
 
-    // Make sequelize query.
-    var deviceIds = await user.getDeviceIds();
-    var userGroupIds = await user.getGroupsIds();
-    var query = {
+    var q = {
       where: {
         "$and": [
           where, // User query
-          { "$or": [
-            { public: true },
-            { GroupId: { "$in": userGroupIds } },
-            { DeviceId: { "$in": deviceIds } },
-          ]},
+          await recordingsFor(user),
           sequelize.literal(sqlLiteral),
         ],
       },
@@ -85,22 +82,18 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
       attributes: userGetAttributes,
     };
-
-    return this.findAndCount(query);
+    return this.findAndCount(q);
   }
 
+  /**
+   * Return a single recording for a user.
+   */
   var getOne = async function(user, id) {
-    var deviceIds = await user.getDeviceIds();
-    var userGroupIds = await user.getGroupsIds();
     var query = {
       where: {
         "$and": [
           { id: id },
-          { "$or": [
-            { public: true },
-            { GroupId: { "$in": userGroupIds } },
-            { DeviceId: { "$in": deviceIds } },
-          ]},
+          await recordingsFor(user),
         ],
       },
       include: [
@@ -111,7 +104,17 @@ module.exports = function(sequelize, DataTypes) {
     };
 
     return await this.findOne(query);
-  }
+  };
+
+  var recordingsFor = async function(user) {
+    var deviceIds = await user.getDeviceIds();
+    var groupIds = await user.getGroupsIds();
+    return await {"$or": [
+      {public: true},
+      {GroupId: {"$in": groupIds}},
+      {DeviceId: {"$in": deviceIds}},
+    ]};
+  };
 
   var options = {
     classMethods: {
