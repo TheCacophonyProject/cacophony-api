@@ -33,8 +33,6 @@ module.exports = function(sequelize, DataTypes) {
   var allForUser = async function(user) {
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
-    console.log("deviceIds", deviceIds);
-    console.log("userGroupIds", userGroupIds);
     return this.findAndCount({
       where: { "$or": [
         {GroupId: {"$in": userGroupIds}},
