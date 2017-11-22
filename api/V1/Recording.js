@@ -140,7 +140,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query. Can also add key _tagged as true or false if you just want recordings that are or aren't tagged.
    * @apiParam {Number} offset Query result offset (for paging).
    * @apiParam {Number} limit Query result limit (for paging).
    * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Exampel: [["recordingDateTime", "ASC"]]
