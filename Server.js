@@ -34,7 +34,7 @@ app.use(express.static(__dirname + '/apidoc'));
 // This could cause security issues with Cookies but JWTs are used instead of Cookies.
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'where, offset, limit, Authorization');
   next();
 });

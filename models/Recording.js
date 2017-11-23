@@ -36,6 +36,7 @@ module.exports = function(sequelize, DataTypes) {
     type: DataTypes.STRING,
     public: { type: DataTypes.BOOLEAN, defaultValue: false},
     additionalMetadata: DataTypes.JSONB,
+    comment: DataTypes.STRING,
   };
 
   var models = sequelize.models;
@@ -229,7 +230,8 @@ var userGetAttributes = [
   'type',
   'additionalMetadata',
   'GroupId',
-  'fileKey'
+  'fileKey',
+  'comment',
 ];
 
 var apiSettableFields = [
@@ -243,10 +245,12 @@ var apiSettableFields = [
   'airplaneModeOn',
   'additionalMetadata',
   'processingMeta',
+  'comment',
 ];
 
 var apiUpdatableFields = [
   'location',
+  'comment',
 ];
 
 var processingStates = {

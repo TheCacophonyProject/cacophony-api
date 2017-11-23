@@ -332,6 +332,7 @@ module.exports = (app, baseUrl) => {
   * If any other values are requested to be updated the request will fail and no
   * updates will occur.
   * - location
+  * - comment
   *
   * @apiUse V1UserAuthorizationHeader
   *
