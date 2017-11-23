@@ -122,6 +122,25 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
+  /**
+   * Updates a single recording if the user has permission to do so.
+   */
+  var updateOne = async function(user, id, updates) {
+    for (var key in updates) {
+      if (this.apiUpdatableFields.indexOf(key) == -1) return false;
+    }
+    var recording = await this.getOne(user, id);
+    if (recording == null)
+      return false;
+    var userPermissions = await recording.getUserPermissions(user);
+    if (userPermissions.canUpdate != true)
+      return false;
+    else {
+      await recording.update(updates);
+      return true;
+    }
+  };
+
   var recordingsFor = async function(user) {
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
@@ -138,10 +157,12 @@ module.exports = function(sequelize, DataTypes) {
       query: query,
       getOne: getOne,
       deleteOne: deleteOne,
+      updateOne: updateOne,
       processingAttributes: processingAttributes,
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
       userGetAttributes: userGetAttributes,
+      apiUpdatableFields: apiUpdatableFields,
     },
     instanceMethods: {
       canGetRaw: canGetRaw,
@@ -173,6 +194,7 @@ function getUserPermissions(user) {
       permissions.canDelete = true;
       permissions.canTag = true;
       permissions.canView = true;
+      permissions.canUpdate = true;
     }
     return resolve(permissions);
   });
@@ -221,6 +243,10 @@ var apiSettableFields = [
   'airplaneModeOn',
   'additionalMetadata',
   'processingMeta',
+];
+
+var apiUpdatableFields = [
+  'location',
 ];
 
 var processingStates = {
