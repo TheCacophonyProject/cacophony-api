@@ -106,6 +106,22 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne(query);
   };
 
+  /**
+   * Deletes a single recording if the user has permission to do so.
+   */
+  var deleteOne = async function(user, id) {
+    var recording = await this.getOne(user, id);
+    if (recording == null)
+      return false;
+    var userPermissions = await recording.getUserPermissions(user);
+    if (userPermissions.canDelete != true)
+      return false;
+    else {
+      await recording.destroy();
+      return true;
+    }
+  };
+
   var recordingsFor = async function(user) {
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
@@ -121,6 +137,7 @@ module.exports = function(sequelize, DataTypes) {
       addAssociations: addAssociations,
       query: query,
       getOne: getOne,
+      deleteOne: deleteOne,
       processingAttributes: processingAttributes,
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
