@@ -373,7 +373,7 @@ module.exports = (app, baseUrl) => {
         });
       } else {
         return responseUtil.send(response, {
-          statusCode: 200,
+          statusCode: 400,
           success: false,
           messages: ['Failed to update recordings.'],
         });
