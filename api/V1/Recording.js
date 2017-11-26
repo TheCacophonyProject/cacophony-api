@@ -327,16 +327,19 @@ module.exports = (app, baseUrl) => {
   * @api {patch} /api/v1/recordings/:id Update an existing recording
   * @apiName UpdateRecording
   * @apiGroup Recordings
-  * @apiDescription This call is used for updating fields of current recordings.
-  * The only values that can be updated at the moment are the following ones.
-  * If any other values are requested to be updated the request will fail and no
-  * updates will occur.
+  * @apiDescription This call is used for updating fields of a
+  * previously submitted recording.
+  *
+  * The following fields may be updated:
   * - location
   * - comment
+  * If a change to any other field is attempted the request will fail
+  * and no update will occur.
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiParam {JSON} updates Fields to update. If any keys are not reconised or can't be updated the whole request will fail and no updates will occur.
+  * @apiParam {JSON} updates Object containing the fields to update
+  * and their new values.
   *
   * @apiUse V1ResponseSuccess
   * @apiUse V1ResponseError
