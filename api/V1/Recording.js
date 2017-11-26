@@ -282,4 +282,105 @@ module.exports = (app, baseUrl) => {
         });
       }
     );
+
+  /**
+  * @api {delete} /api/v1/recordings/:id Delete an existing recording
+  * @apiName DeleteRecording
+  * @apiGroup Recordings
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+  app.delete(
+    apiUrl + '/:id',
+    passport.authenticate(['jwt'], { session: false }),
+    async (request, response) => {
+      log.info(request.method + " Request: " + request.url);
+
+      if (!requestUtil.isFromAUser(request))
+        return responseUtil.notFromAUser(response);
+
+      var id = parseInt(request.params.id);
+      if (!id)
+        return responseUtil.invalidDataId(response);
+
+      var deleted = await models.Recording.deleteOne(request.user, id);
+      if (deleted) {
+        responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ["Deleted recording."],
+        });
+      } else {
+        responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["Failed to delete recording."],
+        });
+      }
+    }
+  );
+
+  /**
+  * @api {patch} /api/v1/recordings/:id Update an existing recording
+  * @apiName UpdateRecording
+  * @apiGroup Recordings
+  * @apiDescription This call is used for updating fields of a
+  * previously submitted recording.
+  *
+  * The following fields may be updated:
+  * - location
+  * - comment
+  * If a change to any other field is attempted the request will fail
+  * and no update will occur.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {JSON} updates Object containing the fields to update
+  * and their new values.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+  app.patch(
+    apiUrl + '/:id',
+    passport.authenticate(['jwt'], { session: false }),
+    async (request, response) => {
+      log.info(request.method + " Request: " + request.url);
+
+      if (!requestUtil.isFromAUser(request))
+        return responseUtil.notFromAUser(response);
+
+      var id = parseInt(request.params.id);
+      if (!id)
+        return responseUtil.invalidDataId(response);
+
+      try {
+        var updates = JSON.parse(request.body.updates);
+      } catch (e) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['"updates" field was not a valid JSON.']
+        });
+      }
+
+      var updated = await models.Recording.updateOne(request.user, id, updates);
+      if (updated) {
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ['Updated recording.']
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['Failed to update recordings.'],
+        });
+      }
+    }
+  );
 };

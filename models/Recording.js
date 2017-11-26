@@ -36,6 +36,7 @@ module.exports = function(sequelize, DataTypes) {
     type: DataTypes.STRING,
     public: { type: DataTypes.BOOLEAN, defaultValue: false},
     additionalMetadata: DataTypes.JSONB,
+    comment: DataTypes.STRING,
   };
 
   var models = sequelize.models;
@@ -106,6 +107,40 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne(query);
   };
 
+  /**
+   * Deletes a single recording if the user has permission to do so.
+   */
+  var deleteOne = async function(user, id) {
+    var recording = await this.getOne(user, id);
+    if (recording == null)
+      return false;
+    var userPermissions = await recording.getUserPermissions(user);
+    if (userPermissions.canDelete != true) {
+      return false;
+    } else {
+      await recording.destroy();
+      return true;
+    }
+  };
+
+  /**
+   * Updates a single recording if the user has permission to do so.
+   */
+  var updateOne = async function(user, id, updates) {
+    for (var key in updates) {
+      if (apiUpdatableFields.indexOf(key) == -1) return false;
+    }
+    var recording = await this.getOne(user, id);
+      if (recording == null) return false;
+    var userPermissions = await recording.getUserPermissions(user);
+    if (userPermissions.canUpdate != true) {
+      return false;
+    } else {
+      await recording.update(updates);
+      return true;
+    }
+  };
+
   var recordingsFor = async function(user) {
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
@@ -121,6 +156,8 @@ module.exports = function(sequelize, DataTypes) {
       addAssociations: addAssociations,
       query: query,
       getOne: getOne,
+      deleteOne: deleteOne,
+      updateOne: updateOne,
       processingAttributes: processingAttributes,
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
@@ -156,6 +193,7 @@ function getUserPermissions(user) {
       permissions.canDelete = true;
       permissions.canTag = true;
       permissions.canView = true;
+      permissions.canUpdate = true;
     }
     return resolve(permissions);
   });
@@ -190,7 +228,8 @@ var userGetAttributes = [
   'type',
   'additionalMetadata',
   'GroupId',
-  'fileKey'
+  'fileKey',
+  'comment',
 ];
 
 var apiSettableFields = [
@@ -204,6 +243,12 @@ var apiSettableFields = [
   'airplaneModeOn',
   'additionalMetadata',
   'processingMeta',
+  'comment',
+];
+
+var apiUpdatableFields = [
+  'location',
+  'comment',
 ];
 
 var processingStates = {
