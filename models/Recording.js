@@ -115,9 +115,9 @@ module.exports = function(sequelize, DataTypes) {
     if (recording == null)
       return false;
     var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canDelete != true)
+    if (userPermissions.canDelete != true) {
       return false;
-    else {
+    } else {
       await recording.destroy();
       return true;
     }
@@ -128,15 +128,14 @@ module.exports = function(sequelize, DataTypes) {
    */
   var updateOne = async function(user, id, updates) {
     for (var key in updates) {
-      if (this.apiUpdatableFields.indexOf(key) == -1) return false;
+      if (apiUpdatableFields.indexOf(key) == -1) return false;
     }
     var recording = await this.getOne(user, id);
-    if (recording == null)
-      return false;
+      if (recording == null) return false;
     var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canUpdate != true)
+    if (userPermissions.canUpdate != true) {
       return false;
-    else {
+    } else {
       await recording.update(updates);
       return true;
     }
@@ -163,7 +162,6 @@ module.exports = function(sequelize, DataTypes) {
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
       userGetAttributes: userGetAttributes,
-      apiUpdatableFields: apiUpdatableFields,
     },
     instanceMethods: {
       canGetRaw: canGetRaw,
