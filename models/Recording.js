@@ -151,6 +151,14 @@ module.exports = function(sequelize, DataTypes) {
     ]};
   };
 
+  var getRawFileName = function() {
+    var ext = '';
+    if (this.type == 'thermalRaw') {
+      ext = '.cptv';
+    }
+    return moment.tz('Pacific/Auckland').format('YYYYMMDD-HHmmss') + ext;
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -166,6 +174,7 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       canGetRaw: canGetRaw,
       getFileName: getFileName,
+      getRawFileName: getRawFileName,
       getUserPermissions: getUserPermissions,
     },
   };

@@ -258,7 +258,7 @@ module.exports = (app, baseUrl) => {
           downloadRawData = {
             _type: 'fileDownload',
             key: recording.rawFileKey,
-            filename: "rawData",
+            filename: recording.getRawFileName(),
             mimeType: null,
           };
         }
@@ -327,19 +327,19 @@ module.exports = (app, baseUrl) => {
   * @api {patch} /api/v1/recordings/:id Update an existing recording
   * @apiName UpdateRecording
   * @apiGroup Recordings
-  * @apiDescription This call is used for updating fields of a
-  * previously submitted recording.
+  * @apiDescription This call is used for updating fields of a previously
+  * submitted recording.
   *
-  * The following fields may be updated:
+  * The following fields that may be updated are:
   * - location
   * - comment
-  * If a change to any other field is attempted the request will fail
-  * and no update will occur.
+  *
+  * If a change to any other field is attempted the request will fail and no
+  * update will occur.
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiParam {JSON} updates Object containing the fields to update
-  * and their new values.
+  * @apiParam {JSON} updates Object containing the fields to update and their new values.
   *
   * @apiUse V1ResponseSuccess
   * @apiUse V1ResponseError
