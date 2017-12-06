@@ -22,6 +22,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    superuser: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    }
   };
 
   var options = {
