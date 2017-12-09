@@ -99,7 +99,10 @@ module.exports = function(app, baseUrl) {
         });
       }
 
-      var groups = await models.Group.findAll({where: where});
+      var groups = await models.Group.findAll({
+        where: where,
+        include: [{ model: models.User, attributes: ['id', 'username'] }],
+      });
       return responseUtil.send(response, {
         statusCode: 200,
         success: false,
