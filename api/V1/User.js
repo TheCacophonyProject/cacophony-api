@@ -58,42 +58,39 @@ module.exports = function(app, baseUrl) {
   });
 
   /**
-   * @api {get} api/v1/user Get user data
-   * @apiName GetUser
+   * @api {get} api/v1/users Get users
+   * @apiName GetUsers
    * @apiGroup User
-   *
-   * @apiDescription A user can use the JWT to get updates on there user data.
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiSuccess {JSON} userData Metadata about the user.
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   *
+   * @apiSuccess {JSON} usersData List of users.
    * @apiUse V1ResponseSuccess
    *
    * @apiUse V1ResponseError
    */
-  app.get(apiUrl, passport.authenticate('jwt', { session: false }), function(req, res) {
-    if (!req.user) {
-      return responseUtil.send(res, {
-        success: false,
-        statusCode: 400,
-        messages: ['JWT auth failed.']
-      });
-    }
+  app.get(
+    apiUrl,
+    async function(request, response) {
 
-    models.User.findOne({ where: { id: req.user.id } })
-      .then(function(user) {
-        return user.getDataValues();
-      })
-      .then(function(userData) {
-        return responseUtil.send(res, {
-          success: true,
-          statusCode: 200,
-          messages: ['Successful request.'],
-          userData: userData
+      var where = request.query.where;
+      try {
+        where = JSON.parse(where);
+      } catch(e) {
+        return responseUtil.send(response, {
+          statusode: 400,
+          success: false,
+          messages: ['Failed to parse "where" as a JSON.'],
         });
-      })
-      .catch(function(err) {
-        responseUtil.serverError(res, err);
+      }
+      var users = await models.User.getAll(where);
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: [],
+        users: users,
       });
-  });
+    });
 };

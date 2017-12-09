@@ -28,17 +28,31 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
+  const publicFields = Object.freeze([
+    'id',
+    'username',
+  ]);
+
+  var getAll = async function(where) {
+    return await this.findAll({
+      where: where,
+      attributes: publicFields,
+    });
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields
+      apiSettableFields: apiSettableFields,
+      getAll: getAll,
     },
     instanceMethods: {
       comparePassword: comparePassword,
       getGroupsIds: getGroupsIds,
       getDeviceIds: getDeviceIds,
       getJwtDataValues: getJwtDataValues,
-      getDataValues: getDataValues
+      getDataValues: getDataValues,
+      getAll: getAll,
     },
     hooks: {
       afterValidate: afterValidate
