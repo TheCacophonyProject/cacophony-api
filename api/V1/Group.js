@@ -78,7 +78,7 @@ module.exports = function(app, baseUrl) {
    * @apiGroup Group
    *
    * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} userId Only get groups that this user belongs to.
+   * @apiParam {Number} [userId] Only get groups that this user belongs to.
    *
    * @apiUse V1ResponseSuccess
    *
@@ -101,13 +101,18 @@ module.exports = function(app, baseUrl) {
         });
       }
 
+      var userWhere = null;
+      if (queryUserId != null) {
+        userWhere = { id: queryUserId };
+      }
+
       var groups = await models.Group.findAll({
         where: where,
         include: [
           {
             model: models.User,
             attributes: ['id', 'username'],
-            where: {"id": queryUserId}
+            where: userWhere,
           },
         ],
       });
