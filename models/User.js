@@ -80,6 +80,7 @@ function getDataValues() {
     user.getGroups()
       .then(function(groups) {
         resolve({
+          id: user.getDataValue('id'),
           username: user.getDataValue('username'),
           firstName: user.getDataValue('firstName'),
           lastName: user.getDataValue('lastName'),
