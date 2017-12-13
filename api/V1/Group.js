@@ -163,7 +163,7 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-  * @api {post} /api/v1/groups/users Removes a user from a group.
+  * @api {delete} /api/v1/groups/users Removes a user from a group.
   * @apiName RemoveUserFromGroup
   * @apiGroup Group
   * @apiDescription This call can remove a user from a group. Has to be authenticated
