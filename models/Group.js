@@ -15,7 +15,8 @@ module.exports = function(sequelize, DataTypes) {
    */
   var addUserToGroup = async function(groupAdmin, groupId, userToAddId, admin) {
     // Return false if the user doesn't have permission.
-    if (!groupAdmin.superuser && !models.GroupUsers.isAdmin(groupId, groupAdmin.id)) {
+    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
+    if (groupAdmin.superuser != true && isAdmin != true) {
       return false;
     }
 
@@ -50,7 +51,8 @@ module.exports = function(sequelize, DataTypes) {
    */
   var removeUserFromGroup = async function(groupAdmin, groupId, userToRemoveId) {
     // Return false if the user doesn't have permission.
-    if (!groupAdmin.superuser && !models.GroupUsers.isAdmin(groupId, groupAdmin.id)) {
+    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
+    if (groupAdmin.superuser != true && isAdmin != true) {
       return false;
     }
 
