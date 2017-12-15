@@ -11,6 +11,7 @@ var uuidv4 = require('uuid/v4');
 var jsonwebtoken = require('jsonwebtoken');
 var sequelize = require('sequelize');
 var modelsUtil = require('../../models/util/util');
+const middleware = require('../middleware')
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -155,60 +156,41 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
+    middleware.logging,
+    middleware.parseParams({
+      query: {
+        where: { type: 'JSON' },
+        offset: { type: 'INTEGER' },
+        limit: { type: 'INTEGER' },
+        order: { type: 'JSON', required: false },
+      },
+    }),
+    middleware.authenticate('user'),
+    middleware.asyncWrapper(async (request, response) => {
 
-      // Check that the request was authenticated by a User.
-      if (!requestUtil.isFromAUser(request))
-        return responseUtil.notFromAUser(response);
+      const tagged = request.parsed.query.where._tagged;
+      delete request.parsed.query.where._tagged;
 
-      var where = request.query.where;
-      var offset = parseInt(request.query.offset);
-      var limit = parseInt(request.query.limit);
-      var order = request.query.order;
+      const result = await models.Recording.query(
+        request.user,
+        request.parsed.query.where,
+        tagged,
+        request.parsed.query.offset,
+        request.parsed.query.limit,
+        request.parsed.query.order
+      );
 
-      // Validate 'where', 'offset', and 'limit'
-      var errorMessages = [];
-      try {
-        where = JSON.parse(where);
-      } catch (e) {
-        errorMessages.push("'where' field was not a valid JSON.")
-      }
-      if (isNaN(offset)) errorMessages.push("'offset' was not a number.")
-      if (isNaN(limit)) errorMessages.push("'limit' was not a number.")
-      if (order != null) {
-        try {
-          order = JSON.parse(order);
-        } catch (e) {
-          errorMessages.push("'order' was not a valid JSON.")
-        }
-      }
-      if (errorMessages.length > 0) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: errorMessages,
-        });
-      }
-
-      var tagged = where._tagged;
-      delete where._tagged;
-
-      var result = await models.Recording.query(request.user, where, tagged,
-                                               offset, limit, order);
-
-      // Send response
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ["Completed query."],
-        limit: limit,
-        offset: offset,
+        limit: request.parsed.query.limit,
+        offset: request.parsed.query.offset,
         count: result.count,
         rows: result.rows,
       });
-    });
+    })
+  );
 
     /**
     * @api {get} /api/v1/recordings/:id Get a recording

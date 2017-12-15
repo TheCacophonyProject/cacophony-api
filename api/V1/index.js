@@ -14,4 +14,14 @@ module.exports = function(app) {
 
   for (var i in apiRouts)
     require(path.join(__dirname, apiRouts[i]))(app, '/api/v1');
+
+  /**
+   * Basic error handler.
+   */
+  app.use((err, request, response, next) => {
+    if (isNaN(err.statusCode)) {
+      return response.status(500).send('server error');
+    }
+    response.status(err.statusCode).send(err.message);
+  });
 };
