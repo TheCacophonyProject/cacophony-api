@@ -79,6 +79,29 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
+  /**
+   * Return one or more groups matching the where condition. UserId can be used
+   * to just get groups from that user.
+   */
+  const query = async function(where, userId) {
+
+    var userWhere = null;
+    if (userId != null) {
+      userWhere = { id: userId };
+    }
+
+    return await models.Group.findAll({
+      where: where,
+      include: [
+        {
+          model: models.User,
+          attributes: ['id', 'username'],
+          where: userWhere,
+        },
+      ],
+    });
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -86,6 +109,7 @@ module.exports = function(sequelize, DataTypes) {
       getIdFromName: getIdFromName,
       addUserToGroup: addUserToGroup,
       removeUserFromGroup: removeUserFromGroup,
+      query: query,
     },
   };
 
