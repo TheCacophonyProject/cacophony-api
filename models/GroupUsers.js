@@ -19,11 +19,7 @@ module.exports = function(sequelize, DataTypes) {
         admin: true,
       }
     });
-    if (groupUsers == null) {
-      return false;
-    } else {
-      return true;
-    }
+    return groupUsers != null;
   };
   
   var options = {
