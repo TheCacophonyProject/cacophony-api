@@ -8,9 +8,24 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  /**
+   * Checks if a user is a admin of a group.
+   */
+  var isAdmin = async function(groupId, userId) {
+    var groupUsers = await this.findOne({
+      where: {
+        GroupId: groupId,
+        UserId: userId,
+        admin: true,
+      }
+    });
+    return groupUsers != null;
+  };
+  
   var options = {
     classMethods: {
       addAssociations: addAssociations,
+      isAdmin: isAdmin,
     },
   };
 

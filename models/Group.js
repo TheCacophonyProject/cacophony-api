@@ -7,12 +7,110 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  var models = sequelize.models;
+
+  /**
+   * Adds a user to a Group, if the given user has permission to do so.
+   * The user must be a group admin to do this.
+   */
+  var addUserToGroup = async function(groupAdmin, groupId, userToAddId, admin) {
+    // Return false if the user doesn't have permission.
+    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
+    if (groupAdmin.superuser != true && isAdmin != true) {
+      return false;
+    }
+
+    var userToAdd = await models.User.findById(userToAddId);
+    var group = await this.findById(groupId);
+
+    if (userToAdd == null || group == null) {
+      return false;
+    }
+
+    // Get association if already there and update it.
+    var groupUser = await models.GroupUsers.findOne({
+      where: {
+        GroupId: groupId,
+        UserId: userToAdd.id,
+      }
+    });
+    if (groupUser != null) {
+      groupUser.admin = admin; // Update admin value.
+      await groupUser.save();
+      console.log('Updated');
+      return true;
+    }
+
+    await group.addUser(userToAdd.id, {admin: admin});
+    return true;
+  };
+
+  /**
+   * Removes a user from a Group, if the given user has permission to do so.
+   * The user must be a group admin to do this.
+   */
+  var removeUserFromGroup = async function(groupAdmin, groupId, userToRemoveId) {
+    // Return false if the user doesn't have permission.
+    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
+    if (groupAdmin.superuser != true && isAdmin != true) {
+      return false;
+    }
+
+    var userToRemove = await models.User.findById(userToRemoveId);
+    var group = await this.findById(groupId);
+
+    if (userToRemove == null || group == null) {
+      return false;
+    }
+
+    // Get association if already there and update it.
+    var groupUsers = await models.GroupUsers.findAll({
+      where: {
+        GroupId: groupId,
+        UserId: userToRemove.id,
+      }
+    });
+    if (groupUsers.length == 0) {
+      return false;
+    }
+    for (var i in groupUsers) {
+      await groupUsers[i].destroy();
+    }
+    return true;
+  };
+
+  /**
+   * Return one or more groups matching the where condition. UserId can be used
+   * to just get groups from that user.
+   */
+  const query = async function(where, userId) {
+
+    var userWhere = null;
+    if (userId != null) {
+      userWhere = { id: userId };
+    }
+
+    return await models.Group.findAll({
+      where: where,
+      include: [
+        {
+          model: models.User,
+          attributes: ['id', 'username'],
+          where: userWhere,
+        },
+      ],
+    });
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
-      getIdFromName: getIdFromName
-    }
+      getIdFromName: getIdFromName,
+      addUserToGroup: addUserToGroup,
+      removeUserFromGroup: removeUserFromGroup,
+      query: query,
+    },
   };
 
   return sequelize.define(name, attributes, options);

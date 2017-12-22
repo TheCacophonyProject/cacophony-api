@@ -22,19 +22,37 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    superuser: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    }
+  };
+
+  const publicFields = Object.freeze([
+    'id',
+    'username',
+  ]);
+
+  var getAll = async function(where) {
+    return await this.findAll({
+      where: where,
+      attributes: publicFields,
+    });
   };
 
   var options = {
     classMethods: {
       addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields
+      apiSettableFields: apiSettableFields,
+      getAll: getAll,
     },
     instanceMethods: {
       comparePassword: comparePassword,
       getGroupsIds: getGroupsIds,
       getDeviceIds: getDeviceIds,
       getJwtDataValues: getJwtDataValues,
-      getDataValues: getDataValues
+      getDataValues: getDataValues,
+      getAll: getAll,
     },
     hooks: {
       afterValidate: afterValidate
@@ -62,6 +80,7 @@ function getDataValues() {
     user.getGroups()
       .then(function(groups) {
         resolve({
+          id: user.getDataValue('id'),
           username: user.getDataValue('username'),
           firstName: user.getDataValue('firstName'),
           lastName: user.getDataValue('lastName'),
