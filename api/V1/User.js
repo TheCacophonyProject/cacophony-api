@@ -5,6 +5,7 @@ var config = require('../../config/config');
 var passport = require('passport');
 var responseUtil = require('./responseUtil');
 require('../../passportConfig')(passport);
+const middleware = require('../middleware');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -24,38 +25,55 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseError
    */
-  app.post(apiUrl, function(req, res) {
-    if (!req.body.username || req.body.username == 'undefined' ||
-      !req.body.password || req.body.password == 'undefined') {
-      return responseUtil.send(res, {
-        statusCode: 400,
-        success: false,
-        messages: ['Missing username or password.']
-      });
-    }
+  app.post(
+    apiUrl,
+    middleware.logging,
+    middleware.parseParams({
+      body: {
+        username: { type: 'STRING' },
+        password: { type: 'STRING' },
+      },
+    }),
+    middleware.asyncWrapper(async (request, response) => {
 
-    // TODO check that username is not already used.
-    models.User.create({
-        username: req.body.username,
-        password: req.body.password
-      })
-      .then(function(user) { // Created new User
-        var data = user.getJwtDataValues();
-        user.getDataValues()
-          .then(function(userData) {
-            responseUtil.send(res, {
-              statusCode: 200,
-              success: true,
-              messages: ['Created new user.'],
-              token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
-              userData: userData
-            });
-          });
-      })
-      .catch(function(err) { // Error with creating user.
-        responseUtil.serverError(res, err);
+      console.log(request.parsed);
+      // TODO check that username is not already used.
+      const user = await models.User.create({
+        username: request.parsed.body.username,
+        password: request.parsed.body.password,
       });
-  });
+
+      const data = user.getJwtDataValues();
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ['Created a new user'],
+        token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
+      });
+
+
+
+      /*
+        .then(function(user) { // Created new User
+          var data = user.getJwtDataValues();
+          user.getDataValues()
+            .then(function(userData) {
+              responseUtil.send(response, {
+                statusCode: 200,
+                success: true,
+                messages: ['Created new user.'],
+                token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
+                userData: userData
+              });
+            });
+        })
+        .catch(function(err) { // Error with creating user.
+          responseUtil.serverError(request, err);
+        });
+        */
+    })
+  );
 
   /**
    * @api {get} api/v1/users Get users
