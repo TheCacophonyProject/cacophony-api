@@ -33,6 +33,9 @@ module.exports = function(sequelize, DataTypes) {
     age: { // Guessed age in weeks of animal
       type: DataTypes.INTEGER
     },
+    automatic: { //
+      type: DataTypes.BOOLEAN
+    },
   };
 
   var options = {
@@ -92,6 +95,7 @@ var apiSettableFields = [
   'event',
   'sex',
   'age',
+  'automatic',
   ];
 
 function addAssociations(models) {
