@@ -1,15 +1,12 @@
 var models = require('../../models');
-var util = require('./util');
 var passport = require('passport');
 var log = require('../../logging');
-var tagsUtil = require('./tagsUtil');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 var multiparty = require('multiparty');
-var config = require('../../config/config')
+var config = require('../../config/config');
 var uuidv4 = require('uuid/v4');
 var jsonwebtoken = require('jsonwebtoken');
-var sequelize = require('sequelize');
 var modelsUtil = require('../../models/util/util');
 
 module.exports = (app, baseUrl) => {
@@ -58,14 +55,14 @@ module.exports = (app, baseUrl) => {
       var key = uuidv4();
       var form = new multiparty.Form();
       var validData = false;
-      var uploadProcess = null;
       var uploadStarted = false;
-      var invalidMessages = [];
 
       // Make new Recording from the data field and Device.
       // TODO Stop stream if 'data' is invalid.
       form.on('field', (name, value) => {
-        if (name != 'data') return; // Only parse data field.
+        if (name != 'data') {
+          return; // Only parse data field.
+        }
         try {
           var data = JSON.parse(value);
           recording = models.Recording.build(data, {
@@ -76,8 +73,9 @@ module.exports = (app, baseUrl) => {
           recording.set('GroupId', device.GroupId);
           recording.set('processingState',
             models.Recording.processingStates[data.type][0]);
-          if (typeof device.public === 'boolean')
+          if (typeof device.public === 'boolean') {
             recording.set('public', device.public);
+          }
           validData = true;
         } catch (e) {
           log.debug(e);
@@ -87,9 +85,11 @@ module.exports = (app, baseUrl) => {
 
       // Stream file to LeoFS.
       form.on('part', (part) => {
-        if (part.name != 'file') return part.resume();
+        if (part.name != 'file') {
+          return part.resume();
+        }
         uploadStarted = true;
-        log.debug('Streaming file to LeoFS.')
+        log.debug('Streaming file to LeoFS.');
         uploadPromise = new Promise(function(resolve, reject) {
           var s3 = modelsUtil.openS3();
           s3.upload({
@@ -107,8 +107,9 @@ module.exports = (app, baseUrl) => {
       // Close response.
       form.on('close', async () => {
         log.info("Finished POST request.");
-        if (!validData || !uploadStarted)
+        if (!validData || !uploadStarted) {
           return responseUtil.invalidDatapointUpload(response);
+        }
 
         // Check that th file uploaded to LeoFS.
         try {
@@ -128,7 +129,7 @@ module.exports = (app, baseUrl) => {
 
       form.on('error', (e) => {
         log.error(e);
-      })
+      });
 
       form.parse(request);
     });
@@ -159,31 +160,43 @@ module.exports = (app, baseUrl) => {
     async (request, response) => {
       log.info(request.method + " Request: " + request.url);
 
-      // Check that the request was authenticated by a User.
-      if (!requestUtil.isFromAUser(request))
+      if (!requestUtil.isFromAUser(request)) {
         return responseUtil.notFromAUser(response);
+      }
+
+      var errorMessages = [];
 
       var where = request.query.where;
-      var offset = parseInt(request.query.offset);
-      var limit = parseInt(request.query.limit);
-      var order = request.query.order;
-
-      // Validate 'where', 'offset', and 'limit'
-      var errorMessages = [];
       try {
         where = JSON.parse(where);
       } catch (e) {
-        errorMessages.push("'where' field was not a valid JSON.")
+        errorMessages.push("'where' field was not a valid JSON.");
       }
-      if (isNaN(offset)) errorMessages.push("'offset' was not a number.")
-      if (isNaN(limit)) errorMessages.push("'limit' was not a number.")
+
+      var offset = parseInt(request.query.offset);
+      if (isNaN(offset)) {
+        errorMessages.push("'offset' was not a number.");
+      }
+
+      var limit = parseInt(request.query.limit);
+      if (isNaN(limit)) {
+        errorMessages.push("'limit' was not a number.");
+      }
+
+      var order = request.query.order;
       if (order != null) {
         try {
           order = JSON.parse(order);
         } catch (e) {
-          errorMessages.push("'order' was not a valid JSON.")
+          errorMessages.push("'order' was not a valid JSON.");
         }
       }
+
+      var tagMode = request.query.hasOwnProperty('tagMode') ? request.query.tagMode : 'any';
+      if (!models.Recording.isValidTagMode(tagMode)) {
+        errorMessages.push("'tagMode' is not valid");
+      }
+
       if (errorMessages.length > 0) {
         return responseUtil.send(response, {
           statusCode: 400,
@@ -192,13 +205,11 @@ module.exports = (app, baseUrl) => {
         });
       }
 
-      var tagged = where._tagged;
-      delete where._tagged;
+      delete where._tagged; // remove legacy tag mode selector (if included)
 
-      var result = await models.Recording.query(request.user, where, tagged,
-                                               offset, limit, order);
+      var result = await models.Recording.query(
+        request.user, where, tagMode, offset, limit, order);
 
-      // Send response
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
@@ -210,78 +221,80 @@ module.exports = (app, baseUrl) => {
       });
     });
 
-    /**
-    * @api {get} /api/v1/recordings/:id Get a recording
-    * @apiName GetRecording
-    * @apiGroup Recordings
-    * @apiDescription This call returns metadata for a recording in JSON format
-    * and a JSON Web Token (JWT) which can be used to retrieve the recorded
-    * content. This is should be used with the
-    * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
-    *
-    * @apiUse V1UserAuthorizationHeader
-    *
-    * @apiUse V1ResponseSuccess
-    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
-    * recording file.
-    * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
-    * the raw recording data.
-    * @apiSuccess {JSON} recording The recording data.
-    *
-    * @apiUse V1ResponseError
-    */
-    app.get(
-      apiUrl + '/:id',
-      passport.authenticate(['jwt'], { session: false }),
-      async (request, response) => {
-        log.info(request.method + " Request: " + request.url);
+  /**
+   * @api {get} /api/v1/recordings/:id Get a recording
+   * @apiName GetRecording
+   * @apiGroup Recordings
+   * @apiDescription This call returns metadata for a recording in JSON format
+   * and a JSON Web Token (JWT) which can be used to retrieve the recorded
+   * content. This is should be used with the
+   * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
+   * recording file.
+   * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
+   * the raw recording data.
+   * @apiSuccess {JSON} recording The recording data.
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + '/:id',
+    passport.authenticate(['jwt'], { session: false }),
+    async (request, response) => {
+      log.info(request.method + " Request: " + request.url);
 
-        // Check that the request was authenticated by a User.
-        if (!requestUtil.isFromAUser(request))
-          return responseUtil.notFromAUser(response);
-
-        var id = parseInt(request.params.id);
-        if (!id)
-          return responseUtil.invalidDataId(response);
-
-        var recording = await models.Recording.getOne(request.user, id);
-
-        downloadFileData = {
-          _type: 'fileDownload',
-          key: recording.fileKey,
-          filename: recording.getFileName(),
-          mimeType: recording.fileMimeType,
-        }
-
-        downloadRawData = null;
-        if (recording.canGetRaw()) {
-          downloadRawData = {
-            _type: 'fileDownload',
-            key: recording.rawFileKey,
-            filename: recording.getRawFileName(),
-            mimeType: null,
-          };
-        }
-        delete recording.rawFileKey;
-
-        return responseUtil.send(response, {
-          statusCode: 200,
-          success: true,
-          messages: [],
-          recording: recording,
-          downloadFileJWT: jsonwebtoken.sign(
-            downloadFileData,
-            config.server.passportSecret,
-            { expiresIn: 60 * 10 }
-          ),
-          downloadRawJWT: jsonwebtoken.sign(
-            downloadRawData,
-            config.server.passportSecret,
-            { expiresIn: 60 * 10 }
-          ),
-        });
+      // Check that the request was authenticated by a User.
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
       }
-    );
+
+      var id = parseInt(request.params.id);
+      if (!id) {
+        return responseUtil.invalidDataId(response);
+      }
+
+      var recording = await models.Recording.getOne(request.user, id);
+
+      var downloadFileData = {
+        _type: 'fileDownload',
+        key: recording.fileKey,
+        filename: recording.getFileName(),
+        mimeType: recording.fileMimeType,
+      };
+
+      var downloadRawData = null;
+      if (recording.canGetRaw()) {
+        downloadRawData = {
+          _type: 'fileDownload',
+          key: recording.rawFileKey,
+          filename: recording.getRawFileName(),
+          mimeType: null,
+        };
+      }
+      delete recording.rawFileKey;
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: [],
+        recording: recording,
+        downloadFileJWT: jsonwebtoken.sign(
+          downloadFileData,
+          config.server.passportSecret,
+          { expiresIn: 60 * 10 }
+        ),
+        downloadRawJWT: jsonwebtoken.sign(
+          downloadRawData,
+          config.server.passportSecret,
+          { expiresIn: 60 * 10 }
+        ),
+      });
+    }
+  );
 
   /**
   * @api {delete} /api/v1/recordings/:id Delete an existing recording
