@@ -87,7 +87,7 @@ module.exports = function(app, baseUrl) {
       tagInstance.set('taggerId', req.user.id);
       await tagInstance.save()
 
-      // Responde to user.
+      // Respond to user.
       return responseUtil.send(res, {
         statusCode: 200,
         success: true,
