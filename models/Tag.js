@@ -31,10 +31,12 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.ENUM('F', 'M'),
     },
     age: { // Guessed age in weeks of animal
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
-    automatic: { //
-      type: DataTypes.BOOLEAN
+    automatic: { // True if the tag was automatically generated.
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
   };
 
