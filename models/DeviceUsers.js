@@ -8,8 +8,20 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  const isAdmin = async function(deviceId, userId) {
+    var deviceUser = await this.findOne({
+      where: {
+        DeviceId: deviceId,
+        UserId: userId,
+        admin: true,
+      }
+    });
+    return deviceUser != null;
+  };
+
   var options = {
     classMethods: {
+      isAdmin: isAdmin,
       addAssociations: function() {}
     },
   };

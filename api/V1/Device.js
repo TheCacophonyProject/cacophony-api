@@ -82,32 +82,138 @@ module.exports = function(app, baseUrl) {
   /**
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
-   * @apiGroup Devices
+   * @apiGroup Device
    *
-   * @apiUse V1UserAuthorizationHeader
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   * @apiParam {Number} [userId] Get devices that belong to this user.
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {JSON} devices List of devices.
    *
    * @apiUse V1ResponseError
    */
   app.get(
-      apiUrl,
-      passport.authenticate(['jwt'], {session: false}),
-      async (request, response) => {
-          log.info(request.method + " Request: " + request.url);
+    apiUrl,
+    async (request, response) => {
+      log.info(request.method + " Request: " + request.url);
 
-          // Check that the request was authenticated by a User.
-          if (!requestUtil.isFromAUser(request))
-            return responseUtil.notFromAUser(response);
+      var where = request.query.where;
+      var queryUserId = request.query.userId;
+      try {
+        where = JSON.parse(where);
+      } catch (e) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['Could not parse "where" to a JSON'],
+        });
+      }
 
-          var devices = await models.Device.allForUser(request.user);
+      var devices = await models.Device.query(where, queryUserId);
 
-          return responseUtil.send(response, {
-              devices: devices,
-              statusCode: 200,
-              success: true,
-              messages: ["completed get devices query"],
-          })
+      return responseUtil.send(response, {
+        devices: devices,
+        statusCode: 200,
+        success: true,
+        messages: ["completed get devices query"],
       });
+    }
+  );
+
+  /**
+  * @api {post} /api/v1/devices/users Add a user to a device.
+  * @apiName AddUserToDevice
+  * @apiGroup Device
+  * @apiDescription This call can add a user to a device. This is so individuals
+  * can monitor there devices without being part of the group that the device
+  * belongs to.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {Number} deviceId ID of the device.
+  * @apiParam {Number} userId ID of the user to add to the device.
+  * @apiParam {Boolean} admin If the user should be an admin for the device.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+  app.post(
+    apiUrl + '/users',
+    passport.authenticate(['jwt'], { session: false }),
+    async function(request, response) {
+      log.info(request.method + ' Request: ' + request.url);
+
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
+      }
+
+      var added = await models.Device.addUserToDevice(
+        request.user,
+        request.body.deviceId,
+        request.body.userId,
+        request.body.admin,
+      );
+
+      if (added) {
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ['Added user to device'],
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['failed to add user to device']
+        });
+      }
+    }
+  );
+
+  /**
+  * @api {delete} /api/v1/devices/users Removes a user from a device.
+  * @apiName RemoveUserFromDevice
+  * @apiGroup Device
+  * @apiDescription This call can remove a user from a deive. Has to be
+  * authenticated by an admin from the group that the device belongs to or a
+  * user that has contorl of device.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {Number} userId ID of the user to delete from the device.
+  * @apiParam {Number} deviceId ID of the device.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+  app.delete(
+    apiUrl + '/users',
+    passport.authenticate(['jwt'], { session: false }),
+    async function(request, response) {
+      log.info(request.method + ' Request: ' + request.url);
+
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
+      }
+
+      var removed = await models.Device.removeUserFromDevice(
+        request.user,
+        request.body.deviceId,
+        request.body.userId,
+      );
+
+      if (removed) {
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ['Removed user from the device'],
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['Failed to remove user from the device'],
+        });
+      }
+    }
+  );
 };
