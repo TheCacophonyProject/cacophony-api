@@ -72,7 +72,7 @@ function add(modelClass, request, response) {
     .then((modelInstances) => {
       var modelInstance = modelInstances.rows[0];
       if (modelInstance === null || modelInstance === undefined)
-        throw { badRequest: NO_DATAPOINT_FOUND };
+        throw { badRequest: util.NO_DATAPOINT_FOUND };
       return modelInstance.addTags(tags);
     })
     .then(() => responseUtil.validAddTags(response))
@@ -98,7 +98,7 @@ function remove(modelClass, request, response) {
     .then((modelInstances) => {
       var modelInstance = modelInstances.rows[0];
       if (modelInstance === null || modelInstance === undefined)
-        throw { badRequest: NO_DATAPOINT_FOUND };
+        throw { badRequest: util.NO_DATAPOINT_FOUND };
       return modelInstance.deleteTags(tagsIds);
     })
     .then(() => responseUtil.validDeleteTags(response))
@@ -120,7 +120,7 @@ function get(modelClass, request, response) {
     .then((modelInstances) => {
       var modelInstance = modelInstances.rows[0];
       if (modelInstance === null || modelInstance === undefined)
-        throw { badRequest: NO_DATAPOINT_FOUND };
+        throw { badRequest: util.NO_DATAPOINT_FOUND };
       responseUtil.validGetTags(response, modelInstance.get('tags'));
     })
     .catch((err) =>
