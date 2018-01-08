@@ -6,6 +6,7 @@ var responseUtil = require('./responseUtil');
 var passport = require('passport');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
+var tagsUtil = require('./tagsUtil');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
@@ -43,58 +44,17 @@ module.exports = function(app, baseUrl) {
    * @apiuse V1ResponseError
    *
    */
-  app.post(apiUrl, passport.authenticate(['jwt'], { session: false }),
+  app.post(
+    apiUrl,
+    passport.authenticate(['jwt'], { session: false }),
     async function(req, res) {
-
       // Check that authentication was from a user not a device.
-      if (req.user !== null && !requestUtil.isFromAUser(req))
-        return responseUtil.notFromAUser(response);
-
-      // Check that the required fields are given.
-      if (!req.body.tag) {
-        return responseUtil.send(res, {
-          statusCode: 400,
-          success: false,
-          messages: ['Missing "tag" field.'],
-        });
+      if (req.user !== null && !requestUtil.isFromAUser(req)) {
+        return responseUtil.notFromAUser(res);
       }
-
-      // Check that recordingId field is valid.
-      var recordingId = parseInt(req.body.recordingId);
-      if (isNaN(recordingId)) {
-        return responseUtil.send(res, {
-          statusCode: 400,
-          success: false,
-          messages: ['"recordingId" field is missing or is not a number.']
-        });
-      }
-
-      // Check that user has permission to tag recording.
-      var recording = await models.Recording.findById(req.body.recordingId);
-      var permissions = await recording.getUserPermissions(req.user);
-      if (permissions.canTag == false)
-        return responseUtil.send(res, {
-          statusCode: 400,
-          success: false,
-          messages: ['User does not have permission to tag recording.']
-        });
-
-      // Build tag instance
-      tagInstance = models.Tag.build(JSON.parse(req.body.tag), {
-        fields: models.Tag.apiSettableFields,
-      });
-      tagInstance.set('RecordingId', req.body.recordingId);
-      tagInstance.set('taggerId', req.user.id);
-      await tagInstance.save()
-
-      // Respond to user.
-      return responseUtil.send(res, {
-        statusCode: 200,
-        success: true,
-        messages: ['Added new tag.'],
-        tagId: tagInstance.id,
-      });
-    });
+      return tagsUtil.handleRecordingPOST(req, res);
+    }
+  );
 
   // Delete a tag
   app.delete(apiUrl, passport.authenticate(['jwt'], { session: false }),
