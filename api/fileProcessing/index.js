@@ -1,6 +1,8 @@
 var models = require('../../models');
 var log = require('../../logging');
 var uuidv4 = require('uuid/v4');
+var tagsUtil = require('../V1/tagsUtil');
+
 
 module.exports = function(app) {
   var apiUrl = '/api/fileProcessing';
@@ -116,4 +118,28 @@ module.exports = function(app) {
       });
     }
   });
+
+  /**
+   * @api {post} /api/fileProcessing/tags Add a tag to a recording
+   * @apiName tagRecordingAfterFileProcessing
+   * @apiGroup FileProcessing
+   *
+   * @apiDescription This call takes a `tag` field which contains a JSON
+   * object string containing a number of fields. See /api/V1/tags for
+   * more details.
+   *
+   * @apiParam {Number} recordingId ID of the recording that you want to tag.
+   * @apiparam {JSON} tag Tag data in JSON format.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} tagId ID of the tag just added.
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.post(apiUrl + "/tags", async (request, response) => {
+    log.info(request.method + " Request: " + request.url);
+    return tagsUtil.handleRecordingPOST(request, response);
+  });
+
 };
