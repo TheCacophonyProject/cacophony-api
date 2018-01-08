@@ -1,12 +1,9 @@
 var models = require('../../models');
-var util = require('./util');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var responseUtil = require('./responseUtil');
 var passport = require('passport');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 var tagsUtil = require('./tagsUtil');
+
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
@@ -61,8 +58,9 @@ module.exports = function(app, baseUrl) {
     async function(req, res) {
 
       // Check that authentication was from a user not a device.
-      if (req.user !== null && !requestUtil.isFromAUser(req))
-        return responseUtil.notFromAUser(response);
+      if (req.user !== null && !requestUtil.isFromAUser(req)) {
+        return responseUtil.notFromAUser(res);
+      }
 
       // Check that the required field is given.
       var id = parseInt(req.body.tagId);
@@ -88,20 +86,21 @@ module.exports = function(app, baseUrl) {
           ]
         })
       */
+
       // Delete the tag
-      var tagDeleteResult = await models.Tag.deleteFromId(req.body.tagId,
-        req.user);
-      if (tagDeleteResult)
+      var tagDeleteResult = await models.Tag.deleteFromId(req.body.tagId, req.user);
+      if (tagDeleteResult) {
         return responseUtil.send(res, {
           statusCode: 200,
           success: true,
           messages: ["Deleted tag."]
         });
-      else
+      } else {
         return responseUtil.send(res, {
           statusCode: 400,
           success: false,
           messages: ["Failed to delete tag."]
         });
+      }
     });
-}
+};
