@@ -96,6 +96,8 @@ function addAssociations(models) {
   models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
 }
 
+// Returns the groups that are associated with this user (via
+// GroupUsers).
 function getGroupsIds() {
   return this.getGroups()
     .then(function(groups) {
@@ -105,6 +107,8 @@ function getGroupsIds() {
     });
 }
 
+// Returns the devices that are directly associated with this user
+// (via DeviceUsers).
 function getDeviceIds() {
   return this.getDevices()
     .then(function(devices) {
