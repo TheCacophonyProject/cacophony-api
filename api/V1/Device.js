@@ -1,5 +1,4 @@
 var models = require('../../models');
-var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config/config');
 var responseUtil = require('./responseUtil');
@@ -92,22 +91,23 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.get(
-      apiUrl,
-      passport.authenticate(['jwt'], {session: false}),
-      async (request, response) => {
-          log.info(request.method + " Request: " + request.url);
+    apiUrl,
+    passport.authenticate(['jwt'], {session: false}),
+    async (request, response) => {
+      log.info(request.method + " Request: " + request.url);
 
-          // Check that the request was authenticated by a User.
-          if (!requestUtil.isFromAUser(request))
-            return responseUtil.notFromAUser(response);
+      // Check that the request was authenticated by a User.
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
+      }
 
-          var devices = await models.Device.allForUser(request.user);
+      var devices = await models.Device.allForUser(request.user);
 
-          return responseUtil.send(response, {
-              devices: devices,
-              statusCode: 200,
-              success: true,
-              messages: ["completed get devices query"],
-          })
+      return responseUtil.send(response, {
+        devices: devices,
+        statusCode: 200,
+        success: true,
+        messages: ["completed get devices query"],
       });
+    });
 };

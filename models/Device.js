@@ -31,6 +31,14 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var allForUser = async function(user) {
+    // Return all devices if superuser.
+    if (user.superuser) {
+      return this.findAndCount({
+        attributes: ["devicename", "id"],
+        order: ['devicename'],
+      });
+    }
+
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
     return this.findAndCount({
@@ -41,7 +49,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: ["devicename", "id"],
       order: ['devicename'],
     });
-  }
+  };
 
   var options = {
     classMethods: {

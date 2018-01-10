@@ -159,9 +159,12 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var recordingsFor = async function(user) {
+    if (user.superuser) {
+      return null;
+    }
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
-    return await {"$or": [
+    return {"$or": [
       {public: true},
       {GroupId: {"$in": groupIds}},
       {DeviceId: {"$in": deviceIds}},
@@ -206,17 +209,27 @@ module.exports = function(sequelize, DataTypes) {
  * //TODO This will be edited in the future when recordings can be public.
  */
 function getUserPermissions(user) {
+  // superusers can do everything.
+  if (user.superuser) {
+    return {
+      canDelete: true,
+      canTag: true,
+      canView: true,
+      canUpdate: true,
+    };
+  }
+
   // For now if the user is in the group that owns the recording they have all
   // permission. This will be changed in the future.
   var permissions = {
     canDelete: false,
     canTag: false,
     canView: false,
+    canUpdate: false,
   };
-  var recording = this;
   return new Promise(async (resolve, reject) => {
     var groupIds = await user.getGroupsIds();
-    if (groupIds.indexOf(recording.GroupId) !== -1) {
+    if (groupIds.indexOf(this.GroupId) !== -1) {
       permissions.canDelete = true;
       permissions.canTag = true;
       permissions.canView = true;
