@@ -133,7 +133,6 @@ module.exports = function(sequelize, DataTypes) {
       freeDevicename: freeDevicename,
       addUserToDevice: addUserToDevice,
       removeUserFromDevice: removeUserFromDevice,
-      query: query,
     },
     instanceMethods: {
       comparePassword: comparePassword,
