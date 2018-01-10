@@ -30,12 +30,79 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  const models = sequelize.models;
+
+  /**
+  * Adds/update a user to a Device, if the given user has permission to do so.
+  * The authenticated user must either be admin of the group that the device
+  * belongs to, an admin of that device, or a superuser.
+  */
+  const addUserToDevice = async function(authUser, deviceId, userToAddId, admin) {
+    const device = await models.Device.findById(deviceId);
+    const userToAdd = await models.User.findById(userToAddId);
+    if (device == null || userToAdd == null) {
+      return false;
+    }
+    if (!(await device.userPermissions(authUser)).canAddUsers) {
+      return false;
+    }
+
+    // Get association if already there and update it.
+    var deviceUser = await models.DeviceUsers.findOne({
+      where: {
+        DeviceId: deviceId,
+        UserId: userToAdd.id,
+      }
+    });
+    if (deviceUser != null) {
+      deviceUser.admin = admin; // Update admin value.
+      await deviceUser.save();
+      return true;
+    }
+
+    await device.addUser(userToAdd.id, {admin: admin});
+    return true;
+  };
+
+  /**
+   * Removes a user from a Device, if the given user has permission to do so.
+   * The user must be a group or device admin, or superuser to do this. .
+   */
+  var removeUserFromDevice = async function(authUser, deviceId, userToRemoveId) {
+    const device = await models.Device.findById(deviceId);
+    const userToRemove = await models.User.findById(userToRemoveId);
+    if (device == null || userToRemove == null) {
+      return false;
+    }
+    if (!(await device.userPermissions(authUser)).canRemoveUsers) {
+      return false;
+    }
+
+    // Check that association is there to delete.
+    const deviceUsers = await models.DeviceUsers.findAll({
+      where: {
+        DeviceId: device.id,
+        UserId: userToRemove.id,
+      }
+    });
+    for (var i in deviceUsers) {
+      await deviceUsers[i].destroy();
+    }
+    return true;
+  };
+
   var allForUser = async function(user) {
     // Return all devices if superuser.
     if (user.superuser) {
       return this.findAndCount({
         attributes: ["devicename", "id"],
         order: ['devicename'],
+        include: [
+          {
+            model: models.User,
+            attributes: ['id', 'username'],
+          },
+        ],
       });
     }
 
@@ -47,20 +114,46 @@ module.exports = function(sequelize, DataTypes) {
         {id: {"$in": deviceIds}},
       ]},
       attributes: ["devicename", "id"],
-      order: ['devicename'],
+      include: [
+        {
+          model: models.User,
+          attributes: ['id', 'username'],
+        },
+      ],
     });
+  };
+
+  const userPermissions = async function(user) {
+    if (user.superuser) {
+      return newUserPermissions(true);
+    }
+
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    return newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
+
+
+  const newUserPermissions = function(enabled) {
+    return {
+      canAddUsers: enabled,
+      canRemoveUsers: enabled,
+    };
   };
 
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
+      freeDevicename: freeDevicename,
+      addUserToDevice: addUserToDevice,
       allForUser: allForUser,
-      freeDevicename: freeDevicename
+      removeUserFromDevice: removeUserFromDevice,
     },
     instanceMethods: {
       comparePassword: comparePassword,
-      getJwtDataValues: getJwtDataValues
+      getJwtDataValues: getJwtDataValues,
+      userPermissions: userPermissions,
     },
     hooks: {
       afterValidate: afterValidate

@@ -28,6 +28,8 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
+  const models = sequelize.models;
+
   const publicFields = Object.freeze([
     'id',
     'username',
@@ -40,6 +42,15 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
+  const getGroupDeviceIds = async function() {
+    var groupIds = await this.getGroupsIds();
+    var devices = await models.Device.findAll({
+      where: { GroupId: { "$in": groupIds }},
+      attributes: ['id'],
+    });
+    return devices.map(d => d.id);
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -50,6 +61,7 @@ module.exports = function(sequelize, DataTypes) {
       comparePassword: comparePassword,
       getGroupsIds: getGroupsIds,
       getDeviceIds: getDeviceIds,
+      getGroupDeviceIds: getGroupDeviceIds,
       getJwtDataValues: getJwtDataValues,
       getDataValues: getDataValues,
       getAll: getAll,
