@@ -97,6 +97,12 @@ module.exports = function(sequelize, DataTypes) {
       return this.findAndCount({
         attributes: ["devicename", "id"],
         order: ['devicename'],
+        include: [
+          {
+            model: models.User,
+            attributes: ['id', 'username'],
+          },
+        ],
       });
     }
 
