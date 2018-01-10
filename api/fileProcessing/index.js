@@ -1,6 +1,8 @@
 var models = require('../../models');
 var log = require('../../logging');
 var uuidv4 = require('uuid/v4');
+var tagsUtil = require('../V1/tagsUtil');
+
 
 module.exports = function(app) {
   var apiUrl = '/api/fileProcessing';
@@ -28,13 +30,13 @@ module.exports = function(app) {
       attributes: models.Recording.processingAttributes,
     });
     if (recording == null) {
-      log.debug('No file to be processed.')
+      log.debug('No file to be processed.');
       return response.status(204).json();
     }
 
     await recording.set('jobKey', uuidv4());
     var date = new Date();
-    await recording.set('processingStartTime', date.toISOString())
+    await recording.set('processingStartTime', date.toISOString());
     await recording.save();
     return response.status(200).json({
       recording: recording.dataValues,
@@ -63,12 +65,15 @@ module.exports = function(app) {
 
     // Validate request.
     var errorMessages = [];
-    if (isNaN(id))
-      errorMessages.push("'id' field needs to be a number.")
-    if (jobKey == null)
+    if (isNaN(id)) {
+      errorMessages.push("'id' field needs to be a number.");
+    }
+    if (jobKey == null) {
       errorMessages.push("'jobKey' field is required.");
-    if (success == null)
+    }
+    if (success == null) {
       errorMessages.push("'success' field is required");
+    }
     if (result != null) {
       try {
         result = JSON.parse(result);
@@ -85,28 +90,29 @@ module.exports = function(app) {
     var recording = await models.Recording.findOne({ where: { id: id }});
 
     // Check that jobKey is correct.
-    if (jobKey != recording.get('jobKey'))
+    if (jobKey != recording.get('jobKey')) {
       return response.status(400).json({
         messages: ["'jobKey' given did not match the database.."],
-      })
+      });
+    }
 
     if (success) {
-        var jobs = models.Recording.processingStates[recording.type];
-        var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
-        recording.set('processingState', nextJob);
-        recording.set('processingStartTime', null);
-        recording.set('fileKey', newProcessedFileKey);
-        recording.set('jobKey', null);
+      var jobs = models.Recording.processingStates[recording.type];
+      var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
+      recording.set('processingState', nextJob);
+      recording.set('processingStartTime', null);
+      recording.set('fileKey', newProcessedFileKey);
+      recording.set('jobKey', null);
 
-        // Process extra data from file processing
-        if (result.fieldUpdates != null)
-          for (i in result.fieldUpdates)
-            recording.set(i, result.fieldUpdates[i]);
+      // Process extra data from file processing
+      if (result.fieldUpdates != null) {
+        for (var i in result.fieldUpdates) {
+          recording.set(i, result.fieldUpdates[i]);
+        }
+      }
 
-        await recording.save();
-        return response.status(200).json({
-          messages: ["Processing finished."],
-        });
+      await recording.save();
+      return response.status(200).json({messages: ["Processing finished."]});
     } else {
       recording.set('processingStartTime', null);
       recording.set('jobKey', null);
@@ -116,4 +122,28 @@ module.exports = function(app) {
       });
     }
   });
+
+  /**
+   * @api {post} /api/fileProcessing/tags Add a tag to a recording
+   * @apiName tagRecordingAfterFileProcessing
+   * @apiGroup FileProcessing
+   *
+   * @apiDescription This call takes a `tag` field which contains a JSON
+   * object string containing a number of fields. See /api/V1/tags for
+   * more details.
+   *
+   * @apiParam {Number} recordingId ID of the recording that you want to tag.
+   * @apiparam {JSON} tag Tag data in JSON format.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} tagId ID of the tag just added.
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.post(apiUrl + "/tags", async (request, response) => {
+    log.info(request.method + " Request: " + request.url);
+    return tagsUtil.handleRecordingPOST(request, response);
+  });
+
 };
