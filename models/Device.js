@@ -100,22 +100,22 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  const query = async function(where, userId) {
-    if (userId != null) {
-      const user = await models.User.findById(userId);
-      var userDeviceIds = await user.getDeviceIds();
-      var groupDeviceIds = await user.getGroupDeviceIds();
-      var deviceIds = userDeviceIds.concat(groupDeviceIds);
-      where = {
-        "$and": [
-          where,
-          { id: { "$in": deviceIds }}
-        ],
-      };
+  var allForUser = async function(user) {
+    // Return all devices if superuser.
+    if (user.superuser) {
+      return this.findAndCount({
+        attributes: ["devicename", "id"],
+        order: ['devicename'],
+      });
     }
 
-    return await models.Device.findAll({
-      where: where,
+    var deviceIds = await user.getDeviceIds();
+    var userGroupIds = await user.getGroupsIds();
+    return this.findAndCount({
+      where: { "$or": [
+        {GroupId: {"$in": userGroupIds}},
+        {id: {"$in": deviceIds}},
+      ]},
       attributes: ["devicename", "id"],
       include: [
         {

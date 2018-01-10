@@ -1,5 +1,4 @@
 var models = require('../../models');
-var util = require('./util');
 var jwt = require('jsonwebtoken');
 var config = require('../../config/config');
 var responseUtil = require('./responseUtil');
@@ -84,8 +83,7 @@ module.exports = function(app, baseUrl) {
    * @apiName GetDevices
    * @apiGroup Device
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} [userId] Get devices that belong to this user.
+   * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
    *
@@ -93,22 +91,16 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
+    passport.authenticate(['jwt'], {session: false}),
     async (request, response) => {
       log.info(request.method + " Request: " + request.url);
 
-      var where = request.query.where;
-      var queryUserId = request.query.userId;
-      try {
-        where = JSON.parse(where);
-      } catch (e) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ['Could not parse "where" to a JSON'],
-        });
+      // Check that the request was authenticated by a User.
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
       }
 
-      var devices = await models.Device.query(where, queryUserId);
+      var devices = await models.Device.allForUser(request.user);
 
       return responseUtil.send(response, {
         devices: devices,

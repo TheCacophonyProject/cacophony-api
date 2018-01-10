@@ -45,15 +45,27 @@ module.exports = function(sequelize, DataTypes) {
     * Return one or more recordings for a user matching the query
     * arguments given.
     */
-  var query = async function(user, where, taggedOnly, offset, limit, order) {
-    // If query should be filtered by tagged or not or ignored.
-    var sqlLiteral = '';
-    var tagRequired = false;
-    if (taggedOnly == true) {
-      tagRequired = true;
-    } else if (taggedOnly == false) {
-      sqlLiteral = 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
-      tagRequired = false;
+  var query = async function(user, where, tagMode, offset, limit, order) {
+    var tagLiteral = '';
+    switch (tagMode) {
+    case 'untagged':
+      tagLiteral = 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+      break;
+    case 'tagged':
+      tagLiteral = 'EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+      break;
+    case 'automatic-only':
+      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
+                    AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      break;
+    case 'human-only':
+      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)
+                    AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)`;
+      break;
+    case 'automatic+human':
+      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
+                    AND EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      break;
     }
 
     if (order == null) {
@@ -70,13 +82,13 @@ module.exports = function(sequelize, DataTypes) {
         "$and": [
           where, // User query
           await recordingsFor(user),
-          sequelize.literal(sqlLiteral),
+          sequelize.literal(tagLiteral),
         ],
       },
       order: order,
       include: [
         { model: models.Group },
-        { model: models.Tag, required: tagRequired },
+        { model: models.Tag },
         { model: models.Device, where: {}, attributes: ["devicename", "id"] },
       ],
       limit: limit,
@@ -84,7 +96,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: userGetAttributes,
     };
     return this.findAndCount(q);
-  }
+  };
 
   /**
    * Return a single recording for a user.
@@ -112,8 +124,9 @@ module.exports = function(sequelize, DataTypes) {
    */
   var deleteOne = async function(user, id) {
     var recording = await this.getOne(user, id);
-    if (recording == null)
+    if (recording == null) {
       return false;
+    }
     var userPermissions = await recording.getUserPermissions(user);
     if (userPermissions.canDelete != true) {
       return false;
@@ -128,10 +141,14 @@ module.exports = function(sequelize, DataTypes) {
    */
   var updateOne = async function(user, id, updates) {
     for (var key in updates) {
-      if (apiUpdatableFields.indexOf(key) == -1) return false;
+      if (apiUpdatableFields.indexOf(key) == -1) {
+        return false;
+      }
     }
     var recording = await this.getOne(user, id);
-      if (recording == null) return false;
+    if (recording == null) {
+      return false;
+    }
     var userPermissions = await recording.getUserPermissions(user);
     if (userPermissions.canUpdate != true) {
       return false;
@@ -142,9 +159,12 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var recordingsFor = async function(user) {
+    if (user.superuser) {
+      return null;
+    }
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
-    return await {"$or": [
+    return {"$or": [
       {public: true},
       {GroupId: {"$in": groupIds}},
       {DeviceId: {"$in": deviceIds}},
@@ -170,6 +190,7 @@ module.exports = function(sequelize, DataTypes) {
       processingStates: processingStates,
       apiSettableFields: apiSettableFields,
       userGetAttributes: userGetAttributes,
+      isValidTagMode: function(mode) { return validTagModes.includes(mode); },
     },
     instanceMethods: {
       canGetRaw: canGetRaw,
@@ -180,7 +201,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   return sequelize.define(name, attributes, options);
-}
+};
 
 /**
  * Returns JSON describing what the user can do to the recording.
@@ -188,17 +209,27 @@ module.exports = function(sequelize, DataTypes) {
  * //TODO This will be edited in the future when recordings can be public.
  */
 function getUserPermissions(user) {
+  // superusers can do everything.
+  if (user.superuser) {
+    return {
+      canDelete: true,
+      canTag: true,
+      canView: true,
+      canUpdate: true,
+    };
+  }
+
   // For now if the user is in the group that owns the recording they have all
   // permission. This will be changed in the future.
   var permissions = {
     canDelete: false,
     canTag: false,
     canView: false,
-  }
-  var recording = this;
+    canUpdate: false,
+  };
   return new Promise(async (resolve, reject) => {
     var groupIds = await user.getGroupsIds();
-    if (groupIds.indexOf(recording.GroupId) !== -1) {
+    if (groupIds.indexOf(this.GroupId) !== -1) {
       permissions.canDelete = true;
       permissions.canTag = true;
       permissions.canView = true;
@@ -209,14 +240,17 @@ function getUserPermissions(user) {
 }
 
 function canGetRaw() {
-  if (this.get('type') == 'thermalRaw')
+  if (this.get('type') == 'thermalRaw') {
     return true;
+  }
   return false;
 }
 
 function getFileName() {
   var ext = "";
-  if (this.fileMimeType == 'video/mp4') ext = ".mp4"
+  if (this.fileMimeType == 'video/mp4') {
+    ext = ".mp4";
+  }
   return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
     .format("YYYYMMDD-HHmmss") + ext;
 }
@@ -262,7 +296,7 @@ var apiUpdatableFields = [
 
 var processingStates = {
   thermalRaw: ['toMp4', 'FINISHED'],
-}
+};
 
 var processingAttributes = [
   'id',
@@ -273,6 +307,15 @@ var processingAttributes = [
   'jobKey',
   'type',
 ];
+
+const validTagModes = Object.freeze([
+  'any',
+  'untagged',
+  'tagged',
+  'automatic-only',
+  'human-only',
+  'automatic+human',
+]);
 
 function addAssociations(models) {
   models.Recording.belongsTo(models.Group);
