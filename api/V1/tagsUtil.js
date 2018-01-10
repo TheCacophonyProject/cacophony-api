@@ -24,7 +24,7 @@ async function handleRecordingPOST(request, response) {
     });
   }
 
-  if (request.user !== null) {
+  if (request.user !== undefined) {
     var recording = await models.Recording.findById(request.body.recordingId);
     var permissions = await recording.getUserPermissions(request.user);
     if (!permissions.canTag) {
@@ -41,7 +41,7 @@ async function handleRecordingPOST(request, response) {
     fields: models.Tag.apiSettableFields,
   });
   tagInstance.set('RecordingId', request.body.recordingId);
-  if (request.user !== null) {
+  if (request.user !== undefined) {
     tagInstance.set('taggerId', request.user.id);
   }
   await tagInstance.save();
