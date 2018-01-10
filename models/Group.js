@@ -13,16 +13,13 @@ module.exports = function(sequelize, DataTypes) {
    * Adds a user to a Group, if the given user has permission to do so.
    * The user must be a group admin to do this.
    */
-  var addUserToGroup = async function(groupAdmin, groupId, userToAddId, admin) {
-    // Return false if the user doesn't have permission.
-    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
-    if (groupAdmin.superuser != true && isAdmin != true) {
+  var addUserToGroup = async function(authUser, groupId, userToAddId, admin) {
+    const group = await this.findById(groupId);
+    if (!(await group.userPermissions(authUser)).canAddUsers) {
       return false;
     }
 
     var userToAdd = await models.User.findById(userToAddId);
-    var group = await this.findById(groupId);
-
     if (userToAdd == null || group == null) {
       return false;
     }
@@ -49,16 +46,13 @@ module.exports = function(sequelize, DataTypes) {
    * Removes a user from a Group, if the given user has permission to do so.
    * The user must be a group admin to do this.
    */
-  var removeUserFromGroup = async function(groupAdmin, groupId, userToRemoveId) {
-    // Return false if the user doesn't have permission.
-    const isAdmin = await models.GroupUsers.isAdmin(groupId, groupAdmin.id);
-    if (groupAdmin.superuser != true && isAdmin != true) {
+  var removeUserFromGroup = async function(authUser, groupId, userToRemoveId) {
+    const group = await this.findById(groupId);
+    if (!(await group.userPermissions(authUser)).canRemoveUsers) {
+      console.log('Here');
       return false;
     }
-
     var userToRemove = await models.User.findById(userToRemoveId);
-    var group = await this.findById(groupId);
-
     if (userToRemove == null || group == null) {
       return false;
     }
@@ -99,6 +93,26 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
+  const userPermissions = async function(user) {
+    var permissions = {
+      canAddUsers: false,
+      canRemoveUsers: false,
+    };
+    if (user.superuser) {
+      for (var key in permissions) {
+        permissions[key] = true;
+      }
+      console.log(permissions);
+      return permissions;
+    }
+
+    if (await models.GroupUsers.isAdmin(this.id, user.id)) {
+      permissions.canAddUsers = true;
+      permissions.canRemoveUsers = true;
+    }
+    return permissions;
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -107,6 +121,9 @@ module.exports = function(sequelize, DataTypes) {
       addUserToGroup: addUserToGroup,
       removeUserFromGroup: removeUserFromGroup,
       query: query,
+    },
+    instanceMethods: {
+      userPermissions: userPermissions,
     },
   };
 

@@ -43,10 +43,7 @@ module.exports = function(sequelize, DataTypes) {
     if (device == null || userToAdd == null) {
       return false;
     }
-    // Return false if the user doesn't have permission.
-    const isGroupAdmin = await models.GroupUsers.isAdmin(device.groupId, authUser.id);
-    const isDeviceAdmin = await models.DeviceUsers.isAdmin(device.id, authUser.id);
-    if (!authUser.superuser && !isGroupAdmin && !isDeviceAdmin) {
+    if (!(await device.userPermissions(authUser)).canAddUsers) {
       return false;
     }
 
@@ -77,10 +74,7 @@ module.exports = function(sequelize, DataTypes) {
     if (device == null || userToRemove == null) {
       return false;
     }
-    // Return false if the user doesn't have permission.
-    const isGroupAdmin = await models.GroupUsers.isAdmin(device.groupId, authUser.id);
-    const isDeviceAdmin = await models.DeviceUsers.isAdmin(device.id, authUser.id);
-    if (!authUser.superuser && !isGroupAdmin && !isDeviceAdmin) {
+    if (!(await device.userPermissions(authUser)).canRemoveUsers) {
       return false;
     }
 
@@ -123,17 +117,40 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
+  const userPermissions = async function(user) {
+    var permissions = {
+      canAddUsers: false,  // Can add DeviceUsers association.
+      canRemoveUsers: false,  // Can delete DeviceUsers association.
+    };
+    if (user.superuser) {
+      for (var key in permissions) {
+        permissions[key] = true;
+      }
+      return permissions;
+    }
+
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    if (isGroupAdmin || isDeviceAdmin) {
+      permissions.canAddUsers = true;
+      permissions.canRemoveUsers = true;
+    }
+    return permissions;
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
       freeDevicename: freeDevicename,
       addUserToDevice: addUserToDevice,
+      allForUser: allForUser,
       removeUserFromDevice: removeUserFromDevice,
     },
     instanceMethods: {
       comparePassword: comparePassword,
-      getJwtDataValues: getJwtDataValues
+      getJwtDataValues: getJwtDataValues,
+      userPermissions: userPermissions,
     },
     hooks: {
       afterValidate: afterValidate
