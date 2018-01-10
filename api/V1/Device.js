@@ -165,9 +165,9 @@ module.exports = function(app, baseUrl) {
   * @api {delete} /api/v1/devices/users Removes a user from a device.
   * @apiName RemoveUserFromDevice
   * @apiGroup Device
-  * @apiDescription This call can remove a user from a deive. Has to be
+  * @apiDescription This call can remove a user from a device. Has to be
   * authenticated by an admin from the group that the device belongs to or a
-  * user that has contorl of device.
+  * user that has control of device.
   *
   * @apiUse V1UserAuthorizationHeader
   *

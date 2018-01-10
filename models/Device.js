@@ -33,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
   const models = sequelize.models;
 
   /**
-  * Adds/update a user to a Device, if the given user has permissino to do so.
+  * Adds/update a user to a Device, if the given user has permission to do so.
   * The authenticated user must either be admin of the group that the device
   * belongs to, an admin of that device, or a superuser.
   */
