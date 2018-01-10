@@ -70,9 +70,6 @@ module.exports = function(sequelize, DataTypes) {
         UserId: userToRemove.id,
       }
     });
-    if (groupUsers.length == 0) {
-      return false;
-    }
     for (var i in groupUsers) {
       await groupUsers[i].destroy();
     }

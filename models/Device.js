@@ -91,9 +91,6 @@ module.exports = function(sequelize, DataTypes) {
         UserId: userToRemove.id,
       }
     });
-    if (deviceUsers.length == 0) {
-      return false;
-    }
     for (var i in deviceUsers) {
       await deviceUsers[i].destroy();
     }
