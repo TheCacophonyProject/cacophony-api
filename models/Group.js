@@ -34,7 +34,6 @@ module.exports = function(sequelize, DataTypes) {
     if (groupUser != null) {
       groupUser.admin = admin; // Update admin value.
       await groupUser.save();
-      console.log('Updated');
       return true;
     }
 
@@ -49,7 +48,6 @@ module.exports = function(sequelize, DataTypes) {
   var removeUserFromGroup = async function(authUser, groupId, userToRemoveId) {
     const group = await this.findById(groupId);
     if (!(await group.userPermissions(authUser)).canRemoveUsers) {
-      console.log('Here');
       return false;
     }
     var userToRemove = await models.User.findById(userToRemoveId);
@@ -94,23 +92,18 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const userPermissions = async function(user) {
-    var permissions = {
-      canAddUsers: false,
-      canRemoveUsers: false,
-    };
     if (user.superuser) {
-      for (var key in permissions) {
-        permissions[key] = true;
-      }
-      console.log(permissions);
-      return permissions;
+      return newUserPermissions(true);
     }
+    return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));
+  };
 
-    if (await models.GroupUsers.isAdmin(this.id, user.id)) {
-      permissions.canAddUsers = true;
-      permissions.canRemoveUsers = true;
-    }
-    return permissions;
+
+  const newUserPermissions = function(enabled) {
+    return {
+      canAddUsers: enabled,
+      canRemoveUsers: enabled,
+    };
   };
 
   var options = {

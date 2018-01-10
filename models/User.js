@@ -48,9 +48,7 @@ module.exports = function(sequelize, DataTypes) {
       where: { GroupId: { "$in": groupIds }},
       attributes: ['id'],
     });
-    var idList = [];
-    for (var key in devices) { idList.push(devices[key].id); }
-    return idList;
+    return devices.map(d => d.id);
   };
 
   var options = {

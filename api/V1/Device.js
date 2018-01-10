@@ -115,15 +115,15 @@ module.exports = function(app, baseUrl) {
   * @api {post} /api/v1/devices/users Add a user to a device.
   * @apiName AddUserToDevice
   * @apiGroup Device
-  * @apiDescription This call can add a user to a device. This is so individuals
-  * can monitor there devices without being part of the group that the device
-  * belongs to.
+  * @apiDescription This call adds a user to a device. This allows individual
+  * user accounts to monitor a devices without being part of the group that the
+  * device belongs to.
   *
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiParam {Number} deviceId ID of the device.
   * @apiParam {Number} userId ID of the user to add to the device.
-  * @apiParam {Boolean} admin If the user should be an admin for the device.
+  * @apiParam {Boolean} admin If true, the user should have administrator access to the device..
   *
   * @apiUse V1ResponseSuccess
   * @apiUse V1ResponseError

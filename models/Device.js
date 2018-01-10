@@ -124,24 +124,21 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const userPermissions = async function(user) {
-    var permissions = {
-      canAddUsers: false,  // Can add DeviceUsers association.
-      canRemoveUsers: false,  // Can delete DeviceUsers association.
-    };
     if (user.superuser) {
-      for (var key in permissions) {
-        permissions[key] = true;
-      }
-      return permissions;
+      return newUserPermissions(true);
     }
 
     const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
-    if (isGroupAdmin || isDeviceAdmin) {
-      permissions.canAddUsers = true;
-      permissions.canRemoveUsers = true;
-    }
-    return permissions;
+    return newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
+
+
+  const newUserPermissions = function(enabled) {
+    return {
+      canAddUsers: enabled,
+      canRemoveUsers: enabled,
+    };
   };
 
   var options = {
