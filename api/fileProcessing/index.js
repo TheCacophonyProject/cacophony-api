@@ -28,6 +28,10 @@ module.exports = function(app) {
         'processingStartTime': null,
       },
       attributes: models.Recording.processingAttributes,
+      // Process the most recent footage first. This helps when we're
+      // re-processing a backlog of old recordings but still want to
+      // have new recordings processed as they come in.
+      order: [['recordingDateTime', 'DESC']],
     });
     if (recording == null) {
       log.debug('No file to be processed.');
@@ -50,7 +54,7 @@ module.exports = function(app) {
    *
    * @apiParam {Integer} id ID of the recording.
    * @apiParam {String} jobKey Key given when reqesting the job.
-   * @apiParam {Boolean} success If the job was finished successfuly.
+   * @apiParam {Boolean} success If the job was finished successfully.
    * @apiParam {JSON} [result] Result of the file processing
    * @apiParam {String} [newProcessedFileKey] LeoFS Key of the new file.
    */
