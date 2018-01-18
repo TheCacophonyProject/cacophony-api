@@ -27,6 +27,11 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
+
+    if (!requestUtil.isFromAUser(req)) {
+      return responseUtil.notFromAUser(req);
+    }
+
     // Check that required data is given.
     if (!req.body.groupname) {
       return responseUtil.send(res, {
