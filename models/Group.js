@@ -87,6 +87,10 @@ module.exports = function(sequelize, DataTypes) {
           attributes: ['id', 'username'],
           where: userWhere,
         },
+        {
+          model: models.Device,
+          attributes: ['id', 'devicename'],
+        }
       ],
     });
   };
