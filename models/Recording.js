@@ -54,6 +54,9 @@ module.exports = function(sequelize, DataTypes) {
     case 'tagged':
       tagLiteral = 'EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
       break;
+    case 'no-human':
+      tagLiteral = `NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      break;
     case 'automatic-only':
       tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
                     AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
@@ -312,6 +315,7 @@ const validTagModes = Object.freeze([
   'any',
   'untagged',
   'tagged',
+  'no-human',  // untagged or automatic only
   'automatic-only',
   'human-only',
   'automatic+human',
