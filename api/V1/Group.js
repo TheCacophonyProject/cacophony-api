@@ -27,6 +27,11 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
+
+    if (!requestUtil.isFromAUser(req)) {
+      return responseUtil.notFromAUser(req);
+    }
+
     // Check that required data is given.
     if (!req.body.groupname) {
       return responseUtil.send(res, {
@@ -77,8 +82,9 @@ module.exports = function(app, baseUrl) {
    * @apiName GetGroups
    * @apiGroup Group
    *
+   * @apiUse V1UserAuthorizationHeader
+   *
    * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} [userId] Only get groups that this user belongs to.
    *
    * @apiUse V1ResponseSuccess
    *
@@ -86,11 +92,16 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
+    passport.authenticate(['jwt'], { session: false }),
     async function(request, response) {
       log.info(request.method + ' Request: ' + request.url);
 
+      if (!requestUtil.isFromAUser(request)) {
+        return responseUtil.notFromAUser(response);
+      }
+
       var where = request.query.where;
-      var queryUserId = request.query.userId;
+      var user = request.user;
       try {
         where = JSON.parse(where);
       } catch (e) {
@@ -101,7 +112,7 @@ module.exports = function(app, baseUrl) {
         });
       }
 
-      var groups = await models.Group.query(where, queryUserId);
+      var groups = await models.Group.query(where, user);
 
       return responseUtil.send(response, {
         statusCode: 200,

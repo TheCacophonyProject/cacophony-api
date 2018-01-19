@@ -69,14 +69,14 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   /**
-   * Return one or more groups matching the where condition. UserId can be used
-   * to just get groups from that user.
+   * Return one or more groups matching the where condition. Only get groups
+   * that the user belongs if not a superuser.
    */
-  const query = async function(where, userId) {
+  const query = async function(where, user) {
 
     var userWhere = null;
-    if (userId != null) {
-      userWhere = { id: userId };
+    if (!user.superuser) {
+      userWhere = { id: user.id };
     }
 
     return await models.Group.findAll({
@@ -87,6 +87,10 @@ module.exports = function(sequelize, DataTypes) {
           attributes: ['id', 'username'],
           where: userWhere,
         },
+        {
+          model: models.Device,
+          attributes: ['id', 'devicename'],
+        }
       ],
     });
   };
