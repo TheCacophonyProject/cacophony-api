@@ -2,7 +2,6 @@ var util = require('./util/util');
 var validation = require('./util/validation');
 var moment = require('moment-timezone');
 
-
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
 
@@ -45,29 +44,7 @@ module.exports = function(sequelize, DataTypes) {
     * Return one or more recordings for a user matching the query
     * arguments given.
     */
-  var query = async function(user, where, tagMode, offset, limit, order) {
-    var tagLiteral = '';
-    switch (tagMode) {
-    case 'untagged':
-      tagLiteral = 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
-      break;
-    case 'tagged':
-      tagLiteral = 'EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
-      break;
-    case 'automatic-only':
-      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
-                    AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
-      break;
-    case 'human-only':
-      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)
-                    AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)`;
-      break;
-    case 'automatic+human':
-      tagLiteral = `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
-                    AND EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
-      break;
-    }
-
+  var query = async function(user, where, tagMode, tags, offset, limit, order) {
     if (order == null) {
       order = [
         // Sort by recordingDatetime but handle the case of the
@@ -82,13 +59,13 @@ module.exports = function(sequelize, DataTypes) {
         "$and": [
           where, // User query
           await recordingsFor(user),
-          sequelize.literal(tagLiteral),
+          sequelize.literal(handleTagMode(tagMode)),
         ],
       },
       order: order,
       include: [
         { model: models.Group },
-        { model: models.Tag },
+        { model: models.Tag, where: makeTagsWhere(tags) },
         { model: models.Device, where: {}, attributes: ["devicename", "id"] },
       ],
       limit: limit,
@@ -96,6 +73,58 @@ module.exports = function(sequelize, DataTypes) {
       attributes: userGetAttributes,
     };
     return this.findAndCount(q);
+  };
+
+  var handleTagMode = (tagMode) => {
+    switch (tagMode) {
+    case 'any':
+      return '';
+    case 'untagged':
+      return 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+    case 'tagged':
+      return 'EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+    case 'no-human':
+      return `NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+    case 'automatic-only':
+      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
+              AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+    case 'human-only':
+      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)
+              AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)`;
+    case 'automatic+human':
+      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
+              AND EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+    default:
+      throw `invalid tag mode: ${tagMode}`;
+    }
+  };
+
+  var makeTagsWhere = (tags) => {
+    if (!tags || tags.length === 0) {
+      return null;
+    }
+
+    var parts = [];
+    for (var i = 0; i < tags.length; i++) {
+      var tag = tags[i];
+      switch (tag) {
+      case "interesting":
+        parts.push({
+          "$not": {
+            "$or": [
+              {animal: null, event: "false positive"},
+              {animal: "bird"},
+            ]},
+        });
+        break;
+      default:
+        parts.push({animal: tag});
+      }
+    }
+    if (parts.Length == 1) {
+      return parts[0];
+    }
+    return {"$or": parts};
   };
 
   /**
@@ -312,6 +341,7 @@ const validTagModes = Object.freeze([
   'any',
   'untagged',
   'tagged',
+  'no-human',  // untagged or automatic only
   'automatic-only',
   'human-only',
   'automatic+human',

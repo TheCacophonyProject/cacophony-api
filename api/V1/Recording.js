@@ -170,7 +170,21 @@ module.exports = (app, baseUrl) => {
       try {
         where = JSON.parse(where);
       } catch (e) {
-        errorMessages.push("'where' field was not a valid JSON.");
+        errorMessages.push("'where' field was not a valid JSON");
+      }
+
+      var tags = request.query.tags;
+      if (tags) {
+        try {
+          tags = JSON.parse(tags);
+        } catch (e) {
+          errorMessages.push("'tags' field was not a valid JSON");
+        }
+        if (tags !== null && !Array.isArray(tags)) {
+          errorMessages.push("'tags' field does not contain an array");
+        }
+      } else {
+        tags = null;
       }
 
       var offset = parseInt(request.query.offset);
@@ -208,7 +222,7 @@ module.exports = (app, baseUrl) => {
       delete where._tagged; // remove legacy tag mode selector (if included)
 
       var result = await models.Recording.query(
-        request.user, where, tagMode, offset, limit, order);
+        request.user, where, tagMode, tags, offset, limit, order);
 
       return responseUtil.send(response, {
         statusCode: 200,
