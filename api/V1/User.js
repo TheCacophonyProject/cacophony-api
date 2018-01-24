@@ -34,7 +34,7 @@ module.exports = function(app, baseUrl) {
         password: { type: 'STRING' },
       },
     }),
-    middleware.asyncWrapper(async (request, response) => {
+    middleware.validateAsyncWrapper(async (request, response) => {
 
       console.log(request.parsed);
       // TODO check that username is not already used.

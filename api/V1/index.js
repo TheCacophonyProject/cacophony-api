@@ -19,6 +19,7 @@ module.exports = function(app) {
    * Basic error handler.
    */
   app.use((err, request, response, next) => {
+    console.log(err);
     if (isNaN(err.statusCode)) {
       return response.status(500).send('server error');
     }

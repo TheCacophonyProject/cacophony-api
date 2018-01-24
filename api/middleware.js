@@ -4,6 +4,7 @@ const log          = require('../logging');
 const responseUtil = require('./V1/responseUtil');
 const models       = require('../models');
 const config       = require('../config/config');
+const { validationResult } = require('express-validator/check');
 
 const logging = (request, response, next) => {
   log.info(request.method + 'Request: ' + request.url);
@@ -155,12 +156,17 @@ const parseJWTDevice = async (jwtDecoded) => {
 /**
  * Wraps the function in a Promise and will properly pass errors to next.
  */
-const asyncWrapper = fn => (request, response, next) => {
-  Promise.resolve(fn(request, response, next))
-    .catch(next);
+const validateAsyncWrapper = fn => (request, response, next) => {
+  const errors = validationResult(request);
+  if (!errors.isEmpty()) {
+    response.status(422).json({ errors: errors.mapped() });
+  } else {
+    Promise.resolve(fn(request, response, next))
+      .catch(next);
+  }
 };
 
 exports.logging = logging;
 exports.parseParams = parseParams;
-exports.asyncWrapper = asyncWrapper;
+exports.validateAsyncWrapper = validateAsyncWrapper;
 exports.authenticate = authenticate;

@@ -166,7 +166,7 @@ module.exports = (app, baseUrl) => {
       },
     }),
     middleware.authenticate('user'),
-    middleware.asyncWrapper(async (request, response) => {
+    middleware.validateAsyncWrapper(async (request, response) => {
 
       const tagged = request.parsed.query.where._tagged;
       delete request.parsed.query.where._tagged;

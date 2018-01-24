@@ -2,6 +2,9 @@ var config = require('../../config/config');
 var log = require('../../logging');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
+const ExtractJwt   = require('passport-jwt').ExtractJwt;
+const jwt          = require('jsonwebtoken');
+const models       = require('../../models');
 
 var INVALID_DATA = 'Invalid data key in body, should be a JSON.';
 var INVALID_ID = 'Invalid ID field. Shoudl be an integer.';
@@ -186,6 +189,55 @@ function catchError(error, response, responseFunction) {
   return responseUtil.serverError(response, error);
 }
 
+async function authenticate(type, value, {req}) {
+  const token = ExtractJwt.fromAuthHeader()(req);
+  if (token == null) {
+    throw new Error('no JWT token found in headers');
+  }
+  try {
+    var jwtDecoded = jwt.verify(token, config.server.passportSecret);
+  } catch(e) {
+    throw new Error('could not verify JWT');
+  }
+  if (jwtDecoded._type != type) {
+    throw new Error('invalid type of JWT. need a "'+type+'" for this request');
+  }
+  switch(jwtDecoded._type) {
+  case 'user':
+    req.user = await parseJWTUser(jwtDecoded);
+    break;
+  case 'device':
+    req.device = await parseJWTDevice(jwtDecoded);
+    break;
+  case 'fileDownload':
+    req.fileDownload = jwtDecoded;
+    break;
+  default:
+    throw new Error('unknown JWT type');
+  }
+  return true;
+}
+
+const parseJWTUser = async (jwtDecoded) =>  {
+  const user = await models.User.findById(jwtDecoded.id);
+  if (user == null) {
+    const err = new Error();
+    err.message = 'user not found from JWT';
+    throw err;
+  }
+  return user;
+};
+
+const parseJWTDevice = async (jwtDecoded) => {
+  const device = await models.Device.findById(jwtDecoded.id);
+  if (device == null) {
+    const err = new Error();
+    err.message = 'device not found from JWT';
+    throw err;
+  }
+  return device;
+};
+
 exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
 exports.updateDataFromPut = updateDataFromPut;
@@ -194,3 +246,4 @@ exports.deleteDataPoint = deleteDataPoint;
 exports.parseJsonFromString = parseJsonFromString;
 exports.handleResponse = responseUtil.send;
 exports.catchError = catchError;
+exports.authenticate = authenticate;

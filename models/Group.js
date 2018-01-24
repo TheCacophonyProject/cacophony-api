@@ -7,11 +7,56 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  const getIdFromName = async function(name) {
+    var Group = this;
+    return new Promise(function(resolve, reject) {
+      console.log(Group);
+      Group.findOne({ where: { groupname: name } })
+        .then(function(group) {
+          if (!group) {
+            resolve(false);
+          } else {
+            resolve(group.getDataValue('id'));
+          }
+        });
+    });
+  };
+
+  const getFromId = async function(id) {
+    var group = await this.findById(id);
+    return group;
+  };
+
+  const getFromName = async function(name) {
+    var group = this.findOne({ where: {groupname: name }});
+    return group;
+  };
+
+  const getFromParam = async function(val, {req, location, path}) {
+    console.log(val);
+    console.log(this);
+    var group = null;
+    if (path.toLowerCase() == 'group') {
+      group = await this.getFromName(val);
+    } else if (path.toLowerCase() == 'groupid') {
+      group = await this.getFromId(val);
+    }
+    if (group != null) {
+      req[location][path] = group;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
-      getIdFromName: getIdFromName
+      getIdFromName: getIdFromName,
+      getFromParam: getFromParam,
+      getFromName: getFromName,
+      getFromId: getFromId,
     }
   };
 
@@ -20,19 +65,7 @@ module.exports = function(sequelize, DataTypes) {
 
 var apiSettableFields = [];
 
-function getIdFromName(name) {
-  var Group = this;
-  return new Promise(function(resolve, reject) {
-    Group.findOne({ where: { groupname: name } })
-      .then(function(group) {
-        if (!group) {
-          resolve(false);
-        } else {
-          resolve(group.getDataValue('id'));
-        }
-      });
-  });
-}
+
 
 function addAssociations(models) {
   models.Group.hasMany(models.Device);

@@ -12,6 +12,7 @@
     "bluebird": "^2.9.34",
     "body-parser": "^1.15.2",
     "express": "^4.13.3",
+    "express-validator": "^4.3.0",
     "express-winston": "^2.2.0",
     "fluent-ffmpeg": "^2.1.0",
     "forever": "^0.15.1",
