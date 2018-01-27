@@ -51,11 +51,21 @@ module.exports = function(sequelize, DataTypes) {
     return devices.map(d => d.id);
   };
 
+  const getFromId = async function(id) {
+    return await this.findById(id);
+  };
+
+  const getFromName = async function(name) {
+    return await this.findOne({ where: { username: name }});
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
       getAll: getAll,
+      getFromId: getFromId,
+      getFromName: getFromName,
     },
     instanceMethods: {
       comparePassword: comparePassword,

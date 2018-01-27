@@ -141,6 +141,22 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
+  const freeDevicename = async function(devicename) {
+    var device = await this.findOne({where: { devicename:devicename }});
+    if (device != null) {
+      throw new Error('device name in use');
+    }
+    return true;
+  };
+
+  const getFromId = async function(id) {
+    return await this.findById(id);
+  };
+
+  const getFromName = async function(name) {
+    return await this.findOne({ where: { devicename: name }});
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -149,6 +165,8 @@ module.exports = function(sequelize, DataTypes) {
       addUserToDevice: addUserToDevice,
       allForUser: allForUser,
       removeUserFromDevice: removeUserFromDevice,
+      getFromId: getFromId,
+      getFromName: getFromName,
     },
     instanceMethods: {
       comparePassword: comparePassword,
@@ -168,22 +186,6 @@ var apiSettableFields = [
   'location',
   'newConfig'
 ];
-
-// Returns a promise that resolves true or false depending on if the devicename is used.
-function freeDevicename(devicename) {
-  var Device = this;
-  return new Promise(function(resolve, reject) {
-    Device.findOne({ where: { devicename: devicename } })
-      .then(function(device) {
-        if (device) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-  });
-}
-
 
 function getJwtDataValues() {
   return {

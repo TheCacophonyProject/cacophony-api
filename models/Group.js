@@ -110,6 +110,14 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
+  const getFromId = async function(id) {
+    return await this.findById(id);
+  };
+
+  const getFromName = async function(name) {
+    return await this.findOne({ where: { groupname: name }});
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -118,6 +126,8 @@ module.exports = function(sequelize, DataTypes) {
       addUserToGroup: addUserToGroup,
       removeUserFromGroup: removeUserFromGroup,
       query: query,
+      getFromId: getFromId,
+      getFromName: getFromName,
     },
     instanceMethods: {
       userPermissions: userPermissions,
