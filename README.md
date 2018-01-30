@@ -16,11 +16,14 @@ We recommend Minio for object storage.
 * Download and install Minio from https://minio.io/downloads.html
   - The x64 download and install instructions are here:
     https://minio.io/downloads.html#download-server-linux-x64
+* Create a bucket in minio called 'cacophony'
+  - `wget https://dl.minio.io/client/mc/release/linux-amd64/mc`
+  - `chmod +x mc`
+  - `./mc config host add myminio http://127.0.0.1:9000 <private key> <public key> ` (Note this line can is the same as the command-line access printed out when you start minio)
+  - `./mc mb myminio/cacophony`
 * Once Minio is running, note the access key and secret key it
-  generated, as well as the port it's running on.
-* Connect to Minio's web interface using your browser and create a
-  bucket. The bucket name will be required later when configuring the
-  API server.
+  generated, as well as the port it's running on (default is 9000)
+
 
 ### PostgreSQL Setup
 
@@ -48,6 +51,9 @@ database.
 * Follow instructions in the TEMPLATE files in the config folder.
 * `node_modules/.bin/sequelize db:migrate`
 * Start server with `node Server.js`
+* If you get errors then you may need to run `run npm install bcrypt` and/or `npm install node-pre-gyp`
+
+
 
 ### Generating API Documentation
 

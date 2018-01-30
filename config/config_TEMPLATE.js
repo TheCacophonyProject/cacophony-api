@@ -18,13 +18,13 @@ server = { // General server settings
 s3 = {  // Used for storing audio & video recordings.
   publicKey: null,  // REQUIRED, String (aka Minio AccessKey)
   privateKey: null, // REQUIRED, String (aka Minio SecretKey)
-  bucket: "cacophony",   // REQUIRED, String
+  bucket: "cacophony",   // REQUIRED, String  (must exist in the store)
   endpoint: "http://localhost:9000", // REQUIRED, URL
 };
 
 // ======= Logging =======
 logging = {
-  folder: null, // REQUIRED Folder of the logging file.
+  folder: "logFiles", // REQUIRED Folder of the logging file.
 }
 
 // ======= File Processing =======
