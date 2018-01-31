@@ -1,10 +1,9 @@
-var models = require('../../models');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var responseUtil = require('./responseUtil');
-var passport = require('passport');
-var log = require('../../logging');
-var requestUtil = require('./requestUtil');
+const models       = require('../../models');
+const jwt          = require('jsonwebtoken');
+const config       = require('../../config/config');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
+const { check }    = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -23,60 +22,29 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseError
    */
-  app.post(apiUrl, function(req, res) {
-    // Check that required data is given.
-    if (!req.body.devicename || !req.body.password || !req.body.group) {
-      return responseUtil.send(res, {
-        statusCode: 400,
-        success: false,
-        messages: ['Missing devicename or password or group.']
+  app.post(
+    apiUrl,
+    [
+      middleware.checkNewName('devicename')
+        .custom(value => { return models.Device.freeDevicename(value); }),
+      middleware.checkNewPassword('password'),
+      middleware.getGroup,
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const device = await models.Device.create({
+        devicename: request.body.devicename,
+        password: request.body.password,
+        GroupId: request.body.group.id,
       });
-    }
-
-    // Checks that devicename is free, group exists, creates device
-    // then responds with a device JWT.
-    models.Device.freeDevicename(req.body.devicename)
-      .then(function(result) {
-        if (!result) {  // Throw error if devicename is allready used.
-          var err = new Error('Devicename in use.');
-          err.invalidRequest = true;
-          throw err;
-        }
-        return models.Group.getIdFromName(req.body.group); // Promise is rejected if no group with given name.
-      })
-      .then(function(groupId) {
-        if (!groupId) {  //Throw error if the group doesn't exist.
-          var err = new Error("Can't find group with given name: " + req.body.group);
-          err.invalidRequest = true;
-          throw err;
-        }
-        return models.Device.create({ // Create new device.
-          devicename: req.body.devicename,
-          password: req.body.password,
-          GroupId: groupId
-        });
-      })
-      .then(function(device) { // Created new Device.
-        var data = device.getJwtDataValues();
-        responseUtil.send(res, {
-          statusCode: 200,
-          success: true,
-          messages: ["Created new device."],
-          token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
-        });
-      })
-      .catch(function(err) { // Error with creating Device.
-        if (err.invalidRequest) {
-          return responseUtil.send(res, {
-            statusCode: 400,
-            success: false,
-            messages: [err.message]
-          });
-        } else {
-          responseUtil.serverError(res, err);
-        }
+      const data = device.getJwtDataValues();
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ["Created new device."],
+        token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
       });
-  });
+    })
+  );
 
   /**
    * @api {get} /api/v1/devices Get list of devices
@@ -91,24 +59,16 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    passport.authenticate(['jwt'], {session: false}),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
-
-      // Check that the request was authenticated by a User.
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
-
+    [ middleware.authenticateUser ],
+    middleware.requestWrapper(async (request, response) => {
       var devices = await models.Device.allForUser(request.user);
-
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
         success: true,
         messages: ["completed get devices query"],
       });
-    }
+    })
   );
 
   /**
@@ -130,18 +90,17 @@ module.exports = function(app, baseUrl) {
   */
   app.post(
     apiUrl + '/users',
-    passport.authenticate(['jwt'], { session: false }),
-    async function(request, response) {
-      log.info(request.method + ' Request: ' + request.url);
-
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
-
+    [
+      middleware.authenticateUser,
+      middleware.getDevice,
+      middleware.getUser,
+      check('admin').isIn([true, false]),
+    ],
+    middleware.requestWrapper(async (request, response) => {
       var added = await models.Device.addUserToDevice(
         request.user,
-        request.body.deviceId,
-        request.body.userId,
+        request.body.device.id,
+        request.body.user.id,
         request.body.admin,
       );
 
@@ -158,7 +117,7 @@ module.exports = function(app, baseUrl) {
           messages: ['failed to add user to device']
         });
       }
-    }
+    })
   );
 
   /**
@@ -179,18 +138,16 @@ module.exports = function(app, baseUrl) {
   */
   app.delete(
     apiUrl + '/users',
-    passport.authenticate(['jwt'], { session: false }),
-    async function(request, response) {
-      log.info(request.method + ' Request: ' + request.url);
-
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
-
+    [
+      middleware.authenticateUser,
+      middleware.getUser,
+      middleware.getDevice,
+    ],
+    middleware.requestWrapper(async function(request, response) {
       var removed = await models.Device.removeUserFromDevice(
         request.user,
-        request.body.deviceId,
-        request.body.userId,
+        request.body.device.id,
+        request.body.user.id,
       );
 
       if (removed) {
@@ -206,6 +163,6 @@ module.exports = function(app, baseUrl) {
           messages: ['Failed to remove user from the device'],
         });
       }
-    }
+    })
   );
 };
