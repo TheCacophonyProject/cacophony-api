@@ -43,8 +43,9 @@ database.
 
 ### API Server Setup
 
-* Install Node version 8 or later from http://nodejs.org/
+* Install Node version 8 or later from http://nodejs.org/  (You will have probably have an older version of node installed but it won't build properly)
 * `sudo apt install postgresql-server-dev-9.5`
+
 * `git clone https://github.com/TheCacophonyProject/cacophony-api.git`
 * `cd cacophony-api`
 * `npm install`
@@ -59,6 +60,34 @@ database.
 
 * Install apiDoc `npm install apidoc -g`
 * Generate API documentation with `apidoc -i api/V1/ -o apidoc/`
+
+
+## Running in Virtual Box
+
+If you want to continue using a different operating system (eg Windows/Mac O/S) then you can try running linux in a virtual box.   This means you can edit the source files on your normal dev environment.  To do this:
+
+### Install Ubuntu
+* Download VirtualBox
+* Download Ubuntu Server
+* Install a Ubuntu server in VirtualBox (install ssh when doing this)
+
+### SSH into Ubuntu the box 
+It is much better to ssh in than use the default console which is awful. To get this working:
+*  Open up port 2222 to ssh into.   Go to VirtualBox console, click Ubuntu server and navigate to Settings/Network/Adaptor1(NAT)/Port Forwarding
+*  Add Ubuntu-SSH, host IP `127.0.0.1`, port `2222`, guest IP `10.0.2.15`, port `22`. 
+*  ssh from host using `ssh -p 2222 <username>@127.0.0.1`
+
+### To share the source code from the host(main) computer
+* Check out files on your main computer eg to `<path>/cacophony`
+* On VirtualBox console go to Settings/Shared Folder and add new share called `cacophony` with path `<path>/cacophony`.   Make it permanent and auto mount.
+* Install virtual box guest addins on Ubuntu virtual box server (https://www.techrepublic.com/article/how-to-install-virtualbox-guest-additions-on-a-gui-less-ubuntu-server-host/ Remember you need to mount the cdrom drive with `sudo mount /dev/cdrom /media/cdrom` so you can see it.)
+* Add your username to the vbox  usergroup so you can see the share `sudo usermod -a -G vboxsf <username>` then log out and log back in.
+* Go to `/media/sf_cacophony` directory.  You should now be able to see and edit your files.
+* Enable symlinks on the Ubuntu Vitual Box else the application can't build. On your host(main) computer run
+  - `VBoxManage setextradata "<vm name>" VBoxInternal2/SharedFoldersEnableSymlinksCreate/cacophony 1`
+  - Verify it worked by running `VBoxManage getextradata "<vm name>" enumerate`\
+* Follow the above instructions to install cacophony.  All instructions should be run on the Ubuntu server except the git commands that should be run on on your host (main) environment.
+
 
 ## License
 
