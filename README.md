@@ -19,7 +19,7 @@ We recommend Minio for object storage.
 * Create a bucket in minio called 'cacophony'
   - `wget https://dl.minio.io/client/mc/release/linux-amd64/mc`
   - `chmod +x mc`
-  - `./mc config host add myminio http://127.0.0.1:9000 <private key> <public key> ` (Note this line can is the same as the command-line access printed out when you start minio)
+  - `./mc config host add myminio http://127.0.0.1:9000 <private key> <public key> ` (Note this line is the same as the command-line printed out when you start minio)
   - `./mc mb myminio/cacophony`
 * Once Minio is running, note the access key and secret key it
   generated, as well as the port it's running on (default is 9000)
@@ -64,7 +64,7 @@ database.
 
 ## Running in Virtual Box
 
-If you want to continue using a different operating system (eg Windows/Mac O/S) then you can try running linux in a virtual box.   This means you can edit the source files on your normal dev environment.  To do this:
+If you want to continue using a different operating system (eg Windows/Mac OS X) then you can try running Linux in a Virtual Box.   This means you can edit the source files on your normal dev environment.  To do this:
 
 ### Install Ubuntu
 * Download VirtualBox
@@ -80,7 +80,7 @@ It is much better to ssh in than use the default console which is awful. To get 
 ### To share the source code from the host(main) computer
 * Check out files on your main computer eg to `<path>/cacophony`
 * On VirtualBox console go to Settings/Shared Folder and add new share called `cacophony` with path `<path>/cacophony`.   Make it permanent and auto mount.
-* Install virtual box guest addins on Ubuntu virtual box server (https://www.techrepublic.com/article/how-to-install-virtualbox-guest-additions-on-a-gui-less-ubuntu-server-host/ Remember you need to mount the cdrom drive with `sudo mount /dev/cdrom /media/cdrom` so you can see it.)
+* Install Virtual Box guest addins on Ubuntu Virtual Box server (https://www.techrepublic.com/article/how-to-install-virtualbox-guest-additions-on-a-gui-less-ubuntu-server-host/ Remember you need to mount the cdrom drive with `sudo mount /dev/cdrom /media/cdrom` so you can see it.)
 * Add your username to the vbox  usergroup so you can see the share `sudo usermod -a -G vboxsf <username>` then log out and log back in.
 * Go to `/media/sf_cacophony` directory.  You should now be able to see and edit your files.
 * Enable symlinks on the Ubuntu Vitual Box else the application can't build. On your host(main) computer run
