@@ -14,17 +14,17 @@ server = { // General server settings
   },
 };
 
-// ======= S3 compatible object store settings ===========
+// ======= S3 compatible object store settings, e.g. Minio ===========
 s3 = {  // Used for storing audio & video recordings.
-  publicKey: null,  // REQUIRED, String:
-  privateKey: null, // REQUIRED, String
-  bucket: null,   // REQUIRED, String
-  endpoint: "localhost", // REQUIRED, URL
+  publicKey: null,  // REQUIRED, String (aka Minio AccessKey)
+  privateKey: null, // REQUIRED, String (aka Minio SecretKey)
+  bucket: "cacophony",   // REQUIRED, String  (must exist in the store)
+  endpoint: "http://localhost:9000", // REQUIRED, URL
 };
 
 // ======= Logging =======
 logging = {
-  folder: null, // REQUIRED Folder of the logging file.
+  folder: "logFiles", // REQUIRED Folder of the logging file.
 }
 
 // ======= File Processing =======
