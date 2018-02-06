@@ -1,11 +1,12 @@
-var models = require('../../models');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var util = require('./util');
-var responseUtil = require('./responseUtil');
+const jwt          = require('jsonwebtoken');
+const config       = require('../../config/config');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
+const { body }     = require('express-validator/check');
+
 
 module.exports = function(app) {
-  /** 
+  /**
   * @api {post} /authenticate_user/ Authenticate a user
   * @apiName AuthenticateUser
   * @apiGroup Authentication
@@ -17,47 +18,33 @@ module.exports = function(app) {
   *
   * @apiSuccess {String} token JWT string to provide to further API requests
   */
-  app.post('/authenticate_user', function(req, res) {
-    var username = req.body.username;
-    models.User.findOne({ where: { username: username } })
-      .then(function(user) {
-        // Return 400 if username is not found.
-        if (!user) {
-          return util.handleResponse(res, {
-            statusCode: 400,
-            success: false,
-            messages: ["No user found with given username"]
-          });
-        }
+  app.post(
+    '/authenticate_user',
+    [
+      middleware.getUser,
+      body('password').exists(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-        // Compare password.
-        user.comparePassword(req.body.password)
-          .then(function(passwordMatch) {
-            // Password is valid, send JWT and user data values in response.
-            if (passwordMatch) {
-              user.getDataValues()
-              .then(function(userData) {
-                var data = user.getJwtDataValues();
-                data._type = 'user';
-                return util.handleResponse(res, {
-                  statusCode: 200,
-                  success: true,
-                  messages: ["Successful login."],
-                  token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
-                  userData: userData
-                });
-              });
-            } else {
-              return util.handleResponse(res, {
-                statusCode: 401,
-                success: false,
-                messages: ["Wrong password or username."]
-              });
-            }
-          });
-      })
-      .catch(function(err) {
-        responseUtil.serverError(res, err);
-      });
-  });
+      const passwordMatch = await request.body.user.comparePassword(request.body.password);
+      if (passwordMatch) {
+        const userData = await request.body.user.getDataValues();
+        var data = request.body.user.getJwtDataValues();
+        data._type = 'user';
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ["Successful login."],
+          token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
+          userData: userData
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 401,
+          success: false,
+          messages: ["Wrong password or username."]
+        });
+      }
+    })
+  );
 };
