@@ -60,6 +60,14 @@ const getModel = function(modelType, field) {
       req.body[field] = model;
       return true;
     }),
+    check(field+'name').custom(async (val, { req }) => {
+      const model = await modelType.getFromName(val);
+      if (model == null) {
+        throw new Error(format('could not find %s with name: %s', field, val));
+      }
+      req.body[field] = model;
+      return true;
+    }),
     check(field+'Id').custom(async (val, { req }) => {
       const model = await modelType.getFromId(val);
       if (model == null) {

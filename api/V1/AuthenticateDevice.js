@@ -1,11 +1,11 @@
-var models = require('../../models');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var util = require('./util');
-var responseUtil = require('./responseUtil');
+const jwt          = require('jsonwebtoken');
+const config       = require('../../config/config');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
+const { body }     = require('express-validator/check');
 
 module.exports = function(app) {
-  /** 
+  /**
   * @api {post} /authenticate_device/ Authenticate a device
   * @apiName AuthenticateDevice
   * @apiGroup Authentication
@@ -17,55 +17,31 @@ module.exports = function(app) {
   *
   * @apiSuccess {String} token JWT string to provide to further API requests
   */
-  app.post('/authenticate_device', function(req, res) {
+  app.post(
+    '/authenticate_device',
+    [
+      middleware.getDevice,
+      body('password').exists(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-    // Check that required data is given.
-    if (!req.body.devicename || !req.body.password) {
-      return responseUtil.send(res, {
-        statusCode: 400,
-        success: false,
-        messages: ['Missing devicename or devicename.']
-      });
-    }
-
-    models.Device.findOne({ where: { devicename: req.body.devicename } })
-      .then(function(device) {
-        // Return 401 if devicename is not found.
-        if (!device) {
-          return responseUtil.send(res, {
-            statusCode: 401,
-            success: false,
-            messages: ["No device found with given devicename"]
-          });
-        }
-
-        // Compare password.
-        device.comparePassword(req.body.password)
-          .then(function(passwordMatch) {
-            // Password is valid, send JWT in response.
-            if (passwordMatch) {
-              var data = device.getJwtDataValues();
-              var token = 'JWT ' + jwt.sign(data, config.server.passportSecret);
-              return responseUtil.send(res, {
-                statusCode: 200,
-                success: true,
-                messages: ["Successfull login."],
-                token: token
-              });
-            } else {
-              return responseUtil.send(res, {
-                statusCode: 401,
-                success: false,
-                messages: ["Wrong password or devicename."]
-              });
-            }
-          })
-          .catch(function(err) {
-            responseUtil.serverError(res, err);
-          });
-      })
-      .catch(function(err) {
-        responseUtil.serverError(res, err);
-      });
-  });
+      const passwordMatch = await request.body.device.comparePassword(request.body.password);
+      if (passwordMatch) {
+        var data = request.body.device.getJwtDataValues();
+        var token = 'JWT ' + jwt.sign(data, config.server.passportSecret);
+        return responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ["Successfull login."],
+          token: token
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 401,
+          success: false,
+          messages: ["Wrong password or devicename."]
+        });
+      }
+    })
+  );
 };
