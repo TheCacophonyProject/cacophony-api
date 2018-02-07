@@ -1,11 +1,9 @@
-var config = require('../../config/config');
-var util = require('./util');
-var log = require('../../logging');
-var passport = require('passport');
-var responseUtil = require('./responseUtil');
-var fs = require('fs');
-var stream = require('stream');
-var modelsUtil = require('../../models/util/util');
+const config       = require('../../config/config');
+const log          = require('../../logging');
+const responseUtil = require('./responseUtil');
+const stream       = require('stream');
+const modelsUtil   = require('../../models/util/util');
+const middleware   = require('../middleware');
 
 
 module.exports = function(app, baseUrl) {
@@ -26,22 +24,16 @@ module.exports = function(app, baseUrl) {
 
   app.get(
     baseUrl + '/signedUrl',
-    passport.authenticate(['jwt'], { session: false }),
-    function(request, response) {
+    [
+      middleware.signedUrl,
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      console.log(request.jwtDecoded);
 
-      // Check that the JWT is for a file download.
-      if (request.user._type !== 'fileDownload') {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ["JWT was not a 'fileDownload' token..."]
-        });
-      }
+      var mimeType = request.jwtDecoded.mimeType || "";
+      var filename = request.jwtDecoded.filename || "file";
 
-      var mimeType = request.user.mimeType || "";
-      var filename = request.user.filename || "file";
-
-      var key = request.user.key;
+      var key = request.jwtDecoded.key;
 
       var s3 = modelsUtil.openS3();
       var params = {
@@ -89,5 +81,6 @@ module.exports = function(app, baseUrl) {
         bufStream.pipe(response);
       });
 
-    });
+    })
+  );
 };

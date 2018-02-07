@@ -4,7 +4,7 @@ const jwt        = require('jsonwebtoken');
 const format     = require('util').format;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const log        = require('../logging');
-const { check, oneOf, header, validationResult } = require('express-validator/check');
+const { check, oneOf, header, validationResult, query } = require('express-validator/check');
 
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
@@ -44,8 +44,23 @@ const authenticate = function(type) {
   });
 };
 
-const authenticateUser   = authenticate('user');
-const authenticateDevice = authenticate('device');
+const authenticateUser         = authenticate('user');
+const authenticateDevice       = authenticate('device');
+
+const signedUrl = query('jwt').custom((value, {req}) => {
+  if (value == null) {
+    throw new Error('could not find JWT token');
+  }
+  var jwtDecoded;
+  try {
+    jwtDecoded = jwt.verify(value, config.server.passportSecret);
+  } catch(e) {
+    throw new Error('failed to verify JWT');
+  }
+  req.jwtDecoded = jwtDecoded;
+  return true;
+});
+
 
 /*
  * Will load a model either using the name from [field] or ID from [field+Id]
@@ -136,6 +151,7 @@ const requestWrapper = fn => (request, response, next) => {
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
+exports.signedUrl          = signedUrl;
 exports.getGroup           = getGroup;
 exports.getDevice          = getDevice;
 exports.getUser            = getUser;
