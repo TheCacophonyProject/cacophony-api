@@ -94,6 +94,16 @@ const checkNewPassword = function(field) {
     .isLength({ min: 8 });
 };
 
+const parseJSON = function(field) {
+  return check(field).custom((value, {req, location, path}) => {
+    try {
+      req[location][path] = JSON.parse(value);
+      return true;
+    } catch(e) {
+      throw new Error(format('could not parse field %s to a json', path));
+    }
+  });
+};
 
 const requestWrapper = fn => (request, response, next) => {
   log.info(format('%s Request: %s', request.method, request.url));
@@ -106,6 +116,7 @@ const requestWrapper = fn => (request, response, next) => {
   }
 };
 
+
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.getGroup           = getGroup;
@@ -113,4 +124,5 @@ exports.getDevice          = getDevice;
 exports.getUser            = getUser;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
+exports.parseJSON          = parseJSON;
 exports.requestWrapper     = requestWrapper;

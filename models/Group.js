@@ -118,6 +118,14 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne({ where: { groupname: name }});
   };
 
+  const freeGroupname = async function(groupanem) {
+    var group = await this.findOne({where: { groupname: groupanem }});
+    if (group != null) {
+      throw new Error('groupname in use');
+    }
+    return true;
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -128,6 +136,7 @@ module.exports = function(sequelize, DataTypes) {
       query: query,
       getFromId: getFromId,
       getFromName: getFromName,
+      freeGroupname: freeGroupname,
     },
     instanceMethods: {
       userPermissions: userPermissions,
