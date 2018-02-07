@@ -105,6 +105,23 @@ const parseJSON = function(field) {
   });
 };
 
+const parseArray = function(field) {
+  return check(field).custom((value, {req, location, path}) => {
+    var arr;
+    try {
+      arr = JSON.parse(value);
+    } catch(e) {
+      throw new Error(format('could not parse field %s to a json', path));
+    }
+    if (Array.isArray(arr)) {
+      req[location][path] = arr;
+      return true;
+    } else {
+      throw new Error(format('%s was not an arrya', path));
+    }
+  });
+};
+
 const requestWrapper = fn => (request, response, next) => {
   log.info(format('%s Request: %s', request.method, request.url));
   const errors = validationResult(request);
@@ -125,4 +142,5 @@ exports.getUser            = getUser;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
+exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
