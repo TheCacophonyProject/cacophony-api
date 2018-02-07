@@ -28,7 +28,6 @@ module.exports = function(app, baseUrl) {
       middleware.signedUrl,
     ],
     middleware.requestWrapper(async (request, response) => {
-      console.log(request.jwtDecoded);
 
       var mimeType = request.jwtDecoded.mimeType || "";
       var filename = request.jwtDecoded.filename || "file";
