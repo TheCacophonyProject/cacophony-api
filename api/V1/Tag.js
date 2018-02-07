@@ -1,9 +1,7 @@
-var models = require('../../models');
-var passport = require('passport');
-var requestUtil = require('./requestUtil');
-var responseUtil = require('./responseUtil');
-var tagsUtil = require('./tagsUtil');
-
+const models       = require('../../models');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
+const { check }    = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
@@ -43,34 +41,51 @@ module.exports = function(app, baseUrl) {
    */
   app.post(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    async function(req, res) {
-      // Check that authentication was from a user not a device.
-      if (req.user !== null && !requestUtil.isFromAUser(req)) {
-        return responseUtil.notFromAUser(res);
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('tag'),
+      check('recordingId').isInt(),
+    ],
+    middleware.requestWrapper(async function(request, response) {
+
+      var recording = await models.Recording.findById(request.body.recordingId);
+      var permissions = await recording.getUserPermissions(request.user);
+      if (!permissions.canTag) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['User does not have permission to tag recording.']
+        });
       }
-      return tagsUtil.handleRecordingPOST(req, res);
-    }
+
+      // Build tag instance
+      var tagInstance = models.Tag.build(request.body.tag, {
+        fields: models.Tag.apiSettableFields,
+      });
+      tagInstance.set('RecordingId', request.body.recordingId);
+      if (request.user !== undefined) {
+        tagInstance.set('taggerId', request.user.id);
+      }
+      await tagInstance.save();
+
+      // Respond to user.
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ['Added new tag.'],
+        tagId: tagInstance.id,
+      });
+    })
   );
 
   // Delete a tag
-  app.delete(apiUrl, passport.authenticate(['jwt'], { session: false }),
-    async function(req, res) {
-
-      // Check that authentication was from a user not a device.
-      if (req.user !== null && !requestUtil.isFromAUser(req)) {
-        return responseUtil.notFromAUser(res);
-      }
-
-      // Check that the required field is given.
-      var id = parseInt(req.body.tagId);
-      if (!id) {
-        return responseUtil.send(res, {
-          statusCode: 400,
-          success: false,
-          messages: ['Missing "tagId" field.'],
-        });
-      }
+  app.delete(
+    apiUrl,
+    [
+      middleware.authenticateUser,
+      check('tagId').isInt(),
+    ],
+    middleware.requestWrapper(async function(request, response) {
 
       // Check that user has permission to delete the tag.
       //TODO
@@ -88,19 +103,20 @@ module.exports = function(app, baseUrl) {
       */
 
       // Delete the tag
-      var tagDeleteResult = await models.Tag.deleteFromId(req.body.tagId, req.user);
+      var tagDeleteResult = await models.Tag.deleteFromId(request.body.tagId, request.user);
       if (tagDeleteResult) {
-        return responseUtil.send(res, {
+        return responseUtil.send(response, {
           statusCode: 200,
           success: true,
           messages: ["Deleted tag."]
         });
       } else {
-        return responseUtil.send(res, {
+        return responseUtil.send(response, {
           statusCode: 400,
           success: false,
           messages: ["Failed to delete tag."]
         });
       }
-    });
+    })
+  );
 };
