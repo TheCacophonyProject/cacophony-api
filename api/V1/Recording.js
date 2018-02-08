@@ -127,7 +127,7 @@ module.exports = (app, baseUrl) => {
       });
 
       form.on('error', (e) => {
-        console.log(e);
+        log.error(e);
         return responseUtil.send(response, {
           statusCode: 400,
           success: false,
