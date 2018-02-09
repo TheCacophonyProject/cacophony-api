@@ -1,10 +1,8 @@
-var models = require('../../models');
-var util = require('./util');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var passport = require('passport');
-var responseUtil = require('./responseUtil');
-require('../../passportConfig')(passport);
+const models       = require('../../models');
+const jwt          = require('jsonwebtoken');
+const config       = require('../../config/config');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -24,38 +22,32 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseError
    */
-  app.post(apiUrl, function(req, res) {
-    if (!req.body.username || req.body.username == 'undefined' ||
-      !req.body.password || req.body.password == 'undefined') {
-      return responseUtil.send(res, {
-        statusCode: 400,
-        success: false,
-        messages: ['Missing username or password.']
-      });
-    }
+  app.post(
+    apiUrl,
+    [
+      middleware.checkNewName('username')
+        .custom(value => { return models.User.freeUsername(value); }),
+      middleware.checkNewPassword('password'),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-    // TODO check that username is not already used.
-    models.User.create({
-        username: req.body.username,
-        password: req.body.password
-      })
-      .then(function(user) { // Created new User
-        var data = user.getJwtDataValues();
-        user.getDataValues()
-          .then(function(userData) {
-            responseUtil.send(res, {
-              statusCode: 200,
-              success: true,
-              messages: ['Created new user.'],
-              token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
-              userData: userData
-            });
-          });
-      })
-      .catch(function(err) { // Error with creating user.
-        responseUtil.serverError(res, err);
+      var user = await models.User.create({
+        username: request.body.username,
+        password: request.body.password,
       });
-  });
+
+      var jwtData = user.getJwtDataValues();
+      var userData = await user.getDataValues();
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ['Created new user.'],
+        token: 'JWT ' + jwt.sign(jwtData, config.server.passportSecret),
+        userData: userData
+      });
+    })
+  );
 
   /**
    * @api {get} api/v1/users Get users
@@ -73,24 +65,19 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    async function(request, response) {
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('where'),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      var where = request.query.where;
-      try {
-        where = JSON.parse(where);
-      } catch(e) {
-        return responseUtil.send(response, {
-          statusode: 400,
-          success: false,
-          messages: ['Failed to parse "where" as a JSON.'],
-        });
-      }
-      var users = await models.User.getAll(where);
+      var users = await models.User.getAll(request.query.where);
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: [],
         users: users,
       });
-    });
+    })
+  );
 };

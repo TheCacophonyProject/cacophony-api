@@ -1,12 +1,7 @@
-var models = require('../../models');
-var util = require('./util');
-var jwt = require('jsonwebtoken');
-var config = require('../../config/config');
-var passport = require('passport');
-var responseUtil = require('./responseUtil');
-require('../../passportConfig')(passport);
-var log = require('../../logging');
-var requestUtil = require('./requestUtil');
+const models       = require('../../models');
+const responseUtil = require('./responseUtil');
+const middleware   = require('../middleware');
+const { check }    = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/groups';
@@ -26,56 +21,24 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseError
    */
-  app.post(apiUrl, passport.authenticate(['jwt'], { session: false }), function(req, res) {
+  app.post(
+    apiUrl,
+    [
+      middleware.authenticateUser,
+      middleware.checkNewName('groupname')
+        .custom(value => { return models.Group.freeGroupname(value); }),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-    if (!requestUtil.isFromAUser(req)) {
-      return responseUtil.notFromAUser(req);
-    }
-
-    // Check that required data is given.
-    if (!req.body.groupname) {
-      return responseUtil.send(res, {
-        statusCode: 400,
-        success: false,
-        messages: ['Missing groupname.']
+      const newGroup = await models.Group.create({groupname: request.body.groupname});
+      await newGroup.addUser(request.user.id, {admin: true});
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ['created new group']
       });
-    }
-
-    // Checks that groupname is free, creates group
-    // then sets user as admin and group user.
-    models.Group.getIdFromName(req.body.groupname)
-      .then(function(groupId) {
-        if (groupId) {  // Throw error if groupename is allready used.
-          var err = new Error('Groupname in use.');
-          err.invalidRequest = true;
-          throw err;
-        }
-        return models.Group.create({ // Create new Group.
-          groupname: req.body.groupname,
-        });
-      })
-      .then(function(group) { // Created new Group.
-        return group.addUser(req.user.id, {admin: true});
-      })
-      .then(function() {
-        responseUtil.send(res, {
-          statusCode: 200,
-          success: true,
-          messages: ['Created new group.']
-        });
-      })
-      .catch(function(err) { // Error with creating Group.
-        if (err.invalidRequest) {
-          return responseUtil.send(res, {
-            statusCode: 400,
-            success: false,
-            messages: [err.message]
-          });
-        } else {
-          responseUtil.serverError(res, err);
-        }
-      });
-  });
+    })
+  );
 
   /**
    * @api {get} /api/v1/groups Get groups
@@ -92,35 +55,20 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    async function(request, response) {
-      log.info(request.method + ' Request: ' + request.url);
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('where')
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
-
-      var where = request.query.where;
-      var user = request.user;
-      try {
-        where = JSON.parse(where);
-      } catch (e) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ['Could not parse "where" to a JSON'],
-        });
-      }
-
-      var groups = await models.Group.query(where, user);
-
+      var groups = await models.Group.query(request.query.where, request.user);
       return responseUtil.send(response, {
         statusCode: 200,
-        success: false,
+        success: true,
         messages: [],
         groups: groups,
       });
-    }
+    })
   );
 
   /**
@@ -142,21 +90,20 @@ module.exports = function(app, baseUrl) {
   */
   app.post(
     apiUrl + '/users',
-    passport.authenticate(['jwt'], { session: false }),
-    async function (request, response) {
-      log.info(request.method + ' Request: ' + request.url);
-
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
+    [
+      middleware.authenticateUser,
+      middleware.getGroup,
+      middleware.getUser,
+      check('admin').isBoolean(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
       var added = await models.Group.addUserToGroup(
         request.user,
-        request.body.groupId,
-        request.body.userId,
-        request.body.admin
+        request.body.group.id,
+        request.body.user.id,
+        request.body.admin,
       );
-
       if (added) {
         return responseUtil.send(response, {
           statusCode: 200,
@@ -170,7 +117,7 @@ module.exports = function(app, baseUrl) {
           messages: ['Failed to add user to group'],
         });
       }
-    }
+    })
   );
 
   /**
@@ -190,20 +137,18 @@ module.exports = function(app, baseUrl) {
   */
   app.delete(
     apiUrl + '/users',
-    passport.authenticate(['jwt'], { session: false }),
-    async function (request, response) {
-      log.info(request.method + ' Request: ' + request.url);
-
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
+    [
+      middleware.authenticateUser,
+      middleware.getUser,
+      middleware.getGroup,
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
       var removed = await models.Group.removeUserFromGroup(
         request.user,
-        request.body.groupId,
-        request.body.userId,
+        request.body.group.id,
+        request.body.user.id,
       );
-
       if (removed) {
         return responseUtil.send(response, {
           statusCode: 200,
@@ -217,6 +162,6 @@ module.exports = function(app, baseUrl) {
           messages: ['Failed to remove user from the group'],
         });
       }
-    }
+    })
   );
 };

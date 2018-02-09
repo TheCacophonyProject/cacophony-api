@@ -59,6 +59,14 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne({ where: { username: name }});
   };
 
+  const freeUsername = async function(username) {
+    var user = await this.findOne({where: {username: username }});
+    if (user != null) {
+      throw new Error('username in use');
+    }
+    return true;
+  };
+
   var options = {
     classMethods: {
       addAssociations: addAssociations,
@@ -66,6 +74,7 @@ module.exports = function(sequelize, DataTypes) {
       getAll: getAll,
       getFromId: getFromId,
       getFromName: getFromName,
+      freeUsername: freeUsername,
     },
     instanceMethods: {
       comparePassword: comparePassword,

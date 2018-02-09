@@ -1,13 +1,13 @@
-var models = require('../../models');
-var passport = require('passport');
-var log = require('../../logging');
-var requestUtil = require('./requestUtil');
-var responseUtil = require('./responseUtil');
-var multiparty = require('multiparty');
-var config = require('../../config/config');
-var uuidv4 = require('uuid/v4');
-var jsonwebtoken = require('jsonwebtoken');
-var modelsUtil = require('../../models/util/util');
+const models            = require('../../models');
+const log               = require('../../logging');
+const responseUtil      = require('./responseUtil');
+const multiparty        = require('multiparty');
+const config            = require('../../config/config');
+const uuidv4            = require('uuid/v4');
+const jsonwebtoken      = require('jsonwebtoken');
+const modelsUtil        = require('../../models/util/util');
+const middleware        = require('../middleware');
+const { query, check }  = require('express-validator/check');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -42,14 +42,10 @@ module.exports = (app, baseUrl) => {
    */
   app.post(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
-
-      // Check that the request was authenticated by a device.
-      if (!requestUtil.isFromADevice(request))
-        return responseUtil.notFromADevice(response);
-      var device = request.user;
+    [
+      middleware.authenticateDevice,
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
       var recording;
       var key = uuidv4();
@@ -69,12 +65,12 @@ module.exports = (app, baseUrl) => {
             fields: models.Recording.apiSettableFields,
           });
           recording.set('rawFileKey', key);
-          recording.set('DeviceId', device.id);
-          recording.set('GroupId', device.GroupId);
+          recording.set('DeviceId', request.device.id);
+          recording.set('GroupId', request.device.GroupId);
           recording.set('processingState',
             models.Recording.processingStates[data.type][0]);
-          if (typeof device.public === 'boolean') {
-            recording.set('public', device.public);
+          if (typeof request.device.public === 'boolean') {
+            recording.set('public', request.device.public);
           }
           validData = true;
         } catch (e) {
@@ -84,6 +80,7 @@ module.exports = (app, baseUrl) => {
       });
 
       // Stream file to LeoFS.
+      var uploadPromise;
       form.on('part', (part) => {
         if (part.name != 'file') {
           return part.resume();
@@ -96,8 +93,10 @@ module.exports = (app, baseUrl) => {
             Bucket: config.s3.bucket,
             Key: key,
             Body: part,
-          }, (err, data) => {
-            if (err) return reject(err);
+          }, (err) => {
+            if (err) {
+              return reject(err);
+            }
             log.info("Finished streaming file to LeoFS Key:", key);
             resolve();
           });
@@ -129,10 +128,16 @@ module.exports = (app, baseUrl) => {
 
       form.on('error', (e) => {
         log.error(e);
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["failed to get recording"],
+        });
       });
 
       form.parse(request);
-    });
+    })
+  );
 
   /**
    * @api {get} /api/v1/recordings Query available recordings
@@ -156,84 +161,45 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('where'),
+      query('offset').isInt(),
+      query('limit').isInt(),
+      middleware.parseJSON('order').optional(),
+      middleware.parseArray('tags').optional(),
+      query('tagMode')
+        .optional()
+        .custom(value => { return models.Recording.isValidTagMode(value); }),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
+      if (request.query.tagMode == null) {
+        request.query.tagMode = 'any';
       }
 
-      var errorMessages = [];
-
-      var where = request.query.where;
-      try {
-        where = JSON.parse(where);
-      } catch (e) {
-        errorMessages.push("'where' field was not a valid JSON");
-      }
-
-      var tags = request.query.tags;
-      if (tags) {
-        try {
-          tags = JSON.parse(tags);
-        } catch (e) {
-          errorMessages.push("'tags' field was not a valid JSON");
-        }
-        if (tags !== null && !Array.isArray(tags)) {
-          errorMessages.push("'tags' field does not contain an array");
-        }
-      } else {
-        tags = null;
-      }
-
-      var offset = parseInt(request.query.offset);
-      if (isNaN(offset)) {
-        errorMessages.push("'offset' was not a number.");
-      }
-
-      var limit = parseInt(request.query.limit);
-      if (isNaN(limit)) {
-        errorMessages.push("'limit' was not a number.");
-      }
-
-      var order = request.query.order;
-      if (order != null) {
-        try {
-          order = JSON.parse(order);
-        } catch (e) {
-          errorMessages.push("'order' was not a valid JSON.");
-        }
-      }
-
-      var tagMode = request.query.hasOwnProperty('tagMode') ? request.query.tagMode : 'any';
-      if (!models.Recording.isValidTagMode(tagMode)) {
-        errorMessages.push("'tagMode' is not valid");
-      }
-
-      if (errorMessages.length > 0) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: errorMessages,
-        });
-      }
-
-      delete where._tagged; // remove legacy tag mode selector (if included)
+      delete request.query.where._tagged; // remove legacy tag mode selector (if included)
 
       var result = await models.Recording.query(
-        request.user, where, tagMode, tags, offset, limit, order);
+        request.user,
+        request.query.where,
+        request.query.tagMode,
+        request.query.tags,
+        request.query.offset,
+        request.query.limit,
+        request.query.order);
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ["Completed query."],
-        limit: limit,
-        offset: offset,
+        limit: request.query.limit,
+        offset: request.query.offset,
         count: result.count,
         rows: result.rows,
       });
-    });
+    })
+  );
 
   /**
    * @api {get} /api/v1/recordings/:id Get a recording
@@ -257,21 +223,13 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl + '/:id',
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
+    [
+      middleware.authenticateUser,
+      check('id').isInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      // Check that the request was authenticated by a User.
-      if (!requestUtil.isFromAUser(request)) {
-        return responseUtil.notFromAUser(response);
-      }
-
-      var id = parseInt(request.params.id);
-      if (!id) {
-        return responseUtil.invalidDataId(response);
-      }
-
-      var recording = await models.Recording.getOne(request.user, id);
+      var recording = await models.Recording.getOne(request.user, request.params.id);
 
       var downloadFileData = {
         _type: 'fileDownload',
@@ -307,7 +265,7 @@ module.exports = (app, baseUrl) => {
           { expiresIn: 60 * 10 }
         ),
       });
-    }
+    })
   );
 
   /**
@@ -322,18 +280,13 @@ module.exports = (app, baseUrl) => {
   */
   app.delete(
     apiUrl + '/:id',
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
+    [
+      middleware.authenticateUser,
+      check('id').isInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      if (!requestUtil.isFromAUser(request))
-        return responseUtil.notFromAUser(response);
-
-      var id = parseInt(request.params.id);
-      if (!id)
-        return responseUtil.invalidDataId(response);
-
-      var deleted = await models.Recording.deleteOne(request.user, id);
+      var deleted = await models.Recording.deleteOne(request.user, request.params.id);
       if (deleted) {
         responseUtil.send(response, {
           statusCode: 200,
@@ -347,7 +300,7 @@ module.exports = (app, baseUrl) => {
           messages: ["Failed to delete recording."],
         });
       }
-    }
+    })
   );
 
   /**
@@ -373,28 +326,16 @@ module.exports = (app, baseUrl) => {
   */
   app.patch(
     apiUrl + '/:id',
-    passport.authenticate(['jwt'], { session: false }),
-    async (request, response) => {
-      log.info(request.method + " Request: " + request.url);
+    [
+      middleware.authenticateUser,
+      check('id').isInt(),
+      middleware.parseJSON('updates'),
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-      if (!requestUtil.isFromAUser(request))
-        return responseUtil.notFromAUser(response);
+      var updated = await models.Recording.updateOne(
+        request.user, request.params.id, request.query.updates);
 
-      var id = parseInt(request.params.id);
-      if (!id)
-        return responseUtil.invalidDataId(response);
-
-      try {
-        var updates = JSON.parse(request.body.updates);
-      } catch (e) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ['"updates" field was not a valid JSON.']
-        });
-      }
-
-      var updated = await models.Recording.updateOne(request.user, id, updates);
       if (updated) {
         return responseUtil.send(response, {
           statusCode: 200,
@@ -408,6 +349,6 @@ module.exports = (app, baseUrl) => {
           messages: ['Failed to update recordings.'],
         });
       }
-    }
+    })
   );
 };
