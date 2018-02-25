@@ -131,8 +131,11 @@ const parseArray = function(field) {
     if (Array.isArray(arr)) {
       req[location][path] = arr;
       return true;
+    } else if (arr === null) {
+      req[location][path] = [];
+      return true;
     } else {
-      throw new Error(format('%s was not an arrya', path));
+      throw new Error(format('%s was not an array', path));
     }
   });
 };
