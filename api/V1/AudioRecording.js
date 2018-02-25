@@ -1,8 +1,8 @@
-var models = require('../../models');
-var util = require('./util');
-var passport = require('passport');
-var log = require('../../logging');
-var tagsUtil = require('./tagsUtil');
+const log = require('../../logging');
+const middleware = require('../middleware');
+const models = require('../../models');
+const tagsUtil = require('./tagsUtil');
+const util = require('./util');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/audiorecordings';
@@ -38,11 +38,14 @@ module.exports = function(app, baseUrl) {
   */
   app.post(
     apiUrl,
-    passport.authenticate(['jwt'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateDevice,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return util.addRecordingFromPost(models.AudioRecording, req, res);
-    });
+    })
+  );
 
 
   /**
@@ -65,11 +68,14 @@ module.exports = function(app, baseUrl) {
   */
   app.put(
     apiUrl + "/:id",
-    passport.authenticate(['jwt'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return util.updateDataFromPut(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   /**
   * @api {delete} /api/v1/audiorecordings/:id Delete an existing audio recording
@@ -83,11 +89,14 @@ module.exports = function(app, baseUrl) {
   */
   app.delete(
     apiUrl + '/:id',
-    passport.authenticate(['jwt'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return util.deleteDataPoint(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   /**
   * @api {get} /api/v1/audiorecordings/ Query available audio recordings
@@ -110,11 +119,14 @@ module.exports = function(app, baseUrl) {
   */
   app.get(
     apiUrl,
-    passport.authenticate(['jwt', 'anonymous'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return util.getRecordingsFromModel(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   /**
   * @api {get} /api/v1/audiorecordings/:id Obtain token for retrieving audio recording
@@ -133,33 +145,45 @@ module.exports = function(app, baseUrl) {
   */
   app.get(
     apiUrl + "/:id",
-    passport.authenticate(['jwt', 'anonymous'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return util.getRecordingFile(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   app.post(
     apiUrl + "/:id/tags",
-    passport.authenticate(['jwt', 'anonymous'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return tagsUtil.add(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   app.delete(
     apiUrl + '/:id/tags',
-    passport.authenticate(['jwt', 'anonymous'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return tagsUtil.remove(models.AudioRecording, req, res);
-    });
+    })
+  );
 
   app.get(
     apiUrl + '/:id/tags',
-    passport.authenticate(['jwt', 'anonymous'], { session: false }),
-    function(req, res) {
+    [
+      middleware.authenticateUser,
+    ],
+    middleware.requestWrapper(async (req, res) => {
       log.info(req.method + " Request: " + req.url);
       return tagsUtil.get(models.AudioRecording, req, res);
-    });
+    })
+  );
 };
