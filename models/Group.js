@@ -118,8 +118,8 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne({ where: { groupname: name }});
   };
 
-  const freeGroupname = async function(groupanem) {
-    var group = await this.findOne({where: { groupname: groupanem }});
+  const freeGroupname = async function(name) {
+    var group = await this.findOne({where: { groupname: name }});
     if (group != null) {
       throw new Error('groupname in use');
     }
