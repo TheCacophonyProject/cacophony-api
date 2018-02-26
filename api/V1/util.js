@@ -4,7 +4,7 @@ var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 
 var INVALID_DATA = 'Invalid data key in body, should be a JSON.';
-var INVALID_ID = 'Invalid ID field. Shoudl be an integer.';
+var INVALID_ID = 'Invalid ID field. Should be an integer.';
 var NO_DATAPOINT_FOUND =
   'No datapoint was found with given ID. make sure that you have permissions ' +
   'to view datapoint.';
