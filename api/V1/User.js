@@ -7,7 +7,6 @@ const middleware   = require('../middleware');
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
 
-
   /**
    * @api {post} /api/v1/users Register a new user
    * @apiName RegisterUser
@@ -67,7 +66,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where'),
+      middleware.parseJSON('where').optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
 

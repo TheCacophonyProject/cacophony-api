@@ -4,7 +4,7 @@ var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 
 var INVALID_DATA = 'Invalid data key in body, should be a JSON.';
-var INVALID_ID = 'Invalid ID field. Shoudl be an integer.';
+var INVALID_ID = 'Invalid ID field. Should be an integer.';
 var NO_DATAPOINT_FOUND =
   'No datapoint was found with given ID. make sure that you have permissions ' +
   'to view datapoint.';
@@ -48,17 +48,14 @@ function getRecordingsFromModel(modelClass, request, response) {
  * @param {Object} response - Express response object.
  */
 function addRecordingFromPost(model, request, response) {
-
-  // Check that if the request was authenticated that is was
-  // authenticated by a user JWT, not a device JWT.
-  // TODO get passport to do this...
-  if (request.user !== null && !requestUtil.isFromADevice(request))
-    return responseUtil.notFromADevice(response);
-
-  var device = request.user;
+  var device = request.device;
   var modelClass = model;
   var modelInstance;
   var file;
+
+  if (request.device === null) {
+    throw { badRequest: "expected device" };
+  }
 
   requestUtil
     .getFileAndDataField(request)

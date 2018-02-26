@@ -1,4 +1,3 @@
-const log = require('../../logging');
 const middleware = require('../middleware');
 const models = require('../../models');
 const tagsUtil = require('./tagsUtil');
@@ -42,7 +41,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateDevice,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return util.addRecordingFromPost(models.AudioRecording, req, res);
     })
   );
@@ -72,7 +70,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return util.updateDataFromPut(models.AudioRecording, req, res);
     })
   );
@@ -93,7 +90,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return util.deleteDataPoint(models.AudioRecording, req, res);
     })
   );
@@ -123,7 +119,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return util.getRecordingsFromModel(models.AudioRecording, req, res);
     })
   );
@@ -149,7 +144,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return util.getRecordingFile(models.AudioRecording, req, res);
     })
   );
@@ -160,7 +154,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return tagsUtil.add(models.AudioRecording, req, res);
     })
   );
@@ -171,7 +164,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return tagsUtil.remove(models.AudioRecording, req, res);
     })
   );
@@ -182,7 +174,6 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(async (req, res) => {
-      log.info(req.method + " Request: " + req.url);
       return tagsUtil.get(models.AudioRecording, req, res);
     })
   );

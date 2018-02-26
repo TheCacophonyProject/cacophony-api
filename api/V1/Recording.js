@@ -97,7 +97,7 @@ module.exports = (app, baseUrl) => {
             if (err) {
               return reject(err);
             }
-            log.info("Finished streaming file to LeoFS Key:", key);
+            log.info("Finished streaming file to object store key:", key);
             resolve();
           });
         });
