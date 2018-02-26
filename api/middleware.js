@@ -100,7 +100,7 @@ const getUser   = getModel(models.User, 'user');
 
 const checkNewName = function(field) {
   return check(field, 'invalid name')
-    .isLength({ min: 8 })
+    .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
