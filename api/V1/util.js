@@ -48,17 +48,14 @@ function getRecordingsFromModel(modelClass, request, response) {
  * @param {Object} response - Express response object.
  */
 function addRecordingFromPost(model, request, response) {
-
-  // Check that if the request was authenticated that is was
-  // authenticated by a user JWT, not a device JWT.
-  // TODO get passport to do this...
-  if (request.user !== null && !requestUtil.isFromADevice(request))
-    return responseUtil.notFromADevice(response);
-
-  var device = request.user;
+  var device = request.device;
   var modelClass = model;
   var modelInstance;
   var file;
+
+  if (request.device === null) {
+    throw { badRequest: "expected device" };
+  }
 
   requestUtil
     .getFileAndDataField(request)
