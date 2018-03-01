@@ -28,7 +28,7 @@ module.exports = function(app, baseUrl) {
       middleware.checkNewName('devicename')
         .custom(value => { return models.Device.freeDevicename(value); }),
       middleware.checkNewPassword('password'),
-      middleware.getGroup,
+      middleware.getGroupByName,
     ],
     middleware.requestWrapper(async (request, response) => {
       const device = await models.Device.create({
@@ -92,8 +92,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getDevice,
-      middleware.getUser,
+      middleware.getDeviceById,
+      middleware.getUserById,
       check('admin').isIn([true, false]),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -140,8 +140,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUser,
-      middleware.getDevice,
+      middleware.getUserById,
+      middleware.getDeviceById,
     ],
     middleware.requestWrapper(async function(request, response) {
       var removed = await models.Device.removeUserFromDevice(

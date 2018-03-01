@@ -4,7 +4,7 @@ const jwt        = require('jsonwebtoken');
 const format     = require('util').format;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const log        = require('../logging');
-const { check, oneOf, header, validationResult, query } = require('express-validator/check');
+const { check, header, validationResult, query } = require('express-validator/check');
 
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
@@ -62,41 +62,49 @@ const signedUrl = query('jwt').custom((value, {req}) => {
 });
 
 
-/*
- * Will load a model either using the name from [field] or ID from [field+Id]
- */
-const getModel = function(modelType, field) {
-  return oneOf([
-    check(field).custom(async (val, { req }) => {
-      const model = await modelType.getFromName(val);
-      if (model == null) {
-        throw new Error(format('could not find %s with name: %s', field, val));
-      }
-      req.body[field] = model;
-      return true;
-    }),
-    check(field+'name').custom(async (val, { req }) => {
-      const model = await modelType.getFromName(val);
-      if (model == null) {
-        throw new Error(format('could not find %s with name: %s', field, val));
-      }
-      req.body[field] = model;
-      return true;
-    }),
-    check(field+'Id').custom(async (val, { req }) => {
-      const model = await modelType.getFromId(val);
-      if (model == null) {
-        throw new Error(format('could not find %s with ID: %s', field, val));
-      }
-      req.body[field] = model;
-      return true;
-    }),
-  ]);
+const getModelById = function(modelType, fieldName, checkFunc=check) {
+  return checkFunc(fieldName).custom(async (val, { req }) => {
+    const model = await modelType.getFromId(val);
+    if (model === null) {
+      throw new Error(format('could not find %s of %s', fieldName, val));
+    }
+    req.body[attrName(modelType)] = model;
+    return true;
+  });
 };
 
-const getDevice = getModel(models.Device, 'device');
-const getGroup  = getModel(models.Group, 'group');
-const getUser   = getModel(models.User, 'user');
+const getModelByName = function(modelType, fieldName, checkFunc=check) {
+  return checkFunc(fieldName).custom(async (val, { req }) => {
+    const model = await modelType.getFromName(val);
+    if (model === null) {
+      throw new Error(format('could not find %s of %s', fieldName, val));
+    }
+    req.body[attrName(modelType)] = model;
+    return true;
+  });
+};
+
+function attrName(modelType) {
+  switch (modelType) {
+  case models.User:
+    return "user";
+  case models.Group:
+    return "group";
+  case models.Device:
+    return "device";
+  default:
+    throw "unknown model type: " + modelType;
+  }
+}
+
+const getUserById = getModelById(models.User, 'userId');
+const getUserByName = getModelByName(models.User, 'username');
+
+const getGroupById = getModelById(models.Group, 'groupId');
+const getGroupByName = getModelByName(models.Group, 'group');
+
+const getDeviceById = getModelById(models.Device, 'deviceId');
+const getDeviceByName = getModelByName(models.Device, 'devicename');
 
 const checkNewName = function(field) {
   return check(field, 'invalid name')
@@ -155,9 +163,12 @@ const requestWrapper = fn => (request, response, next) => {
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.signedUrl          = signedUrl;
-exports.getGroup           = getGroup;
-exports.getDevice          = getDevice;
-exports.getUser            = getUser;
+exports.getUserById        = getUserById;
+exports.getUserByName      = getUserByName;
+exports.getGroupById       = getGroupById;
+exports.getGroupByName     = getGroupByName;
+exports.getDeviceById      = getDeviceById;
+exports.getDeviceByName    = getDeviceByName;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
