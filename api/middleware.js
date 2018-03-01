@@ -68,7 +68,7 @@ const getModelById = function(modelType, fieldName, checkFunc=check) {
     if (model === null) {
       throw new Error(format('could not find %s of %s', fieldName, val));
     }
-    req.body[attrName(modelType)] = model;
+    req.body[modelTypeName(modelType)] = model;
     return true;
   });
 };
@@ -79,22 +79,13 @@ const getModelByName = function(modelType, fieldName, checkFunc=check) {
     if (model === null) {
       throw new Error(format('could not find %s of %s', fieldName, val));
     }
-    req.body[attrName(modelType)] = model;
+    req.body[modelTypeName(modelType)] = model;
     return true;
   });
 };
 
-function attrName(modelType) {
-  switch (modelType) {
-  case models.User:
-    return "user";
-  case models.Group:
-    return "group";
-  case models.Device:
-    return "device";
-  default:
-    throw "unknown model type: " + modelType;
-  }
+function modelTypeName(modelType) {
+  return modelType.options.name.singular.toLowerCase();
 }
 
 const getUserById = getModelById(models.User, 'userId');
