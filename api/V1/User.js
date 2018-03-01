@@ -65,22 +65,14 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:username",
     [
       middleware.authenticateUser,
-      check.param("username").exists(),
+      middleware.getUserByName,
     ],
     middleware.requestWrapper(async (request, response) => {
-      var user = await models.User.getFromName(request.params.username);
-      if (user === null) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ["no such user"],
-        });
-      }
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: [],
-        userData: await user.getDataValues(),
+        userData: await request.body.user.getDataValues(),
       });
     })
   );
