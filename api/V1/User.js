@@ -3,6 +3,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config/config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const check        = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -49,33 +50,29 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} api/v1/users Get users
-   * @apiName GetUsers
+   * @api {get} api/v1/users/:username Get details for a user
+   * @apiName GetUser
    * @apiGroup User
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   *
-   * @apiSuccess {JSON} usersData List of users.
+   * @apiSuccess {JSON} userData Metadata of the user.
    * @apiUse V1ResponseSuccess
    *
    * @apiUse V1ResponseError
    */
   app.get(
-    apiUrl,
+    apiUrl + "/:username",
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where').optional(),
+      middleware.getUserByName,
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      var users = await models.User.getAll(request.query.where);
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: [],
-        users: users,
+        userData: await request.body.user.getDataValues(),
       });
     })
   );

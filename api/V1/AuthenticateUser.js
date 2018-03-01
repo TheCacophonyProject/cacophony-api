@@ -21,7 +21,7 @@ module.exports = function(app) {
   app.post(
     '/authenticate_user',
     [
-      middleware.getUser,
+      middleware.getUserByName,
       body('password').exists(),
     ],
     middleware.requestWrapper(async (request, response) => {
