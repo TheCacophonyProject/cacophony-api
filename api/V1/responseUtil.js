@@ -114,6 +114,15 @@ function validDatapointUpload(response, messages) {
   });
 }
 
+function validRecordingUpload(response, idOfRecording) {
+  send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [VALID_DATAPOINT_UPLOAD_REQUEST],
+    recordingId: idOfRecording
+  });
+}
+
 function validDatapointDelete(response, message) {
   send(response, {
     statusCode: 200,
@@ -225,6 +234,7 @@ exports.invalidDeleteTags = invalidDeleteTags;
 exports.invalidGetTags = invalidGetTags;
 exports.invalidVideoPair = invalidVideoPair;
 exports.validDatapointUpload = validDatapointUpload;
+exports.validRecordingUpload = validRecordingUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;
 exports.validDatapointGet = validDatapointGet;
