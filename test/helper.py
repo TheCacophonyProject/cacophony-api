@@ -6,12 +6,12 @@ from testdevice import TestDevice
 from testconfig import TestConfig
 from testexception import TestException
 
-class FixtureTestAPI:
+class Helper:
 
     def __init__(self):
         self.config = TestConfig().load_config()
         self._admin = None
-
+        self._check_admin_exists()
 
     def login_as(self, username):
         password = self._make_password(username)
@@ -80,5 +80,14 @@ class FixtureTestAPI:
 
     def _print_actual_name(self, name):
         print("  ({})".format(name))
+
+    def _check_admin_exists(self):
+        try:
+            self._get_admin()
+        except Exception:
+            # create admin
+            UserAPI(self.config.api_server, self.config.admin_username, self.config.admin_password).register_as_new()
+            self.admin_user().create_group(self.config.default_group)
+            
 
 

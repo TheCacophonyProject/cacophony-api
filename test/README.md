@@ -44,9 +44,8 @@ Migrate the database to the latest version
 * Migrate the database 
   - from the parent folder (cacophony-api) run `node_modules/sequelize-cli/bin/sequelize db:migrate --config test/config/database.js`
 
-Create the admin user and default group
-* Connect the website to the test api and create an admin user called `admin_test` with password `admin_test`
-* Create a group called `test-group`
+Make the test user a super user
+* Run one test - this will create the test user `admin_test` and group `test-group`
 * Make admin-test a superuser
   - `psql update "Users" set superuser = true where username = 'admin_test'`
 
