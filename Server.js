@@ -6,18 +6,21 @@ var winston = require('winston');
 var fs = require('fs');
 var tcpPortUsed = require('tcp-port-used');
 var http = require('http');
-var https = require('https');
 
-try {
-  fs.statSync('./config/config.js');
-} catch (error) {
-  console.log("Config file is not setup. Read README.md for config setup.");
-  return;
-}
-var config = require('./config/config');
-var models = require('./models');
-var log = require('./logging');
+var configPath = './config'
+process.argv.forEach((val, index) => {
+  if (val.toLowerCase().startsWith('config=')) {
+    configPath  = val.split('=')[1];
+  }
+});
+
+var allConfig = require('./cacconfig');
+allConfig.loadConfig(configPath);
+var config = allConfig.config;
+
 var modelsUtil = require('./models/util/util');
+var log = require('./logging');
+var models = require('./models');
 
 log.info('Starting Full Noise.');
 var app = express();
@@ -54,24 +57,9 @@ models.sequelize
   .then(() => log.info("Connected to database."))
   .then(() => checkS3Connection())
   .then(() => openHttpServer(app))
-  .then(() => openHttpsServer(app))
   .catch(function(error) {
     log.error(error);
   });
-
-function openHttpsServer(app) {
-  return new Promise(function(resolve, reject) {
-    if (!config.server.https.active)
-      return resolve();
-    try {
-      log.info('Starting https server on ', config.server.https.port);
-      https.createServer(app).listen(config.server.https.port);
-      return resolve();
-    } catch (err) {
-      return reject(err);
-    }
-  });
-}
 
 function openHttpServer(app) {
   return new Promise(function(resolve, reject) {

@@ -3,7 +3,8 @@ var path = require('path');
 var Sequelize = require('sequelize');
 var basename = path.basename(module.filename);
 var env = process.env.NODE_ENV || 'development';
-var config = require(__dirname + '/../config/database.js')[env];
+var config = require('../cacconfig').database[env];
+
 var db = {};
 
 if (config.use_env_variable) {

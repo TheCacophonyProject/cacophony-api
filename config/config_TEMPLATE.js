@@ -8,10 +8,6 @@ server = { // General server settings
     active: true,
     port: 80,
   },
-  https: { // If using https put private and public keys in the keys folder.
-    active: false,
-    port: 443,
-  },
 };
 
 // ======= S3 compatible object store settings, e.g. Minio ===========

@@ -1,5 +1,5 @@
 const jwt          = require('jsonwebtoken');
-const config       = require('../../config/config');
+var config         = require('../../cacconfig').config;
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { body }     = require('express-validator/check');

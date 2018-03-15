@@ -1,6 +1,6 @@
 const models       = require('../../models');
 const jwt          = require('jsonwebtoken');
-const config       = require('../../config/config');
+const config       = require('../../cacconfig').config;
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { check }    = require('express-validator/check');
