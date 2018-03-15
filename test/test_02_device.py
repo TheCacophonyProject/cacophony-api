@@ -8,7 +8,7 @@ class TestUser:
         testapi = FixtureTestAPI()
 
         print("If a new device 'The Destroyer' signs up", end='')
-        destroyer = testapi.given_new_device(self, 'TheDestroyer')
+        destroyer = testapi.given_new_device(self, 'The Destroyer')
         
         print("Then 'The Destroyer' should able to log in")
         the_destroyer = testapi.login_as_device(destroyer.devicename)
