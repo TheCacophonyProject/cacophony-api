@@ -9,14 +9,19 @@ var http = require('http');
 
 var configPath = './config'
 process.argv.forEach((val, index) => {
-  if (val.toLowerCase().startsWith('config=')) {
-    configPath  = val.split('=')[1];
+  if (index > 1) {
+    if (val.toLowerCase().startsWith('--config=')) {
+      configPath  = val.split('=')[1];
+    }
+    else {
+      var error = "Cannot parse paramater '" + val + "'.  The only parameter accepted is --config=<path-to-config-files-dir> "
+      throw error;
+    }
   }
 });
 
-var allConfig = require('./cacconfig');
-allConfig.loadConfig(configPath);
-var config = allConfig.config;
+var config = require('./config');
+config.loadConfig(configPath);
 
 var modelsUtil = require('./models/util/util');
 var log = require('./logging');

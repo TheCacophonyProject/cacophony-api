@@ -1,4 +1,4 @@
-var config = require('./cacconfig').config;
+var config = require('./config');
 var winston = require('winston');
 var expressWinston = require('express-winston');
 var path = require('path');

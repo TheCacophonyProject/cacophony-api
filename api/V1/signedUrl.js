@@ -1,4 +1,4 @@
-const config       = require('../../cacconfig').config;
+const config       = require('../../config');
 const log          = require('../../logging');
 const responseUtil = require('./responseUtil');
 const stream       = require('stream');

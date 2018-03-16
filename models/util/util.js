@@ -4,7 +4,7 @@ var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
-var config = require('../../cacconfig').config;
+var config = require('../../config');
 
 
 function findAllWithUser(model, user, queryParams) {
