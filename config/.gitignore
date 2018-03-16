@@ -2,6 +2,5 @@
 *
 # Except
 !.gitignore
-!database_TEMPLATE.js
-!config_TEMPLATE.js
+!app_TEMPLATE.js
 !keys/.gitignore
