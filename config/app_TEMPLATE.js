@@ -12,11 +12,12 @@ server = { // General server settings
 
 // ======= S3 compatible object store settings, e.g. Minio ===========
 s3 = {  // Used for storing audio & video recordings.
-  publicKey: null,  // REQUIRED, String (aka Minio AccessKey)
-  privateKey: null, // REQUIRED, String (aka Minio SecretKey)
-  bucket: "cacophony",   // REQUIRED, String  (must exist in the store)
+  publicKey: "",  // REQUIRED, String:
+  privateKey: "", // REQUIRED, String
+  bucket: "cacophony",   // REQUIRED, String
   endpoint: "http://localhost:9000", // REQUIRED, URL
 };
+
 
 // ======= Logging =======
 logging = {
@@ -31,7 +32,7 @@ fileProcessing = {
 // ======= Database settings =======
 database = {
   username: "root",
-  password: null,
+  password: "",
   database: "cacophony",
   host: "localhost",
   dialect: "postgres"
@@ -42,3 +43,6 @@ exports.s3 = s3;
 exports.logging = logging;
 exports.fileProcessing = fileProcessing;
 exports.database = database;
+
+// This is needed because Sequelize looks for development by default when using db:migrate
+exports.development = database;
