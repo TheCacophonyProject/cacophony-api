@@ -2,7 +2,7 @@ const models            = require('../../models');
 const log               = require('../../logging');
 const responseUtil      = require('./responseUtil');
 const multiparty        = require('multiparty');
-const config            = require('../../config/config');
+const config            = require('../../config');
 const uuidv4            = require('uuid/v4');
 const jsonwebtoken      = require('jsonwebtoken');
 const modelsUtil        = require('../../models/util/util');
@@ -38,6 +38,7 @@ module.exports = (app, baseUrl) => {
    * @apiParam {File} file File of the recording.
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} recordingId ID of the recording.
    * @apiuse V1ResponseError
    */
   app.post(
@@ -79,7 +80,7 @@ module.exports = (app, baseUrl) => {
         }
       });
 
-      // Stream file to LeoFS.
+      // Stream file to S3.
       var uploadPromise;
       form.on('part', (part) => {
         if (part.name != 'file') {
@@ -117,13 +118,13 @@ module.exports = (app, baseUrl) => {
           return responseUtil.send(response, {
             statusCode: 500,
             success: false,
-            messages: ["Failed to upload file to LeoFS"],
+            messages: ["Failed to upload file to bucket"],
           });
         }
         // Validate and upload recording
         await recording.validate();
         await recording.save();
-        return responseUtil.validDatapointUpload(response);
+        return responseUtil.validRecordingUpload(response, recording.id);
       });
 
       form.on('error', (e) => {

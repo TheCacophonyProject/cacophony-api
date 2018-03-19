@@ -1,5 +1,5 @@
 const models     = require('../models');
-const config     = require('../config/config');
+const config     = require('../config');
 const jwt        = require('jsonwebtoken');
 const format     = require('util').format;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
