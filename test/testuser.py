@@ -13,6 +13,10 @@ class TestUser:
         queryParams = {"tagmode": tagmode}
         return RecordingQueryPromise(self, queryParams)
 
+    def when_searching_for_tags(self, *tags):
+        queryParams = {"tags": tags}
+        return RecordingQueryPromise(self, queryParams)
+
     def can_see_recordings(self, *expectedTestRecordings):
         self._can_see_recordings_with_query({}, *expectedTestRecordings)
 
