@@ -52,7 +52,11 @@ class Helper:
         return self._make_unique_name(testClass, groupName, groups)
         
 
-    def given_new_device(self, testClass, devicename, group=None):
+    def given_new_device(self, testClass, devicename, group=None, description=None):
+        if not description:
+            description = "Given a new device '{}'".format(devicename)
+        self._print_description(description)
+
         devices = self._get_admin().get_devices_as_string()
         uniqueName = self._make_unique_name(testClass, devicename, devices)
         print(uniqueName)
@@ -78,9 +82,6 @@ class Helper:
             self._admin = UserAPI(self.config.api_server, self.config.admin_username, self.config.admin_password).login()
         return self._admin
 
-    def _print_actual_name(self, name):
-        print("  ({})".format(name))
-
     def _check_admin_exists(self):
         try:
             self._get_admin()
@@ -88,6 +89,11 @@ class Helper:
             # create admin
             UserAPI(self.config.api_server, self.config.admin_username, self.config.admin_password).register_as_new()
             self.admin_user().create_group(self.config.default_group)
-            
+
+    def _print_actual_name(self, name):
+        print("  ({})".format(name))
+
+    def _print_description(self, description): 
+        print(description, end='')        
 
 

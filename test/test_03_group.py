@@ -14,10 +14,10 @@ class TestGroup:
         clare.create_group(claresGroup)
         print("({})".format(claresGroup))
 
-        print("  and there is a new device called 'Terminator' in this group", end='')
-        terminator = helper.given_new_device(self, 'Terminator', claresGroup)
+        description = "  and there is a new device called 'Terminator' in this group"
+        terminator = helper.given_new_device(self, 'Terminator', claresGroup, description=description)
 
-        print("  which has uploaded a recording")
+        print("  which has uploaded a recording", end='')
         terminator.upload_recording()
 
         print("  then Clare should see the recording")

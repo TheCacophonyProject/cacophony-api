@@ -42,7 +42,7 @@ Migrate the database to the latest version
   - In server.js change fileprocessing.port of the server to `2008`
   - In server.js change the endpoint of the s3 server to `9001`
 * Migrate the database 
-  - from the parent folder (cacophony-api) run `node_modules/sequelize-cli/bin/sequelize db:migrate --config test/config/database.js`
+  - from the parent folder (cacophony-api) run `node_modules/.bin/sequelize db:migrate --config test/config/app.js`
 
 Make the test user a super user
 * Run one test - this will create the test user `admin_test` and group `test-group`

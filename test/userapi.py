@@ -75,7 +75,7 @@ class UserAPI(APIBase):
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")
-        response = requests.post(url, data={'groupname': groupname}, headers=self._auth_header)
+        response = requests.post(url,  headers=self._auth_header, data={'groupname': groupname})
         response.raise_for_status()
 
     def get_user_details(self, username):
@@ -84,6 +84,11 @@ class UserAPI(APIBase):
         response.raise_for_status()
         # print(response.json())
         
+    def tag_recording(self, recordingId, tagDictionary):
+        url = urljoin(self._baseurl, "/api/v1/tags/")
+        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
+        response = requests.post(url, headers=self._auth_header, data=tagData)
+        response.raise_for_status()
 
 # def add_user_to_group(self, username, groupname) 
     #     url = urljoin(self._baseurl, "/api/v1/groups")
