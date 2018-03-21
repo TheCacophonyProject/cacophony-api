@@ -1,9 +1,4 @@
 # Dependency directory
 node_modules
 
-# Config file
-config.js
-config/database.json
-config/server.json
-
 apidoc/*
