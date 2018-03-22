@@ -1,6 +1,12 @@
 var path = require('path');
 var fs = require('fs');
 
+// Set some default configuration
+var server = {
+  loggerLevel: "info",
+};
+
+
 function loadConfig(configDirPath) {
     console.log(`Looking for config files in directory "${path.resolve(configDirPath)}"`);
 
@@ -34,5 +40,6 @@ function testDatabaseConfigAvailable(config) {
 }
  
 exports.loadConfig = loadConfig;
+exports.server = server;
 
   
