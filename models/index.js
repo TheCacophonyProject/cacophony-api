@@ -1,13 +1,11 @@
-var fs = require('fs');
-var path = require('path');
-var Sequelize = require('sequelize');
-var basename = path.basename(module.filename);
-var config = require('../config');
-var log = require('../logging');
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const basename = path.basename(module.filename);
+const config = require('../config');
+const log = require('../logging');
 
-var db = {};
-
-var dbConfig = config.database;
+const dbConfig = config.database;
 
 // Have sequelize send us query execution timings
 dbConfig.benchmark = true;
@@ -17,15 +15,16 @@ dbConfig.logging = function(msg, timeMs) {
   log.debug("%s [%d ms]", msg, timeMs);
 };
 
-var sequelize = new Sequelize(
+const sequelize = new Sequelize(
   dbConfig.database,
   dbConfig.username,
   dbConfig.password,
   dbConfig,
 );
 
-fs
-  .readdirSync(__dirname)
+const db = {};
+
+fs.readdirSync(__dirname)
   .filter(function(file) {
     return (file.indexOf('.') !== 0) &&
       (file !== basename) &&
