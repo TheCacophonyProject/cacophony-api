@@ -15,16 +15,19 @@ class TestUser:
         lastDevice = recordings[0]['Device']['devicename']
         if (lastDevice != testdevice.devicename):
             raise TestException("Lastest recording was not from device '{}', not from '{}'".format(lastDevice, testdevice.devicename))
-            
+
     def cannot_see_any_recordings(self):
         recordings = self._userapi.query(limit=1)
         if recordings:
             raise TestException("User '{}' can see a recording from '{}'".format(self.username, recordings[0]['Device']['devicename']))
-        
+
 
     def create_group(self, groupname):
-        self._userapi.create_group(groupname)
+        try:
+            self._userapi.create_group(groupname)
+        except Exception as exception:
+            raise TestException("Failed to create group ({}) {}.  If error is 'group name in use', your super-user needs admin rights".format(groupname, exception))
+
 
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
-        

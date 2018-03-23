@@ -1,7 +1,7 @@
 // Config instructions: Fill out required fields and save as 'config.js'
 
 var server = { // General server settings
-  passportSecret: null, // REQUIRED, String. Random string used for passport module for encrypting JWT.
+  passportSecret: "random string", // REQUIRED, String. Random string used for passport module for encrypting JWT.
   loggerLevel: "debug", // REQUIRED, one of ('debug', 'warning', 'info', 'error')
   http: {
     active: true,
