@@ -111,7 +111,7 @@ module.exports = (app, baseUrl) => {
           return responseUtil.invalidDatapointUpload(response);
         }
 
-        // Check that th file uploaded to LeoFS.
+        // Check that the file uploaded to LeoFS.
         try {
           await uploadPromise;
         } catch (e) {

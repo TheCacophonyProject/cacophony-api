@@ -61,14 +61,8 @@ class TestUser:
                 return True
         return False
 
-    def can_see_audio_recording_from_group(self, groupName):
-        recordings = self._userapi.query_audio(limit=1)
-        assert recordings, \
-            "User '{}' could not see any recordings.".format(self.username)
-
-        lastGroup = recordings[0]['group']
-        assert lastGroup == groupName, \
-            "Latest audio recording is from group '{}', not from '{}'".format(lastGroup, groupName)
+    def can_see_audio_recording(self, recording_id):
+        self._userapi.get_audio(recording_id)
 
     def can_see_recording_from(self, testdevice):
         recordings = self._userapi.query(limit=1)

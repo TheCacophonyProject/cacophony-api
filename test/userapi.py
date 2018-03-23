@@ -71,6 +71,12 @@ class UserAPI(APIBase):
         else:
             r.raise_for_status()
 
+    def get_audio(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
+
+        r = requests.get(url, headers=self._auth_header)
+        return self._check_response(r)
+
     def download_cptv(self, id):
         return self._download_recording(id, 'downloadRawJWT')
 

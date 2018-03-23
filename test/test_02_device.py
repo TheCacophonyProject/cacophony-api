@@ -27,7 +27,7 @@ class TestDevice:
         helper.login_as_device(listener.devicename)
 
         print("And 'Listener' should be able to upload an audio file")
-        print(listener.upload_audio_recording())
+        recording = listener.upload_audio_recording()
 
         print("And the CPTV file should be visible to super users")
-        helper.admin_user().can_see_audio_recording_from_group(groupName)
+        helper.admin_user().can_see_audio_recording(recording.recordingId)

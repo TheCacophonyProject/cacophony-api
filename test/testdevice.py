@@ -40,3 +40,6 @@ class TestDevice:
             seconds=self._recordingtimeoffset)
         self._recordingtimeoffset -= 1
         return timestamp.isoformat()
+
+    def _print_description(self, description):
+        print(description, end='')
