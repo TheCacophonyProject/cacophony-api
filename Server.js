@@ -7,14 +7,14 @@ var fs = require('fs');
 var tcpPortUsed = require('tcp-port-used');
 var http = require('http');
 
-var configPath = './config'
+var configPath = './config/app.js';
 process.argv.forEach((val, index) => {
   if (index > 1) {
     if (val.toLowerCase().startsWith('--config=')) {
-      configPath  = val.split('=')[1];
+      configPath = val.split('=')[1];
     }
     else {
-      var error = "Cannot parse paramater '" + val + "'.  The only parameter accepted is --config=<path-to-config-files-dir> "
+      var error = "Cannot parse '" + val + "'.  The only accepted parameter is --config=<path-to-config-file> ";
       throw error;
     }
   }

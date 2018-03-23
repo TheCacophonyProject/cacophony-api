@@ -2,7 +2,7 @@
 
 # Configuration
 
-These tests can be run against any api server.   
+These tests can be run against any api server.
 
 By default they use 
 * http://127.0.0.1:1080
@@ -36,12 +36,13 @@ Create a new database called 'cacophonytest'
   - `\q`
 
 Migrate the database to the latest version
-* Copy your configuration from 'config' directory to the 'test/config'
+* Copy the app.js from the 'config' directory to the 'test/config'
   - In database.js change the database name `cacophonytest`
   - In server.js change server.port of the server to `1080`
   - In server.js change fileprocessing.port of the server to `2008`
   - In server.js change the endpoint of the s3 server to `9001`
-* Migrate the database 
+
+* Migrate the database
   - from the parent folder (cacophony-api) run `node_modules/sequelize-cli/bin/sequelize db:migrate --config test/config/database.js`
 
 Make the test user a super user
