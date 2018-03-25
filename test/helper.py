@@ -53,7 +53,11 @@ class Helper:
 
 
 
-    def given_new_device(self, testClass, devicename, group=None):
+    def given_new_device(self, testClass, devicename, group=None, description=None):
+        if not description:
+            description = "Given a new device '{}'".format(devicename)
+        self._print_description(description)
+
         devices = self._get_admin().get_devices_as_string()
         uniqueName = self._make_unique_name(testClass, devicename, devices)
 
@@ -87,6 +91,9 @@ class Helper:
     def _print_actual_name(self, name):
         print("  ({})".format(name))
 
+    def _print_description(self, description):
+        print(description, end='')
+
     def _check_admin_and_group_exist(self):
         try:
             self._get_admin()
@@ -101,9 +108,4 @@ class Helper:
         if ('"{}"'.format(default_group) not in allGroups):
             print('Creating default group')
             self.admin_user().create_group(default_group)
-
-
-
-
-
 

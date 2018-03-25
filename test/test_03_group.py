@@ -14,14 +14,14 @@ class TestGroup:
         clare.create_group(claresGroup)
         print("({})".format(claresGroup))
 
-        print("  and there is a new device called 'Terminator' in this group", end='')
-        terminator = helper.given_new_device(self, 'Terminator', claresGroup)
+        description = "  and there is a new device called 'Terminator' in this group"
+        terminator = helper.given_new_device(self, 'Terminator', claresGroup, description=description)
 
-        print("  which has uploaded a recording")
-        terminator.upload_recording()
+        print("  which has uploaded a recording", end='')
+        recording = terminator.upload_recording()
 
         print("  then Clare should see the recording")
-        clare.can_see_recording_from(terminator)
+        clare.can_see_recordings(recording)
 
         print("Given a Daniel is a new user", end='')
         daniel = helper.given_new_user(self, 'daniel')
@@ -37,10 +37,9 @@ class TestGroup:
 
         # print("  then Daniel should see the recording from 'Terminator'")
         # clare.can_see_recording_from(terminator)
-       
 
 
 
 
 
-    
+

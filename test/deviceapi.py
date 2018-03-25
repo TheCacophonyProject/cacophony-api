@@ -28,9 +28,9 @@ class DeviceAPI(APIBase):
                 )
             headers={'Content-Type': multipart_data.content_type, 'Authorization': self._token}
             r = requests.post(url, data=multipart_data, headers=headers)
-
-
         self._check_response(r)
+        return r.json()['recordingId']
+
 
 
 

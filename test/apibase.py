@@ -35,7 +35,6 @@ class APIBase:
 
         response = requests.post(url, data=data)
 
-
         if response.status_code == 200:
             self._set_jwt_token(response)
         else:
