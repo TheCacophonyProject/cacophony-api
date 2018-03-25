@@ -2,7 +2,7 @@
 
 # Configuration
 
-These tests can be run against any api server.   
+These tests can be run against any api server.
 
 By default they use 
 * http://127.0.0.1:1080
@@ -17,36 +17,47 @@ This can be changed by creating a file called testconfig.json.  See config.py fo
 * Run with: `pytest -s`
 
 
-# To create a separate server for testing
+# Create separate infrastructure for testing
 
-Create a new minio server
+## Create a new Minio server
+
 * Run a second minio server in another folder (so you can delete the data by just deleting the folder)
   - `./minio server <folder> --address :9001`
 * Create the 'cacophony' bucket
   - `./mc config host add myminio http://10.0.2.15:9001 ....`
   - `./mc mb myminio/cacophony`
 
-Create a new database called 'cacophonytest'
-* Create database in PSQL
-  - `sudo -i -u postgres`
-  - `psql`
-  - `CREATE DATABASE cacophonytest WITH OWNER [username];`
-  - `\c [database]`
-  - `CREATE EXTENSION postgis;`
-  - `\q`
+## Create a test PostgreSQL database
 
-Migrate the database to the latest version
-* Copy your configuration from 'config' directory to the 'test/config'
-  - In database.js change the database name `cacophonytest`
-  - In server.js change server.port of the server to `1080`
-  - In server.js change fileprocessing.port of the server to `2008`
-  - In server.js change the endpoint of the s3 server to `9001`
-* Migrate the database 
-  - from the parent folder (cacophony-api) run `node_modules/sequelize-cli/bin/sequelize db:migrate --config test/config/database.js`
+Create database in PSQL:
 
-Make the test user a super user
+- `sudo -i -u postgres`
+- `psql`
+- `CREATE DATABASE cacophonytest WITH OWNER [username];`
+- `\c [database]`
+- `CREATE EXTENSION postgis;`
+- `\q`
+
+## Create server configuration
+
+Copy `config/app_test_TEMPLATE.js` to `config/app_test.js` and fill in
+the required parts.
+
+## Populate/update the database
+
+From the project's root folder (cacophony-api) run:
+
+```
+node_modules/sequelize-cli/bin/sequelize db:migrate --config config/app_test.js`
+```
+
+## Start test API server
+
+```
+node Server --config=config/app_test.js
+```
+
+## Make the test user a super user
+
 * Run one test - this will create the test user `admin_test` and group `test-group`
-* Make admin-test a superuser
-  - `psql update "Users" set superuser = true where username = 'admin_test'`
-
-
+* Make admin-test a superuser: `echo "update \"Users\" set superuser = true where username = 'admin_test'" | sudo -u postgres psql cacophonytest`

@@ -49,7 +49,7 @@ database.
 * `git clone https://github.com/TheCacophonyProject/cacophony-api.git`
 * `cd cacophony-api`
 * `npm install`
-* Follow instructions in the TEMPLATE files in the config folder.
+* Create a configuration file for the API server by following the instructions in config/app_TEMPLATE.js
 * `node_modules/.bin/sequelize db:migrate`
 * Start server with `node Server.js`
 * If you get errors then you may need to run `run npm install bcrypt` and/or `npm install node-pre-gyp`

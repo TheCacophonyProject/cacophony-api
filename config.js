@@ -1,5 +1,5 @@
-var path = require('path');
-var fs = require('fs');
+const fs = require('fs');
+const path = require('path');
 
 // Set some default configuration
 var server = {
@@ -7,39 +7,32 @@ var server = {
 };
 
 
-function loadConfig(configDirPath) {
-    console.log(`Looking for config files in directory "${path.resolve(configDirPath)}"`);
+function loadConfig(configPath) {
+  configPath = path.resolve(configPath);
+  checkConfigFileExists(configPath);
 
-    checkConfigFileExists(configDirPath, 'app.js');
-    
-    var config = require(configDirPath + '/app');
+  const config = require(configPath);
+  for (var key in config) {
+    exports[key] = config[key];
+  }
 
-    for (var key in config) {
-        exports[key] = config[key];
-    }
+  checkDatabaseConfigAvailable(config);
 
-    testDatabaseConfigAvailable(config);
-
-    return exports;
+  return exports;
 }
 
-function checkConfigFileExists(configDir, filename) {
-    try {
-        var filePath = configDir + "/" + filename;
-        fs.statSync(filePath)
-    } catch (error) {
-        var errorStr = "Config file " + path.resolve(filePath) + " is not setup. See README.md for config setup. (NB.  Config file has been renamed to app.js)";
-        throw errorStr;
-    }
+function checkConfigFileExists(configPath) {
+  if (!fs.existsSync(configPath)) {
+    throw "Config file " + configPath + " does not exist. See README.md for config setup. " +
+      "NB: The default config file has been renamed to ./config/app.js";
+  }
 }
 
-function testDatabaseConfigAvailable(config) {
-    if (!('database' in config)) {
-        throw "Could not find database configuration.  Database.js has been merged into app.js"
-    }
+function checkDatabaseConfigAvailable(config) {
+  if (!('database' in config)) {
+    throw "Could not find database configuration. database.js has been merged into app.js";
+  }
 }
- 
+
 exports.loadConfig = loadConfig;
 exports.server = server;
-
-  
