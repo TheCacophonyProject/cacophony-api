@@ -58,7 +58,7 @@ class UserAPI(APIBase):
         r.raise_for_status()
         yield from r.iter_content(chunk_size=4096)
 
-    def _get_all(self, url): 
+    def _get_all(self, url):
         r = requests.get(
                 urljoin(self._baseurl, url),
                 params={'where':'{}'},
@@ -67,30 +67,30 @@ class UserAPI(APIBase):
         r.raise_for_status()
         return r.text
 
-    def get_devices_as_string(self): 
+    def get_devices_as_string(self):
         return self._get_all('/api/v1/devices')
 
-    def get_groups_as_string(self): 
+    def get_groups_as_string(self):
         return self._get_all('/api/v1/groups')
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")
         response = requests.post(url,  headers=self._auth_header, data={'groupname': groupname})
-        response.raise_for_status()
+        self._check_response(response)
 
     def get_user_details(self, username):
         url = urljoin(self._baseurl, "/api/v1/users/{}".format(username))
         response = requests.get(url, headers=self._auth_header)
         response.raise_for_status()
         # print(response.json())
-        
+
     def tag_recording(self, recordingId, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
         tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
-# def add_user_to_group(self, username, groupname) 
+# def add_user_to_group(self, username, groupname)
     #     url = urljoin(self._baseurl, "/api/v1/groups")
     #     response = requests.post(url, data={'groupname': groupname}, headers=self._auth_header)
     #     response.raise_for_status()

@@ -3,8 +3,8 @@ import requests
 from urllib.parse import urljoin
 
 
-class APIBase:     
-    
+class APIBase:
+
     def __init__(self, logintype, baseurl, loginname, password='password'):
         self._baseurl = baseurl
         self._loginname = loginname
@@ -38,7 +38,7 @@ class APIBase:
         if response.status_code == 200:
             self._set_jwt_token(response)
         else:
-            response.raise_for_status()
+            self._check_response(response)
 
         return self
 
@@ -53,14 +53,12 @@ class APIBase:
     def _set_jwt_token(self, response):
         self._token = response.json().get('token')
         self._auth_header = {'Authorization': self._token}
-    
 
-    def _check_response(self, r):
-        if r.status_code == 400:
-            messages = r.json().get('messages', '')
-            raise IOError("request failed ({}): {}".format(r.status_code, messages))
-        r.raise_for_status()
-        return r.json()
+
+    def _check_response(self, response):
+        if not response.status_code == 200:
+            raise IOError("request failed ({}): {}".format(response.status_code, response.text))
+        return response.json()
 
     def get_login_name(self):
         return self._loginname

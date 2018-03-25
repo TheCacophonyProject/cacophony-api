@@ -61,14 +61,18 @@ class TestUser:
         recordings = self._userapi.query(limit=10)
         if recordings:
             raise TestException("User '{}' can see a recording from '{}'".format(self.username, recordings[0]['Device']['devicename']))
-        
+
 
     def create_group(self, groupname):
-        self._userapi.create_group(groupname)
+        try:
+            self._userapi.create_group(groupname)
+        except Exception as exception:
+            raise TestException("Failed to create group ({}) {}.  If error is 'group name in use', your super-user needs admin rights".format(groupname, exception))
+
 
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
-        
+
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
 
@@ -90,7 +94,7 @@ class RecordingQueryPromise:
 
     def can_see_all_recordings_from_(self, allRecordings):
         self.can_see_recordings(*allRecordings)
-        
+
     def can_only_see_recordings(self, *expectedTestRecordings):
         self._expectedTestRecordings = expectedTestRecordings
         return self
