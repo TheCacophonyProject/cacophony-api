@@ -74,7 +74,7 @@ class Helper:
 
 
     def _make_long_name(self, testClass, name):
-        return "{}_{}_{}".format(date.today().__format__('%m%d'), type(testClass).__name__, name)
+        return "{}_{}_{}".format(date.today().strftime('%m%d'), type(testClass).__name__, name)
 
     def _make_password(self, loginname):
         return "p{}".format(loginname)
