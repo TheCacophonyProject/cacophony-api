@@ -3,4 +3,4 @@
 # Except
 !.gitignore
 !app_TEMPLATE.js
-!keys/.gitignore
+!app_test_TEMPLATE.js
