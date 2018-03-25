@@ -6,16 +6,19 @@ from urllib.parse import urljoin
 
 
 class UserAPI(APIBase):
-
-    def __init__(self, baseurl, username, password = 'password'):
+    def __init__(self, baseurl, username, password='password'):
         super().__init__('user', baseurl, username, password)
 
-    def query(self, startDate=None, endDate=None, min_secs=5, limit=100, offset=0, tagmode=None, tags=None):
+    def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
         url = urljoin(self._baseurl, '/api/v1/recordings')
 
         where = [{"duration": {"$gte": min_secs}}]
         if startDate is not None:
-            where.append({'recordingDateTime': {'$gte': startDate.isoformat()}})
+            where.append({
+                'recordingDateTime': {
+                    '$gte': startDate.isoformat()
+                }
+            })
         if endDate is not None:
             where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
 
@@ -34,9 +37,45 @@ class UserAPI(APIBase):
             return r.json()['rows']
         elif r.status_code == 400:
             messages = r.json()['messages']
-            raise IOError("request failed ({}): {}".format(r.status_code, messages))
+            raise IOError("request failed ({}): {}".format(
+                r.status_code, messages))
         else:
             r.raise_for_status()
+
+    def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings')
+
+        where = [{"duration": {"$gte": min_secs}}]
+        if startDate is not None:
+            where.append({
+                'recordingDateTime': {
+                    '$gte': startDate.isoformat()
+                }
+            })
+        if endDate is not None:
+            where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
+
+        params = {}
+        if limit is not None:
+            params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
+
+        r = requests.get(url, params=params, headers=self._auth_header)
+        if r.status_code == 200:
+            return r.json()['result']['rows']
+        elif r.status_code == 400:
+            messages = r.json()['messages']
+            raise IOError("request failed ({}): {}".format(
+                r.status_code, messages))
+        else:
+            r.raise_for_status()
+
+    def get_audio(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
+
+        r = requests.get(url, headers=self._auth_header)
+        return self._check_response(r)
 
     def download_cptv(self, id):
         return self._download_recording(id, 'downloadRawJWT')
@@ -60,10 +99,10 @@ class UserAPI(APIBase):
 
     def _get_all(self, url):
         r = requests.get(
-                urljoin(self._baseurl, url),
-                params={'where':'{}'},
-                headers=self._auth_header,
-            )
+            urljoin(self._baseurl, url),
+            params={'where': '{}'},
+            headers=self._auth_header,
+        )
         r.raise_for_status()
         return r.text
 
@@ -81,16 +120,10 @@ class UserAPI(APIBase):
     def get_user_details(self, username):
         url = urljoin(self._baseurl, "/api/v1/users/{}".format(username))
         response = requests.get(url, headers=self._auth_header)
-        response.raise_for_status()
-        # print(response.json())
+        return response.json()
 
     def tag_recording(self, recordingId, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
         tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
-
-# def add_user_to_group(self, username, groupname)
-    #     url = urljoin(self._baseurl, "/api/v1/groups")
-    #     response = requests.post(url, data={'groupname': groupname}, headers=self._auth_header)
-    #     response.raise_for_status()

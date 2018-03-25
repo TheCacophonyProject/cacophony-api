@@ -1,4 +1,4 @@
-# Dependency directory
 node_modules
-
 apidoc/*
+test/.pytest_cache/
+test/__pycache__/

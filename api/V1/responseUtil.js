@@ -106,14 +106,6 @@ function invalidVideoPair(response, message) {
 }
 
 //======VALID REQUESTS=========
-function validDatapointUpload(response, messages) {
-  send(response, {
-    statusCode: 200,
-    success: true,
-    messages: [VALID_DATAPOINT_UPLOAD_REQUEST]
-  });
-}
-
 function validRecordingUpload(response, idOfRecording) {
   send(response, {
     statusCode: 200,
@@ -233,7 +225,6 @@ exports.invalidAddTags = invalidAddTags;
 exports.invalidDeleteTags = invalidDeleteTags;
 exports.invalidGetTags = invalidGetTags;
 exports.invalidVideoPair = invalidVideoPair;
-exports.validDatapointUpload = validDatapointUpload;
 exports.validRecordingUpload = validRecordingUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;

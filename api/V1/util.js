@@ -67,14 +67,15 @@ function addRecordingFromPost(model, request, response) {
 
       modelInstance.set('DeviceId', device.id);
       modelInstance.set('GroupId', device.GroupId);
-      if (typeof device.public == 'boolean')
+      if (typeof device.public == 'boolean') {
         modelInstance.set('public', device.public);
-      else
+      } else {
         model.setDataValue('public', false);
+      }
       return modelInstance.validate();
     })
     .then(() => modelInstance.save())
-    .then(() => responseUtil.validDatapointUpload(response))
+    .then(() => responseUtil.validRecordingUpload(response, modelInstance.id))
     .then(() => modelInstance.processRecording(file))
     .then((processedFile) => modelInstance.saveFile(processedFile))
     .catch((error) => {
