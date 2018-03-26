@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 from testexception import TestException
@@ -72,16 +74,6 @@ class TestUser:
         assert lastDevice == testdevice.devicename, \
             "Latest recording is from device '{}', not from '{}'".format(lastDevice, testdevice.devicename)
 
-    def can_see_audio_recording(self, recording):
-        self._userapi.get_audio(recording.recordingId)
-
-    def cannot_see_audio_recording(self, recording):
-        with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
-            self._userapi.get_audio(recording.recordingId)
-
-    def delete_audio_recording(self, recording):
-        self._userapi.delete_audio(recording.recordingId)
-
     def cannot_see_any_recordings(self):
         recordings = self._userapi.query(limit=10)
         if recordings:
@@ -102,6 +94,22 @@ class TestUser:
 
     def tag_recording(self, recordingId, tagDictionary):
         self._userapi.tag_recording(recordingId, tagDictionary)
+
+    def can_see_audio_recording(self, recording):
+        self._userapi.get_audio(recording.recordingId)
+
+    def cannot_see_audio_recording(self, recording):
+        with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
+            self._userapi.get_audio(recording.recordingId)
+
+    def delete_audio_recording(self, recording):
+        self._userapi.delete_audio(recording.recordingId)
+
+    def can_download_correct_audio_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_audio(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
 
 
 class RecordingQueryPromise:

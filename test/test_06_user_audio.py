@@ -12,3 +12,11 @@ class TestUserAudio:
 
         print("they can no longer see it.")
         user.cannot_see_audio_recording(recording)
+
+    def test_can_download_audio(self, helper):
+        phone = helper.given_new_device(self, 'phone')
+        recording = phone.has_audio_recording()
+
+        print("\nA user should be able to download the audio recording")
+        user = helper.admin_user()
+        user.can_download_correct_audio_recording(recording)
