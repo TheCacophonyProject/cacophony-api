@@ -3,6 +3,9 @@ class TestRecording:
         self.recordingId = recordingId
         self.content = content
 
+    def __repr__(self):
+        return "<TestRecording: {}>".format(self.recordingId)
+
     def is_tagged_as(self, animal):
         return TestTagPromise(self, animal)
 
