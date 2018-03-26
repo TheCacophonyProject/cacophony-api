@@ -1,10 +1,12 @@
+from datetime import date
+
 from userapi import UserAPI
 from deviceapi import DeviceAPI
-from datetime import date
 from testuser import TestUser
 from testdevice import TestDevice
 from testconfig import TestConfig
 from testexception import TestException
+
 
 class Helper:
 
