@@ -5,7 +5,7 @@ class TestUserAudio:
 
         print("\nA user should be able to see the audio recording")
         user = helper.admin_user()
-        user.can_see_audio_recording(recording.recordingId)
+        user.can_see_audio_recording(recording)
 
         print("And when they delete it ... ", end='')
         user.delete_audio_recording(recording)

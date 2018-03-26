@@ -72,8 +72,8 @@ class TestUser:
         assert lastDevice == testdevice.devicename, \
             "Latest recording is from device '{}', not from '{}'".format(lastDevice, testdevice.devicename)
 
-    def can_see_audio_recording(self, recording_id):
-        self._userapi.get_audio(recording_id)
+    def can_see_audio_recording(self, recording):
+        self._userapi.get_audio(recording.recordingId)
 
     def cannot_see_audio_recording(self, recording):
         with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
