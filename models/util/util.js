@@ -62,7 +62,7 @@ function findAllWithUser(model, user, queryParams) {
 function processAudio(file) {
   log.debug('Processing audio file.');
   return new Promise(function(resolve, reject) {
-    if (file.type != 'audio/mp3') {
+    if (file.type != 'audio/mp3' && !file.name.endsWith(".mp3")) {
       var convertedAudioPath = file.path + '.mp3';
       ffmpeg(file.path)
         .output(convertedAudioPath)
@@ -89,7 +89,7 @@ function processAudio(file) {
 function processVideo(file) {
   log.debug('Processing video file.');
   return new Promise(function(resolve, reject) {
-    if (file.type != 'video/mp4') {
+    if (file.type != 'video/mp4' && !file.name.endsWith('.mp4')) {
       var convertedVideoPath = file.path + '.mp4';
       ffmpeg(file.path)
         .output(convertedVideoPath)
