@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from apibase import APIBase
+from .apibase import APIBase
 
 
 class DeviceAPI(APIBase):

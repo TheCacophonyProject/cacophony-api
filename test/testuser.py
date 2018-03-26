@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from testexception import TestException
+from .testexception import TestException
 
 
 class TestUser:

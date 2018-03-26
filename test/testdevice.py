@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import json
 
-from testrecording import TestRecording
+from .testrecording import TestRecording
 
 
 class TestDevice:

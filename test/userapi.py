@@ -1,8 +1,8 @@
-from apibase import APIBase
-
 import json
 import requests
 from urllib.parse import urljoin
+
+from .apibase import APIBase
 
 
 class UserAPI(APIBase):

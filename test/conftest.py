@@ -5,7 +5,7 @@ made available for use within tests.
 
 import pytest
 
-from helper import Helper
+from .helper import Helper
 
 
 @pytest.fixture(scope='module')
