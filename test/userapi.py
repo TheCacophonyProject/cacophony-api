@@ -77,6 +77,11 @@ class UserAPI(APIBase):
         r = requests.get(url, headers=self._auth_header)
         return self._check_response(r)
 
+    def delete_audio(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
+        r = requests.delete(url, headers=self._auth_header)
+        return self._check_response(r)
+
     def download_cptv(self, id):
         return self._download_recording(id, 'downloadRawJWT')
 

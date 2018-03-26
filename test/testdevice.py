@@ -15,6 +15,11 @@ class TestDevice:
             self.devicename))
         return self.upload_recording()
 
+    def has_audio_recording(self):
+        self._print_description("    and '{}' has an audio recording ".format(
+            self.devicename))
+        return self.upload_audio_recording()
+
     def upload_recording(self):
         props = json.dumps({
             "type": "thermalRaw",

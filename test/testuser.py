@@ -1,3 +1,5 @@
+import pytest
+
 from testexception import TestException
 
 
@@ -61,9 +63,6 @@ class TestUser:
                 return True
         return False
 
-    def can_see_audio_recording(self, recording_id):
-        self._userapi.get_audio(recording_id)
-
     def can_see_recording_from(self, testdevice):
         recordings = self._userapi.query(limit=1)
         assert recordings, \
@@ -72,6 +71,16 @@ class TestUser:
         lastDevice = recordings[0]['Device']['devicename']
         assert lastDevice == testdevice.devicename, \
             "Latest recording is from device '{}', not from '{}'".format(lastDevice, testdevice.devicename)
+
+    def can_see_audio_recording(self, recording_id):
+        self._userapi.get_audio(recording_id)
+
+    def cannot_see_audio_recording(self, recording):
+        with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
+            self._userapi.get_audio(recording.recordingId)
+
+    def delete_audio_recording(self, recording):
+        self._userapi.delete_audio(recording.recordingId)
 
     def cannot_see_any_recordings(self):
         recordings = self._userapi.query(limit=10)
