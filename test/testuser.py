@@ -102,6 +102,15 @@ class TestUser:
         with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
             self._userapi.get_audio(recording.recordingId)
 
+    def cannot_see_any_audio_recordings(self):
+        rows = self._userapi.query_audio()
+        assert not rows
+
+    def can_see_audio_recordings(self, recordings):
+        expected_ids = {rec.recordingId for rec in recordings}
+        actual_ids = {row['id'] for row in self._userapi.query_audio()}
+        assert actual_ids == expected_ids
+
     def delete_audio_recording(self, recording):
         self._userapi.delete_audio(recording.recordingId)
 
