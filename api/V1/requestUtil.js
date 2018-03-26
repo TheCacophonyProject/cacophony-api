@@ -13,7 +13,7 @@ var INVALID_HEADER_WHERE =
   '"where" header field was not a valid integer';
 var INVALID_FORM_POST_DATA =
   '"data" field in form was not found or a valid JSON.';
-var INVALDI_FORM_POST_FILE =
+var INVALID_FORM_POST_FILE =
   '"file" field was not found or valid file.';
 var INVALID_TAGS_FIELD =
   '"tags" field was not found or a valid JSON.';
@@ -80,7 +80,7 @@ function getFileAndDataField(request) {
       // TODO do more checks that it is a valid file.
       var file = files.file;
       if (file === null || typeof file !== 'object')
-        return reject({ badRequest: INVALDI_FORM_POST_FILE });
+        return reject({ badRequest: INVALID_FORM_POST_FILE });
 
       return resolve([data, file]);
     });

@@ -10,4 +10,4 @@ class TestAudioDevice:
         recording = listener.upload_audio_recording()
 
         print("And the audio file should be visible to super users")
-        helper.admin_user().can_see_audio_recording(recording.recordingId)
+        helper.admin_user().can_see_audio_recording(recording)

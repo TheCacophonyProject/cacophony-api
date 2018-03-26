@@ -1,11 +1,14 @@
 class TestRecording:
-
-    def __init__(self, recordingId):
+    def __init__(self, recordingId, content):
         self.recordingId = recordingId
+        self.content = content
+
+    def __repr__(self):
+        return "<TestRecording: {}>".format(self.recordingId)
 
     def is_tagged_as(self, animal):
         return TestTagPromise(self, animal)
-        
+
 
 class TestTagPromise():
     def __init__(self, testrecording, animal):

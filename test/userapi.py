@@ -1,8 +1,8 @@
-from apibase import APIBase
-
 import json
 import requests
 from urllib.parse import urljoin
+
+from .apibase import APIBase
 
 
 class UserAPI(APIBase):
@@ -42,6 +42,19 @@ class UserAPI(APIBase):
         else:
             r.raise_for_status()
 
+
+    def download_cptv(self, id):
+        return self._download_recording(id, 'downloadRawJWT')
+
+    def download_mp4(self, id):
+        return self._download_recording(id, 'downloadFileJWT')
+
+    def _download_recording(self, id, jwt_key):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(id))
+        r = requests.get(url, headers=self._auth_header)
+        d = self._check_response(r)
+        return self._download_signed(d[jwt_key])
+
     def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
         url = urljoin(self._baseurl, '/api/v1/audiorecordings')
 
@@ -77,17 +90,16 @@ class UserAPI(APIBase):
         r = requests.get(url, headers=self._auth_header)
         return self._check_response(r)
 
-    def download_cptv(self, id):
-        return self._download_recording(id, 'downloadRawJWT')
+    def delete_audio(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
+        r = requests.delete(url, headers=self._auth_header)
+        return self._check_response(r)
 
-    def download_mp4(self, id):
-        return self._download_recording(id, 'downloadFileJWT')
-
-    def _download_recording(self, id, jwt_key):
-        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(id))
+    def download_audio(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
         r = requests.get(url, headers=self._auth_header)
         d = self._check_response(r)
-        return self._download_signed(d[jwt_key])
+        return self._download_signed(d['jwt'])
 
     def _download_signed(self, token):
         r = requests.get(

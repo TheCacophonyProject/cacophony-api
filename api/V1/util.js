@@ -98,7 +98,7 @@ function getRecordingFile(modelClass, request, response) {
   modelClass
     .getFileData(id, request.user)
     .then((fileData) => {
-      if (fileData === null) {
+      if (fileData === null || fileData.key === null) {
         responseUtil.invalidFileRequest(response, NO_FILE_FOUND);
         throw { badRequest: NO_FILE_FOUND };
       }

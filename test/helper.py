@@ -1,11 +1,11 @@
 from datetime import date
 
-from userapi import UserAPI
-from deviceapi import DeviceAPI
-from testuser import TestUser
-from testdevice import TestDevice
-from testconfig import TestConfig
-from testexception import TestException
+from .userapi import UserAPI
+from .deviceapi import DeviceAPI
+from .testuser import TestUser
+from .testdevice import TestDevice
+from .testconfig import TestConfig
+from .testexception import TestException
 
 
 class Helper:
@@ -43,7 +43,7 @@ class Helper:
         basename = self._make_long_name(testClass, name)
         testname = basename
 
-        for num in range(2,100):
+        for num in range(2, 1000):
             if ('"{}"'.format(testname) not in usednames):
                 return testname
             testname = "{}{}".format(basename, num)

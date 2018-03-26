@@ -1,4 +1,8 @@
-from testexception import TestException
+import io
+
+import pytest
+
+from .testexception import TestException
 
 
 class TestUser:
@@ -61,9 +65,6 @@ class TestUser:
                 return True
         return False
 
-    def can_see_audio_recording(self, recording_id):
-        self._userapi.get_audio(recording_id)
-
     def can_see_recording_from(self, testdevice):
         recordings = self._userapi.query(limit=1)
         assert recordings, \
@@ -93,6 +94,31 @@ class TestUser:
 
     def tag_recording(self, recordingId, tagDictionary):
         self._userapi.tag_recording(recordingId, tagDictionary)
+
+    def can_see_audio_recording(self, recording):
+        self._userapi.get_audio(recording.recordingId)
+
+    def cannot_see_audio_recording(self, recording):
+        with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
+            self._userapi.get_audio(recording.recordingId)
+
+    def cannot_see_any_audio_recordings(self):
+        rows = self._userapi.query_audio()
+        assert not rows
+
+    def can_see_audio_recordings(self, recordings):
+        expected_ids = {rec.recordingId for rec in recordings}
+        actual_ids = {row['id'] for row in self._userapi.query_audio()}
+        assert actual_ids == expected_ids
+
+    def delete_audio_recording(self, recording):
+        self._userapi.delete_audio(recording.recordingId)
+
+    def can_download_correct_audio_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_audio(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
 
 
 class RecordingQueryPromise:

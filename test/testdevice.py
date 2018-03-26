@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import json
 
-from testrecording import TestRecording
+from .testrecording import TestRecording
 
 
 class TestDevice:
@@ -15,24 +15,29 @@ class TestDevice:
             self.devicename))
         return self.upload_recording()
 
+    def has_audio_recording(self):
+        self._print_description("    and '{}' has an audio recording ".format(
+            self.devicename))
+        return self.upload_audio_recording()
+
     def upload_recording(self):
         props = json.dumps({
             "type": "thermalRaw",
             "recordingDateTime": self._make_timestamp(),
             "duration": 10,
         })
-        recording_id = self._deviceapi.upload_recording(
-            'files/small.cptv', props)
-        return TestRecording(recording_id)
+        filename = 'files/small.cptv'
+        recording_id = self._deviceapi.upload_recording(filename, props)
+        return TestRecording(recording_id, slurp(filename))
 
     def upload_audio_recording(self):
         props = json.dumps({
             "recordingDateTime": self._make_timestamp(),
             "duration": 1,
         })
-        recording_id = self._deviceapi.upload_audio_recording(
-            'files/small.mp3', props)
-        return TestRecording(recording_id)
+        filename = 'files/small.mp3'
+        recording_id = self._deviceapi.upload_audio_recording(filename, props)
+        return TestRecording(recording_id, slurp(filename))
 
     def _make_timestamp(self):
         # recordings need to be recorded at different second times else the search code doesn't work
@@ -43,3 +48,8 @@ class TestDevice:
 
     def _print_description(self, description):
         print(description, end='')
+
+
+def slurp(filename):
+    with open(filename, 'rb') as f:
+        return f.read()

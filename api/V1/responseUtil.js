@@ -2,6 +2,7 @@ var log = require('../../logging');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
 
+var INVALID_ID = 'Invalid id.';
 var INVALID_DATAPOINT_UPLOAD_REQUEST =
   'Request for uploading a datapoint was invalid';
 var INVALID_DATAPOINT_DELETE_REQUEST =
@@ -12,10 +13,6 @@ var INVALID_DATAPOINT_GET_REQUEST =
   'Request for getting datapoints was invalid';
 var INVALID_FILE_REQUEST =
   'Request for file download was invalid';
-var INVALID_ADD_TAGS_REQUEST =
-  'Request to add tags was invalid';
-var INVALID_DELETE_TAGS_REQUEST =
-  'Request to delete tags was invalid';
 var INVALID_GET_TAGS_REQUEST =
   'Request to get tags from datapoint was invalid.';
 var INVALID_VIDEO_PAIR_REQUEST =
@@ -65,6 +62,10 @@ function send(response, data) {
 
 
 //===========INVALID REQUESTS=============
+function invalidDataId(response, message) {
+  badRequest(response, [INVALID_ID, message]);
+}
+
 function invalidDatapointUpload(response, message) {
   badRequest(response, [INVALID_DATAPOINT_UPLOAD_REQUEST, message]);
 }
@@ -216,6 +217,7 @@ function notFromADevice(response) {
 }
 
 exports.send = send;
+exports.invalidDataId = invalidDataId;
 exports.invalidDatapointUpload = invalidDatapointUpload;
 exports.invalidDatapointDelete = invalidDatapointDelete;
 exports.invalidDatapointUpdate = invalidDatapointUpdate;
