@@ -1,12 +1,5 @@
-import pytest
-from helper import Helper
-
-
 class TestUser:
-
-     def test_can_create_new_user(self):
-        helper = Helper()
-
+    def test_can_create_new_user(self, helper):
         print("If a new user Bob signs up", end='')
         bob = helper.given_new_user(self, 'bob')
 
@@ -19,5 +12,3 @@ class TestUser:
         userdetails = bob.get_user_details(helper.admin_user())
 
         print("Bob's user id is {}".format(userdetails))
-
-    

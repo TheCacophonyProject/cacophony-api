@@ -1,10 +1,5 @@
-from helper import Helper
-
-
 class TestThermalDevice:
-    def test_can_upload_cptv(self):
-        helper = Helper()
-
+    def test_can_upload_cptv(self, helper):
         description = "If a new device 'Destroyer' signs up"
         destroyer = helper.given_new_device(self, 'Destroyer', description=description)
 

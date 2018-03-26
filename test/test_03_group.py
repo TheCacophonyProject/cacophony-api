@@ -1,11 +1,8 @@
 import pytest
-from helper import Helper
 
 class TestGroup:
 
-    def test_group_can_be_created_and_users_added_to_it(self):
-        helper = Helper()
-
+    def test_group_can_be_created_and_users_added_to_it(self, helper):
         print("If a new user Clare", end='')
         clare = helper.given_new_user(self, 'clare')
 
@@ -37,9 +34,3 @@ class TestGroup:
 
         # print("  then Daniel should see the recording from 'Terminator'")
         # clare.can_see_recording_from(terminator)
-
-
-
-
-
-
