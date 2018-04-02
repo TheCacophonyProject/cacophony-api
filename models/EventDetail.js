@@ -1,5 +1,5 @@
 module.exports = function(sequelize, DataTypes) {
-  var name = 'EventDetails';
+  var name = 'EventDetail';
 
   var attributes = {
     type: DataTypes.STRING,
@@ -8,9 +8,14 @@ module.exports = function(sequelize, DataTypes) {
 
   var options = {
     classMethods: {
-      addAssociations: function() {}
+      addAssociations: addAssociations,
     },
   };
 
   return sequelize.define(name, attributes, options);
 };
+
+function addAssociations(models) {
+  models.EventDetail.hasMany(models.Event);
+}
+

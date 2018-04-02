@@ -11,20 +11,42 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
+      middleware.authenticateDevice,
     ],
     middleware.requestWrapper(async (request, response) => {
 
-      var eventDetails = await models.EventDetails.create({
+      var mydetails = await models.EventDetail.create({
         type: request.body.type,
-        details: {"traptype": "pass"},
+        details: request.body.details,
       });
+
+      event = models.Event.create({
+       DeviceId: request.device.id,
+       EventDetailId: mydetails.id,
+      });
+
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ['Added event detail.'],
-        eventDetails: eventDetails.id
+        eventDetails: mydetails.id
       });
     })
   );
+
+  // app.get(
+  //   apiUrl,
+  //   [
+  //   ],
+  //   middleware.requestWrapper(async (request, response) => {
+  //     var devices = await models.EventDetails.allForUser(request.user);
+  //     return responseUtil.send(response, {
+  //       devices: devices,
+  //       statusCode: 200,
+  //       success: true,
+  //       messages: ["completed get devices query"],
+  //     });
+  //   })
+  // );
 };
