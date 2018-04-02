@@ -12,25 +12,30 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateDevice,
+      middleware.getEventDetailById.optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
 
-      var mydetails = await models.EventDetail.create({
-        type: request.body.type,
-        details: request.body.details,
-      });
+      var detailsId = request.body.eventDetailId
+      if (detailsId == null) {
+        var newDetails = await models.EventDetail.create({
+          type: request.body.type,
+          details: request.body.details,
+        });
+        detailsId = newDetails.id;
+      }
 
-      event = models.Event.create({
-       DeviceId: request.device.id,
-       EventDetailId: mydetails.id,
+      newEvent = await models.Event.create({
+        DeviceId: request.device.id,
+        EventDetailId: detailsId,
       });
-
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
-        messages: ['Added event detail.'],
-        eventDetails: mydetails.id
+        messages: ['Added event.'],
+        eventId: newEvent.id,
+        eventDetailId: detailsId,
       });
     })
   );

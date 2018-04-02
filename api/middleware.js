@@ -97,6 +97,8 @@ const getGroupByName = getModelByName(models.Group, 'group');
 const getDeviceById = getModelById(models.Device, 'deviceId');
 const getDeviceByName = getModelByName(models.Device, 'devicename');
 
+const getEventDetailById = getModelById(models.Device, 'eventDetailId');
+
 const checkNewName = function(field) {
   return check(field, 'invalid name')
     .isLength({ min: 3 })
@@ -160,6 +162,7 @@ exports.getGroupById       = getGroupById;
 exports.getGroupByName     = getGroupByName;
 exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
+exports.getEventDetailById = getEventDetailById;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
