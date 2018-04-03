@@ -9,6 +9,7 @@ module.exports = function(sequelize, DataTypes) {
   var options = {
     classMethods: {
       addAssociations: addAssociations,
+      getMatching: getMatching,
     },
   };
 
@@ -18,4 +19,11 @@ module.exports = function(sequelize, DataTypes) {
 function addAssociations(models) {
   models.EventDetail.hasMany(models.Event);
 }
+
+const getMatching = async function(searchType, searchDetails) {
+  return await this.findOne({ where: {
+    type: searchType,
+    details: searchDetails,
+  }});
+};
 

@@ -17,12 +17,18 @@ module.exports = function(app, baseUrl) {
     middleware.requestWrapper(async (request, response) => {
 
       var detailsId = request.body.eventDetailId
-      if (detailsId == null) {
-        var newDetails = await models.EventDetail.create({
-          type: request.body.type,
-          details: request.body.details,
-        });
-        detailsId = newDetails.id;
+      if (!detailsId) {
+        var existingMatchingDetail = await models.EventDetail.getMatching(request.body.type, request.body.details);
+        if (existingMatchingDetail) {
+          detailsId = existingMatchingDetail.id;
+        }
+        else {
+          var newDetails = await models.EventDetail.create({
+            type: request.body.type,
+            details: request.body.details,
+          });
+          detailsId = newDetails.id;
+        }
       }
 
       newEvent = await models.Event.create({
@@ -39,6 +45,7 @@ module.exports = function(app, baseUrl) {
       });
     })
   );
+
 
   // app.get(
   //   apiUrl,
