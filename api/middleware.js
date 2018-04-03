@@ -97,7 +97,7 @@ const getGroupByName = getModelByName(models.Group, 'group');
 const getDeviceById = getModelById(models.Device, 'deviceId');
 const getDeviceByName = getModelByName(models.Device, 'devicename');
 
-const getEventDetailById = getModelById(models.Device, 'eventDetailId');
+const getEventDetailById = getModelById(models.EventDetail, 'eventDetailId');
 
 const checkNewName = function(field) {
   return check(field, 'invalid name')

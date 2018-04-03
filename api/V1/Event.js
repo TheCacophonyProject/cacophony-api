@@ -13,8 +13,9 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateDevice,
+      middleware.getEventDetailById.optional(),
       oneOf([
-        middleware.getEventDetailById,
+        check("eventDetailId").exists(),
         check("type").exists(),
       ], "Either 'eventDetailId' or 'type' must be specified"),
     ],
@@ -38,6 +39,7 @@ module.exports = function(app, baseUrl) {
       newEvent = await models.Event.create({
         DeviceId: request.device.id,
         EventDetailId: detailsId,
+        eventDateTime: request.body.eventDateTime
       });
 
       return responseUtil.send(response, {

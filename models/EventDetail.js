@@ -10,6 +10,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       addAssociations: addAssociations,
       getMatching: getMatching,
+      getFromId: getFromId,
     },
   };
 
@@ -33,3 +34,6 @@ const getMatching = async function(searchType, searchDetails) {
   }});
 };
 
+const getFromId = async function(id) {
+  return await this.findById(id);
+};

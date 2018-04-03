@@ -33,7 +33,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      timestamp: {
+      eventDateTime: {
         type: Sequelize.DATE
       },
       createdAt: {
