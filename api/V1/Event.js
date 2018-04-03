@@ -1,6 +1,7 @@
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const { check, oneOf } = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/events';
@@ -12,7 +13,10 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateDevice,
-      middleware.getEventDetailById.optional(),
+      oneOf([
+        middleware.getEventDetailById,
+        check("type").exists(),
+      ], "Either 'eventDetailId' or 'type' must be specified"),
     ],
     middleware.requestWrapper(async (request, response) => {
 

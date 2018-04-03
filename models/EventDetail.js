@@ -21,6 +21,12 @@ function addAssociations(models) {
 }
 
 const getMatching = async function(searchType, searchDetails) {
+  if (!searchDetails) {
+    searchDetails = {
+      $eq: null
+    }
+  }
+
   return await this.findOne({ where: {
     type: searchType,
     details: searchDetails,
