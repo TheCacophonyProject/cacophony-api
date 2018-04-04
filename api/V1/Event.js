@@ -51,20 +51,4 @@ module.exports = function(app, baseUrl) {
       });
     })
   );
-
-
-  // app.get(
-  //   apiUrl,
-  //   [
-  //   ],
-  //   middleware.requestWrapper(async (request, response) => {
-  //     var devices = await models.EventDetails.allForUser(request.user);
-  //     return responseUtil.send(response, {
-  //       devices: devices,
-  //       statusCode: 200,
-  //       success: true,
-  //       messages: ["completed get devices query"],
-  //     });
-  //   })
-  // );
 };
