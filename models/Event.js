@@ -3,12 +3,12 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Event';
 
   var attributes = {
-    timestamp: DataTypes.DATE
+    eventDateTime: DataTypes.DATE,
   };
 
   var options = {
     classMethods: {
-      addAssociations: function() {}
+      addAssociations: addAssociations,
     },
   };
 
