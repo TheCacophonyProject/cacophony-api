@@ -49,6 +49,11 @@ class TestDevice:
     def _print_description(self, description):
         print(description, end='')
 
+    def record_event(self, _type, details):
+        self._print_description("    which has an event of type '{}' with details '{}'.".format(_type, details))
+        (count, detailsId) = self._deviceapi.record_event(_type, details)
+        print("  (EventDetails Id = {})".format(detailsId))
+        return (count, detailsId)
 
 def slurp(filename):
     with open(filename, 'rb') as f:
