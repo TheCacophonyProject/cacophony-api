@@ -14,6 +14,7 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateDevice,
       middleware.getEventDetailById.optional(),
+      check("eventDateTimes", "List of times event happened is required.").exists(),
       oneOf([
         check("eventDetailId").exists(),
         check("type").exists(),
@@ -36,17 +37,33 @@ module.exports = function(app, baseUrl) {
         }
       }
 
-      newEvent = await models.Event.create({
-        DeviceId: request.device.id,
-        EventDetailId: detailsId,
-        eventDateTime: request.body.eventDateTime
+      var eventList = [];
+      var count = 0;
+
+      request.body.eventDateTimes.forEach(function(time) {
+        eventList.push({
+          DeviceId: request.device.id,
+          EventDetailId: detailsId,
+          eventDateTime: time,
+        });
+        count++;
       });
+
+      try {
+        await models.Event.bulkCreate(eventList);
+      } catch (exception) {
+        return responseUtil.send(response, {
+          statusCode: 500,
+          success: false,
+          messages: ["Failed to record events.", exception.message],
+        });
+      }
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
-        messages: ['Added event.'],
-        eventId: newEvent.id,
+        messages: ['Added events.'],
+        eventsAdded: count,
         eventDetailId: detailsId,
       });
     })
