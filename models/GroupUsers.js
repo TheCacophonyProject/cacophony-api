@@ -24,7 +24,6 @@ module.exports = function(sequelize, DataTypes) {
 
   var options = {
     classMethods: {
-      addAssociations: () => {},
       isAdmin: isAdmin,
     },
   };
