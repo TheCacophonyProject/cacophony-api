@@ -40,14 +40,14 @@ class DeviceAPI(APIBase):
         return r.json()['recordingId']
 
     def record_event_data(self, eventData, times):
-        eventData["eventDateTimes"] = times
+        eventData["dateTimes"] = times
         url = urljoin(self._baseurl, "/api/v1/events")
         response = requests.post(url, headers=self._auth_header, json=eventData)
         self._check_response(response)
         return (response.json()["eventsAdded"], response.json()["eventDetailId"])
 
     def record_event(self, _type, details, times=[datetime.utcnow().isoformat()]):
-        return self.record_event_data({"type": _type, "details": details}, times)
+        return self.record_event_data({"description" : {"type": _type, "details": details}}, times)
 
     def record_event_from_id (self, eventDetailId, times=[datetime.utcnow().isoformat()]):
         return self.record_event_data({"eventDetailId": eventDetailId}, times)

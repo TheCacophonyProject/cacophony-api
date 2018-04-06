@@ -3,7 +3,7 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Event';
 
   var attributes = {
-    eventDateTime: DataTypes.DATE,
+    dateTime: DataTypes.DATE,
   };
 
   var options = {
