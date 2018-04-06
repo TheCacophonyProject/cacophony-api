@@ -1,10 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
-var path = require('path');
-var winston = require('winston');
-var fs = require('fs');
-var tcpPortUsed = require('tcp-port-used');
 var http = require('http');
 
 var configPath = './config/app.js';
@@ -69,7 +65,7 @@ models.sequelize
 function openHttpServer(app) {
   return new Promise(function(resolve, reject) {
     if (!config.server.http.active)
-      return resolve();
+    {return resolve();}
     try {
       log.info('Starting http server on ', config.server.http.port);
       http.createServer(app).listen(config.server.http.port);
@@ -87,7 +83,7 @@ function checkS3Connection() {
     var s3 = modelsUtil.openS3();
     var params = { Bucket: config.s3.bucket };
     log.info("Connecting to S3.....");
-    s3.headBucket(params, function(err, data) {
+    s3.headBucket(params, function(err) {
       if (err) {
         log.error("Error with connecting to S3.");
         return reject(err);

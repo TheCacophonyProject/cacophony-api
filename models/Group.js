@@ -150,7 +150,7 @@ var apiSettableFields = [];
 
 function getIdFromName(name) {
   var Group = this;
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     Group.findOne({ where: { groupname: name } })
       .then(function(group) {
         if (!group) {

@@ -18,7 +18,7 @@ module.exports = {
     ]);
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function(queryInterface) {
     return Promise.all([
       queryInterface.removeColumn('AudioRecordings', 'relativeToDawn'),
       queryInterface.removeColumn('IrVideoRecordings', 'relativeToDawn'),

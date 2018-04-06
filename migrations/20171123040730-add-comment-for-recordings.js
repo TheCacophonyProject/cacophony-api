@@ -6,7 +6,7 @@ module.exports = {
       'Recordings', 'comment', Sequelize.STRING);
   },
 
-  down: async function (queryInterface, Sequelize) {
+  down: async function (queryInterface) {
     return await queryInterface.removeColumn('Recordings', 'comment');
   }
 };

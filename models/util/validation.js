@@ -10,7 +10,7 @@ function isLatLon(point) {
     typeof val[1] !== 'number' ||
     val[0] < -90 || 90 < val[0] ||
     val[1] < -180 || 180 <= val[1]
-  ) throw new Error('Location is not valid.');
+  ) {throw new Error('Location is not valid.');}
 }
 
 exports.isLatLon = isLatLon;

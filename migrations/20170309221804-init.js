@@ -164,7 +164,7 @@ module.exports = {
     });
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function() {
     return new Promise(function(resolve, reject) {
       console.log('Can not undo init migration.');
       reject('Can not undo init migration.');
