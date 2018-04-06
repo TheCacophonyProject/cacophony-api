@@ -173,7 +173,7 @@ module.exports = function(app, baseUrl) {
 
       var id = parseInt(req.params.id);
       if (!id)
-        return responseUtil.invalidDataId(res);
+      {return responseUtil.invalidDataId(res);}
 
       models.ThermalVideoRecording
         .getFromId(id, req.user)

@@ -3,7 +3,6 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const check        = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';

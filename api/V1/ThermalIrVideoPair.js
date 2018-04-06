@@ -2,7 +2,6 @@ var db = require('../../models');
 var util = require('./util');
 var passport = require('passport');
 var log = require('../../logging');
-var tagsUtil = require('./tagsUtil');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
 
@@ -26,7 +25,7 @@ module.exports = function(app, baseUrl) {
       log.info(req.method + " Request: " + req.url);
 
       if (req.user !== null && !requestUtil.isFromADevice(req))
-        return responseUtil.notFromADevice(res);
+      {return responseUtil.notFromADevice(res);}
 
       var thermalModel;
       var irModel;
@@ -42,7 +41,7 @@ module.exports = function(app, baseUrl) {
           irVideo = files.irVideo;
 
           if (!thermalData || !irData || !thermalVideo || !irVideo)
-            throw { badRequest: MISSING_FIELDS };
+          {throw { badRequest: MISSING_FIELDS };}
 
           // Build models
           thermalModel = db.ThermalVideoRecording.build(thermalData, {

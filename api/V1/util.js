@@ -15,11 +15,11 @@ function getRecordingsFromModel(modelClass, request, response) {
   // authenticated by a user JWT, not a device JWT.
   // TODO get passport to do this...
   if (request.user !== null && !requestUtil.isFromAUser(request))
-    return responseUtil.notFromAUser(response);
+  {return responseUtil.notFromAUser(response);}
 
   var query = requestUtil.getSequelizeQueryFromHeaders(request);
   if (query.badRequest)
-    return responseUtil.invalidDatapointGet(response, query.badRequest);
+  {return responseUtil.invalidDatapointGet(response, query.badRequest);}
 
   modelClass
     .findAllWithUser(request.user, query)
@@ -32,7 +32,7 @@ function getRecordingsFromModel(modelClass, request, response) {
       };
       // Just save the front end fields for each model.
       for (var key in modelInstances.rows)
-        result.rows.push(modelInstances.rows[key].getFrontendFields());
+      {result.rows.push(modelInstances.rows[key].getFrontendFields());}
 
       return responseUtil.validDatapointGet(response, result);
     })
@@ -89,11 +89,11 @@ function getRecordingFile(modelClass, request, response) {
   // authenticated by a user JWT, not a device JWT.
   // TODO get passport to do this...
   if (request.user !== null && !requestUtil.isFromAUser(request))
-    return responseUtil.notFromAUser(response);
+  {return responseUtil.notFromAUser(response);}
 
   var id = parseInt(request.params.id);
   if (!id)
-    return responseUtil.invalidDataId(response);
+  {return responseUtil.invalidDataId(response);}
 
   modelClass
     .getFileData(id, request.user)
@@ -117,15 +117,15 @@ function getRecordingFile(modelClass, request, response) {
 function updateDataFromPut(modelClass, request, response) {
 
   if (!requestUtil.isFromAUser(request))
-    return responseUtil.notFromAUser(response);
+  {return responseUtil.notFromAUser(response);}
 
   var data = parseJsonFromString(request.body.data);
   if (data === null)
-    return responseUtil.invalidDatapointUpdate(response, INVALID_DATA);
+  {return responseUtil.invalidDatapointUpdate(response, INVALID_DATA);}
 
   var id = parseInt(request.params.id);
   if (!id)
-    return responseUtil.invalidDatapointUpdate(response, INVALID_ID);
+  {return responseUtil.invalidDatapointUpdate(response, INVALID_ID);}
 
   modelClass
     .findAllWithUser(request.user, { where: { id: id } })
@@ -147,11 +147,11 @@ function updateDataFromPut(modelClass, request, response) {
 
 function deleteDataPoint(modelClass, request, response) {
   if (!requestUtil.isFromAUser(request))
-    return responseUtil.notFromAUser(response);
+  {return responseUtil.notFromAUser(response);}
 
   var id = parseInt(request.params.id);
   if (!id)
-    return responseUtil.invalidDataId(response);
+  {return responseUtil.invalidDataId(response);}
 
   modelClass
     .deleteModelInstance(id, request.user)

@@ -21,16 +21,13 @@ module.exports = function(sequelize, DataTypes) {
     });
     return groupUsers != null;
   };
-  
+
   var options = {
     classMethods: {
-      addAssociations: addAssociations,
+      addAssociations: () => {},
       isAdmin: isAdmin,
     },
   };
 
   return sequelize.define(name, attributes, options);
 };
-
-function addAssociations(models) {
-}

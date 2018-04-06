@@ -66,7 +66,7 @@ module.exports = {
           updatedAt: { type: Sequelize.DATE, allowNull: false },
         })
         .then(() => {
-          return util.addSerial(queryInterface, 'Tags')
+          return util.addSerial(queryInterface, 'Tags');
         })
         .then(() => {
           return Promise.all([
@@ -84,12 +84,12 @@ module.exports = {
           resolve();
         })
         .catch(err => {
-          reject(err)
-        })
-    })
+          reject(err);
+        });
+    });
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function(queryInterface) {
     return queryInterface.sequelize.query('DROP TABLE "Tags" CASCADE');
   }
 };

@@ -104,10 +104,10 @@ function getFrontendFields() {
   var model = this;
   var group = null;
   if (model.dataValues.Group)
-    group = model.dataValues.Group.dataValues.groupname;
+  {group = model.dataValues.Group.dataValues.groupname;}
   var tags = [];
   for (var tag in model.getDataValue('Tags'))
-    tags.push(model.getDataValue('Tags')[tag].getFrontendFields());
+  {tags.push(model.getDataValue('Tags')[tag].getFrontendFields());}
   return {
     id: model.getDataValue('id'),
     recordingDateTime: model.getDataValue('recordingDateTime'),
