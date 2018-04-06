@@ -1,9 +1,9 @@
 {
-  "name": "Full_Noise",
+  "name": "cacophony-api",
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheCacophonyProject/Full_Noise.git"
+    "url": "https://github.com/TheCacophonyProject/cacophony-api.git"
   },
   "version": "0.0.1",
   "dependencies": {
