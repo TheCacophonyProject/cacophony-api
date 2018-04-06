@@ -4,8 +4,7 @@ const jwt        = require('jsonwebtoken');
 const format     = require('util').format;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const log        = require('../logging');
-const { check, header, validationResult, query } = require('express-validator/check');
-
+const { body, check, header, validationResult, query } = require('express-validator/check');
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
@@ -88,6 +87,22 @@ function modelTypeName(modelType) {
   return modelType.options.name.singular.toLowerCase();
 }
 
+const isDateArray = function(fieldName, customError) {
+  return body(fieldName, customError).exists().custom((value, {request}) => {
+    if (Array.isArray(value)) {
+      value.forEach((dateAsString) => {
+        if (isNaN(Date.parse(dateAsString))) {
+          throw new Error(format("Cannot parse '%s' into a date.  Try formatting the date like '2017-11-13T00:47:51.160Z'.", dateAsString));
+        }
+      });
+      return true;
+    }
+    else {
+      throw new Error("Value should be an array.");
+    }
+  });
+};
+
 const getUserById = getModelById(models.User, 'userId');
 const getUserByName = getModelByName(models.User, 'username');
 
@@ -168,3 +183,4 @@ exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
 exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
+exports.isDateArray        = isDateArray;

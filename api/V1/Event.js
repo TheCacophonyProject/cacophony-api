@@ -35,7 +35,7 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateDevice,
       middleware.getEventDetailById.optional(),
-      check("dateTimes", "List of times event happened is required.").exists(),
+      middleware.isDateArray("dateTimes", "List of times event occured is required."),
       oneOf([
         check("eventDetailId").exists(),
         check("description.type").exists(),
@@ -67,7 +67,7 @@ module.exports = function(app, baseUrl) {
         eventList.push({
           DeviceId: request.device.id,
           EventDetailId: detailsId,
-          eventDateTime: time,
+          dateTime: time,
         });
         count++;
       });
