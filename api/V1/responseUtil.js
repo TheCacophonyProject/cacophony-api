@@ -18,8 +18,6 @@ const VALID_DELETE_TAGS_REQUEST =
   'Tags were deleted successfuly.';
 const VALID_GET_TAGS_REQUEST =
   'Successful GET tags request.';
-const VALID_VIDEO_PAIR_UPLOAD =
-  'Successful upload of video pair.';
 const VALID_GET_MODEL =
   'Successful get datapoint.';
 
@@ -40,8 +38,6 @@ const INVALID_DELETE_TAG_REQUEST =
   'Request to delete a tag was invalid.';
 const INVALID_GET_TAGS_REQUEST =
   'Request to get tags from datapoint was invalid.';
-const INVALID_VIDEO_PAIR_REQUEST =
-  'Request to upload video pair was invalid.';
 
 const NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
@@ -107,10 +103,6 @@ function invalidGetTags(response, message) {
 
 function badRequest(response, messages) {
   send(response, { statusCode: 400, success: false, messages: messages });
-}
-
-function invalidVideoPair(response, message) {
-  badRequest(response, [INVALID_VIDEO_PAIR_REQUEST, message]);
 }
 
 //======VALID REQUESTS=========
@@ -182,14 +174,6 @@ function validGetTags(response, tags) {
   });
 }
 
-function validThermalIrVideoPair(response) {
-  send(response, {
-    statusCode: 200,
-    success: true,
-    messages: [VALID_VIDEO_PAIR_UPLOAD],
-  });
-}
-
 function validGetDatapoint(response, model) {
   send(response, {
     statusCode: 200,
@@ -233,7 +217,6 @@ exports.invalidFileRequest = invalidFileRequest;
 exports.invalidAddTags = invalidAddTags;
 exports.invalidDeleteTags = invalidDeleteTags;
 exports.invalidGetTags = invalidGetTags;
-exports.invalidVideoPair = invalidVideoPair;
 exports.validRecordingUpload = validRecordingUpload;
 exports.validDatapointDelete = validDatapointDelete;
 exports.validDatapointUpdate = validDatapointUpdate;
@@ -242,7 +225,6 @@ exports.validFileRequest = validFileRequest;
 exports.validAddTags = validAddTags;
 exports.validDeleteTags = validDeleteTags;
 exports.validGetTags = validGetTags;
-exports.validThermalIrVideoPair = validThermalIrVideoPair;
 exports.validGetDatapoint = validGetDatapoint;
 exports.serverError = serverError;
 exports.notFromAUser = notFromAUser;
