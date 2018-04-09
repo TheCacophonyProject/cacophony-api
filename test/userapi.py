@@ -42,12 +42,16 @@ class UserAPI(APIBase):
         else:
             r.raise_for_status()
 
+    def get_recording(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
+        r = requests.get(url, headers=self._auth_header)
+        return self._check_response(r)['recording']
 
-    def download_cptv(self, id):
-        return self._download_recording(id, 'downloadRawJWT')
+    def download_cptv(self, recording_id):
+        return self._download_recording(recording_id, 'downloadRawJWT')
 
-    def download_mp4(self, id):
-        return self._download_recording(id, 'downloadFileJWT')
+    def download_mp4(self, recording_id):
+        return self._download_recording(recording_id, 'downloadFileJWT')
 
     def _download_recording(self, id, jwt_key):
         url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(id))

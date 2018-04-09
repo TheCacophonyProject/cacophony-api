@@ -81,6 +81,40 @@ class TestUser:
                 "User '{}' can see a recording from '{}'".format(
                     self.username, recordings[0]['Device']['devicename']))
 
+    def can_download_correct_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_cptv(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
+
+        recv_props = self._userapi.get_recording(recording.recordingId)
+
+        props = recording.props.copy()
+
+        # # These are expected to be there but the values aren't tested.
+        del recv_props['Device']
+        del recv_props['Tags']
+        del recv_props['GroupId']
+        del recv_props['location']
+        del recv_props['fileKey']
+        del recv_props['rawFileKey']
+        del recv_props['rawFileSize']
+        del recv_props['fileMimeType']
+        del recv_props['fileSize']
+
+        assert recv_props.pop('id') == recording.recordingId
+        assert recv_props.pop('processingState') == 'toMp4'
+
+        # # Time formatting may differ so these are handled specially.
+        assertDateTimeStrings(
+            recv_props.pop('recordingDateTime'),
+            props.pop('recordingDateTime'),
+        )
+
+        # Compare the remaining properties.
+        assert recv_props == props
+
+
     def create_group(self, groupname):
         try:
             self._userapi.create_group(groupname)
@@ -143,6 +177,7 @@ class TestUser:
                 # Tags have never been used for audio recordings.
                 assert row.pop('tags') == []
 
+                # Compare the remaining properties.
                 assert row == props
                 return
 

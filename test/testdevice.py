@@ -24,6 +24,14 @@ class TestDevice:
             "type": "thermalRaw",
             "recordingDateTime": self._make_timestamp().isoformat(),
             "duration": 10,
+            "comment": "hmmm",
+            "batteryLevel": 98,
+            "batteryCharging": "CHARGING",
+            "airplaneModeOn": False,
+            "version": "223",
+            "additionalMetadata": {
+                "bar": "foo",
+            },
         }
         filename = 'files/small.cptv'
         recording_id = self._deviceapi.upload_recording(filename, props)
