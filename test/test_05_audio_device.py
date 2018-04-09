@@ -9,5 +9,5 @@ class TestAudioDevice:
         print("And 'Listener' should be able to upload an audio file")
         recording = listener.upload_audio_recording()
 
-        print("And the audio file should be visible to super users")
-        helper.admin_user().can_see_audio_recording(recording)
+        print("And the audio recording can be downloaded by the super user")
+        helper.admin_user().can_download_correct_audio_recording(recording)

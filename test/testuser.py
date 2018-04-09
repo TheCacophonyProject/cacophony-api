@@ -120,6 +120,35 @@ class TestUser:
             content.write(chunk)
         assert content.getvalue() == recording.content
 
+        # For audio recordings there's no way to get audio metadata
+        # directly so the query API must be used.
+        for row in self._userapi.query_audio(limit=10):
+            if row['id'] == recording.recordingId:
+                props = recording.props.copy()
+
+                # These are expected to be there but the values aren't tested.
+                del row['id']
+                del row['groupId']
+                del row['group']
+                del row['deviceId']
+                del row['location']
+                del row['fileKey']
+
+                # Time formatting may differ so these are handled specially.
+                assertDateTimeStrings(
+                    row.pop('recordingDateTime'),
+                    props.pop('recordingDateTime'),
+                )
+
+                # Tags have never been used for audio recordings.
+                assert row.pop('tags') == []
+
+                assert row == props
+                return
+
+        # Shouldn't happen
+        raise ValueError("audio recording not found in query result")
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
@@ -163,3 +192,7 @@ class RecordingQueryPromise:
             x for x in allRecordings if x not in self._expectedTestRecordings
         ]
         self.cannot_see_recordings(*expectedMissingRecordings)
+
+
+def assertDateTimeStrings(left, right):
+    assert left[:23] == right[:23]

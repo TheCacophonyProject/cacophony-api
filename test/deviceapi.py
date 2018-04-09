@@ -1,3 +1,4 @@
+import json
 import os
 import json
 from urllib.parse import urljoin
@@ -13,17 +14,19 @@ class DeviceAPI(APIBase):
     def __init__(self, baseurl, devicename, password='password'):
         super().__init__('device', baseurl, devicename, password)
 
-    def upload_recording(self, filename, json_props='{"type": "thermalRaw"}'):
-        return self._upload('/api/v1/recordings', filename, json_props)
+    def upload_recording(self, filename, props=None):
+        if not props:
+            props = {"type": "thermalRaw"}
+        return self._upload('/api/v1/recordings', filename, props)
 
-    def upload_audio_recording(self, filename, json_props='{}'):
-        return self._upload('/api/v1/audiorecordings', filename, json_props)
+    def upload_audio_recording(self, filename, props=None):
+        if not props:
+            props = {}
+        return self._upload('/api/v1/audiorecordings', filename, props)
 
-    def _upload(self, url, filename, json_props):
+    def _upload(self, url, filename, props):
         url = urljoin(self._baseurl, url)
-
-        if json_props is None:
-            json_props = '{}'
+        json_props = json.dumps(props)
 
         with open(filename, 'rb') as content:
             multipart_data = MultipartEncoder(
