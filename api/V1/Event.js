@@ -43,9 +43,9 @@ module.exports = function(app, baseUrl) {
     ],
     middleware.requestWrapper(async (request, response) => {
 
-      var detailsId = request.body.eventDetailId
+      var detailsId = request.body.eventDetailId;
       if (!detailsId) {
-        var description = request.body.description
+        var description = request.body.description;
 
         var existingMatchingDetail = await models.EventDetail.getMatching(description.type, description.details);
         if (existingMatchingDetail) {

@@ -2,46 +2,53 @@ var log = require('../../logging');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
 
-var INVALID_ID = 'Invalid id.';
-var INVALID_DATAPOINT_UPLOAD_REQUEST =
-  'Request for uploading a datapoint was invalid';
-var INVALID_DATAPOINT_DELETE_REQUEST =
-  'Request for deleting a datapoint was invalid';
-var INVALID_DATAPOINT_UPDATE_REQUEST =
-  'Request for updating a datapoint was invalid';
-var INVALID_DATAPOINT_GET_REQUEST =
-  'Request for getting datapoints was invalid';
-var INVALID_FILE_REQUEST =
-  'Request for file download was invalid';
-var INVALID_GET_TAGS_REQUEST =
-  'Request to get tags from datapoint was invalid.';
-var INVALID_VIDEO_PAIR_REQUEST =
-  'Request to upload video pair was invalid.';
-var VALID_DATAPOINT_UPLOAD_REQUEST =
+const VALID_DATAPOINT_UPLOAD_REQUEST =
   'Thanks for the data.';
-var VALID_DATAPOINT_DELETE_REQUEST =
+const VALID_DATAPOINT_DELETE_REQUEST =
   'Datapoint deleted.';
-var VALID_DATAPOINT_UPDATE_REQUEST =
+const VALID_DATAPOINT_UPDATE_REQUEST =
   'Datapoint was updated.';
-var VALID_DATAPOINT_GET_REQUEST =
+const VALID_DATAPOINT_GET_REQUEST =
   'Successful datapoint get request.';
-var VALID_FILE_REQUEST =
+const VALID_FILE_REQUEST =
   'Successful file request.';
-var VALID_ADD_TAGS_REQUEST =
+const VALID_ADD_TAGS_REQUEST =
   'Tags were added successfuly.';
-var VALID_DELETE_TAGS_REQUEST =
+const VALID_DELETE_TAGS_REQUEST =
   'Tags were deleted successfuly.';
-var VALID_GET_TAGS_REQUEST =
+const VALID_GET_TAGS_REQUEST =
   'Successful GET tags request.';
-var VALID_VIDEO_PAIR_UPLOAD =
+const VALID_VIDEO_PAIR_UPLOAD =
   'Successful upload of video pair.';
-var VALID_GET_MODEL =
+const VALID_GET_MODEL =
   'Successful get datapoint.';
-var NOT_FROM_A_USER =
+
+const INVALID_ID = 'Invalid id.';
+const INVALID_DATAPOINT_UPLOAD_REQUEST =
+  'Request for uploading a datapoint was invalid';
+const INVALID_DATAPOINT_DELETE_REQUEST =
+  'Request for deleting a datapoint was invalid';
+const INVALID_DATAPOINT_UPDATE_REQUEST =
+  'Request for updating a datapoint was invalid';
+const INVALID_DATAPOINT_GET_REQUEST =
+  'Request for getting datapoints was invalid';
+const INVALID_FILE_REQUEST =
+  'Request for file download was invalid';
+const INVALID_ADD_TAG_REQUEST =
+  'Request to add a tag was invalid.';
+const INVALID_DELETE_TAG_REQUEST =
+  'Request to delete a tag was invalid.';
+const INVALID_GET_TAGS_REQUEST =
+  'Request to get tags from datapoint was invalid.';
+const INVALID_VIDEO_PAIR_REQUEST =
+  'Request to upload video pair was invalid.';
+
+const NOT_FROM_A_USER =
   'Request was authenticated with a valid JWT but the JWT was not from a User';
-var NOT_FROM_A_DEVICE =
+const NOT_FROM_A_DEVICE =
   'Request was authenticated with a valid JWT but the JWT was not from' +
   ' a Device';
+
 
 function send(response, data) {
   // Check that the data is valid.
@@ -91,7 +98,7 @@ function invalidAddTags(response, message) {
 }
 
 function invalidDeleteTags(response, message) {
-  badRequest(resonse, [INVALID_DELETE_TAG_REQUEST, message]);
+  badRequest(response, [INVALID_DELETE_TAG_REQUEST, message]);
 }
 
 function invalidGetTags(response, message) {
@@ -116,7 +123,7 @@ function validRecordingUpload(response, idOfRecording) {
   });
 }
 
-function validDatapointDelete(response, message) {
+function validDatapointDelete(response) {
   send(response, {
     statusCode: 200,
     success: true,

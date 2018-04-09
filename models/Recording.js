@@ -256,7 +256,7 @@ function getUserPermissions(user) {
     canView: false,
     canUpdate: false,
   };
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve) => {
     var groupIds = await user.getGroupsIds();
     if (groupIds.indexOf(this.GroupId) !== -1) {
       permissions.canDelete = true;

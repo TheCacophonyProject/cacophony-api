@@ -1,9 +1,9 @@
 {
-  "name": "Full_Noise",
+  "name": "cacophony-api",
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheCacophonyProject/Full_Noise.git"
+    "url": "https://github.com/TheCacophonyProject/cacophony-api.git"
   },
   "version": "0.0.1",
   "dependencies": {
@@ -41,5 +41,11 @@
     "tcp-port-used": "^0.1.2",
     "uuid": "^3.2.1",
     "winston": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  },
+  "scripts": {
+    "lint": "eslint --ignore-path .gitignore ."
   }
 }

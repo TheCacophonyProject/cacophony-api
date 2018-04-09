@@ -38,7 +38,7 @@ module.exports = {
     return util.migrationAddBelongsTo(queryInterface, 'Recordings', 'Devices');
   },
 
-  down: async function (queryInterface, Sequelize) {
+  down: async function (queryInterface) {
     await queryInterface.removeColumn('Tags', 'RecordingId');
     return queryInterface.dropTable('Recordings');
   }

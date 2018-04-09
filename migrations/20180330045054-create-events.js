@@ -48,7 +48,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, 'Events', 'Devices');
     await util.migrationAddBelongsTo(queryInterface, 'Events', 'EventDetails');
   },
-  down: async function(queryInterface, Sequelize) {
+  down: async function(queryInterface) {
     await queryInterface.dropTable('Events');
     await queryInterface.dropTable('EventDetails');
   }

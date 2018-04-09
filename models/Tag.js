@@ -1,5 +1,4 @@
 var util = require('./util/util');
-var validation = require('./util/validation');
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
@@ -62,11 +61,11 @@ async function deleteFromId(id, user) {
   if (tag == null) {
     return false;
   }
-  if (tag.taggerId = user.id) {
+  if (tag.taggerId === user.id) {
     await tag.destroy();
     return true;
   }
-  else return false;
+  else {return false;}
 }
 
 var apiUpdateableFields = [];
@@ -98,7 +97,7 @@ var apiSettableFields = [
   'sex',
   'age',
   'automatic',
-  ];
+];
 
 function addAssociations(models) {
   models.Tag.belongsTo(models.ThermalVideoRecording);

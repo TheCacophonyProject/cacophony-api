@@ -8,10 +8,10 @@ var config = require('../../config');
 
 
 function findAllWithUser(model, user, queryParams) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     var models = require('../');
-    if (typeof queryParams.limit == 'undefined') queryParams.limit = 20;
-    if (typeof queryParams.offset == 'undefined') queryParams.offset = 0;
+    if (typeof queryParams.limit == 'undefined') {queryParams.limit = 20;}
+    if (typeof queryParams.offset == 'undefined') {queryParams.offset = 0;}
     queryParams.order = [
       ['recordingDateTime', 'DESC'],
     ];
@@ -109,7 +109,7 @@ function processVideo(file) {
 }
 
 function getMetadataFromFile(filePath, mimeType) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     var size = fs.statSync(filePath).size || 0;
     mimeType = mimeType || mime.lookup(filePath);
     var extname = path.extname(filePath) || '';
@@ -136,7 +136,7 @@ function getFileData(model, id, user) {
           };
           return resolve(fileData);
         } else
-          return resolve(null);
+        {return resolve(null);}
       })
       .catch(function(err) {
         log.error("Error at models/util.js getFileKey:");
@@ -149,29 +149,29 @@ function getFileName(model) {
   var fileName;
   var dateStr = model.getDataValue('recordingDateTime');
   if (dateStr)
-    fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g,
-      '');
+  {fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g,
+    '');}
   else
-    fileName = 'file';
+  {fileName = 'file';}
 
   var ext = mime.extension(model.getDataValue('mimeType') || '');
-  if (ext) fileName = fileName + '.' + ext;
+  if (ext) {fileName = fileName + '.' + ext;}
   return fileName;
 }
 
 function geometrySetter(val) {
   // Put here so old apps that send location in a string still work.
   // TODO remove this when nobody is using the old app that sends a string.
-  if (typeof val === 'string') return;
+  if (typeof val === 'string') {return;}
   this.setDataValue('location', { type: 'Point', coordinates: val });
 }
 
 function addTags(newTags) {
   var model = this;
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     // Get current tags, if no tags already make default tag JSON.
     var tags = model.get('tags');
-    if (tags === null) tags = { length: 0, nextId: 1 };
+    if (tags === null) {tags = { length: 0, nextId: 1 };}
 
     for (var key in newTags) {
       tags[tags.nextId] = newTags[key];
@@ -185,14 +185,14 @@ function addTags(newTags) {
 
 function deleteTags(tagsIds) {
   var model = this;
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     var tags = model.get('tags');
-    if (!tags) resolve();
+    if (!tags) {resolve();}
     for (var id in tagsIds)
-      if (id !== 'nextId' || id !== 'length') {
-        delete tags[tagsIds[id]];
-        tags.length = tags.length - 1;
-      }
+    {if (id !== 'nextId' || id !== 'length') {
+      delete tags[tagsIds[id]];
+      tags.length = tags.length - 1;
+    }}
     model.set('tags', tags);
     model.save().then(() => resolve());
   });
@@ -201,16 +201,16 @@ function deleteTags(tagsIds) {
 function migrationAddBelongsTo(queryInterface, childTable, parentTable, name) {
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
   if (name)
-    columnName = name + 'Id';
+  {columnName = name + 'Id';}
   else
-    columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
+  {columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';}
   var constraintName = childTable + '_' + columnName + '_fkey';
   return new Promise(function(resolve, reject) {
     queryInterface.sequelize.query(
-        'ALTER TABLE "' + childTable +
+      'ALTER TABLE "' + childTable +
         '" ADD COLUMN "' + columnName +
         '" INTEGER;'
-      )
+    )
       .then(() => {
         return queryInterface.sequelize.query(
           'ALTER TABLE "' + childTable +
@@ -243,33 +243,33 @@ function belongsToMany(queryInterface, viaTable, table1, table2) {
   console.log('Adding belongs to many columns.');
   return new Promise(function(resolve, reject) {
     Promise.all([
-        queryInterface.sequelize.query(
-          'ALTER TABLE "' + viaTable +
+      queryInterface.sequelize.query(
+        'ALTER TABLE "' + viaTable +
           '" ADD COLUMN "' + columnName1 +
           '" INTEGER;'
-        ),
-        queryInterface.sequelize.query(
-          'ALTER TABLE "' + viaTable +
+      ),
+      queryInterface.sequelize.query(
+        'ALTER TABLE "' + viaTable +
           '" ADD COLUMN "' + columnName2 +
           '" INTEGER;'
-        ),
-      ]).then(() => {
-        console.log('Adding belongs to many constraint.');
-        return Promise.all([
-          queryInterface.sequelize.query(
-            'ALTER TABLE "' + viaTable +
+      ),
+    ]).then(() => {
+      console.log('Adding belongs to many constraint.');
+      return Promise.all([
+        queryInterface.sequelize.query(
+          'ALTER TABLE "' + viaTable +
             '" ADD CONSTRAINT "' + constraintName1 +
             '" FOREIGN KEY ("' + columnName1 +
             '") REFERENCES "' + table1 +
             '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
-          queryInterface.sequelize.query(
-            'ALTER TABLE "' + viaTable +
+        queryInterface.sequelize.query(
+          'ALTER TABLE "' + viaTable +
             '" ADD CONSTRAINT "' + constraintName2 +
             '" FOREIGN KEY ("' + columnName2 +
             '") REFERENCES "' + table2 +
             '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
-        ]);
-      })
+      ]);
+    })
       .then(() => resolve())
       .catch((err) => reject(err));
   });
@@ -284,12 +284,12 @@ function addSerial(queryInterface, tableName) {
 
 function getFromId(id, user, attributes) {
   var modelClass = this;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Get just public models if no user was given
     if (!user)
-      return modelClass
-        .findOne({ where: { id: id, public: true } })
-        .then(resolve);
+    {return modelClass
+      .findOne({ where: { id: id, public: true } })
+      .then(resolve);}
 
     user
       .getGroupsIds()
@@ -324,7 +324,7 @@ function deleteModelInstance(id, user) {
       .then(mi => {
         modelInstance = mi;
         if (modelInstance === null)
-          throw {badRequest: 'No file found'};
+        {throw {badRequest: 'No file found'};}
         return modelInstance.fileKey;
       })
       .then(fileKey => deleteFile(fileKey))
@@ -336,27 +336,26 @@ function deleteModelInstance(id, user) {
 
 function userCanEdit(id, user) {
   var modelClass = this;
-  var modelInstance = null;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     //models.User.where
     modelClass
       .getFromId(id, user, ['id'])
       .then(result => {
         if (result === null)
-          return resolve(false);
+        {return resolve(false);}
         else
-          return resolve(true);
-      })
+        {return resolve(true);}
+      });
   });
 }
 
 function openS3() {
-    return new AWS.S3({
-      endpoint: config.s3.endpoint,
-      accessKeyId: config.s3.publicKey,
-      secretAccessKey: config.s3.privateKey,
-      s3ForcePathStyle: true, // needed for minio
-    });
+  return new AWS.S3({
+    endpoint: config.s3.endpoint,
+    accessKeyId: config.s3.publicKey,
+    secretAccessKey: config.s3.privateKey,
+    s3ForcePathStyle: true, // needed for minio
+  });
 }
 
 function saveFile(file) {
@@ -379,7 +378,7 @@ function saveFile(file) {
         Key: key,
         Body: data
       };
-      s3.upload(params, function(err, data) {
+      s3.upload(params, function(err) {
         if (err) {
           log.error("Error with saving to S3.");
           log.error(err);
@@ -408,8 +407,8 @@ function deleteFile(fileKey) {
       Key: fileKey,
     };
     s3.deleteObject(params, function(err, data) {
-      if (err) return reject(err);
-      else return resolve(data);
+      if (err) {return reject(err);}
+      else {return resolve(data);}
     });
   });
 }

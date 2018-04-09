@@ -13,5 +13,5 @@ module.exports = function(app) {
   apiRouts.splice(apiRouts.indexOf('apidoc.js'), 1);
 
   for (var i in apiRouts)
-    require(path.join(__dirname, apiRouts[i]))(app, '/api/v1');
+  {require(path.join(__dirname, apiRouts[i]))(app, '/api/v1');}
 };

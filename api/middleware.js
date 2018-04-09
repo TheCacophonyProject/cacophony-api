@@ -88,7 +88,7 @@ function modelTypeName(modelType) {
 }
 
 const isDateArray = function(fieldName, customError) {
-  return body(fieldName, customError).exists().custom((value, {request}) => {
+  return body(fieldName, customError).exists().custom((value) => {
     if (Array.isArray(value)) {
       value.forEach((dateAsString) => {
         if (isNaN(Date.parse(dateAsString))) {

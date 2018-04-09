@@ -9,7 +9,7 @@ module.exports = {
       });
   },
 
-  down: async function (queryInterface, Sequelize) {
+  down: async function (queryInterface) {
     return await queryInterface.removeColumn('Users', 'superuser');
   }
 };

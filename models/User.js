@@ -107,7 +107,7 @@ function getJwtDataValues() {
 
 function getDataValues() {
   var user = this;
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     user.getGroups()
       .then(function(groups) {
         resolve({

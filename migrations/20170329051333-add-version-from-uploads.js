@@ -12,7 +12,7 @@ module.exports = {
     ]);
   },
 
-  down: function (queryInterface, Sequelize) {
+  down: function (queryInterface) {
     return Promise.all([
       queryInterface.removeColumn('AudioRecordings', 'version'),
       queryInterface.removeColumn('IrVideoRecordings', 'version'),

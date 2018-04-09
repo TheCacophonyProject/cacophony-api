@@ -210,7 +210,7 @@ function afterValidate(device) {
   return new Promise(function(resolve, reject) {
     bcrypt.hash(device.password, 10, function(err, hash) {
       if (err)
-        reject(err);
+      {reject(err);}
       else {
         device.password = hash;
         resolve();
