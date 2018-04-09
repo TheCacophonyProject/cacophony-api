@@ -6,6 +6,7 @@ const jsonwebtoken      = require('jsonwebtoken');
 const middleware        = require('../middleware');
 const { query }  = require('express-validator/check');
 
+
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/files';
 
@@ -31,7 +32,7 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(
-      util.multipartUpload('file', (request, data, key) => {
+      util.multipartUpload((request, data, key) => {
         var dbRecord = models.File.build(data, {
           fields: models.File.apiSettableFields,
         });
@@ -53,7 +54,6 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1ResponseSuccessQuery
    */
-
   app.get(
     apiUrl,
     [
@@ -168,7 +168,7 @@ module.exports = (app, baseUrl) => {
         responseUtil.send(response, {
           statusCode: 400,
           success: false,
-          messages: ["Failed to delete file.  Files can only be deleted by the admins and the person who uploaded the file."],
+          messages: ["Failed to delete file. Files can only be deleted by the admins and the person who uploaded the file."],
         });
       }
     })

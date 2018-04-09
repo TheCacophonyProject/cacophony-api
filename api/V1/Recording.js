@@ -1,31 +1,14 @@
-const mime             = require('mime');
 const { query, check } = require('express-validator/check');
 
-const models            = require('../../models');
-const responseUtil      = require('./responseUtil');
-const util              = require('./util');
-const config            = require('../../config');
-const jsonwebtoken      = require('jsonwebtoken');
 const middleware        = require('../middleware');
+const models            = require('../../models');
+const recordingUtil     = require('./recordingUtil');
+const responseUtil      = require('./responseUtil');
+
 
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
-
-  const downloadRecording = util.multipartUpload('recording', (request, data, key) => {
-    var recording = models.Recording.build(data, {
-      fields: models.Recording.apiSettableFields,
-    });
-    recording.set('rawFileKey', key);
-    recording.set('rawMimeType', guessRawMimeType(data.type, data.filename));
-    recording.set('DeviceId', request.device.id);
-    recording.set('GroupId', request.device.GroupId);
-    recording.set('processingState', models.Recording.processingStates[data.type][0]);
-    if (typeof request.device.public === 'boolean') {
-      recording.set('public', request.device.public);
-    }
-    return recording;
-  });
 
   /**
    * @apiDefine RecordingParams
@@ -67,7 +50,7 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateDevice,
     ],
     middleware.requestWrapper(
-      downloadRecording
+      recordingUtil.makeUploadHandler()
     )
   );
 
@@ -95,13 +78,13 @@ module.exports = (app, baseUrl) => {
       middleware.getDeviceByName,
     ],
     middleware.ifUsersDeviceRequestWrapper(
-      downloadRecording
+      recordingUtil.makeUploadHandler()
     )
   );
 
   /**
    * @api {get} /api/v1/recordings Query available recordings
-   * @apiName GetRecordigns
+   * @apiName QueryRecordings
    * @apiGroup Recordings
    *
    * @apiUse V1UserAuthorizationHeader
@@ -123,7 +106,6 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1ResponseError
    */
-
   app.get(
     apiUrl,
     [
@@ -138,23 +120,8 @@ module.exports = (app, baseUrl) => {
         .custom(value => { return models.Recording.isValidTagMode(value); }),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      if (request.query.tagMode == null) {
-        request.query.tagMode = 'any';
-      }
-
-      delete request.query.where._tagged; // remove legacy tag mode selector (if included)
-
-      var result = await models.Recording.query(
-        request.user,
-        request.query.where,
-        request.query.tagMode,
-        request.query.tags,
-        request.query.offset,
-        request.query.limit,
-        request.query.order);
-
-      return responseUtil.send(response, {
+      const result = await recordingUtil.query(request);
+      responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ["Completed query."],
@@ -190,42 +157,14 @@ module.exports = (app, baseUrl) => {
       check('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      var recording = await models.Recording.getOne(request.user, request.params.id);
-
-      var downloadFileData = {
-        _type: 'fileDownload',
-        key: recording.fileKey,
-        filename: recording.getFileName(),
-        mimeType: recording.fileMimeType,
-      };
-
-      var downloadRawData = null;
-      if (recording.canGetRaw()) {
-        downloadRawData = {
-          _type: 'fileDownload',
-          key: recording.rawFileKey,
-          filename: recording.getRawFileName(),
-          mimeType: recording.rawMimeType,
-        };
-      }
-      delete recording.rawFileKey;
-
-      return responseUtil.send(response, {
+      let { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
+      responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: [],
         recording: recording,
-        downloadFileJWT: jsonwebtoken.sign(
-          downloadFileData,
-          config.server.passportSecret,
-          { expiresIn: 60 * 10 }
-        ),
-        downloadRawJWT: jsonwebtoken.sign(
-          downloadRawData,
-          config.server.passportSecret,
-          { expiresIn: 60 * 10 }
-        ),
+        downloadFileJWT: cookedJWT,
+        downloadRawJWT: rawJWT,
       });
     })
   );
@@ -247,21 +186,7 @@ module.exports = (app, baseUrl) => {
       check('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      var deleted = await models.Recording.deleteOne(request.user, request.params.id);
-      if (deleted) {
-        responseUtil.send(response, {
-          statusCode: 200,
-          success: true,
-          messages: ["Deleted recording."],
-        });
-      } else {
-        responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ["Failed to delete recording."],
-        });
-      }
+      return recordingUtil.delete_(request, response);
     })
   );
 
@@ -275,6 +200,7 @@ module.exports = (app, baseUrl) => {
   * The following fields that may be updated are:
   * - location
   * - comment
+  * - additionalMetadata
   *
   * If a change to any other field is attempted the request will fail and no
   * update will occur.
@@ -313,18 +239,3 @@ module.exports = (app, baseUrl) => {
     })
   );
 };
-
-function guessRawMimeType(type, filename) {
-  var mimeType = mime.getType(filename);
-  if (mimeType) {
-    return mimeType;
-  }
-  switch (type) {
-  case "thermalRaw":
-    return "application/x-cptv";
-  case "audio":
-    return "audio/mpeg";
-  default:
-    return "application/octet-stream";
-  }
-}
