@@ -101,6 +101,12 @@ class UserAPI(APIBase):
         d = self._check_response(r)
         return self._download_signed(d['jwt'])
 
+    def download_recording(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
+        r = requests.get(url, headers=self._auth_header)
+        d = self._check_response(r)
+        return self._download_signed(d['downloadRawJWT'])
+
     def _download_signed(self, token):
         r = requests.get(
             urljoin(self._baseurl, '/api/v1/signedUrl'),

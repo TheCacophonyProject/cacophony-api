@@ -42,5 +42,5 @@ class TestUserAudio:
             recordings.append(device.has_audio_recording())
             print()
 
-        print("Clare should be able to see exactly those the recordings")
+        print("Clare should be able to see exactly those recordings")
         clare.can_see_audio_recordings(recordings)

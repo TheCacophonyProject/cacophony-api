@@ -120,6 +120,11 @@ class TestUser:
             content.write(chunk)
         assert content.getvalue() == recording.content
 
+    def can_download_correct_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_recording(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

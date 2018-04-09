@@ -12,3 +12,11 @@ class TestUser:
         userdetails = bob.get_user_details(helper.admin_user())
 
         print("Bob's user id is {}".format(userdetails))
+
+    def test_can_download_recording(self, helper):
+        device = helper.given_new_device(self, 'device')
+        recording = device.has_recording()
+
+        print("\nA user should be able to downlad the recording")
+        user = helper.admin_user()
+        user.can_download_correct_recording(recording)
