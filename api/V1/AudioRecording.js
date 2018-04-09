@@ -1,6 +1,5 @@
 const middleware = require('../middleware');
 const models = require('../../models');
-const tagsUtil = require('./tagsUtil');
 const util = require('./util');
 
 module.exports = function(app, baseUrl) {
@@ -19,7 +18,6 @@ module.exports = function(app, baseUrl) {
   * - duration
   * - location
   * - additionalMetadata
-  * - tags
   * - batteryLevel
   * - batteryCharging
   * - airplaneModeOn
@@ -144,36 +142,6 @@ module.exports = function(app, baseUrl) {
     ],
     middleware.requestWrapper(async (req, res) => {
       return util.getRecordingFile(models.AudioRecording, req, res);
-    })
-  );
-
-  app.post(
-    apiUrl + "/:id/tags",
-    [
-      middleware.authenticateUser,
-    ],
-    middleware.requestWrapper(async (req, res) => {
-      return tagsUtil.add(models.AudioRecording, req, res);
-    })
-  );
-
-  app.delete(
-    apiUrl + '/:id/tags',
-    [
-      middleware.authenticateUser,
-    ],
-    middleware.requestWrapper(async (req, res) => {
-      return tagsUtil.remove(models.AudioRecording, req, res);
-    })
-  );
-
-  app.get(
-    apiUrl + '/:id/tags',
-    [
-      middleware.authenticateUser,
-    ],
-    middleware.requestWrapper(async (req, res) => {
-      return tagsUtil.get(models.AudioRecording, req, res);
     })
   );
 };

@@ -167,38 +167,6 @@ function geometrySetter(val) {
   this.setDataValue('location', { type: 'Point', coordinates: val });
 }
 
-function addTags(newTags) {
-  var model = this;
-  return new Promise(function(resolve) {
-    // Get current tags, if no tags already make default tag JSON.
-    var tags = model.get('tags');
-    if (tags === null) {tags = { length: 0, nextId: 1 };}
-
-    for (var key in newTags) {
-      tags[tags.nextId] = newTags[key];
-      tags.nextId = tags.nextId + 1;
-      tags.length = tags.length + 1;
-    }
-    model.set('tags', tags);
-    model.save().then(() => resolve());
-  });
-}
-
-function deleteTags(tagsIds) {
-  var model = this;
-  return new Promise(function(resolve) {
-    var tags = model.get('tags');
-    if (!tags) {resolve();}
-    for (var id in tagsIds)
-    {if (id !== 'nextId' || id !== 'length') {
-      delete tags[tagsIds[id]];
-      tags.length = tags.length - 1;
-    }}
-    model.set('tags', tags);
-    model.save().then(() => resolve());
-  });
-}
-
 function migrationAddBelongsTo(queryInterface, childTable, parentTable, name) {
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
   if (name)
@@ -419,8 +387,6 @@ exports.findAllWithUser = findAllWithUser;
 exports.processAudio = processAudio;
 exports.processVideo = processVideo;
 exports.getFileData = getFileData;
-exports.addTags = addTags;
-exports.deleteTags = deleteTags;
 exports.migrationAddBelongsTo = migrationAddBelongsTo;
 exports.migrationRemoveBelongsTo = migrationRemoveBelongsTo;
 exports.belongsToMany = belongsToMany;
