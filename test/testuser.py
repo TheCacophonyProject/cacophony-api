@@ -43,7 +43,7 @@ class TestUser:
             raise TestException(_errors)
 
     def cannot_see_recordings(self, *expectedTestRecordings):
-        self._can_see_recordings_with_query({}, *expectedTestRecordings)
+        self._cannot_see_recordings_with_query({}, *expectedTestRecordings)
 
     def _cannot_see_recordings_with_query(self, queryParams,
                                           *expectedTestRecordings):
@@ -114,6 +114,8 @@ class TestUser:
         # Compare the remaining properties.
         assert recv_props == props
 
+    def delete_recording(self, recording):
+        self._userapi.delete_recording(recording.recordingId)
 
     def create_group(self, groupname):
         try:
