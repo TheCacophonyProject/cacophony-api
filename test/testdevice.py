@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-import json
+from datetime import datetime, timedelta, timezone
 
 from .testrecording import TestRecording
 
@@ -21,30 +20,49 @@ class TestDevice:
         return self.upload_audio_recording()
 
     def upload_recording(self):
-        props = json.dumps({
+        props = {
             "type": "thermalRaw",
-            "recordingDateTime": self._make_timestamp(),
+            "recordingDateTime": self._make_timestamp().isoformat(),
             "duration": 10,
-        })
+            "comment": "hmmm",
+            "batteryLevel": 98,
+            "batteryCharging": "CHARGING",
+            "airplaneModeOn": False,
+            "version": "223",
+            "additionalMetadata": {
+                "bar": "foo",
+            },
+        }
         filename = 'files/small.cptv'
         recording_id = self._deviceapi.upload_recording(filename, props)
-        return TestRecording(recording_id, slurp(filename))
+        return TestRecording(recording_id, props, slurp(filename))
 
     def upload_audio_recording(self):
-        props = json.dumps({
-            "recordingDateTime": self._make_timestamp(),
-            "duration": 1,
-        })
+        ts = self._make_timestamp()
+        props = {
+            "recordingDateTime": ts.isoformat(),
+            "recordingTime": ts.strftime("%H:%M:%S"),
+            "duration": 2,
+            "batteryLevel": 99,
+            "batteryCharging": "FULL",
+            "airplaneModeOn": False,
+            "relativeToDawn": 9877,
+            "relativeToDusk": -6543,
+            "version": "123",
+            "additionalMetadata": {
+                "foo": "bar",
+            },
+        }
         filename = 'files/small.mp3'
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
-        return TestRecording(recording_id, slurp(filename))
+        return TestRecording(recording_id, props, slurp(filename))
 
     def _make_timestamp(self):
         # recordings need to be recorded at different second times else the search code doesn't work
-        timestamp = datetime.utcnow() - timedelta(
+        timestamp = datetime.now(timezone.utc) - timedelta(
             seconds=self._recordingtimeoffset)
         self._recordingtimeoffset -= 1
-        return timestamp.isoformat()
+        return timestamp
 
     def _print_description(self, description):
         print(description, end='')

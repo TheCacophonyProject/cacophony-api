@@ -15,7 +15,6 @@ module.exports = function(app, baseUrl) {
   * following fields:
   * - recordingDateTime
   * - recordingTime
-  * - fileType
   * - size
   * - duration
   * - location

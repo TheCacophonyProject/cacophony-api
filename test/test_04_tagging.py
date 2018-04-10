@@ -1,5 +1,5 @@
 class TestTagging:
-    def test_recording_can_be_retreived_by_tagmode_types(self, helper):
+    def test_recording_can_be_retrieved_by_tagmode_types(self, helper):
         admin = helper.admin_user()
 
         destroyer = helper.given_new_device(self, 'The Destroyer')
