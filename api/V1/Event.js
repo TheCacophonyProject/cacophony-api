@@ -11,7 +11,7 @@ module.exports = function(app, baseUrl) {
    * @apiName PostEvent
    * @apiGroup Events
    * @apiDescription This call is used to upload new events.   Events
-   * details are decided by user and can be specified by json or using an
+   * details are decided by user and can be specified by JSON or using an
    * existing id.
    *
    * `Either eventDetailId or description is required`
