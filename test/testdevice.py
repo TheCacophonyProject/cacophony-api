@@ -49,6 +49,26 @@ class TestDevice:
     def _print_description(self, description):
         print(description, end='')
 
+    def record_event(self, _type, details, extraText = "    which"):
+        self._print_description("{} has an event of type '{}' with details '{}'.".format(extraText, _type, details))
+        (count, detailsId) = self._deviceapi.record_event(_type, details)
+        print("  (EventDetails Id = {})".format(detailsId))
+        assert count == 1
+        return detailsId
+
+    def record_three_events_at_once(self, detailId):
+        print("    which has three events uploaded with detail id {}.".format(detailId))
+        times = [
+            datetime.utcnow().isoformat(),
+            (datetime.utcnow() - timedelta(seconds=2)).isoformat(),
+            (datetime.utcnow() - timedelta(seconds=4)).isoformat(),
+        ]
+        (eventsAdded, detailsId) = self._deviceapi.record_event_from_id(detailId, times)
+
+        print('Then three events should have been recorded.')
+        assert eventsAdded == 3
+        return detailsId
+
 
 def slurp(filename):
     with open(filename, 'rb') as f:

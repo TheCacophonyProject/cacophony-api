@@ -1,5 +1,7 @@
 import os
+import json
 from urllib.parse import urljoin
+from datetime import datetime
 
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
@@ -36,3 +38,18 @@ class DeviceAPI(APIBase):
             r = requests.post(url, data=multipart_data, headers=headers)
         self._check_response(r)
         return r.json()['recordingId']
+
+    def record_event_data(self, eventData, times):
+        eventData["dateTimes"] = times
+        url = urljoin(self._baseurl, "/api/v1/events")
+        response = requests.post(url, headers=self._auth_header, json=eventData)
+        self._check_response(response)
+        return (response.json()["eventsAdded"], response.json()["eventDetailId"])
+
+    def record_event(self, _type, details, times=[datetime.utcnow().isoformat()]):
+        return self.record_event_data({"description" : {"type": _type, "details": details}}, times)
+
+    def record_event_from_id (self, eventDetailId, times=[datetime.utcnow().isoformat()]):
+        return self.record_event_data({"eventDetailId": eventDetailId}, times)
+
+
