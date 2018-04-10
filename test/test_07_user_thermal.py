@@ -1,13 +1,13 @@
 class TestUserThermal:
-    def test_can_download_audio(self, helper):
-        device = helper.given_new_device(self, 'cacophonator')
+    def test_can_download_recording(self, helper):
+        device = helper.given_new_device(self, 'cacophonator-download')
         recording = device.has_recording()
 
         print("\nA user should be able to download the recording")
         helper.admin_user().can_download_correct_recording(recording)
 
     def test_can_delete_recording(self, helper):
-        device = helper.given_new_device(self, 'cacophonator')
+        device = helper.given_new_device(self, 'cacophonator-delete')
         recording = device.has_recording()
 
         print("\nA user should be able to see the recording")
