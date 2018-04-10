@@ -1,14 +1,14 @@
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { check, oneOf } = require('express-validator/check');
+const { body, query, oneOf } = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/events';
 
   /**
    * @api {post} /api/v1/events Add new events
-   * @apiName PostEvent
+   * @apiName Add Event
    * @apiGroup Events
    * @apiDescription This call is used to upload new events.   Events
    * details are decided by user and can be specified by json or using an
@@ -37,8 +37,8 @@ module.exports = function(app, baseUrl) {
       middleware.getEventDetailById.optional(),
       middleware.isDateArray("dateTimes", "List of times event occured is required."),
       oneOf([
-        check("eventDetailId").exists(),
-        check("description.type").exists(),
+        body("eventDetailId").exists(),
+        body("description.type").exists(),
       ], "Either 'eventDetailId' or 'description.type' must be specified"),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -88,6 +88,81 @@ module.exports = function(app, baseUrl) {
         messages: ['Added events.'],
         eventsAdded: count,
         eventDetailId: detailsId,
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/events Get events recorded
+   * @apiName GetEvents
+   * @apiGroup Events
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   * @apiParam {Number} offset Query result offset (for paging).
+   * @apiParam {Number} limit Query result limit (for paging).
+   * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Example: [["recordingDateTime", "ASC"]]
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} offset Mirrors request offset parameter.
+   * @apiSuccess {Number} limit Mirrors request limit parameter.
+   * @apiSuccess {Number} count Total number of records which match the query.
+   * @apiSuccess {JSON} rows List of details for records which matched the query.
+   *
+   * @apiUse V1ResponseError
+   */
+
+  app.get(
+    apiUrl,
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('where'),
+      query('offset').isInt().optional(),
+      query('limit').isInt().optional(),
+      middleware.parseJSON('order').optional(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+
+      if (request.query.offset == null) {
+        request.query.offset = '0';
+      }
+
+      if (request.query.offset == null) {
+        request.query.limit = '100';
+      }
+
+      var deviceIds = await request.user.getDeviceIds();
+      var groupIds = await request.user.getGroupsIds();
+
+      var groupDeviceIds = await request.user.getGroupDeviceIds();
+      var alldevices = await request.user.getAllDeviceIds();
+
+      var constraint = await request.user.getVisibleDevicesConstaint();
+
+      var result = await models.Event.query(
+        request.user,
+        request.query.where,
+        request.query.offset,
+        request.query.limit,
+        request.query.order);
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ["Completed query."],
+        limit: request.query.limit,
+        offset: request.query.offset,
+        count: result.count,
+        rows: result.rows,
+        devices: deviceIds,
+        groups: groupIds,
+        user: request.user.username,
+        groupDevices: groupDeviceIds,
+        alldevices: alldevices,
+        constraint: constraint,
+        superuser: request.user.superuser,
+        userstuff: request.user,
       });
     })
   );

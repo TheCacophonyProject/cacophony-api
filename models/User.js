@@ -42,15 +42,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  const getGroupDeviceIds = async function() {
-    var groupIds = await this.getGroupsIds();
-    var devices = await models.Device.findAll({
-      where: { GroupId: { "$in": groupIds }},
-      attributes: ['id'],
-    });
-    return devices.map(d => d.id);
-  };
-
   const getFromId = async function(id) {
     return await this.findById(id);
   };
@@ -66,6 +57,29 @@ module.exports = function(sequelize, DataTypes) {
     }
     return true;
   };
+
+  const getGroupDeviceIds = async function() {
+    var groupIds = await this.getGroupsIds();
+    if (groupIds.length > 0) {
+      var devices = await models.Device.findAll({
+        where: { GroupId: { "$in": groupIds }},
+        attributes: ['id'],
+      });
+      return devices.map(d => d.id);
+    }
+    else {
+      return [];
+    }
+  };
+
+  const getVisibleDevicesConstaint = async function () {
+    if (this.superuser) {
+      return null;
+    }
+
+    allDeviceIds = await this.getAllDeviceIds();
+    return { DeviceId: {"$in": allDeviceIds}};
+  }
 
   var options = {
     classMethods: {
@@ -84,11 +98,14 @@ module.exports = function(sequelize, DataTypes) {
       getJwtDataValues: getJwtDataValues,
       getDataValues: getDataValues,
       getAll: getAll,
+      getAllDeviceIds: getAllDeviceIds,
+      getVisibleDevicesConstaint: getVisibleDevicesConstaint,
     },
     hooks: {
       afterValidate: afterValidate
     }
   };
+
   // Define table
   return sequelize.define(name, attributes, options);
 };
@@ -132,9 +149,7 @@ function addAssociations(models) {
 function getGroupsIds() {
   return this.getGroups()
     .then(function(groups) {
-      var idList = [];
-      for (var key in groups) { idList.push(groups[key].id); }
-      return idList;
+      return groups.map(g => g.id);
     });
 }
 
@@ -143,11 +158,18 @@ function getGroupsIds() {
 function getDeviceIds() {
   return this.getDevices()
     .then(function(devices) {
-      var idList = [];
-      for (var key in devices) { idList.push(devices[key].id); }
-      return idList;
+      return devices.map(d => d.id);
     });
 }
+
+
+const getAllDeviceIds = async function() {
+  directDeviceIds = await this.getDeviceIds();
+  groupedDeviceIds = await this.getGroupDeviceIds();
+
+  allDevicesIds = directDeviceIds.concat(groupedDeviceIds);
+  return allDevicesIds;
+};
 
 function afterValidate(user) {
   // TODO see if thsi can be done elsewhere, or when just validating the password.
