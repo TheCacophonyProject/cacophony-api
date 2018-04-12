@@ -49,11 +49,20 @@ class TestEvent:
         print("Then 'freddie' should be able to see that the device has an event")
         assert (len(fred.can_see_events()) == 1)
 
+        print("And super users should be able to see that the device has an event")
+        assert (len(helper.admin_user().can_see_events(freds_device)) == 1)
+
+        print("But a new user shouldn't see any device events")
+        helper.given_new_user(self, 'grant').cannot_see_events()
+
 
     def test_should_be_able_top_upload_several_events_at_same_time(self, helper):
         rocker = helper.given_new_device(self, 'The Rocker')
         detailId = rocker.record_event("playLure", {"lure_id": "possum_screecher"})
         rocker.record_three_events_at_once(detailId)
+
+        print("And super users should be able to see get all four events")
+        assert (len(helper.admin_user().can_see_events(rocker)) == 4)
 
     def _unique_event_name(self):
         return "Event_" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))

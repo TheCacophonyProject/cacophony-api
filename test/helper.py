@@ -23,7 +23,7 @@ class Helper:
     def login_as_device(self, devicename):
         password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_server, devicename, password).login()
-        return TestDevice(devicename, device)
+        return TestDevice(devicename, device, self)
 
     def given_new_user_with_device(self, testClass, username_base):
         self._print_description('Given a new user {}'.format(username_base))
@@ -82,7 +82,7 @@ class Helper:
         try:
             device = DeviceAPI(self.config.api_server, uniqueName, self._make_password(uniqueName)).register_as_new(group)
             self._print_actual_name(uniqueName)
-            return TestDevice(uniqueName, device)
+            return TestDevice(uniqueName, device, self)
         except Exception as exception:
             raise TestException("Failed to create device {}.  If error is 'device name in use', your super-user needs admin rights".format(exception))
 

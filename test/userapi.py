@@ -101,13 +101,20 @@ class UserAPI(APIBase):
             headers=self._auth_header,
         )
         r.raise_for_status()
-        return r.text
+        return r.json()
 
     def get_devices_as_string(self):
-        return self._get_all('/api/v1/devices')
+        return json.dumps(self._get_all('/api/v1/devices'))
 
     def get_groups_as_string(self):
-        return self._get_all('/api/v1/groups')
+        return json.dumps(self._get_all('/api/v1/groups'))
+
+    def get_device_id(self, devicename):
+        all_devices = self._get_all('/api/v1/devices')['devices']['rows']
+        for device in all_devices:
+            if device['devicename'] == devicename:
+                return device['id']
+        return None
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")
@@ -125,8 +132,12 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
-    def query_events(self, limit=None, offset=None, device=None):
-        return self._query_results('events', {'where':'{}'}, limit, offset)
+    def query_events(self, limit=None, offset=None, deviceId=None):
+        if (deviceId is None):
+            where = '{}'
+        else:
+            where = '{"DeviceId":' + "{}".format(deviceId) + "}"
+        return self._query_results('events', {'where' : where}, limit, offset)
 
     def _query_results(self, queryname, params,limit=100, offset=0):
         url = urljoin(self._baseurl, '/api/v1/' + queryname)

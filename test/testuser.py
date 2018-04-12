@@ -129,8 +129,12 @@ class TestUser:
             self._group = self.create_group(self.username + "s_devices", False)
         return self._group
 
-    def can_see_events(self):
-        return self._userapi.query_events(limit=10)
+    def can_see_events(self, device=None):
+        deviceId = None
+        if (device is not None):
+            deviceId = device.get_id()
+
+        return self._userapi.query_events(limit=10, deviceId=deviceId)
 
     def cannot_see_events(self):
         events = self._userapi.query_events(limit=10)
@@ -139,7 +143,8 @@ class TestUser:
                 "User '{}' can see a events from '{}'".format(
                     self.username, recordings[0]['DeviceId']))
 
-
+    def get_device_id(self, devicename):
+        return self._userapi.get_device_id(devicename)
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
