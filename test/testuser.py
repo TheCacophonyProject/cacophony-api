@@ -4,7 +4,6 @@ import pytest
 
 from .testexception import TestException
 
-
 class TestUser:
     def __init__(self, username, userapi):
         self._userapi = userapi
@@ -133,7 +132,6 @@ class TestUser:
         deviceId = None
         if (device is not None):
             deviceId = device.get_id()
-
         return self._userapi.query_events(limit=10, deviceId=deviceId)
 
     def cannot_see_events(self):

@@ -60,9 +60,25 @@ class TestEvent:
         rocker = helper.given_new_device(self, 'The Rocker')
         detailId = rocker.record_event("playLure", {"lure_id": "possum_screecher"})
         rocker.record_three_events_at_once(detailId)
-
-        print("And super users should be able to see get all four events")
+        print("And super users should be able to see get all four events for the device")
         assert (len(helper.admin_user().can_see_events(rocker)) == 4)
+
+    def test_get_event_attributes_returned(self, helper):
+        boombox = helper.given_new_device(self, 'boombox')
+        description = self._unique_event_name()
+        detailId = boombox.record_event("audio-bait-played", {"lure_id": "possum_screams", 'description': description })
+        event = helper.admin_user().can_see_events(boombox)[0]
+        print("Then get events returns an event")
+        print("    with DeviceId = '{}'".format(boombox.get_id()))
+        assert (event['DeviceId'] == boombox.get_id())
+        print("    and EventDetailId = '{}'".format(detailId))
+        assert (event['EventDetailId'] == detailId)
+        print("    and EventDetail.type = 'audio-bait-played'")
+        assert (event['EventDetail']['type'] == "audio-bait-played")
+        print("    and EventDetail.details.lure_id = 'possum_screems'")
+        assert (event['EventDetail']['details']['lure_id'] == "possum_screams")
+        print("    and EventDetail.details.description = '{}'".format(description))
+        assert (event['EventDetail']['details']['description'] == description)
 
     def _unique_event_name(self):
         return "Event_" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))

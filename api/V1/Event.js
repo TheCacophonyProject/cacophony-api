@@ -132,14 +132,6 @@ module.exports = function(app, baseUrl) {
         request.query.limit = '100';
       }
 
-      var deviceIds = await request.user.getDeviceIds();
-      var groupIds = await request.user.getGroupsIds();
-
-      var groupDeviceIds = await request.user.getGroupDeviceIds();
-      var alldevices = await request.user.getAllDeviceIds();
-
-      var constraint = await request.user.getVisibleDevicesConstaint();
-
       var result = await models.Event.query(
         request.user,
         request.query.where,
@@ -155,14 +147,6 @@ module.exports = function(app, baseUrl) {
         offset: request.query.offset,
         count: result.count,
         rows: result.rows,
-        devices: deviceIds,
-        groups: groupIds,
-        user: request.user.username,
-        groupDevices: groupDeviceIds,
-        alldevices: alldevices,
-        constraint: constraint,
-        superuser: request.user.superuser,
-        userstuff: request.user,
       });
     })
   );
