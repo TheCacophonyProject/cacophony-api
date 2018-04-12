@@ -10,8 +10,6 @@ class UserAPI(APIBase):
         super().__init__('user', baseurl, username, password)
 
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
-        url = urljoin(self._baseurl, '/api/v1/recordings')
-
         where = [{"duration": {"$gte": min_secs}}]
         if startDate is not None:
             where.append({
@@ -23,25 +21,12 @@ class UserAPI(APIBase):
             where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
 
         params = {'where': json.dumps(where)}
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
         if tagmode is not None:
             params['tagMode'] = tagmode
         if tags is not None:
             params['tags'] = json.dumps(tags)
 
-        r = requests.get(url, params=params, headers=self._auth_header)
-        if r.status_code == 200:
-            return r.json()['rows']
-        elif r.status_code == 400:
-            messages = r.json()['messages']
-            raise IOError("request failed ({}): {}".format(
-                r.status_code, messages))
-        else:
-            r.raise_for_status()
-
+        return self._query_results('recordings', params, limit, offset)
 
     def download_cptv(self, id):
         return self._download_recording(id, 'downloadRawJWT')
@@ -139,3 +124,24 @@ class UserAPI(APIBase):
         tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
+
+    def query_events(self, limit=None, offset=None, device=None):
+        return self._query_results('events', {'where':'{}'}, limit, offset)
+
+    def _query_results(self, queryname, params,limit=100, offset=0):
+        url = urljoin(self._baseurl, '/api/v1/' + queryname)
+
+        if limit is not None:
+            params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
+
+        response = requests.get(url, params=params, headers=self._auth_header)
+        if response.status_code == 200:
+            return response.json()['rows']
+        elif response.status_code == 400:
+            messages = response.json()['messages']
+            raise IOError("request failed ({}): {}".format(
+                response.status_code, messages))
+        else:
+            response.raise_for_status()

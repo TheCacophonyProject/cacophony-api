@@ -9,6 +9,7 @@ class TestUser:
     def __init__(self, username, userapi):
         self._userapi = userapi
         self.username = username
+        self._group = None
 
     def when_searching_with(self, queryParams):
         return RecordingQueryPromise(self, queryParams)
@@ -81,13 +82,16 @@ class TestUser:
                 "User '{}' can see a recording from '{}'".format(
                     self.username, recordings[0]['Device']['devicename']))
 
-    def create_group(self, groupname):
+    def create_group(self, groupname, printname=True):
         try:
             self._userapi.create_group(groupname)
         except Exception as exception:
             raise TestException(
                 "Failed to create group ({}) {}.  If error is 'group name in use', your super-user needs admin rights".
                 format(groupname, exception))
+        if (printname):
+            print("({})".format(groupname))
+        return groupname
 
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
@@ -119,6 +123,22 @@ class TestUser:
         for chunk in self._userapi.download_audio(recording.recordingId):
             content.write(chunk)
         assert content.getvalue() == recording.content
+
+    def get_own_group(self):
+        if (self._group is None):
+            self._group = self.create_group(self.username + "s_devices", False)
+        return self._group
+
+    def can_see_events(self):
+        return self._userapi.query_events(limit=10)
+
+    def cannot_see_events(self):
+        events = self._userapi.query_events(limit=10)
+        if events:
+            raise TestException(
+                "User '{}' can see a events from '{}'".format(
+                    self.username, recordings[0]['DeviceId']))
+
 
 
 class RecordingQueryPromise:

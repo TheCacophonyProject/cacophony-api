@@ -25,6 +25,13 @@ class Helper:
         device = DeviceAPI(self.config.api_server, devicename, password).login()
         return TestDevice(devicename, device)
 
+    def given_new_user_with_device(self, testClass, username_base):
+        self._print_description('Given a new user {}'.format(username_base))
+        user = self.given_new_user(testClass, username_base)
+        devicename = user.username + "s_device"
+        device = self.given_new_device(None, devicename, group=user.get_own_group(), description='    with a device')
+        return (user, device)
+
     def given_new_user(self, testClass, username):
         basename = self._make_long_name(testClass, username)
         testname = basename
@@ -33,14 +40,17 @@ class Helper:
                 api = UserAPI(self.config.api_server, testname, self._make_password(testname)).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api)
-            except Exception:
+            except OSError:
                 pass
             testname = "{}{}".format(basename, num)
 
         raise TestException("Could not create username like '{}'".format(basename))
 
     def _make_unique_name(self, testClass, name, usednames):
-        basename = self._make_long_name(testClass, name)
+        if (testClass is not None):
+            basename = self._make_long_name(testClass, name)
+        else:
+            basename = name
         testname = basename
 
         for num in range(2, 1000):
@@ -60,8 +70,11 @@ class Helper:
             description = "Given a new device '{}'".format(devicename)
         self._print_description(description)
 
-        devices = self._get_admin().get_devices_as_string()
-        uniqueName = self._make_unique_name(testClass, devicename, devices)
+        if (testClass is not None):
+            devices = self._get_admin().get_devices_as_string()
+            uniqueName = self._make_unique_name(testClass, devicename, devices)
+        else:
+            uniqueName = devicename
 
         if not group:
             group = self.config.default_group
