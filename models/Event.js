@@ -9,10 +9,10 @@ module.exports = function(sequelize, DataTypes) {
   var models = sequelize.models;
 
   /**
-    * Return one or more recordings for a user matching the query
-    * arguments given.
-    */
-   var query = async function(user, where, offset, limit, order) {
+  * Return one or more recordings for a user matching the query
+  * arguments given.
+  */
+  var query = async function(user, where, offset, limit, order) {
     if (order == null) {
       order = [
         // Sort by recordingDatetime but handle the case of the
@@ -46,7 +46,6 @@ module.exports = function(sequelize, DataTypes) {
       addAssociations: addAssociations,
     },
   };
-
 
   return sequelize.define(name, attributes, options);
 };

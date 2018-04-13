@@ -28,11 +28,21 @@ class UserAPI(APIBase):
 
         return self._query_results('recordings', params, limit, offset)
 
-    def download_cptv(self, id):
-        return self._download_recording(id, 'downloadRawJWT')
+    def get_recording(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
+        r = requests.get(url, headers=self._auth_header)
+        return self._check_response(r)['recording']
 
-    def download_mp4(self, id):
-        return self._download_recording(id, 'downloadFileJWT')
+    def delete_recording(self, recording_id):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
+        r = requests.delete(url, headers=self._auth_header)
+        return self._check_response(r)
+
+    def download_cptv(self, recording_id):
+        return self._download_recording(recording_id, 'downloadRawJWT')
+
+    def download_mp4(self, recording_id):
+        return self._download_recording(recording_id, 'downloadFileJWT')
 
     def _download_recording(self, id, jwt_key):
         url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(id))
@@ -118,7 +128,7 @@ class UserAPI(APIBase):
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")
-        response = requests.post(url,  headers=self._auth_header, data={'groupname': groupname})
+        response = requests.post(url, headers=self._auth_header, data={'groupname': groupname})
         self._check_response(response)
 
     def get_user_details(self, username):
@@ -128,7 +138,10 @@ class UserAPI(APIBase):
 
     def tag_recording(self, recordingId, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
-        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
+        tagData = {
+            "tag": json.dumps(tagDictionary),
+            "recordingId": recordingId
+        }
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 

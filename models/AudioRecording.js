@@ -107,7 +107,6 @@ var apiUpdateableFields = [
 var apiSettableFields = [
   'recordingDateTime',
   'recordingTime',
-  'fileType',
   'size',
   'duration',
   'location',

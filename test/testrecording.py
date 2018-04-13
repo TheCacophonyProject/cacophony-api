@@ -1,6 +1,7 @@
 class TestRecording:
-    def __init__(self, recordingId, content):
+    def __init__(self, recordingId, props, content):
         self.recordingId = recordingId
+        self.props = props
         self.content = content
 
     def __repr__(self):

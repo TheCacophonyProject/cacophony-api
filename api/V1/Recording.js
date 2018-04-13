@@ -30,7 +30,7 @@ module.exports = (app, baseUrl) => {
    * - batteryLevel
    * - airplaneModeOn
    * - additionalMetadata
-   * - processingMeta
+   * - comment
    *
    * @apiUse V1DeviceAuthorizationHeader
    *

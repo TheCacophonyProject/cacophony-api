@@ -3,3 +3,5 @@ apidoc/*
 test/.pytest_cache/
 test/__pycache__/
 testconfig.json
+.pytest_cache
+__pycache__

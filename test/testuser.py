@@ -43,7 +43,7 @@ class TestUser:
             raise TestException(_errors)
 
     def cannot_see_recordings(self, *expectedTestRecordings):
-        self._can_see_recordings_with_query({}, *expectedTestRecordings)
+        self._cannot_see_recordings_with_query({}, *expectedTestRecordings)
 
     def _cannot_see_recordings_with_query(self, queryParams,
                                           *expectedTestRecordings):
@@ -81,6 +81,42 @@ class TestUser:
                 "User '{}' can see a recording from '{}'".format(
                     self.username, recordings[0]['Device']['devicename']))
 
+    def can_download_correct_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_cptv(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
+
+        recv_props = self._userapi.get_recording(recording.recordingId)
+
+        props = recording.props.copy()
+
+        # # These are expected to be there but the values aren't tested.
+        del recv_props['Device']
+        del recv_props['Tags']
+        del recv_props['GroupId']
+        del recv_props['location']
+        del recv_props['fileKey']
+        del recv_props['rawFileKey']
+        del recv_props['rawFileSize']
+        del recv_props['fileMimeType']
+        del recv_props['fileSize']
+
+        assert recv_props.pop('id') == recording.recordingId
+        assert recv_props.pop('processingState') == 'toMp4'
+
+        # # Time formatting may differ so these are handled specially.
+        assertDateTimeStrings(
+            recv_props.pop('recordingDateTime'),
+            props.pop('recordingDateTime'),
+        )
+
+        # Compare the remaining properties.
+        assert recv_props == props
+
+    def delete_recording(self, recording):
+        self._userapi.delete_recording(recording.recordingId)
+
     def create_group(self, groupname, printname=True):
         try:
             self._userapi.create_group(groupname)
@@ -117,12 +153,6 @@ class TestUser:
     def delete_audio_recording(self, recording):
         self._userapi.delete_audio(recording.recordingId)
 
-    def can_download_correct_audio_recording(self, recording):
-        content = io.BytesIO()
-        for chunk in self._userapi.download_audio(recording.recordingId):
-            content.write(chunk)
-        assert content.getvalue() == recording.content
-
     def get_own_group(self):
         if (self._group is None):
             self._group = self.create_group(self.username + "s_devices", False)
@@ -143,6 +173,42 @@ class TestUser:
 
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
+
+    def can_download_correct_audio_recording(self, recording):
+        content = io.BytesIO()
+        for chunk in self._userapi.download_audio(recording.recordingId):
+            content.write(chunk)
+        assert content.getvalue() == recording.content
+
+        # For audio recordings there's no way to get audio metadata
+        # directly so the query API must be used.
+        for row in self._userapi.query_audio(limit=10):
+            if row['id'] == recording.recordingId:
+                props = recording.props.copy()
+
+                # These are expected to be there but the values aren't tested.
+                del row['id']
+                del row['groupId']
+                del row['group']
+                del row['deviceId']
+                del row['location']
+                del row['fileKey']
+
+                # Time formatting may differ so these are handled specially.
+                assertDateTimeStrings(
+                    row.pop('recordingDateTime'),
+                    props.pop('recordingDateTime'),
+                )
+
+                # Tags have never been used for audio recordings.
+                assert row.pop('tags') == []
+
+                # Compare the remaining properties.
+                assert row == props
+                return
+
+        # Shouldn't happen
+        raise ValueError("audio recording not found in query result")
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
@@ -186,3 +252,7 @@ class RecordingQueryPromise:
             x for x in allRecordings if x not in self._expectedTestRecordings
         ]
         self.cannot_see_recordings(*expectedMissingRecordings)
+
+
+def assertDateTimeStrings(left, right):
+    assert left[:23] == right[:23]

@@ -77,9 +77,9 @@ module.exports = function(sequelize, DataTypes) {
       return null;
     }
 
-    allDeviceIds = await this.getAllDeviceIds();
+    var allDeviceIds = await this.getAllDeviceIds();
     return { DeviceId: {"$in": allDeviceIds}};
-  }
+  };
 
   var options = {
     classMethods: {
@@ -164,10 +164,10 @@ function getDeviceIds() {
 
 
 const getAllDeviceIds = async function() {
-  directDeviceIds = await this.getDeviceIds();
-  groupedDeviceIds = await this.getGroupDeviceIds();
+  var directDeviceIds = await this.getDeviceIds();
+  var groupedDeviceIds = await this.getGroupDeviceIds();
 
-  allDevicesIds = directDeviceIds.concat(groupedDeviceIds);
+  var allDevicesIds = directDeviceIds.concat(groupedDeviceIds);
   return allDevicesIds;
 };
 
