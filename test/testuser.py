@@ -186,6 +186,14 @@ class TestUser:
         # Shouldn't happen
         raise ValueError("audio recording not found in query result")
 
+    def upload_audio_bait(self):
+        props = {
+            "type": "audioBait",
+            "details": '{"animal":"possum"}',
+        }
+        filename = 'files/small.cptv'
+        recording_id = self._userapi._upload_file(filename, props)
+        return recording_id
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

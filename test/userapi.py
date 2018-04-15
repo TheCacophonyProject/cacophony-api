@@ -1,5 +1,7 @@
 import json
+import os
 import requests
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
 
 from .apibase import APIBase
@@ -151,3 +153,46 @@ class UserAPI(APIBase):
         }
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
+
+    def query_events(self, limit=None, offset=None, deviceId=None):
+        if (deviceId is None):
+            where = '{}'
+        else:
+            where = '{"DeviceId":' + "{}".format(deviceId) + "}"
+        return self._query_results('events', {'where' : where}, limit, offset)
+
+    def _query_results(self, queryname, params,limit=100, offset=0):
+        url = urljoin(self._baseurl, '/api/v1/' + queryname)
+
+        if limit is not None:
+            params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
+
+        response = requests.get(url, params=params, headers=self._auth_header)
+        if response.status_code == 200:
+            return response.json()['rows']
+        elif response.status_code == 400:
+            messages = response.json()['messages']
+            raise IOError("request failed ({}): {}".format(
+                response.status_code, messages))
+        else:
+            response.raise_for_status()
+
+    def _upload_file(self, filename, props):
+        url = urljoin(self._baseurl, 'api/v1/files')
+        json_props = json.dumps(props)
+
+        with open(filename, 'rb') as content:
+            multipart_data = MultipartEncoder(
+                fields={
+                    'data': json_props,
+                    'file': (os.path.basename(filename), content),
+                })
+            headers = {
+                'Content-Type': multipart_data.content_type,
+                'Authorization': self._token
+            }
+            r = requests.post(url, data=multipart_data, headers=headers)
+        self._check_response(r)
+        return r.json()['recordingId']
