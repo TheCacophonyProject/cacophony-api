@@ -146,8 +146,14 @@ class UserAPI(APIBase):
             where = '{"DeviceId":' + "{}".format(deviceId) + "}"
         return self._query_results('events', {'where' : where}, limit, offset)
 
-    def query_files(self, where='{}'):
+    def query_files(self, where='{}', limit=None, offset=None):
         return self._query_results('files', {'where' : where}, limit, offset)
+
+    def _do_delete(self, deleteType, id):
+        url = urljoin(self._baseurl, '/api/v1/{}/{}'.format(deleteType, id))
+        response = requests.delete(url, headers=self._auth_header)
+        return self._check_response(response)
+
 
     def _query_results(self, queryname, params,limit=100, offset=0):
         url = urljoin(self._baseurl, '/api/v1/' + queryname)
@@ -184,3 +190,6 @@ class UserAPI(APIBase):
             r = requests.post(url, data=multipart_data, headers=headers)
         self._check_response(r)
         return r.json()['recordingId']
+
+    def delete_file(self, file_id):
+        self._do_delete('files', file_id)

@@ -69,7 +69,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl,
     [
-      middleware.authenticateIsFromSite,
+      middleware.authenticateUser,
       middleware.parseJSON('where'),
       query('offset').isInt().optional(),
       query('limit').isInt().optional(),
@@ -85,8 +85,7 @@ module.exports = (app, baseUrl) => {
         request.query.limit = '100';
       }
 
-      var result = await models.Files.query(
-        request.user,
+      var result = await models.File.query(
         request.query.where,
         request.query.offset,
         request.query.limit,
@@ -127,12 +126,12 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/:id',
     [
-      middleware.authenticateIsFromSite,
+      middleware.authenticateAny,
       middleware.getFileById,
     ],
     middleware.requestWrapper(async (request, response) => {
 
-      var file = await models.File.findById(request.params.id);
+      var file = request.body.file;
 
       var downloadFileData = {
         _type: 'fileDownload',
@@ -153,4 +152,43 @@ module.exports = (app, baseUrl) => {
       });
     })
   );
+
+    /**
+  * @api {delete} /api/v1/files/:id Delete an existing files
+  * @apiName DeleteFile
+  * @apiGroup Files
+  * @apiDescription This call deletes a file.  The user making the
+  * call must have uploaded the file or be an administrator.
+  *
+  * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+ app.delete(
+  apiUrl + '/:id',
+  [
+    middleware.authenticateUser,
+    middleware.getFileById,
+  ],
+  middleware.requestWrapper(async (request, response) => {
+
+    var deleted = await models.File.deleteIfAllowed(request.user, request.body.file);
+    if (deleted) {
+      responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ["Deleted file."],
+      });
+    } else {
+      responseUtil.send(response, {
+        statusCode: 400,
+        success: false,
+        messages: ["Failed to delete file.  Files can only by creator or site admins"],
+      });
+    }
+  })
+);
 };

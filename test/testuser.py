@@ -222,6 +222,11 @@ class TestUser:
     def download_audio_bait(self, file_id):
         return self._userapi.download_file(file_id)
 
+    def get_all_audio_bait_files(self):
+        return self._userapi.query_files('{"type":"audioBait"}')
+
+    def delete_audio_bait_file(self, file_id):
+        self._userapi.delete_file(file_id)
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

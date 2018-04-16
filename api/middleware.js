@@ -46,7 +46,7 @@ const authenticate = function(type) {
 
 const authenticateUser         = authenticate('user');
 const authenticateDevice       = authenticate('device');
-const authenticateIsFromSite   = authenticate(null);
+const authenticateAny   = authenticate(null);
 
 const signedUrl = query('jwt').custom((value, {req}) => {
   if (value == null) {
@@ -174,7 +174,7 @@ const requestWrapper = fn => (request, response, next) => {
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
-exports.authenticateIsFromSite = authenticateIsFromSite;
+exports.authenticateAny = authenticateAny;
 exports.signedUrl          = signedUrl;
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;
