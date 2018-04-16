@@ -4,11 +4,11 @@ import pytest
 
 from .testexception import TestException
 
-
 class TestUser:
     def __init__(self, username, userapi):
         self._userapi = userapi
         self.username = username
+        self._group = None
 
     def when_searching_with(self, queryParams):
         return RecordingQueryPromise(self, queryParams)
@@ -117,13 +117,16 @@ class TestUser:
     def delete_recording(self, recording):
         self._userapi.delete_recording(recording.recordingId)
 
-    def create_group(self, groupname):
+    def create_group(self, groupname, printname=True):
         try:
             self._userapi.create_group(groupname)
         except Exception as exception:
             raise TestException(
                 "Failed to create group ({}) {}.  If error is 'group name in use', your super-user needs admin rights".
                 format(groupname, exception))
+        if (printname):
+            print("({})".format(groupname))
+        return groupname
 
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
@@ -149,6 +152,27 @@ class TestUser:
 
     def delete_audio_recording(self, recording):
         self._userapi.delete_audio(recording.recordingId)
+
+    def get_own_group(self):
+        if (self._group is None):
+            self._group = self.create_group(self.username + "s_devices", False)
+        return self._group
+
+    def can_see_events(self, device=None):
+        deviceId = None
+        if (device is not None):
+            deviceId = device.get_id()
+        return self._userapi.query_events(limit=10, deviceId=deviceId)
+
+    def cannot_see_events(self):
+        events = self._userapi.query_events(limit=10)
+        if events:
+            raise TestException(
+                "User '{}' can see a events from '{}'".format(
+                    self.username, recordings[0]['DeviceId']))
+
+    def get_device_id(self, devicename):
+        return self._userapi.get_device_id(devicename)
 
     def can_download_correct_audio_recording(self, recording):
         content = io.BytesIO()
@@ -185,7 +209,6 @@ class TestUser:
 
         # Shouldn't happen
         raise ValueError("audio recording not found in query result")
-
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

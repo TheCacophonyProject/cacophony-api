@@ -4,10 +4,12 @@ from .testrecording import TestRecording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi):
+    def __init__(self, devicename, deviceapi, helper):
         self._deviceapi = deviceapi
         self.devicename = devicename
+        self._helper = helper
         self._recordingtimeoffset = 24
+        self._id = None
 
     def has_recording(self):
         self._print_description("    and '{}' has a recording ".format(
@@ -87,6 +89,10 @@ class TestDevice:
         assert eventsAdded == 3
         return detailsId
 
+    def get_id(self):
+        if (self._id is None):
+            self._id= self._helper.admin_user().get_device_id(self.devicename)
+        return self._id
 
 def slurp(filename):
     with open(filename, 'rb') as f:
