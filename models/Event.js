@@ -26,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         "$and": [
           where, // User query
-          await user.getVisibleDevicesConstaint(), // can only see devices they should
+          await user.getWhereDeviceVisible(), // can only see devices they should
         ],
       },
       order: order,

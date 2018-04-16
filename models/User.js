@@ -72,7 +72,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  const getVisibleDevicesConstaint = async function () {
+  const getWhereDeviceVisible = async function () {
     if (this.superuser) {
       return null;
     }
@@ -99,7 +99,7 @@ module.exports = function(sequelize, DataTypes) {
       getDataValues: getDataValues,
       getAll: getAll,
       getAllDeviceIds: getAllDeviceIds,
-      getVisibleDevicesConstaint: getVisibleDevicesConstaint,
+      getWhereDeviceVisible: getWhereDeviceVisible,
     },
     hooks: {
       afterValidate: afterValidate

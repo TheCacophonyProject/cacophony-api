@@ -56,7 +56,7 @@ class TestEvent:
         helper.given_new_user(self, 'grant').cannot_see_events()
 
 
-    def test_should_be_able_top_upload_several_events_at_same_time(self, helper):
+    def test_should_be_able_to_upload_several_events_at_same_time(self, helper):
         rocker = helper.given_new_device(self, 'The Rocker')
         detailId = rocker.record_event("playLure", {"lure_id": "possum_screecher"})
         rocker.record_three_events_at_once(detailId)
