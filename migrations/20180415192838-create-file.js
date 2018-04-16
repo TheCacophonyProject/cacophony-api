@@ -35,7 +35,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, 'Files', 'Users');
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function(queryInterface) {
     return queryInterface.dropTable('Files');
   }
 };

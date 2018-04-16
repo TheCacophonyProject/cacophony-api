@@ -216,8 +216,12 @@ class TestUser:
             "details": '{"animal":"possum"}',
         }
         filename = 'files/small.cptv'
-        recording_id = self._userapi._upload_file(filename, props)
+        recording_id = self._userapi.upload_file(filename, props)
         return recording_id
+
+    def download_audio_bait(self, file_id):
+        return self._userapi.download_file(file_id)
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

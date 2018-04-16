@@ -98,6 +98,12 @@ class UserAPI(APIBase):
         d = self._check_response(r)
         return self._download_signed(d['jwt'])
 
+    def download_file(self, file_id):
+        url = urljoin(self._baseurl, '/api/v1/files/{}'.format(file_id))
+        response = requests.get(url, headers=self._auth_header)
+        self._check_response(response)
+        return self._download_signed(response.json()['jwt'])
+
     def _download_signed(self, token):
         r = requests.get(
             urljoin(self._baseurl, '/api/v1/signedUrl'),
@@ -154,6 +160,9 @@ class UserAPI(APIBase):
             where = '{"DeviceId":' + "{}".format(deviceId) + "}"
         return self._query_results('events', {'where' : where}, limit, offset)
 
+    def query_files(self, where='{}'):
+        return self._query_results('files', {'where' : where}, limit, offset)
+
     def _query_results(self, queryname, params,limit=100, offset=0):
         url = urljoin(self._baseurl, '/api/v1/' + queryname)
 
@@ -172,7 +181,7 @@ class UserAPI(APIBase):
         else:
             response.raise_for_status()
 
-    def _upload_file(self, filename, props):
+    def upload_file(self, filename, props):
         url = urljoin(self._baseurl, 'api/v1/files')
         json_props = json.dumps(props)
 
