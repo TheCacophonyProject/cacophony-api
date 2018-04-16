@@ -13,6 +13,7 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       addAssociations: addAssociations,
       apiSettableFields: apiSettableFields,
+      query: query,
     },
   };
 
@@ -20,6 +21,27 @@ module.exports = function(sequelize, DataTypes) {
     'type',
     'details',
   ];
+
+  /**
+  * Return one or more files for a user matching the query
+  * arguments given.
+  */
+  var query = async function(user, where, offset, limit, order) {
+    if (order == null) {
+      order = [
+        ["id", "DESC"],
+      ];
+    }
+
+    var q = {
+      where: where,
+      order: order,
+      attributes: { exclude : ['updatedAt'] },
+      limit: limit,
+      offset: offset,
+    };
+    return this.findAndCount(q);
+  };
 
   return sequelize.define(name, attributes, options);
 };

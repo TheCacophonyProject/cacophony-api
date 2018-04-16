@@ -1,11 +1,8 @@
 const models            = require('../../models');
-const log               = require('../../logging');
 const responseUtil      = require('./responseUtil');
-const multiparty        = require('multiparty');
+const util              = require('./util');
 const config            = require('../../config');
-const uuidv4            = require('uuid/v4');
 const jsonwebtoken      = require('jsonwebtoken');
-const modelsUtil        = require('../../models/util/util');
 const middleware        = require('../middleware');
 const { query, check }  = require('express-validator/check');
 
@@ -46,98 +43,23 @@ module.exports = (app, baseUrl) => {
     [
       middleware.authenticateDevice,
     ],
-    middleware.requestWrapper(async (request, response) => {
-
-      var recording;
-      var key = uuidv4();
-      var form = new multiparty.Form();
-      var validData = false;
-      var uploadStarted = false;
-
-      // Make new Recording from the data field and Device.
-      // TODO Stop stream if 'data' is invalid.
-      form.on('field', (name, value) => {
-        if (name != 'data') {
-          return; // Only parse data field.
-        }
-        try {
-          var data = JSON.parse(value);
-          recording = models.Recording.build(data, {
-            fields: models.Recording.apiSettableFields,
-          });
-          recording.set('rawFileKey', key);
-          recording.set('DeviceId', request.device.id);
-          recording.set('GroupId', request.device.GroupId);
-          recording.set('processingState',
-            models.Recording.processingStates[data.type][0]);
-          if (typeof request.device.public === 'boolean') {
-            recording.set('public', request.device.public);
-          }
-          validData = true;
-        } catch (e) {
-          log.debug(e);
-          // TODO Stop stream here.
-        }
-      });
-
-      // Stream file to S3.
-      var uploadPromise;
-      form.on('part', (part) => {
-        if (part.name != 'file') {
-          return part.resume();
-        }
-        uploadStarted = true;
-        log.debug('Streaming file to LeoFS.');
-        uploadPromise = new Promise(function(resolve, reject) {
-          var s3 = modelsUtil.openS3();
-          s3.upload({
-            Bucket: config.s3.bucket,
-            Key: key,
-            Body: part,
-          }, (err) => {
-            if (err) {
-              return reject(err);
-            }
-            log.info("Finished streaming file to object store key:", key);
-            resolve();
-          });
+    middleware.requestWrapper(
+      util.multipartDownload('recording', (request, data, key) => {
+        var recording = models.Recording.build(data, {
+          fields: models.Recording.apiSettableFields,
         });
-      });
-
-      // Close response.
-      form.on('close', async () => {
-        log.info("Finished POST request.");
-        if (!validData || !uploadStarted) {
-          return responseUtil.invalidDatapointUpload(response);
+        recording.set('rawFileKey', key);
+        recording.set('DeviceId', request.device.id);
+        recording.set('GroupId', request.device.GroupId);
+        recording.set('processingState',
+          models.Recording.processingStates[data.type][0]);
+        if (typeof request.device.public === 'boolean') {
+          recording.set('public', request.device.public);
         }
 
-        // Check that the file uploaded to LeoFS.
-        try {
-          await uploadPromise;
-        } catch (e) {
-          return responseUtil.send(response, {
-            statusCode: 500,
-            success: false,
-            messages: ["Failed to upload file to bucket"],
-          });
-        }
-        // Validate and upload recording
-        await recording.validate();
-        await recording.save();
-        return responseUtil.validRecordingUpload(response, recording.id);
-      });
-
-      form.on('error', (e) => {
-        log.error(e);
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ["failed to get recording"],
-        });
-      });
-
-      form.parse(request);
-    })
+        return recording;
+      })
+    )
   );
 
   /**
