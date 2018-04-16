@@ -192,7 +192,7 @@ module.exports = (app, baseUrl) => {
    * content. This is should be used with the
    * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
    *
-   * @apiUse V1UserAuthorizationHeader
+   * @apiHeader {String} Authorization Signed JSON web token for a user or device.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
@@ -206,7 +206,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      middleware.authenticateIsFromSite,
       middleware.getFileById,
     ],
     middleware.requestWrapper(async (request, response) => {

@@ -20,11 +20,12 @@ const authenticate = function(type) {
     } catch(e) {
       throw new Error('failed to verify JWT');
     }
-    if (jwtDecoded._type != type) {
-      throw new Error(format('invalid type of JWT. need a %s for this request', type));
+
+    if (type && type != jwtDecoded._type) {
+      throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s', type, jwtDecoded._type));
     }
     var result;
-    switch(type) {
+    switch(jwtDecoded._type) {
     case 'user':
       result = await models.User.findById(jwtDecoded.id);
       break;
@@ -45,6 +46,7 @@ const authenticate = function(type) {
 
 const authenticateUser         = authenticate('user');
 const authenticateDevice       = authenticate('device');
+const authenticateIsFromSite   = authenticate(null);
 
 const signedUrl = query('jwt').custom((value, {req}) => {
   if (value == null) {
@@ -172,6 +174,7 @@ const requestWrapper = fn => (request, response, next) => {
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
+exports.authenticateIsFromSite = authenticateIsFromSite;
 exports.signedUrl          = signedUrl;
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;

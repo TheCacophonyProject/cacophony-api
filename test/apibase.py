@@ -62,3 +62,17 @@ class APIBase:
 
     def get_login_name(self):
         return self._loginname
+
+    def _download_signed(self, token):
+        response = requests.get(
+            urljoin(self._baseurl, '/api/v1/signedUrl'),
+            params={'jwt': token},
+            stream=True)
+        response.raise_for_status()
+        yield from response.iter_content(chunk_size=4096)
+
+    def download_file(self, file_id):
+        url = urljoin(self._baseurl, '/api/v1/files/{}'.format(file_id))
+        response = requests.get(url, headers=self._auth_header)
+        self._check_response(response)
+        return self._download_signed(response.json()['jwt'])

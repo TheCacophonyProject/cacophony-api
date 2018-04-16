@@ -98,20 +98,6 @@ class UserAPI(APIBase):
         d = self._check_response(r)
         return self._download_signed(d['jwt'])
 
-    def download_file(self, file_id):
-        url = urljoin(self._baseurl, '/api/v1/files/{}'.format(file_id))
-        response = requests.get(url, headers=self._auth_header)
-        self._check_response(response)
-        return self._download_signed(response.json()['jwt'])
-
-    def _download_signed(self, token):
-        r = requests.get(
-            urljoin(self._baseurl, '/api/v1/signedUrl'),
-            params={'jwt': token},
-            stream=True)
-        r.raise_for_status()
-        yield from r.iter_content(chunk_size=4096)
-
     def _get_all(self, url):
         r = requests.get(
             urljoin(self._baseurl, url),
