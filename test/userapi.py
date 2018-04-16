@@ -12,8 +12,6 @@ class UserAPI(APIBase):
         super().__init__('user', baseurl, username, password)
 
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
-        url = urljoin(self._baseurl, '/api/v1/recordings')
-
         where = [{"duration": {"$gte": min_secs}}]
         if startDate is not None:
             where.append({
@@ -25,24 +23,12 @@ class UserAPI(APIBase):
             where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
 
         params = {'where': json.dumps(where)}
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
         if tagmode is not None:
             params['tagMode'] = tagmode
         if tags is not None:
             params['tags'] = json.dumps(tags)
 
-        r = requests.get(url, params=params, headers=self._auth_header)
-        if r.status_code == 200:
-            return r.json()['rows']
-        elif r.status_code == 400:
-            messages = r.json()['messages']
-            raise IOError("request failed ({}): {}".format(
-                r.status_code, messages))
-        else:
-            r.raise_for_status()
+        return self._query_results('recordings', params, limit, offset)
 
     def get_recording(self, recording_id):
         url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
@@ -127,13 +113,20 @@ class UserAPI(APIBase):
             headers=self._auth_header,
         )
         r.raise_for_status()
-        return r.text
+        return r.json()
 
     def get_devices_as_string(self):
-        return self._get_all('/api/v1/devices')
+        return json.dumps(self._get_all('/api/v1/devices'))
 
     def get_groups_as_string(self):
-        return self._get_all('/api/v1/groups')
+        return json.dumps(self._get_all('/api/v1/groups'))
+
+    def get_device_id(self, devicename):
+        all_devices = self._get_all('/api/v1/devices')['devices']['rows']
+        for device in all_devices:
+            if device['devicename'] == devicename:
+                return device['id']
+        return None
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")

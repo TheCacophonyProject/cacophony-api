@@ -23,7 +23,14 @@ class Helper:
     def login_as_device(self, devicename):
         password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_server, devicename, password).login()
-        return TestDevice(devicename, device)
+        return TestDevice(devicename, device, self)
+
+    def given_new_user_with_device(self, testClass, username_base):
+        self._print_description('Given a new user {}'.format(username_base))
+        user = self.given_new_user(testClass, username_base)
+        devicename = user.username + "s_device"
+        device = self.given_new_device(None, devicename, group=user.get_own_group(), description='    with a device')
+        return (user, device)
 
     def given_new_user(self, testClass, username):
         basename = self._make_long_name(testClass, username)
@@ -33,14 +40,17 @@ class Helper:
                 api = UserAPI(self.config.api_server, testname, self._make_password(testname)).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api)
-            except Exception:
+            except OSError:
                 pass
             testname = "{}{}".format(basename, num)
 
         raise TestException("Could not create username like '{}'".format(basename))
 
     def _make_unique_name(self, testClass, name, usednames):
-        basename = self._make_long_name(testClass, name)
+        if testClass is not None:
+            basename = self._make_long_name(testClass, name)
+        else:
+            basename = name
         testname = basename
 
         for num in range(2, 1000):
@@ -60,8 +70,11 @@ class Helper:
             description = "Given a new device '{}'".format(devicename)
         self._print_description(description)
 
-        devices = self._get_admin().get_devices_as_string()
-        uniqueName = self._make_unique_name(testClass, devicename, devices)
+        if testClass is not None:
+            devices = self._get_admin().get_devices_as_string()
+            uniqueName = self._make_unique_name(testClass, devicename, devices)
+        else:
+            uniqueName = devicename
 
         if not group:
             group = self.config.default_group
@@ -69,7 +82,7 @@ class Helper:
         try:
             device = DeviceAPI(self.config.api_server, uniqueName, self._make_password(uniqueName)).register_as_new(group)
             self._print_actual_name(uniqueName)
-            return TestDevice(uniqueName, device)
+            return TestDevice(uniqueName, device, self)
         except Exception as exception:
             raise TestException("Failed to create device {}.  If error is 'device name in use', your super-user needs admin rights".format(exception))
 
