@@ -207,7 +207,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
-      check('id').isInt(),
+      middleware.getFileById,
     ],
     middleware.requestWrapper(async (request, response) => {
 

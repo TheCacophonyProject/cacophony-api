@@ -63,9 +63,9 @@ const signedUrl = query('jwt').custom((value, {req}) => {
 
 const getModelById = function(modelType, fieldName, checkFunc=check) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
-    const model = await modelType.getFromId(val);
+    const model = await modelType.findById(val);
     if (model === null) {
-      throw new Error(format('could not find %s of %s', fieldName, val));
+      throw new Error(format('Could not find a %s with an id of %s', modelType.name, val));
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
@@ -113,6 +113,8 @@ const getDeviceById = getModelById(models.Device, 'deviceId');
 const getDeviceByName = getModelByName(models.Device, 'devicename');
 
 const getEventDetailById = getModelById(models.EventDetail, 'eventDetailId');
+
+const getFileById = getModelById(models.File, 'id');
 
 const checkNewName = function(field) {
   return check(field, 'invalid name')
@@ -178,6 +180,7 @@ exports.getGroupByName     = getGroupByName;
 exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
 exports.getEventDetailById = getEventDetailById;
+exports.getFileById        = getFileById;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
