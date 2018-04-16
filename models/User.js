@@ -167,8 +167,7 @@ const getAllDeviceIds = async function() {
   var directDeviceIds = await this.getDeviceIds();
   var groupedDeviceIds = await this.getGroupDeviceIds();
 
-  var allDevicesIds = directDeviceIds.concat(groupedDeviceIds);
-  return allDevicesIds;
+  return directDeviceIds.concat(groupedDeviceIds);
 };
 
 function afterValidate(user) {

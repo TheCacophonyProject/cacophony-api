@@ -47,7 +47,7 @@ class Helper:
         raise TestException("Could not create username like '{}'".format(basename))
 
     def _make_unique_name(self, testClass, name, usednames):
-        if (testClass is not None):
+        if testClass is not None:
             basename = self._make_long_name(testClass, name)
         else:
             basename = name
@@ -70,7 +70,7 @@ class Helper:
             description = "Given a new device '{}'".format(devicename)
         self._print_description(description)
 
-        if (testClass is not None):
+        if testClass is not None:
             devices = self._get_admin().get_devices_as_string()
             uniqueName = self._make_unique_name(testClass, devicename, devices)
         else:
