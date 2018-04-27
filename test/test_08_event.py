@@ -1,39 +1,35 @@
-import random
-import string
-
 class TestEvent:
     def test_can_create_new_event(self, helper):
         doer = helper.given_new_device(self, 'The Do-er')
+        new_event_name = "E_" + helper.random_id()
 
-        new_event = self._unique_event_name()
+        screech = doer.record_event(new_event_name, {"lure_id": "possum_screech"})
 
-        screech = doer.record_event(new_event, {"lure_id": "possum_screech"})
-
-        screech2 = doer.record_event(new_event, {"lure_id": "possum_screech"}, "    and also")
+        screech2 = doer.record_event(new_event_name, {"lure_id": "possum_screech"}, "    and also")
 
         print('Then these events with the same details should use the same eventDetailId.')
         assert screech == screech2, 'And events with the same details should use the same eventDetailId'
 
-        howl = doer.record_event(new_event, {"lure_id": "possum_howl"}, "Given this device also")
+        howl = doer.record_event(new_event_name, {"lure_id": "possum_howl"}, "Given this device also")
 
         print('Then the events with some different details should have different eventDetailIds.')
         assert screech != howl, "Events with different details should link to different eventDetailIds"
 
-        no_lure_id = doer.record_event(new_event, "", "Given this device also")
+        no_lure_id = doer.record_event(new_event_name, "", "Given this device also")
 
         print('Then the event with no details should should have a different eventDetailId.')
         assert screech != no_lure_id, "Events with no details should link to different eventDetailId."
 
     def test_devices_share_events(self, helper):
         shaker = helper.given_new_device(self, 'The Shaker')
-        new_event = self._unique_event_name()
+        new_event_name = "E_" + helper.random_id()
 
-        sameDetails = shaker.record_event(new_event, {"lure_id": "possum_screech"})
+        sameDetails = shaker.record_event(new_event_name, {"lure_id": "possum_screech"})
 
         print("    and ", end = "")
         actioner = helper.given_new_device(self, 'Actioner')
 
-        sameDetailsDifferentDevice = actioner.record_event(new_event, {"lure_id": "possum_screech"})
+        sameDetailsDifferentDevice = actioner.record_event(new_event_name, {"lure_id": "possum_screech"})
 
         print('Then the devices should share the same eventDetailId.')
         assert sameDetails == sameDetailsDifferentDevice, "EventsDetails should be able to be linked to from different devices"
@@ -65,7 +61,7 @@ class TestEvent:
 
     def test_get_event_attributes_returned(self, helper):
         boombox = helper.given_new_device(self, 'boombox')
-        description = self._unique_event_name()
+        description = "E_" + helper.random_id()
         detailId = boombox.record_event("audio-bait-played", {"lure_id": "possum_screams", 'description': description })
         event = helper.admin_user().can_see_events(boombox)[0]
         print("Then get events returns an event")
@@ -79,7 +75,4 @@ class TestEvent:
         assert (event['EventDetail']['details']['lure_id'] == "possum_screams")
         print("    and EventDetail.details.description = '{}'".format(description))
         assert (event['EventDetail']['details']['description'] == description)
-
-    def _unique_event_name(self):
-        return "Event_" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 

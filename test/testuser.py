@@ -1,5 +1,4 @@
 import io
-
 import pytest
 
 from .testexception import TestException
@@ -210,7 +209,7 @@ class TestUser:
         # Shouldn't happen
         raise ValueError("audio recording not found in query result")
 
-    def upload_audio_bait(self, details='{"animal":"possum"}'):
+    def upload_audio_bait(self, details={"animal": "possum"}):
         props = {
             "type": "audioBait",
             "details": details
