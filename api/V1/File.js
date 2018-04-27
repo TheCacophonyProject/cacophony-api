@@ -153,7 +153,7 @@ module.exports = (app, baseUrl) => {
     })
   );
 
-    /**
+  /**
   * @api {delete} /api/v1/files/:id Delete an existing files
   * @apiName DeleteFile
   * @apiGroup Files
@@ -167,28 +167,28 @@ module.exports = (app, baseUrl) => {
   * @apiUse V1ResponseSuccess
   * @apiUse V1ResponseError
   */
- app.delete(
-  apiUrl + '/:id',
-  [
-    middleware.authenticateUser,
-    middleware.getFileById,
-  ],
-  middleware.requestWrapper(async (request, response) => {
+  app.delete(
+    apiUrl + '/:id',
+    [
+      middleware.authenticateUser,
+      middleware.getFileById,
+    ],
+    middleware.requestWrapper(async (request, response) => {
 
-    var deleted = await models.File.deleteIfAllowed(request.user, request.body.file);
-    if (deleted) {
-      responseUtil.send(response, {
-        statusCode: 200,
-        success: true,
-        messages: ["Deleted file."],
-      });
-    } else {
-      responseUtil.send(response, {
-        statusCode: 400,
-        success: false,
-        messages: ["Failed to delete file.  Files can only by creator or site admins"],
-      });
-    }
-  })
-);
+      var deleted = await models.File.deleteIfAllowed(request.user, request.body.file);
+      if (deleted) {
+        responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ["Deleted file."],
+        });
+      } else {
+        responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ["Failed to delete file.  Files can only by creator or site admins"],
+        });
+      }
+    })
+  );
 };

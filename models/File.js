@@ -35,14 +35,6 @@ module.exports = function(sequelize, DataTypes) {
     return this.findAndCount(q);
   };
 
-  var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields,
-      query: query,
-    },
-  };
-
   var deleteIfAllowed = async function(user, file) {
     if (user.superuser || user.id == file.UserId) {
       await file.destroy();
