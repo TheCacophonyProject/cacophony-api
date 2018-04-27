@@ -210,10 +210,10 @@ class TestUser:
         # Shouldn't happen
         raise ValueError("audio recording not found in query result")
 
-    def upload_audio_bait(self):
+    def upload_audio_bait(self, details='{"animal":"possum"}'):
         props = {
             "type": "audioBait",
-            "details": '{"animal":"possum"}',
+            "details": details
         }
         filename = 'files/small.cptv'
         recording_id = self._userapi.upload_file(filename, props)
@@ -222,10 +222,13 @@ class TestUser:
     def download_audio_bait(self, file_id):
         return self._userapi.download_file(file_id)
 
-    def get_all_audio_bait_files(self):
-        return self._userapi.query_files('{"type":"audioBait"}')
+    def get_all_audio_baits(self):
+        return AudioBaitList(self._userapi.query_files('{"type":"audioBait"}'))
 
     def delete_audio_bait_file(self, file_id):
+        self._userapi.delete_file(file_id)
+
+    def cannot_delete_audio_bait_file(self, file_id):
         self._userapi.delete_file(file_id)
 
 class RecordingQueryPromise:
@@ -272,5 +275,20 @@ class RecordingQueryPromise:
         self.cannot_see_recordings(*expectedMissingRecordings)
 
 
+class AudioBaitList:
+    def __init__(self, all_bait_files):
+        self._all_bait_files = all_bait_files
+
+    def get_info_for(self, audio_bait_id):
+        if not self._all_bait_files:
+            return None
+        for bait in self._all_bait_files:
+            if bait['id'] == audio_bait_id:
+                return bait
+        return None
+
+
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
+
+
