@@ -34,7 +34,7 @@
  * * For example, ["dateTime"] or [["dateTime", "ASC"]].
 */
 
- /**
+/**
  * @apiDefine V1ResponseSuccessQuery
  * @apiSuccess {Boolean} success `true` - Request was successful.
  * @apiSuccess {String[]} messages Messages about the request.
@@ -42,7 +42,7 @@
  * @apiSuccess {Number} limit Mirrors request limit parameter.
  * @apiSuccess {Number} count Total number of records which match the query.
  * @apiSuccess {JSON} rows List of details for records which matched the query.
- */
+*/
 
 /**
  * @apiDefine MetaDataAndJWT
