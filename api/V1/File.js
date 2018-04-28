@@ -10,18 +10,15 @@ module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/files';
 
   /**
-   * @api {post} /api/v1/recordings Add a new recording.
+   * @api {post} /api/v1/files Adds a new file.
    * @apiName PostUserFile
    * @apiGroup Files
-   * @apiDescription This call is used for upload a file, eg an audio bait file.   It takes a 'data' field which contains a JSON object
-   * string that can contain any of the following fields, Note that 'type'
+   * @apiDescription This call is used for upload a file, eg an audio bait file.
    * is required:
-   * - type: REQUIRED, one of ('audioBait')
-   * -
    *
-   * @apiUse V1DeviceAuthorizationHeader
+   * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} data Metadata about the recording (see above).
+   * @apiParam {JSON} data Metadata about the recording in JSON format.  It must include the field 'type' (eg. audioBait).
    * @apiParam {File} file File of the recording.
    *
    * @apiUse V1ResponseSuccess
@@ -46,24 +43,15 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {get} /api/v1/files Get stored files
-   * @apiName GetFiles
+   * @api {get} /api/v1/files Query available files
+   * @apiName QueryFiles
    * @apiGroup Files
    *
    * @apiHeader {String} Authorization Signed JSON web token for a user or device.
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} offset Query result offset (for paging).
-   * @apiParam {Number} limit Query result limit (for paging).
-   * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Example: [["recordingDateTime", "ASC"]]
+   * @apiUse QueryParams
    *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {Number} offset Mirrors request offset parameter.
-   * @apiSuccess {Number} limit Mirrors request limit parameter.
-   * @apiSuccess {Number} count Total number of records which match the query.
-   * @apiSuccess {JSON} rows List of details for records which matched the query.
-   *
-   * @apiUse V1ResponseError
+   * @apiUse V1ResponseSuccessQuery
    */
 
   app.get(
@@ -104,7 +92,7 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {get} /api/v1/files/id Get a recording
+   * @api {get} /api/v1/files/id Get a file
    * @apiName GetFile
    * @apiGroup Files
    * @apiDescription This call returns metadata for a recording in JSON format
@@ -186,7 +174,7 @@ module.exports = (app, baseUrl) => {
         responseUtil.send(response, {
           statusCode: 400,
           success: false,
-          messages: ["Failed to delete file.  Files can only by creator or site admins"],
+          messages: ["Failed to delete file.  Files can only be deleted by the admins and the person who uploaded the file."],
         });
       }
     })
