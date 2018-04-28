@@ -95,19 +95,14 @@ module.exports = (app, baseUrl) => {
    * @api {get} /api/v1/files/id Get a file
    * @apiName GetFile
    * @apiGroup Files
-   * @apiDescription This call returns metadata for a recording in JSON format
-   * and a JSON Web Token (JWT) which can be used to retrieve the recorded
-   * content. This is should be used with the
-   * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
+   * @apiUse MetaDataAndJWT
    *
    * @apiHeader {String} Authorization Signed JSON web token for a user or device.
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
+   * @apiSuccess {String} jwt JSON Web Token to use to download the
    * recording file.
-   * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
-   * the raw recording data.
-   * @apiSuccess {JSON} recording The recording data.
+   * @apiSuccess {JSON} file Metadata for the file.
    *
    * @apiUse V1ResponseError
    */
@@ -124,7 +119,6 @@ module.exports = (app, baseUrl) => {
       var downloadFileData = {
         _type: 'fileDownload',
         key: file.fileKey,
-        // filename: file.getFileName(),
       };
 
       return responseUtil.send(response, {

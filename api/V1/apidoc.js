@@ -43,3 +43,11 @@
  * @apiSuccess {Number} count Total number of records which match the query.
  * @apiSuccess {JSON} rows List of details for records which matched the query.
  */
+
+/**
+ * @apiDefine MetaDataAndJWT
+ * @apiDescription This call returns metadata in JSON format
+ * and a JSON Web Token (JWT) which can be used to retrieve the recorded
+ * content. The web token should be used with the
+ * [/api/v1/signedUrl API](#api-SignedUrl-GetFile) to retrieve the file.
+*/

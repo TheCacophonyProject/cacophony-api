@@ -133,11 +133,8 @@ module.exports = (app, baseUrl) => {
    * @api {get} /api/v1/recordings/:id Get a recording
    * @apiName GetRecording
    * @apiGroup Recordings
-   * @apiDescription This call returns metadata for a recording in JSON format
-   * and a JSON Web Token (JWT) which can be used to retrieve the recorded
-   * content. This is should be used with the
-   * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
    *
+   * @apiUse MetaDataAndJWT
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
