@@ -1,6 +1,10 @@
 var log = require('../../logging');
 var requestUtil = require('./requestUtil');
 var responseUtil = require('./responseUtil');
+const uuidv4            = require('uuid/v4');
+const multiparty        = require('multiparty');
+const config            = require('../../config');
+const modelsUtil        = require('../../models/util/util');
 
 var INVALID_DATA = 'Invalid data key in body, should be a JSON.';
 var INVALID_ID = 'Invalid ID field. Should be an integer.';
@@ -183,6 +187,91 @@ function catchError(error, response, responseFunction) {
   return responseUtil.serverError(response, error);
 }
 
+function multipartDownload(recordTypeName, buildRecord){
+  return async (request, response) => {
+
+    var dbRecord;
+    var key = uuidv4();
+    var validData = false;
+    var uploadStarted = false;
+
+    var form = new multiparty.Form();
+    // Make new record from the data part.
+    // TODO Stop stream if 'data' is invalid.
+    form.on('field', (name, value) => {
+      if (name != 'data') {
+        return; // Only parse data field.
+      }
+      try {
+        var data = JSON.parse(value);
+        dbRecord = buildRecord(request, data, key);
+        validData = true;
+      } catch (e) {
+        log.debug(e);
+        // TODO Stop stream here.
+      }
+    });
+
+    // Stream file to S3.
+    var uploadPromise;
+    form.on('part', (part) => {
+      if (part.name != 'file') {
+        return part.resume();
+      }
+      uploadStarted = true;
+      log.debug('Streaming file to bucket.');
+      uploadPromise = new Promise(function(resolve, reject) {
+        var s3 = modelsUtil.openS3();
+        s3.upload({
+          Bucket: config.s3.bucket,
+          Key: key,
+          Body: part,
+        }, (err) => {
+          if (err) {
+            return reject(err);
+          }
+          log.info("Finished streaming file to object store key:", key);
+          resolve();
+        });
+      });
+    });
+
+    // Close response.
+    form.on('close', async () => {
+      log.info("Finished POST request.");
+      if (!validData || !uploadStarted) {
+        return responseUtil.invalidDatapointUpload(response);
+      }
+
+      // Check that the file uploaded to file store.
+      try {
+        await uploadPromise;
+      } catch (e) {
+        return responseUtil.send(response, {
+          statusCode: 500,
+          success: false,
+          messages: ["Failed to upload file to bucket"],
+        });
+      }
+      // Validate and upload recording
+      await dbRecord.validate();
+      await dbRecord.save();
+      return responseUtil.validRecordingUpload(response, dbRecord.id);
+    });
+
+    form.on('error', (e) => {
+      log.error(e);
+      return responseUtil.send(response, {
+        statusCode: 400,
+        success: false,
+        messages: ["failed to get file content"],
+      });
+    });
+
+    form.parse(request);
+  };
+}
+
 exports.getRecordingsFromModel = getRecordingsFromModel;
 exports.addRecordingFromPost = addRecordingFromPost;
 exports.updateDataFromPut = updateDataFromPut;
@@ -191,3 +280,4 @@ exports.deleteDataPoint = deleteDataPoint;
 exports.parseJsonFromString = parseJsonFromString;
 exports.handleResponse = responseUtil.send;
 exports.catchError = catchError;
+exports.multipartDownload = multipartDownload;

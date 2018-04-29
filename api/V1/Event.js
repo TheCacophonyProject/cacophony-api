@@ -93,22 +93,13 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} /api/v1/events Get events recorded
-   * @apiName GetEvents
+   * @api {get} /api/v1/events Query events recorded
+   * @apiName QueryEvents
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} offset Query result offset (for paging).
-   * @apiParam {Number} limit Query result limit (for paging).
-   * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Example: [["recordingDateTime", "ASC"]]
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {Number} offset Mirrors request offset parameter.
-   * @apiSuccess {Number} limit Mirrors request limit parameter.
-   * @apiSuccess {Number} count Total number of records which match the query.
-   * @apiSuccess {JSON} rows List of details for records which matched the query.
+   * @apiUse QueryParams
    *
    * @apiUse V1ResponseError
    */

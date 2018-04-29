@@ -83,7 +83,7 @@ class TestDevice:
             (datetime.utcnow() - timedelta(seconds=2)).isoformat(),
             (datetime.utcnow() - timedelta(seconds=4)).isoformat(),
         ]
-        (eventsAdded, detailsId) = self._deviceapi.record_event_from_id(detailId, times)
+        eventsAdded, detailsId = self._deviceapi.record_event_from_id(detailId, times)
 
         print('Then three events should have been recorded.')
         assert eventsAdded == 3
@@ -93,6 +93,9 @@ class TestDevice:
         if (self._id is None):
             self._id= self._helper.admin_user().get_device_id(self.devicename)
         return self._id
+
+    def download_audio_bait(self, file_id):
+        return self._deviceapi.download_file(file_id)
 
 def slurp(filename):
     with open(filename, 'rb') as f:

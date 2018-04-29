@@ -20,11 +20,12 @@ const authenticate = function(type) {
     } catch(e) {
       throw new Error('failed to verify JWT');
     }
-    if (jwtDecoded._type != type) {
-      throw new Error(format('invalid type of JWT. need a %s for this request', type));
+
+    if (type && type != jwtDecoded._type) {
+      throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s', type, jwtDecoded._type));
     }
     var result;
-    switch(type) {
+    switch(jwtDecoded._type) {
     case 'user':
       result = await models.User.findById(jwtDecoded.id);
       break;
@@ -45,6 +46,7 @@ const authenticate = function(type) {
 
 const authenticateUser         = authenticate('user');
 const authenticateDevice       = authenticate('device');
+const authenticateAny   = authenticate(null);
 
 const signedUrl = query('jwt').custom((value, {req}) => {
   if (value == null) {
@@ -63,9 +65,9 @@ const signedUrl = query('jwt').custom((value, {req}) => {
 
 const getModelById = function(modelType, fieldName, checkFunc=check) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
-    const model = await modelType.getFromId(val);
+    const model = await modelType.findById(val);
     if (model === null) {
-      throw new Error(format('could not find %s of %s', fieldName, val));
+      throw new Error(format('Could not find a %s with an id of %s', modelType.name, val));
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
@@ -113,6 +115,8 @@ const getDeviceById = getModelById(models.Device, 'deviceId');
 const getDeviceByName = getModelByName(models.Device, 'devicename');
 
 const getEventDetailById = getModelById(models.EventDetail, 'eventDetailId');
+
+const getFileById = getModelById(models.File, 'id');
 
 const checkNewName = function(field) {
   return check(field, 'invalid name')
@@ -170,6 +174,7 @@ const requestWrapper = fn => (request, response, next) => {
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
+exports.authenticateAny = authenticateAny;
 exports.signedUrl          = signedUrl;
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;
@@ -178,6 +183,7 @@ exports.getGroupByName     = getGroupByName;
 exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
 exports.getEventDetailById = getEventDetailById;
+exports.getFileById        = getFileById;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;

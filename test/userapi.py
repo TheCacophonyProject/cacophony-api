@@ -1,5 +1,7 @@
 import json
+import os
 import requests
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
 
 from .apibase import APIBase
@@ -96,14 +98,6 @@ class UserAPI(APIBase):
         d = self._check_response(r)
         return self._download_signed(d['jwt'])
 
-    def _download_signed(self, token):
-        r = requests.get(
-            urljoin(self._baseurl, '/api/v1/signedUrl'),
-            params={'jwt': token},
-            stream=True)
-        r.raise_for_status()
-        yield from r.iter_content(chunk_size=4096)
-
     def _get_all(self, url):
         r = requests.get(
             urljoin(self._baseurl, url),
@@ -152,6 +146,15 @@ class UserAPI(APIBase):
             where = '{"DeviceId":' + "{}".format(deviceId) + "}"
         return self._query_results('events', {'where' : where}, limit, offset)
 
+    def query_files(self, where='{}', limit=None, offset=None):
+        return self._query_results('files', {'where' : where}, limit, offset)
+
+    def _do_delete(self, deleteType, id):
+        url = urljoin(self._baseurl, '/api/v1/{}/{}'.format(deleteType, id))
+        response = requests.delete(url, headers=self._auth_header)
+        return self._check_response(response)
+
+
     def _query_results(self, queryname, params,limit=100, offset=0):
         url = urljoin(self._baseurl, '/api/v1/' + queryname)
 
@@ -169,3 +172,24 @@ class UserAPI(APIBase):
                 response.status_code, messages))
         else:
             response.raise_for_status()
+
+    def upload_file(self, filename, props):
+        url = urljoin(self._baseurl, 'api/v1/files')
+        json_props = json.dumps(props)
+
+        with open(filename, 'rb') as content:
+            multipart_data = MultipartEncoder(
+                fields={
+                    'data': json_props,
+                    'file': (os.path.basename(filename), content),
+                })
+            headers = {
+                'Content-Type': multipart_data.content_type,
+                'Authorization': self._token
+            }
+            r = requests.post(url, data=multipart_data, headers=headers)
+        self._check_response(r)
+        return r.json()['recordingId']
+
+    def delete_file(self, file_id):
+        self._do_delete('files', file_id)

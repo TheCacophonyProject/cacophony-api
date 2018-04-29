@@ -7,6 +7,8 @@ from .testdevice import TestDevice
 from .testconfig import TestConfig
 from .testexception import TestException
 
+import random
+import string
 
 class Helper:
 
@@ -124,3 +126,5 @@ class Helper:
             print('Creating default group')
             self.admin_user().create_group(default_group)
 
+    def random_id(self, length = 6):
+        return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length))

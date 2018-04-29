@@ -1,11 +1,8 @@
 const models            = require('../../models');
-const log               = require('../../logging');
 const responseUtil      = require('./responseUtil');
-const multiparty        = require('multiparty');
+const util              = require('./util');
 const config            = require('../../config');
-const uuidv4            = require('uuid/v4');
 const jsonwebtoken      = require('jsonwebtoken');
-const modelsUtil        = require('../../models/util/util');
 const middleware        = require('../middleware');
 const { query, check }  = require('express-validator/check');
 
@@ -46,98 +43,23 @@ module.exports = (app, baseUrl) => {
     [
       middleware.authenticateDevice,
     ],
-    middleware.requestWrapper(async (request, response) => {
-
-      var recording;
-      var key = uuidv4();
-      var form = new multiparty.Form();
-      var validData = false;
-      var uploadStarted = false;
-
-      // Make new Recording from the data field and Device.
-      // TODO Stop stream if 'data' is invalid.
-      form.on('field', (name, value) => {
-        if (name != 'data') {
-          return; // Only parse data field.
-        }
-        try {
-          var data = JSON.parse(value);
-          recording = models.Recording.build(data, {
-            fields: models.Recording.apiSettableFields,
-          });
-          recording.set('rawFileKey', key);
-          recording.set('DeviceId', request.device.id);
-          recording.set('GroupId', request.device.GroupId);
-          recording.set('processingState',
-            models.Recording.processingStates[data.type][0]);
-          if (typeof request.device.public === 'boolean') {
-            recording.set('public', request.device.public);
-          }
-          validData = true;
-        } catch (e) {
-          log.debug(e);
-          // TODO Stop stream here.
-        }
-      });
-
-      // Stream file to S3.
-      var uploadPromise;
-      form.on('part', (part) => {
-        if (part.name != 'file') {
-          return part.resume();
-        }
-        uploadStarted = true;
-        log.debug('Streaming file to LeoFS.');
-        uploadPromise = new Promise(function(resolve, reject) {
-          var s3 = modelsUtil.openS3();
-          s3.upload({
-            Bucket: config.s3.bucket,
-            Key: key,
-            Body: part,
-          }, (err) => {
-            if (err) {
-              return reject(err);
-            }
-            log.info("Finished streaming file to object store key:", key);
-            resolve();
-          });
+    middleware.requestWrapper(
+      util.multipartDownload('recording', (request, data, key) => {
+        var recording = models.Recording.build(data, {
+          fields: models.Recording.apiSettableFields,
         });
-      });
-
-      // Close response.
-      form.on('close', async () => {
-        log.info("Finished POST request.");
-        if (!validData || !uploadStarted) {
-          return responseUtil.invalidDatapointUpload(response);
+        recording.set('rawFileKey', key);
+        recording.set('DeviceId', request.device.id);
+        recording.set('GroupId', request.device.GroupId);
+        recording.set('processingState',
+          models.Recording.processingStates[data.type][0]);
+        if (typeof request.device.public === 'boolean') {
+          recording.set('public', request.device.public);
         }
 
-        // Check that the file uploaded to LeoFS.
-        try {
-          await uploadPromise;
-        } catch (e) {
-          return responseUtil.send(response, {
-            statusCode: 500,
-            success: false,
-            messages: ["Failed to upload file to bucket"],
-          });
-        }
-        // Validate and upload recording
-        await recording.validate();
-        await recording.save();
-        return responseUtil.validRecordingUpload(response, recording.id);
-      });
-
-      form.on('error', (e) => {
-        log.error(e);
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ["failed to get recording"],
-        });
-      });
-
-      form.parse(request);
-    })
+        return recording;
+      })
+    )
   );
 
   /**
@@ -147,9 +69,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
-   * @apiParam {Number} offset Query result offset (for paging).
-   * @apiParam {Number} limit Query result limit (for paging).
+   * @apiUse QueryParams
    * @apiParam {JSON} tags Only return recordings tagged with one or more of the listed tags (JSON array).
    * @apiParam {String} tagMode Only return recordings with specific types of tags. Valid values:
    * <ul>
@@ -161,13 +81,8 @@ module.exports = (app, baseUrl) => {
    * <li>human-only: match only recordings which have been manually tagged
    * <li>automatic+human: match only recordings which have been both automatically & manually tagged
    * </ul>
-   * @apiParam {JSON} [order] [Sequelize ordering](http://docs.sequelizejs.com/manual/tutorial/querying.html#ordering). Example: [["recordingDateTime", "ASC"]]
    *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {Number} offset Mirrors request offset parameter.
-   * @apiSuccess {Number} limit Mirrors request limit parameter.
-   * @apiSuccess {Number} count Total number of records which match the query.
-   * @apiSuccess {JSON} rows List of details for records which matched the query.
+   * @apiUse V1ResponseSuccessQuery
    *
    * @apiUse V1ResponseError
    */
@@ -218,11 +133,8 @@ module.exports = (app, baseUrl) => {
    * @api {get} /api/v1/recordings/:id Get a recording
    * @apiName GetRecording
    * @apiGroup Recordings
-   * @apiDescription This call returns metadata for a recording in JSON format
-   * and a JSON Web Token (JWT) which can be used to retrieve the recorded
-   * content. This is should be used with the
-   * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
    *
+   * @apiUse MetaDataAndJWT
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
