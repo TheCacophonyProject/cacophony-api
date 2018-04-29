@@ -97,7 +97,7 @@ module.exports = (app, baseUrl) => {
    * @apiGroup Files
    * @apiUse MetaDataAndJWT
    *
-   * @apiHeader {String} Authorization Signed JSON web token for a user or device.
+   * @apiHeader {String} Authorization Signed JSON web token for either a user or a device.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} jwt JSON Web Token to use to download the
