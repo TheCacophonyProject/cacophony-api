@@ -91,7 +91,10 @@ class Helper:
 
 
     def _make_long_name(self, testClass, name):
-        return "{}_{}_{}".format(date.today().strftime('%m%d'), type(testClass).__name__, name)
+        testName = type(testClass).__name__
+        if testName[:4] == "Test":
+            testName = testName[4:]
+        return "{}_{}_{}".format(date.today().strftime('%m%d'), testName, name)
 
     def _make_password(self, loginname):
         return "p{}".format(loginname)

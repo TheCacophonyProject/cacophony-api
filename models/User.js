@@ -100,6 +100,7 @@ module.exports = function(sequelize, DataTypes) {
       getAll: getAll,
       getAllDeviceIds: getAllDeviceIds,
       getWhereDeviceVisible: getWhereDeviceVisible,
+      checkUserControlsDevices: checkUserControlsDevices,
     },
     hooks: {
       afterValidate: afterValidate
@@ -162,6 +163,25 @@ function getDeviceIds() {
     });
 }
 
+function UnauthorizedDeviceException(username, deviceId) {
+  this.name = "UnauthorizedDeviceException";
+  this.message = ("Unauthorized use of device " + deviceId + " by " + username);
+}
+
+UnauthorizedDeviceException.prototype = new Error();
+UnauthorizedDeviceException.prototype.constructor = UnauthorizedDeviceException;
+
+const checkUserControlsDevices = async function(deviceIds) {
+  if (!this.superuser) {
+    var usersDevices = await this.getAllDeviceIds();
+
+    deviceIds.forEach(deviceId => {
+      if (!usersDevices.includes(deviceId)) {
+        throw new UnauthorizedDeviceException(this.username, deviceId);
+      }
+    });
+  }
+};
 
 const getAllDeviceIds = async function() {
   var directDeviceIds = await this.getDeviceIds();

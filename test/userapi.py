@@ -193,3 +193,15 @@ class UserAPI(APIBase):
 
     def delete_file(self, file_id):
         self._do_delete('files', file_id)
+
+    def upload_schedule(self, devicesIds, schedule):
+        url = urljoin(self._baseurl, 'api/v1/schedules')
+        props = {
+            "devices" : devicesIds,
+            "schedule" : schedule,
+        }
+        headers = {
+            'Authorization': self._token
+        }
+        response = requests.post(url, json=props, headers=headers)
+        self._check_response(response)

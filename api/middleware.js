@@ -119,13 +119,13 @@ const getEventDetailById = getModelById(models.EventDetail, 'eventDetailId');
 const getFileById = getModelById(models.File, 'id');
 
 const checkNewName = function(field) {
-  return check(field, 'invalid name')
+  return body(field, 'invalid name')
     .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
-  return check(field, 'invalid password')
+  return body(field, 'Invalid password.  Password must be at least 8 characters long.')
     .isLength({ min: 8 });
 };
 
@@ -170,7 +170,6 @@ const requestWrapper = fn => (request, response, next) => {
       .catch(next);
   }
 };
-
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
