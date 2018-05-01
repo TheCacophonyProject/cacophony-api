@@ -283,11 +283,14 @@ class AudioSchedulePromise:
     def __init__(self, testUser, schedule):
         self._testUser = testUser
         self._schedule = schedule
-        self._deviceIds = []
 
     def for_device(self, device):
-        self._deviceIds.append(device.get_id())
-        self._testUser.set_audio_schedule_for(self._deviceIds, self._schedule)
+        self.for_devices(device)
+
+    def for_devices(self, *devices):
+        deviceIds = list(map(lambda device: device.get_id(), devices))
+
+        self._testUser.set_audio_schedule_for(deviceIds, self._schedule)
 
 
 
