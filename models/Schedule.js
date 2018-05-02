@@ -16,5 +16,6 @@ module.exports = function(sequelize, DataTypes) {
 };
 
 function addAssociations(models) {
-  models.File.belongsTo(models.User);
+  models.Schedule.belongsTo(models.User);
+  models.Schedule.hasMany(models.Device);
 }

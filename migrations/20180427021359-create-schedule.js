@@ -24,8 +24,10 @@ module.exports = {
     });
 
     await util.migrationAddBelongsTo(queryInterface, 'Schedules', 'Users');
+    await util.migrationAddBelongsTo(queryInterface, 'Devices', 'Schedules');
   },
-  down: function(queryInterface) {
-    return queryInterface.dropTable('Schedules');
+  down: async function(queryInterface) {
+    await util.migrationRemoveBelongsTo(queryInterface, 'Devices', 'Schedules');
+    await queryInterface.dropTable('Schedules');
   }
 };

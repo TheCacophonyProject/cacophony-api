@@ -199,6 +199,7 @@ function addAssociations(models) {
   models.Device.hasMany(models.Recording);
   models.Device.hasMany(models.Event);
   models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
+  models.Device.belongsTo(models.Schedule);
 }
 
 function afterValidate(device) {

@@ -31,8 +31,9 @@ module.exports = (app, baseUrl) => {
       body('devices', '"devices" is missing.  This is a list of device ids that the schedule should be applied to.').exists(),
     ],
     middleware.requestWrapper(async function(request, response) {
+      deviceIds = request.body.devices;
       try {
-        await request.user.checkUserControlsDevices(request.body.devices);
+        await request.user.checkUserControlsDevices(deviceIds);
       }
       catch (error) {
         if (error.name == 'UnauthorizedDeviceException') {
@@ -50,6 +51,16 @@ module.exports = (app, baseUrl) => {
       instance.set('UserId', request.user.id);
       await instance.save();
 
+      deviceIds.forEach(async (deviceId) => {
+        const device = await models.Device.findById(deviceId);
+        if (device === null) {
+          throw new Error(format('Could not set schedule for device with an id of %s',  deviceId));
+        }
+        device.update({
+          ScheduleId: instance.id,
+        })
+      });
+
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
@@ -57,5 +68,31 @@ module.exports = (app, baseUrl) => {
       });
     })
   );
-};
 
+  /**
+   * @api {get} api/v1/schedules/ Get schedule for a device
+   * @apiName GetSchedule
+   * @apiGroup Schedules
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiSuccess {JSON} schedule Metadata of the schedule.
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl,
+    [
+      middleware.authenticateDevice,
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: [],
+        schedule: await models.Schedule.findById(request.device.getScheduleId()),
+      });
+    })
+  );
+};
