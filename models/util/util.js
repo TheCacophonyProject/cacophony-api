@@ -66,6 +66,7 @@ function processAudio(file) {
       var convertedAudioPath = file.path + '.mp3';
       ffmpeg(file.path)
         .output(convertedAudioPath)
+        .audioBitrate(128)
         .on('end', function() {
           fs.unlink(file.path);
           resolve(getMetadataFromFile(convertedAudioPath));
