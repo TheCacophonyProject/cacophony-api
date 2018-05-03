@@ -51,15 +51,10 @@ module.exports = (app, baseUrl) => {
       instance.set('UserId', request.user.id);
       await instance.save();
 
-      deviceIds.forEach(async (deviceId) => {
-        const device = await models.Device.findById(deviceId);
-        if (device === null) {
-          throw new Error(format('Could not set schedule for device with an id of %s',  deviceId));
-        }
-        device.update({
-          ScheduleId: instance.id,
-        })
-      });
+      await models.Device.update(
+        {ScheduleId: instance.id},
+        {where: {id: deviceIds}}
+      );
 
       return responseUtil.send(response, {
         statusCode: 200,
@@ -87,12 +82,67 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateDevice,
     ],
     middleware.requestWrapper(async (request, response) => {
-      return responseUtil.send(response, {
-        statusCode: 200,
-        success: true,
-        messages: [],
-        schedule: await models.Schedule.findById(request.device.getScheduleId()),
-      });
+      return getSchedule(request.device, response);
+    })
+  );
+
+  /**
+    * @api {get} api/v1/schedules/:devicename Get schedule for a device
+   * @apiName GetScheduleForDevice
+   * @apiGroup Schedules
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiSuccess {JSON} userData Metadata of the scedule.
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/:devicename",
+    [
+      middleware.authenticateUser,
+      middleware.getDeviceByName,
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      device = request.body["device"];
+      try {
+        await request.user.checkUserControlsDevices([device.id]);
+      }
+      catch (error) {
+        if (error.name == 'UnauthorizedDeviceException') {
+          return responseUtil.send(response, {
+            statusCode: 400,
+            success: false,
+            messages: [error.message]
+          });
+        } else {
+          throw error;
+        }
+      }
+
+      return getSchedule(device, response);
     })
   );
 };
+
+async function getSchedule(device, response) {
+  schedule = await models.Schedule.findById(device.ScheduleId)
+  if (!schedule) {
+    return responseUtil.send(response, {
+      statusCode: 400,
+      success: false,
+      devicename: device.devicename,
+      messages: ["Device has no audiobait schedule set"],
+    });
+  }
+
+  return responseUtil.send(response, {
+    statusCode: 200,
+    success: true,
+    messages: [],
+    deviceid: device.id,
+    devicename: device.devicename,
+    schedule: schedule.schedule,
+  });
+}

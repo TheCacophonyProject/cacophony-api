@@ -204,18 +204,20 @@ function addAssociations(models) {
 
 function afterValidate(device) {
 
+  if (device.password !== undefined) {
   // TODO Make the password be hashed when the device password is set not in the validation.
   // TODO or make a custome validation for the password.
-  return new Promise(function(resolve, reject) {
-    bcrypt.hash(device.password, 10, function(err, hash) {
-      if (err)
-      {reject(err);}
-      else {
-        device.password = hash;
-        resolve();
-      }
+    return new Promise(function(resolve, reject) {
+      bcrypt.hash(device.password, 10, function(err, hash) {
+        if (err)
+        {reject(err);}
+        else {
+          device.password = hash;
+          resolve();
+        }
+      });
     });
-  });
+  }
 }
 
 function comparePassword(password) {
@@ -230,3 +232,5 @@ function comparePassword(password) {
     });
   });
 }
+
+
