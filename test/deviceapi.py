@@ -59,4 +59,4 @@ class DeviceAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/schedules")
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
-        return response.json()
+        return response.json()["schedule"]
