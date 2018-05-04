@@ -10,8 +10,8 @@ module.exports = (app, baseUrl) => {
    * @api {post} /api/v1/schedules Adds a new schedule
    * @apiName PostSchedule
    * @apiGroup Schedules
-   * @apiDescription This call is used to upload a new audio bait schedule which controls which sound files
-   * are played when.
+   * @apiDescription This call is used to upload a new audio bait schedule which controls when
+   * sound bait files are played.
    *
    * @apiUse V1UserAuthorizationHeader
    *
@@ -31,7 +31,7 @@ module.exports = (app, baseUrl) => {
       body('devices', '"devices" is missing.  This is a list of device ids that the schedule should be applied to.').exists(),
     ],
     middleware.requestWrapper(async function(request, response) {
-      deviceIds = request.body.devices;
+      var deviceIds = request.body.devices;
       try {
         await request.user.checkUserControlsDevices(deviceIds);
       }
@@ -65,10 +65,11 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {get} api/v1/schedules/ Get schedule for a device
+   * @api {get} api/v1/schedules/ Get device audio bait schedule (for this device)
    * @apiName GetSchedule
    * @apiGroup Schedules
-   *
+   * @apiDescription This call is used by a device to retrieve its audio bait
+   * schedule.
    * @apiUse V1DeviceAuthorizationHeader
    *
    * @apiSuccess {JSON} schedule Metadata of the schedule.
@@ -87,10 +88,11 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-    * @api {get} api/v1/schedules/:devicename Get schedule for a device
+   * @api {get} api/v1/schedules/:devicename Get audio bait schedule (for a user's device)
    * @apiName GetScheduleForDevice
    * @apiGroup Schedules
-   *
+   * @apiDescription This call is used by a user to retrieve the audio bait
+   * schedule for one of their devices.
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiSuccess {JSON} userData Metadata of the scedule.
@@ -105,7 +107,7 @@ module.exports = (app, baseUrl) => {
       middleware.getDeviceByName,
     ],
     middleware.requestWrapper(async (request, response) => {
-      device = request.body["device"];
+      var device = request.body["device"];
       try {
         await request.user.checkUserControlsDevices([device.id]);
       }
@@ -127,14 +129,14 @@ module.exports = (app, baseUrl) => {
 };
 
 async function getSchedule(device, response) {
-  schedule = (device.ScheduleId) ? await models.Schedule.findById(device.ScheduleId) : {schedule: {}}
+  var schedule = (device.ScheduleId) ? await models.Schedule.findById(device.ScheduleId) : {schedule: {}};
 
   if (!schedule) {
     return responseUtil.send(response, {
       statusCode: 400,
       success: false,
       devicename: device.devicename,
-      messages: ["Device has no audiobait schedule set"],
+      messages: ["Cannot find schedule."],
     });
   }
 
