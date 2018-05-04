@@ -127,7 +127,8 @@ module.exports = (app, baseUrl) => {
 };
 
 async function getSchedule(device, response) {
-  schedule = await models.Schedule.findById(device.ScheduleId)
+  schedule = (device.ScheduleId) ? await models.Schedule.findById(device.ScheduleId) : {schedule: {}}
+
   if (!schedule) {
     return responseUtil.send(response, {
       statusCode: 400,

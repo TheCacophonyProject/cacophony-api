@@ -55,5 +55,11 @@ class TestSchedule:
         print("But an admin user should be able to.")
         assert(helper.admin_user().get_audio_schedule(hollerer) == hollerer_schedule)
 
+    def test_get_schedule_returns_when_device_has_no_schedule(self, helper):
+        quiet_one = helper.given_new_device(self, "quiet_one", description = "If there is a device, quiet-one, without an audio schedule,")
+
+        print("Then get schedule should return successfully, with an empty schedule ('{}')")
+        assert(quiet_one.get_audio_schedule() == {})
+
     def makeschedule(self, helper):
         return {"blah": helper.random_id()}
