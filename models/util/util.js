@@ -62,7 +62,7 @@ function findAllWithUser(model, user, queryParams) {
 function processAudio(file) {
   log.debug('Processing audio file.');
   return new Promise(function(resolve, reject) {
-    if (file.type != 'audio/mp3' && !file.name.endsWith(".mp3")) {
+    if (!file.name.endsWith(".m4a") && !file.name.endsWith(".mp3")) {
       var convertedAudioPath = file.path + '.mp3';
       ffmpeg(file.path)
         .output(convertedAudioPath)
