@@ -197,13 +197,13 @@ class UserAPI(APIBase):
     def upload_schedule(self, devicesIds, schedule):
         url = urljoin(self._baseurl, 'api/v1/schedules')
         props = {
-            "devices" : devicesIds,
-            "schedule" : schedule,
+            "devices" : json.dumps(devicesIds),
+            "schedule" : json.dumps(schedule),
         }
         headers = {
             'Authorization': self._token
         }
-        response = requests.post(url, json=props, headers=headers)
+        response = requests.post(url, data=props, headers=headers)
         self._check_response(response)
 
     def get_audio_schedule(self, devicename):

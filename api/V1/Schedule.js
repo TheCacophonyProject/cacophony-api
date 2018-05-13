@@ -2,6 +2,7 @@ const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { body }     = require('express-validator/check');
+const log        = require('../../logging');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/schedules';
@@ -27,8 +28,8 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       middleware.authenticateUser,
-      body('schedule', '"schedule" is missing').exists(),
-      body('devices', '"devices" is missing.  This is a list of device ids that the schedule should be applied to.').exists(),
+      middleware.parseArray('devices'),
+      middleware.parseJSON('schedule'),
     ],
     middleware.requestWrapper(async function(request, response) {
       var deviceIds = request.body.devices;
