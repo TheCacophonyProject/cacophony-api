@@ -77,7 +77,7 @@ function processAudio(file) {
         })
         .run();
     } else {
-      resolve(getMetadataFromFile(file.path, file.type));
+      resolve(getMetadataFromFile(file.path, file.name));
     }
   });
 }
@@ -109,10 +109,10 @@ function processVideo(file) {
   });
 }
 
-function getMetadataFromFile(filePath, mimeType) {
+function getMetadataFromFile(filePath, fileName) {
   return new Promise(function(resolve) {
     var size = fs.statSync(filePath).size || 0;
-    mimeType = mimeType || mime.lookup(filePath);
+    var mimeType = mime.lookup(fileName || filePath);
     var extname = path.extname(filePath) || '';
     var fileData = {
       path: filePath,
