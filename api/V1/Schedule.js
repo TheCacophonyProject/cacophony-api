@@ -124,14 +124,13 @@ module.exports = (app, baseUrl) => {
         }
       }
 
-      return getSchedule(device, response);
+      return getSchedule(device, response, request.user);
     })
   );
 };
 
-async function getSchedule(device, response) {
+async function getSchedule(device, response, user = null) {
   var schedule = (device.ScheduleId) ? await models.Schedule.findById(device.ScheduleId) : {schedule: {}};
-
   if (!schedule) {
     return responseUtil.send(response, {
       statusCode: 400,
@@ -141,12 +140,23 @@ async function getSchedule(device, response) {
     });
   }
 
+  // get all the users devices that are also associated with this same schedule
+  var devices = [];
+  if (user && device.ScheduleId) {
+    devices = await models.Device.onlyUsersDevicesMatching(user, { ScheduleId : device.ScheduleId });
+  }
+  else {
+    devices = {
+      count: 1,
+      rows: [device]
+    };
+  }
+
   return responseUtil.send(response, {
     statusCode: 200,
     success: true,
     messages: [],
-    deviceid: device.id,
-    devicename: device.devicename,
+    devices: devices,
     schedule: schedule.schedule,
   });
 }

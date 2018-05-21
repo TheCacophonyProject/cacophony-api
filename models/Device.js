@@ -1,4 +1,5 @@
 var bcrypt = require('bcrypt');
+const log        = require('../logging');
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
@@ -91,36 +92,42 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  var allForUser = async function(user) {
+  var onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if superuser.
     if (user.superuser) {
       return this.findAndCount({
+        where: conditions,
         attributes: ["devicename", "id"],
+        include: includeData,
         order: ['devicename'],
-        include: [
-          {
-            model: models.User,
-            attributes: ['id', 'username'],
-          },
-        ],
       });
     }
 
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
+
+    const usersDevice = { "$or": [
+      {GroupId: {"$in": userGroupIds}},
+      {id: {"$in": deviceIds}},
+    ]};
+
     return this.findAndCount({
-      where: { "$or": [
-        {GroupId: {"$in": userGroupIds}},
-        {id: {"$in": deviceIds}},
-      ]},
+      where: { "$and": [usersDevice, conditions] },
       attributes: ["devicename", "id"],
-      include: [
-        {
-          model: models.User,
-          attributes: ['id', 'username'],
-        },
-      ],
+      order: ['devicename'],
+      include: includeData,
     });
+  };
+
+  var allForUser = async function(user) {
+    const includeData = [
+      {
+        model: models.User,
+        attributes: ['id', 'username'],
+      },
+    ];
+
+    return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
   const userPermissions = async function(user) {
@@ -167,6 +174,7 @@ module.exports = function(sequelize, DataTypes) {
       removeUserFromDevice: removeUserFromDevice,
       getFromId: getFromId,
       getFromName: getFromName,
+      onlyUsersDevicesMatching, onlyUsersDevicesMatching
     },
     instanceMethods: {
       comparePassword: comparePassword,
