@@ -70,6 +70,7 @@ If you want to continue using a different operating system (eg Windows/Mac OS X)
 * Download VirtualBox
 * Download Ubuntu Server
 * Install a Ubuntu server in VirtualBox (install ssh when doing this)
+* Run `VBoxManage modifyvm "<vm name>" --natdnshostresolver1 on` to make the virtual box play nicely when you change wifi networks.
 
 ### SSH into Ubuntu the box 
 It is much better to ssh in than use the default console which is awful. To get this working:
