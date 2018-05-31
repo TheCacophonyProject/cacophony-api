@@ -97,6 +97,9 @@ class TestDevice:
     def download_audio_bait(self, file_id):
         return self._deviceapi.download_file(file_id)
 
+    def get_audio_schedule(self):
+        return self._deviceapi.get_audio_schedule()
+
 def slurp(filename):
     with open(filename, 'rb') as f:
         return f.read()

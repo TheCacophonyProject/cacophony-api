@@ -230,6 +230,15 @@ class TestUser:
     def cannot_delete_audio_bait_file(self, file_id):
         self._userapi.delete_file(file_id)
 
+    def set_audio_schedule_for(self, deviceIds, schedule):
+        self._userapi.upload_schedule(deviceIds, schedule)
+
+    def set_audio_schedule(self, schedule={"blah" : "blah"}):
+        return AudioSchedulePromise(self, schedule)
+
+    def get_audio_schedule(self, device):
+        return self._userapi.get_audio_schedule(device.devicename)
+
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser
@@ -272,6 +281,20 @@ class RecordingQueryPromise:
             x for x in allRecordings if x not in self._expectedTestRecordings
         ]
         self.cannot_see_recordings(*expectedMissingRecordings)
+
+class AudioSchedulePromise:
+    def __init__(self, testUser, schedule):
+        self._testUser = testUser
+        self._schedule = schedule
+
+    def for_device(self, device):
+        self.for_devices(device)
+
+    def for_devices(self, *devices):
+        deviceIds = list(map(lambda device: device.get_id(), devices))
+
+        self._testUser.set_audio_schedule_for(deviceIds, self._schedule)
+
 
 
 class AudioBaitList:

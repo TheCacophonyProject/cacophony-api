@@ -52,7 +52,11 @@ class DeviceAPI(APIBase):
     def record_event(self, _type, details, times=[datetime.utcnow().isoformat()]):
         return self.record_event_data({"description" : {"type": _type, "details": details}}, times)
 
-    def record_event_from_id (self, eventDetailId, times=[datetime.utcnow().isoformat()]):
+    def record_event_from_id(self, eventDetailId, times=[datetime.utcnow().isoformat()]):
         return self.record_event_data({"eventDetailId": eventDetailId}, times)
 
-
+    def get_audio_schedule(self):
+        url = urljoin(self._baseurl, "/api/v1/schedules")
+        response = requests.get(url, headers=self._auth_header)
+        self._check_response(response)
+        return response.json()

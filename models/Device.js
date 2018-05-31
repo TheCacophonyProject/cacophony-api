@@ -91,36 +91,42 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  var allForUser = async function(user) {
+  var onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if superuser.
     if (user.superuser) {
       return this.findAndCount({
+        where: conditions,
         attributes: ["devicename", "id"],
+        include: includeData,
         order: ['devicename'],
-        include: [
-          {
-            model: models.User,
-            attributes: ['id', 'username'],
-          },
-        ],
       });
     }
 
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
+
+    const usersDevice = { "$or": [
+      {GroupId: {"$in": userGroupIds}},
+      {id: {"$in": deviceIds}},
+    ]};
+
     return this.findAndCount({
-      where: { "$or": [
-        {GroupId: {"$in": userGroupIds}},
-        {id: {"$in": deviceIds}},
-      ]},
+      where: { "$and": [usersDevice, conditions] },
       attributes: ["devicename", "id"],
-      include: [
-        {
-          model: models.User,
-          attributes: ['id', 'username'],
-        },
-      ],
+      order: ['devicename'],
+      include: includeData,
     });
+  };
+
+  var allForUser = async function(user) {
+    const includeData = [
+      {
+        model: models.User,
+        attributes: ['id', 'username'],
+      },
+    ];
+
+    return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
   const userPermissions = async function(user) {
@@ -167,6 +173,7 @@ module.exports = function(sequelize, DataTypes) {
       removeUserFromDevice: removeUserFromDevice,
       getFromId: getFromId,
       getFromName: getFromName,
+      onlyUsersDevicesMatching: onlyUsersDevicesMatching
     },
     instanceMethods: {
       comparePassword: comparePassword,
@@ -199,22 +206,25 @@ function addAssociations(models) {
   models.Device.hasMany(models.Recording);
   models.Device.hasMany(models.Event);
   models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
+  models.Device.belongsTo(models.Schedule);
 }
 
 function afterValidate(device) {
 
+  if (device.password !== undefined) {
   // TODO Make the password be hashed when the device password is set not in the validation.
   // TODO or make a custome validation for the password.
-  return new Promise(function(resolve, reject) {
-    bcrypt.hash(device.password, 10, function(err, hash) {
-      if (err)
-      {reject(err);}
-      else {
-        device.password = hash;
-        resolve();
-      }
+    return new Promise(function(resolve, reject) {
+      bcrypt.hash(device.password, 10, function(err, hash) {
+        if (err)
+        {reject(err);}
+        else {
+          device.password = hash;
+          resolve();
+        }
+      });
     });
-  });
+  }
 }
 
 function comparePassword(password) {
@@ -229,3 +239,5 @@ function comparePassword(password) {
     });
   });
 }
+
+
