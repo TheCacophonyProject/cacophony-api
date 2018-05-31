@@ -1,9 +1,10 @@
-const models     = require('../models');
-const config     = require('../config');
-const jwt        = require('jsonwebtoken');
-const format     = require('util').format;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const log        = require('../logging');
+const models       = require('../models');
+const config       = require('../config');
+const jwt          = require('jsonwebtoken');
+const format       = require('util').format;
+const ExtractJwt   = require('passport-jwt').ExtractJwt;
+const log          = require('../logging');
+const customErrors = require('./customErrors');
 const { body, check, header, validationResult, query } = require('express-validator/check');
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
@@ -162,9 +163,9 @@ const parseArray = function(field) {
 
 const requestWrapper = fn => (request, response, next) => {
   log.info(format('%s Request: %s', request.method, request.url));
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    response.status(422).json({ errors: errors.mapped() });
+  const validationErrors = validationResult(request);
+  if (!validationErrors.isEmpty()) {
+    throw new customErrors.ValidationError(validationErrors);
   } else {
     Promise.resolve(fn(request, response, next))
       .catch(next);
