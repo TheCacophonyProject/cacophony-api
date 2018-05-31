@@ -1,7 +1,7 @@
 const log    = require('../logging');
 const format = require('util').format;
 
-function errorHandler(err, request, response, next) {
+function errorHandler(err, request, response, next) { // eslint-disable-line
   if (err instanceof CustomError) {
     response.status(err.statusCode).json(err.toJson());
     return;
