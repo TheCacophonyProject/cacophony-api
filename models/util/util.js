@@ -62,10 +62,11 @@ function findAllWithUser(model, user, queryParams) {
 function processAudio(file) {
   log.debug('Processing audio file.');
   return new Promise(function(resolve, reject) {
-    if (file.type != 'audio/mp3' && !file.name.endsWith(".mp3")) {
+    if (!file.name.endsWith(".m4a") && !file.name.endsWith(".mp3")) {
       var convertedAudioPath = file.path + '.mp3';
       ffmpeg(file.path)
         .output(convertedAudioPath)
+        .audioBitrate(128)
         .on('end', function() {
           fs.unlink(file.path);
           resolve(getMetadataFromFile(convertedAudioPath));
@@ -76,7 +77,7 @@ function processAudio(file) {
         })
         .run();
     } else {
-      resolve(getMetadataFromFile(file.path, file.type));
+      resolve(getMetadataFromFile(file.path, file.name));
     }
   });
 }
@@ -108,10 +109,10 @@ function processVideo(file) {
   });
 }
 
-function getMetadataFromFile(filePath, mimeType) {
+function getMetadataFromFile(filePath, fileName) {
   return new Promise(function(resolve) {
     var size = fs.statSync(filePath).size || 0;
-    mimeType = mimeType || mime.lookup(filePath);
+    var mimeType = mime.lookup(fileName || filePath);
     var extname = path.extname(filePath) || '';
     var fileData = {
       path: filePath,
