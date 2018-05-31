@@ -50,6 +50,7 @@ module.exports = (app, baseUrl) => {
 
       var instance = models.Schedule.build(request.body, ["schedule"]);
       instance.set('UserId', request.user.id);
+      // TODO make the device and scedule changes apply in a single transaction
       await instance.save();
 
       await models.Device.update(
@@ -60,7 +61,7 @@ module.exports = (app, baseUrl) => {
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
-        messages: ['Added new schedule.'],
+        messages: ['Added new schedule for the calling device(s).'],
       });
     })
   );
@@ -113,6 +114,7 @@ module.exports = (app, baseUrl) => {
         await request.user.checkUserControlsDevices([device.id]);
       }
       catch (error) {
+        // TODO this should probably be in the normal requestWrapper
         if (error.name == 'UnauthorizedDeviceException') {
           return responseUtil.send(response, {
             statusCode: 400,
@@ -130,14 +132,18 @@ module.exports = (app, baseUrl) => {
 };
 
 async function getSchedule(device, response, user = null) {
-  var schedule = (device.ScheduleId) ? await models.Schedule.findById(device.ScheduleId) : {schedule: {}};
-  if (!schedule) {
-    return responseUtil.send(response, {
-      statusCode: 400,
-      success: false,
-      devicename: device.devicename,
-      messages: ["Cannot find schedule."],
-    });
+  var schedule = {schedule: {}};
+
+  if (device.ScheduleId) {
+    schedule = await models.Schedule.findById(device.ScheduleId);
+    if (!schedule) {
+      return responseUtil.send(response, {
+        statusCode: 400,
+        success: false,
+        devicename: device.devicename,
+        messages: ["Cannot find schedule."],
+       });
+    }
   }
 
   // get all the users devices that are also associated with this same schedule

@@ -3,7 +3,7 @@ import time
 import json
 
 class TestSchedule:
-    def test_only_device_owners_can_set_scedule(self, helper):
+    def test_only_device_owners_can_set_schedule(self, helper):
         louie, louies_device = helper.given_new_user_with_device(self, "Louie")
 
         print("Then Louie should be able to set the audio schedule on his device.")
