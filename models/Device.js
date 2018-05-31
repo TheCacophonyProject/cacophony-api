@@ -1,5 +1,4 @@
 var bcrypt = require('bcrypt');
-const log        = require('../logging');
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
@@ -174,7 +173,7 @@ module.exports = function(sequelize, DataTypes) {
       removeUserFromDevice: removeUserFromDevice,
       getFromId: getFromId,
       getFromName: getFromName,
-      onlyUsersDevicesMatching, onlyUsersDevicesMatching
+      onlyUsersDevicesMatching: onlyUsersDevicesMatching
     },
     instanceMethods: {
       comparePassword: comparePassword,

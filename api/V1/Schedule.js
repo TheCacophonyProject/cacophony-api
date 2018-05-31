@@ -1,8 +1,6 @@
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
-const log        = require('../../logging');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/schedules';
@@ -142,7 +140,7 @@ async function getSchedule(device, response, user = null) {
         success: false,
         devicename: device.devicename,
         messages: ["Cannot find schedule."],
-       });
+      });
     }
   }
 
