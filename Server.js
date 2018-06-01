@@ -44,6 +44,7 @@ app.all('*', function(req, res, next) {
 });
 
 require('./api/V1')(app);
+app.use(require('./api/customErrors').errorHandler);
 
 // Add file processing API.
 var fileProcessingApp = express();
