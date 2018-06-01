@@ -2,11 +2,11 @@ const log    = require('../logging');
 const format = require('util').format;
 
 function errorHandler(err, request, response, next) { // eslint-disable-line
+  log.error(err);
   if (err instanceof CustomError) {
     response.status(err.statusCode).json(err.toJson());
     return;
   }
-  log.error(err);
   response.status(500).json({
     message: "server error",
     errorType: "server"
