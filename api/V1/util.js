@@ -188,84 +188,80 @@ function catchError(error, response, responseFunction) {
 }
 
 function multipartDownload(recordTypeName, buildRecord){
-  return async (request, response) => {
-
-    var dbRecord;
+  return (request, response) => {
     var key = uuidv4();
-    var validData = false;
-    var uploadStarted = false;
+    var data;
+    var upload;
 
+    // Note regarding multiparty: there are no guarantees about the
+    // order that the field and part handlers will be called. You need
+    // to formulate the response to the client in the close handler.
     var form = new multiparty.Form();
-    // Make new record from the data part.
-    // TODO Stop stream if 'data' is invalid.
+
+    // Handle the "data" field.
     form.on('field', (name, value) => {
       if (name != 'data') {
-        return; // Only parse data field.
+        return;
       }
+
       try {
-        var data = JSON.parse(value);
-        dbRecord = buildRecord(request, data, key);
-        validData = true;
-      } catch (e) {
-        log.debug(e);
-        // TODO Stop stream here.
+        data = JSON.parse(value);
+      } catch (err) {
+        // This leaves `data` unset so that the close handler (below)
+        // will fail the upload.
+        log.error("invalid 'data' field:", err);
       }
     });
 
-    // Stream file to S3.
-    var uploadPromise;
+    // Handle the "file" part.
     form.on('part', (part) => {
       if (part.name != 'file') {
-        return part.resume();
+        part.resume();
+        return;
       }
-      uploadStarted = true;
-      log.debug('Streaming file to bucket.');
-      uploadPromise = new Promise(function(resolve, reject) {
-        var s3 = modelsUtil.openS3();
-        s3.upload({
-          Bucket: config.s3.bucket,
-          Key: key,
-          Body: part,
-        }, (err) => {
-          if (err) {
-            return reject(err);
-          }
-          log.info("Finished streaming file to object store key:", key);
-          resolve();
-        });
-      });
+
+      upload = modelsUtil.openS3().upload({
+        Bucket: config.s3.bucket,
+        Key: key,
+        Body: part,
+      }).promise();
+      log.debug('started streaming upload to bucket...');
     });
 
-    // Close response.
+    // Handle any errors. If this is called, the close handler
+    // shouldn't be.
+    form.on('error', (err) => {
+      responseUtil.serverError(response, err);
+    });
+
+    // This gets called once all fields and parts have been read.
     form.on('close', async () => {
-      log.info("Finished POST request.");
-      if (!validData || !uploadStarted) {
-        return responseUtil.invalidDatapointUpload(response);
+      if (!data) {
+        log.error("upload missing 'data' field");
+        responseUtil.invalidDatapointUpload(response);
+        return;
+      }
+      if (!upload) {
+        log.error("upload was never started");
+        responseUtil.invalidDatapointUpload(response);
+        return;
       }
 
-      // Check that the file uploaded to file store.
+      var dbRecord;
       try {
-        await uploadPromise;
-      } catch (e) {
-        return responseUtil.send(response, {
-          statusCode: 500,
-          success: false,
-          messages: ["Failed to upload file to bucket"],
-        });
-      }
-      // Validate and upload recording
-      await dbRecord.validate();
-      await dbRecord.save();
-      return responseUtil.validRecordingUpload(response, dbRecord.id);
-    });
+        // Wait for the upload to complete.
+        await upload;
+        log.info("finished streaming upload to object store. key:", key);
 
-    form.on('error', (e) => {
-      log.error(e);
-      return responseUtil.send(response, {
-        statusCode: 400,
-        success: false,
-        messages: ["failed to get file content"],
-      });
+        // Store a record for the upload.
+        dbRecord = buildRecord(request, data, key);
+        await dbRecord.validate();
+        await dbRecord.save();
+      } catch (err) {
+        responseUtil.serverError(response, err);
+        return;
+      }
+      responseUtil.validRecordingUpload(response, dbRecord.id);
     });
 
     form.parse(request);
