@@ -227,7 +227,10 @@ function multipartDownload(recordTypeName, buildRecord){
         Bucket: config.s3.bucket,
         Key: key,
         Body: part,
-      }).promise();
+      }).promise()
+        .catch((err) => {
+          return err;
+        });
       log.debug('started streaming upload to bucket...');
     });
 
@@ -253,7 +256,11 @@ function multipartDownload(recordTypeName, buildRecord){
       var dbRecord;
       try {
         // Wait for the upload to complete.
-        await upload;
+        var uploadResult = await upload;
+        if (uploadResult instanceof Error) {
+          responseUtil.serverError(response, uploadResult);
+          return;
+        }
         log.info("finished streaming upload to object store. key:", key);
 
         // Store a record for the upload.
