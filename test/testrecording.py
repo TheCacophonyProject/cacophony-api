@@ -7,6 +7,12 @@ class TestRecording:
     def __repr__(self):
         return "<TestRecording: {}>".format(self.recordingId)
 
+    def __getitem__(self, name):
+        return self.props[name]
+
+    def __setitem__(self, name, value):
+        self.props[name] = value
+
     def is_tagged_as(self, animal):
         return TestTagPromise(self, animal)
 

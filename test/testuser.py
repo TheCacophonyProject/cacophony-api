@@ -116,6 +116,9 @@ class TestUser:
     def delete_recording(self, recording):
         self._userapi.delete_recording(recording.recordingId)
 
+    def update_recording(self, recording, **updates):
+        self._userapi.update_recording(recording.recordingId, updates)
+
     def create_group(self, groupname, printname=True):
         try:
             self._userapi.create_group(groupname)
@@ -312,5 +315,3 @@ class AudioBaitList:
 
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
-
-

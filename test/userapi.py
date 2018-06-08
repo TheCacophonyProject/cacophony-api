@@ -40,6 +40,15 @@ class UserAPI(APIBase):
         r = requests.delete(url, headers=self._auth_header)
         return self._check_response(r)
 
+    def update_recording(self, recording_id, updates):
+        url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
+        r = requests.patch(
+            url,
+            headers=self._auth_header,
+            data={'updates': json.dumps(updates)},
+        )
+        return self._check_response(r)
+
     def download_cptv(self, recording_id):
         return self._download_recording(recording_id, 'downloadRawJWT')
 
