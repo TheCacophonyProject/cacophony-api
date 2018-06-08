@@ -120,16 +120,19 @@ function getRecordingFile(modelClass, request, response) {
 
 function updateDataFromPut(modelClass, request, response) {
 
-  if (!requestUtil.isFromAUser(request))
-  {return responseUtil.notFromAUser(response);}
+  if (!requestUtil.isFromAUser(request)) {
+    return responseUtil.notFromAUser(response);
+  }
 
   var data = parseJsonFromString(request.body.data);
-  if (data === null)
-  {return responseUtil.invalidDatapointUpdate(response, INVALID_DATA);}
+  if (data === null) {
+    return responseUtil.invalidDatapointUpdate(response, INVALID_DATA);
+  }
 
   var id = parseInt(request.params.id);
-  if (!id)
-  {return responseUtil.invalidDatapointUpdate(response, INVALID_ID);}
+  if (!id) {
+    return responseUtil.invalidDatapointUpdate(response, INVALID_ID);
+  }
 
   modelClass
     .findAllWithUser(request.user, { where: { id: id } })

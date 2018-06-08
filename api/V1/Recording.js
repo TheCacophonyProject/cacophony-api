@@ -257,9 +257,8 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON('updates'),
     ],
     middleware.requestWrapper(async (request, response) => {
-
       var updated = await models.Recording.updateOne(
-        request.user, request.params.id, request.query.updates);
+        request.user, request.params.id, request.body.updates);
 
       if (updated) {
         return responseUtil.send(response, {
