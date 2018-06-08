@@ -44,3 +44,17 @@ class TestUserAudio:
 
         print("Clare should be able to see exactly those the recordings")
         clare.can_see_audio_recordings(recordings)
+
+
+    def test_can_update_audio(self, helper):
+        phone = helper.given_new_device(self, 'phone')
+        recording = phone.has_audio_recording()
+
+        print("\nWhen a user updates the audio recording")
+        user = helper.admin_user()
+        new_meta = {'foo': 'bar'}
+        user.update_audio_recording(recording, additionalMetadata=new_meta)
+
+        print("the change should be reflected on the API server")
+        recording['additionalMetadata'] = new_meta
+        user.can_download_correct_audio_recording(recording)

@@ -155,6 +155,9 @@ class TestUser:
     def delete_audio_recording(self, recording):
         self._userapi.delete_audio(recording.recordingId)
 
+    def update_audio_recording(self, recording, **updates):
+        self._userapi.update_audio_recording(recording.recordingId, updates)
+
     def get_own_group(self):
         if (self._group is None):
             self._group = self.create_group(self.username + "s_devices", False)

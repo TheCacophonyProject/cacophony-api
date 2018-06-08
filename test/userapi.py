@@ -101,6 +101,15 @@ class UserAPI(APIBase):
         r = requests.delete(url, headers=self._auth_header)
         return self._check_response(r)
 
+    def update_audio_recording(self, recording_id, updates):
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
+        r = requests.put(
+            url,
+            headers=self._auth_header,
+            data={'data': json.dumps(updates)},
+        )
+        return self._check_response(r)
+
     def download_audio(self, recording_id):
         url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
         r = requests.get(url, headers=self._auth_header)
