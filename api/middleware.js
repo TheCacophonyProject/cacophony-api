@@ -162,7 +162,21 @@ const parseArray = function(field) {
 };
 
 const requestWrapper = fn => (request, response, next) => {
-  log.info(format('%s Request: %s', request.method, request.url));
+  if (request.user) {
+    log.info(format('%s %s (user: %s)'),
+      request.method,
+      request.url,
+      request.user.get("username"),
+    );
+  } else if (request.device) {
+    log.info(format('%s %s (device: %s)'),
+      request.method,
+      request.url,
+      request.device.get("devicename"),
+    );
+  } else {
+    log.info(format('%s %s', request.method, request.url));
+  }
   const validationErrors = validationResult(request);
   if (!validationErrors.isEmpty()) {
     throw new customErrors.ValidationError(validationErrors);
