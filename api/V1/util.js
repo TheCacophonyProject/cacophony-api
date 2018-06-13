@@ -88,25 +88,27 @@ function addRecordingFromPost(model, request, response) {
 }
 
 function getRecordingFile(modelClass, request, response) {
-
   // Check that if the request was authenticated that is was
   // authenticated by a user JWT, not a device JWT.
   // TODO get passport to do this...
-  if (request.user !== null && !requestUtil.isFromAUser(request))
-  {return responseUtil.notFromAUser(response);}
+  if (request.user !== null && !requestUtil.isFromAUser(request)) {
+    responseUtil.notFromAUser(response);
+    return;
+  }
 
   var id = parseInt(request.params.id);
-  if (!id)
-  {return responseUtil.invalidDataId(response);}
+  if (!id) {
+    responseUtil.invalidDataId(response);
+    return;
+  }
 
   modelClass
     .getFileData(id, request.user)
     .then((fileData) => {
       if (fileData === null || fileData.key === null) {
-        responseUtil.invalidFileRequest(response, NO_FILE_FOUND);
         throw { badRequest: NO_FILE_FOUND };
       }
-      return responseUtil.validFileRequest(response, {
+      responseUtil.validFileRequest(response, {
         _type: 'fileDownload',
         key: fileData.key,
         filename: fileData.name,
