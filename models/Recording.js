@@ -6,9 +6,26 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
 
   var attributes = {
+    // recording metadata.
+    type: DataTypes.STRING,
+    duration: DataTypes.INTEGER,
+    recordingDateTime: DataTypes.DATE,
+    location: {
+      type: DataTypes.GEOMETRY,
+      set: util.geometrySetter,
+      validate: { isLatLon: validation.isLatLon },
+    },
+    relativeToDawn: DataTypes.INTEGER,
+    relativeToDusk: DataTypes.INTEGER,
+    version: DataTypes.STRING,
+    additionalMetadata: DataTypes.JSONB,
+    comment: DataTypes.STRING,
+    public: { type: DataTypes.BOOLEAN, defaultValue: false},
+
     // Raw file data.
     rawFileKey: DataTypes.STRING,
     rawFileSize: DataTypes.INTEGER,
+
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
     fileSize: DataTypes.STRING,
@@ -17,25 +34,12 @@ module.exports = function(sequelize, DataTypes) {
     processingMeta: DataTypes.JSONB,
     processingState: DataTypes.STRING,
     passedFilter: DataTypes.BOOLEAN,
-    // recording metadata.
-    duration: DataTypes.INTEGER,
-    recordingDateTime: DataTypes.DATE,
-    location: {
-      type: DataTypes.GEOMETRY,
-      set: util.geometrySetter,
-      validate: { isLatLon: validation.isLatLon },
-    },
-    version: DataTypes.STRING,
+    jobKey: DataTypes.STRING,
+
     // Battery relevant fields.
     batteryLevel: DataTypes.DOUBLE,
     batteryCharging: DataTypes.STRING,
     airplaneModeOn: DataTypes.BOOLEAN,
-    // Other fields
-    jobKey: DataTypes.STRING,
-    type: DataTypes.STRING,
-    public: { type: DataTypes.BOOLEAN, defaultValue: false},
-    additionalMetadata: DataTypes.JSONB,
-    comment: DataTypes.STRING,
   };
 
   var models = sequelize.models;
