@@ -1,5 +1,5 @@
 // A real test configuration
-// @todo: consider readinf from env vars
+// @todo: consider reading from env vars
 
 const server = {
   passportSecret: "something",
