@@ -1,5 +1,7 @@
 # cacophony-api
 
+[![Status](https://api.travis-ci.org/TheCacophonyProject/cacophony-api.svg)](https://travis-ci.org/TheCacophonyProject/cacophony-api)
+
 cacophony-api is a Node server that provides an REST API server for
 uploading, processing and retrieving media collected for the Cacophony
 Project. This server used to be known as "Full_Noise".
