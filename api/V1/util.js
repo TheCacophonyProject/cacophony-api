@@ -79,9 +79,9 @@ function addRecordingFromPost(model, request, response) {
       return modelInstance.validate();
     })
     .then(() => modelInstance.save())
-    .then(() => responseUtil.validRecordingUpload(response, modelInstance.id))
     .then(() => modelInstance.processRecording(file))
     .then((processedFile) => modelInstance.saveFile(processedFile))
+    .then(() => responseUtil.validRecordingUpload(response, modelInstance.id))
     .catch((error) => {
       catchError(error, response, responseUtil.invalidDatapointUpload);
     });
