@@ -2,16 +2,9 @@
 
 if [ -f docker-container-pid ]; then
     pid="$(cat docker-container-pid)"
-
     echo "Stopping container <$pid>"
-    sudo docker stop $pid &> /dev/null
-
-    sleep 5
-    
-    echo "Removing container <$pid>"
-    sudo docker rm $pid &> /dev/null
-
-    rm docker-container-pid
+    sudo docker rm --force $pid &> /dev/null
+    rm -f docker-container-pid
 fi
 
 sudo docker build . -t cacophony-api
