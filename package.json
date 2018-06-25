@@ -33,7 +33,7 @@
     "passport-anonymous": "^1.0.1",
     "passport-jwt": "^2.1.0",
     "path": "^0.12.7",
-    "pg": "^4.4.1",
+    "pg": "^5.1.0",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.10.0",
     "pug": "^2.0.1",
