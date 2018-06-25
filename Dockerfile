@@ -11,7 +11,11 @@ RUN echo "Pacific/Auckland" > /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
 
 RUN apt-get -y install curl wget sudo make build-essential g++
+
 RUN apt-get -y install postgis postgresql-server-dev-9.5
+RUN echo "listen_addresses = '*'" >> /etc/postgresql/9.5/main/postgresql.conf
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
+RUN echo "host all all ::/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
