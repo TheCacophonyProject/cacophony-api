@@ -42,8 +42,6 @@ function findAllWithUser(model, user, queryParams) {
             { model: models.Group },
             { model: models.Tag },
           ];
-          queryParams.limit = queryParams.limit;
-          queryParams.offset = queryParams.offset;
           return model.findAndCount(queryParams);
         }).then(function(result) {
           result.limit = queryParams.limit;
