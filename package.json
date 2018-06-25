@@ -11,6 +11,7 @@
     "bcrypt": "^1.0.3",
     "bluebird": "^2.9.34",
     "body-parser": "^1.18.2",
+    "commander": "^2.15.1",
     "express": "^4.16.3",
     "express-validator": "^4.3.0",
     "express-winston": "^2.5.0",
