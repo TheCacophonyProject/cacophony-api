@@ -30,8 +30,16 @@ RUN chmod +x mc
 
 COPY docker-entrypoint.sh /
 
+# API
 EXPOSE 1080
-EXPOSE 9001
+
+# API - fileProcessing
 EXPOSE 2008
+
+# Minio
+EXPOSE 9001
+
+# PostgreSQL
+EXPOSE 5432
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

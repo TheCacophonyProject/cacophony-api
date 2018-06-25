@@ -8,7 +8,15 @@ if [ -f docker-container-pid ]; then
 fi
 
 sudo docker build . -t cacophony-api
-sudo docker run -td --rm --name cacophony-api-test -p 1080:1080 -p 9001:9001 cacophony-api | tee > docker-container-pid
+
+# Publish PostgreSQL on a different port externally (5400) to avoid
+# collisions with an PostgreSQL instance on the host.
+sudo docker run -td --rm \
+     --name cacophony-api-test \
+     -p 1080:1080 \
+     -p 9001:9001 \
+     -p 5400:5432 \
+     cacophony-api | tee > docker-container-pid
 
 sudo docker cp . cacophony-api-test:/
 sudo docker exec cacophony-api-test bash -c "$@ rm -r /node_modules"
