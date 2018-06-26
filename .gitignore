@@ -3,4 +3,3 @@ apidoc/*
 testconfig.json
 .pytest_cache
 __pycache__
-docker-container-pid
