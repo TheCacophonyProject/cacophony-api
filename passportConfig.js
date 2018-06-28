@@ -15,7 +15,7 @@ module.exports = function(passport) {
     if (request.query.jwt)
     {return ExtractJwt.fromUrlQueryParameter('jwt')(request);}
     else
-    {return ExtractJwt.fromAuthHeader()(request);}
+    {return ExtractJwt.fromAuthHeaderWithScheme('jwt')(request);}
   }
 
   passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
