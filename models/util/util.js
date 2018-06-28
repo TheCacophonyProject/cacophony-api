@@ -110,7 +110,7 @@ function processVideo(file) {
 function getMetadataFromFile(filePath, fileName) {
   return new Promise(function(resolve) {
     var size = fs.statSync(filePath).size || 0;
-    var mimeType = mime.lookup(fileName || filePath);
+    var mimeType = mime.getType(fileName || filePath);
     var extname = path.extname(filePath) || '';
     var fileData = {
       path: filePath,
@@ -153,7 +153,7 @@ function getFileName(model) {
   else
   {fileName = 'file';}
 
-  var ext = mime.extension(model.getDataValue('mimeType') || '');
+  var ext = mime.getExtension(model.getDataValue('mimeType') || '');
   if (ext) {fileName = fileName + '.' + ext;}
   return fileName;
 }
