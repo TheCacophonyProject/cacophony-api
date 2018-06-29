@@ -1,0 +1,15 @@
+[Unit]
+Description=Cacophony Project API server
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/cacophony/api
+ExecStart=/usr/local/bin/node Server.js
+Restart=on-failure
+RestartSec=5s
+User=fullnoise
+Group=fullnoise
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
