@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
+var process = require('process');
 var http = require('http');
 
 var configPath = './config/app.js';
@@ -61,6 +62,7 @@ models.sequelize
   .then(() => openHttpServer(app))
   .catch(function(error) {
     log.error(error);
+    process.exit(2);
   });
 
 function openHttpServer(app) {
