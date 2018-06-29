@@ -196,6 +196,7 @@ function multipartDownload(recordTypeName, buildRecord){
   return (request, response) => {
     var key = uuidv4();
     var data;
+    var filename;
     var upload;
 
     // Note regarding multiparty: there are no guarantees about the
@@ -224,6 +225,7 @@ function multipartDownload(recordTypeName, buildRecord){
         part.resume();
         return;
       }
+      filename = part.filename;
 
       upload = modelsUtil.openS3().upload({
         Bucket: config.s3.bucket,
@@ -264,6 +266,8 @@ function multipartDownload(recordTypeName, buildRecord){
           return;
         }
         log.info("finished streaming upload to object store. key:", key);
+
+        data.filename = filename;
 
         // Store a record for the upload.
         dbRecord = buildRecord(request, data, key);
