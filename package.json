@@ -41,7 +41,6 @@
     "pug": "^2.0.3",
     "sequelize": "^3.32.1",
     "sequelize-cli": "^2.7.0",
-    "tcp-port-used": "^0.1.2",
     "uuid": "^3.2.1",
     "winston": "^1.0.1"
   },
