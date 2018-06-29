@@ -95,11 +95,13 @@ class TestUser:
         del recv_props['Tags']
         del recv_props['GroupId']
         del recv_props['location']
-        del recv_props['fileKey']
         del recv_props['rawFileKey']
         del recv_props['rawFileSize']
-        del recv_props['fileMimeType']
+        if 'rawMimeType' not in props:
+            del recv_props['rawMimeType']
+        del recv_props['fileKey']
         del recv_props['fileSize']
+        del recv_props['fileMimeType']
 
         assert recv_props.pop('id') == recording.recordingId
         assert recv_props.pop('processingState') == 'toMp4'

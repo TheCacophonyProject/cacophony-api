@@ -37,6 +37,10 @@ class TestDevice:
         }
         filename = 'files/small.cptv'
         recording_id = self._deviceapi.upload_recording(filename, props)
+
+        # Expect to see this in data returned by the API server.
+        props['rawMimeType'] = 'application/x-cptv'
+
         return TestRecording(recording_id, props, slurp(filename))
 
     def upload_audio_recording(self):
