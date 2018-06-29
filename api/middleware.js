@@ -11,7 +11,7 @@ const { body, check, header, validationResult, query } = require('express-valida
  */
 const authenticate = function(type) {
   return header('Authorization').custom(async (value, {req}) => {
-    const token = ExtractJwt.fromAuthHeader()(req);
+    const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
     if (token == null) {
       throw new Error('could not find JWT token');
     }
