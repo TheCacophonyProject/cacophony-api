@@ -1,10 +1,13 @@
+const mime             = require('mime');
+const { query, check } = require('express-validator/check');
+
 const models            = require('../../models');
 const responseUtil      = require('./responseUtil');
 const util              = require('./util');
 const config            = require('../../config');
 const jsonwebtoken      = require('jsonwebtoken');
 const middleware        = require('../middleware');
-const { query, check }  = require('express-validator/check');
+
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
@@ -49,6 +52,7 @@ module.exports = (app, baseUrl) => {
           fields: models.Recording.apiSettableFields,
         });
         recording.set('rawFileKey', key);
+        recording.set('rawMimeType', guessRawMimeType(data.type, data.filename));
         recording.set('DeviceId', request.device.id);
         recording.set('GroupId', request.device.GroupId);
         recording.set('processingState',
@@ -169,7 +173,7 @@ module.exports = (app, baseUrl) => {
           _type: 'fileDownload',
           key: recording.rawFileKey,
           filename: recording.getRawFileName(),
-          mimeType: null,
+          mimeType: recording.rawMimeType,
         };
       }
       delete recording.rawFileKey;
@@ -276,3 +280,18 @@ module.exports = (app, baseUrl) => {
     })
   );
 };
+
+function guessRawMimeType(type, filename) {
+  var mimeType = mime.getType(filename);
+  if (mimeType) {
+    return mimeType;
+  }
+  switch (type) {
+  case "thermalRaw":
+    return "application/x-cptv";
+  case "audio":
+    return "audio/mpeg";
+  default:
+    return "application/octet-stream";
+  }
+}

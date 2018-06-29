@@ -1,6 +1,9 @@
+var mime = require('mime');
+var moment = require('moment-timezone');
+
 var util = require('./util/util');
 var validation = require('./util/validation');
-var moment = require('moment-timezone');
+
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Recording';
@@ -25,6 +28,7 @@ module.exports = function(sequelize, DataTypes) {
     // Raw file data.
     rawFileKey: DataTypes.STRING,
     rawFileSize: DataTypes.INTEGER,
+    rawMimeType: DataTypes.STRING,
 
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
@@ -204,12 +208,27 @@ module.exports = function(sequelize, DataTypes) {
     ]};
   };
 
-  var getRawFileName = function() {
-    var ext = '';
-    if (this.type == 'thermalRaw') {
-      ext = '.cptv';
-    }
+  const getRawFileName = function() {
+    const ext = this.getRawFileExt();
     return moment.tz('Pacific/Auckland').format('YYYYMMDD-HHmmss') + ext;
+  };
+
+  const getRawFileExt = function() {
+    if (this.rawMimeType == 'application/x-cptv') {
+      return ".cptv";
+    }
+    const ext = mime.getExtension(this.rawMimeType);
+    if (ext) {
+      return '.' + ext;
+    }
+    switch (this.type) {
+    case 'thermalRaw':
+      return '.cptv';
+    case 'audio':
+      return '.mpga';
+    default:
+      return "";
+    }
   };
 
   var options = {
@@ -228,7 +247,9 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       canGetRaw: canGetRaw,
       getFileName: getFileName,
+      getFileExt: getFileExt,
       getRawFileName: getRawFileName,
+      getRawFileExt: getRawFileExt,
       getUserPermissions: getUserPermissions,
     },
   };
@@ -280,17 +301,26 @@ function canGetRaw() {
 }
 
 function getFileName() {
-  var ext = "";
-  if (this.fileMimeType == 'video/mp4') {
-    ext = ".mp4";
-  }
+  var ext = this.getFileExt();
   return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
     .format("YYYYMMDD-HHmmss") + ext;
+}
+
+function getFileExt() {
+  if (this.fileMimeType == 'video/mp4') {
+    return ".mp4";
+  }
+  const ext = mime.getExtension(this.fileMimeType);
+  if (ext) {
+    return "." + ext;
+  }
+  return "";
 }
 
 var userGetAttributes = [
   'id',
   'rawFileSize',
+  'rawMimeType',
   'fileSize',
   'fileMimeType',
   'processingState',
