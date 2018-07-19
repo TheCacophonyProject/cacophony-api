@@ -91,7 +91,52 @@ module.exports = function(sequelize, DataTypes) {
           model: models.Device,
           attributes: ['id', 'devicename'],
         }
-      ],
+      ]
+    }).then(groups => {
+
+      const augmentGroupData = new Promise((resolve,reject) => {
+        try {
+          const groupsPromises = groups.map(group => {
+
+            return models.User.findAll({
+              attributes:['username','id'],
+              include:[
+                {
+                  model:models.Group,
+                  where:{
+                    id:group.id
+                  },
+                  attributes:[]
+                }
+              ]
+            }).then(async groupUsers => {
+
+              const setAdminPromises = groupUsers.map(groupUser => {
+                return models.GroupUsers.isAdmin(group.id, groupUser.id).then(value => {
+                  groupUser.setDataValue("isAdmin", value);
+                });
+              });
+
+              await Promise.all(setAdminPromises);
+
+              group.setDataValue('GroupUsers',groupUsers);
+              return group;
+            });
+          });
+
+          Promise.all(groupsPromises).then(data => {
+            resolve(data);
+          });
+
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      return augmentGroupData.then(groupData => {
+        return groupData;
+      });
+
     });
   };
 
