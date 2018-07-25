@@ -363,12 +363,14 @@ var processingStates = {
 
 var processingAttributes = [
   'id',
-  'rawFileKey',
-  'fileKey',
-  'processingMeta',
-  'processingState',
-  'jobKey',
   'type',
+  'jobKey',
+  'rawFileKey',
+  'rawMimeType',
+  'fileKey',
+  'fileMimeType',
+  'processingState',
+  'processingMeta',
 ];
 
 const validTagModes = Object.freeze([
