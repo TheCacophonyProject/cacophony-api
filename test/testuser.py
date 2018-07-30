@@ -249,8 +249,6 @@ class TestUser:
         return self._userapi.get_audio_schedule(device.devicename)
 
     def uploads_recording_for(self, testdevice):
-        print("    and '{}' uploades a recording for {} ".format(
-            self.username, testdevice.devicename))
         props = testdevice.get_new_recording_props()
 
         filename = 'files/small.cptv'
