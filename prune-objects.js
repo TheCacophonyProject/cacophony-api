@@ -65,7 +65,7 @@ async function deleteObjects(s3, bucket, keys) {
     Bucket: bucket,
   };
 
-  for (let key of keys) {
+  for (const key of keys) {
     params.Key = key;
     await s3.deleteObject(params).promise();
   }
@@ -93,7 +93,7 @@ async function allDBKeys(client) {
         union
         select "fileKey" as fk, NULL as rk from "Files"
   `);
-  for (let row of res.rows) {
+  for (const row of res.rows) {
     if (row.fk) {
       keys.add(row.fk);
     }
