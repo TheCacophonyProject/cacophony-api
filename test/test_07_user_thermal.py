@@ -1,3 +1,5 @@
+import pytest
+
 class TestUserThermal:
     def test_can_download_recording(self, helper):
         device = helper.given_new_device(self, 'user-thermal-download')
@@ -40,3 +42,14 @@ class TestUserThermal:
 
         print("\nA user should be able to download the recording")
         helper.admin_user().can_download_correct_recording(recording)
+
+    def test_must_have_permission_to_upload_recording_for_device(self, helper):
+        device = helper.given_new_device(self, 'random_device')
+
+        print("If a new user 'trouble' signs up", end='')
+        trouble = helper.given_new_user(self, 'trouble')
+
+        print("Then 'trouble' should not be able to get audio schedule for the hollerer.")
+        with pytest.raises(OSError, message="On no 'trouble' could upload a video pretending to be this device"):
+            recording = trouble.uploads_recording_for(device)
+

@@ -2,6 +2,7 @@ import io
 import pytest
 
 from .testexception import TestException
+from .testrecording import TestRecording
 
 class TestUser:
     def __init__(self, username, userapi):
@@ -260,7 +261,6 @@ class TestUser:
 
         return TestRecording(recording_id, props, slurp(filename))
 
-
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser
@@ -334,3 +334,7 @@ class AudioBaitList:
 
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
+
+def slurp(filename):
+    with open(filename, 'rb') as f:
+        return f.read()

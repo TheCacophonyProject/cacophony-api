@@ -109,7 +109,7 @@ module.exports = (app, baseUrl) => {
     middleware.requestWrapper(async (request, response) => {
       var device = request.body["device"];
       try {
-        await request.user.checkUserControlsDevices([device.id]);
+        await request.user.checkUserControlsDevices([device.id])
       }
       catch (error) {
         // TODO this should probably be in the normal requestWrapper

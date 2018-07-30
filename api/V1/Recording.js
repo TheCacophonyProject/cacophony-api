@@ -12,6 +12,21 @@ const middleware        = require('../middleware');
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
 
+  const downloadRecording = util.multipartDownload('recording', (request, data, key) => {
+    var recording = models.Recording.build(data, {
+      fields: models.Recording.apiSettableFields,
+    });
+    recording.set('rawFileKey', key);
+    recording.set('rawMimeType', guessRawMimeType(data.type, data.filename));
+    recording.set('DeviceId', request.device.id);
+    recording.set('GroupId', request.device.GroupId);
+    recording.set('processingState', models.Recording.processingStates[data.type][0]);
+    if (typeof request.device.public === 'boolean') {
+      recording.set('public', request.device.public);
+    }
+    return recording;
+  });
+
   /**
    * @api {post} /api/v1/recordings Add a new recording.
    * @apiName PostRecording
@@ -47,23 +62,36 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateDevice,
     ],
     middleware.requestWrapper(
-      util.multipartDownload('recording', (request, data, key) => {
-        var recording = models.Recording.build(data, {
-          fields: models.Recording.apiSettableFields,
-        });
-        recording.set('rawFileKey', key);
-        recording.set('rawMimeType', guessRawMimeType(data.type, data.filename));
-        recording.set('DeviceId', request.device.id);
-        recording.set('GroupId', request.device.GroupId);
-        recording.set('processingState',
-          models.Recording.processingStates[data.type][0]);
-        if (typeof request.device.public === 'boolean') {
-          recording.set('public', request.device.public);
-        }
-
-        return recording;
-      })
+      downloadRecording
     )
+  );
+
+  app.post(
+    apiUrl + "/:devicename",
+    [
+      middleware.authenticateUser,
+      middleware.getDeviceByName,
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      var device = request.body["device"];
+      try {
+        await request.user.checkUserControlsDevices([device.id])
+      }
+      catch (error) {
+        if (error.name == 'UnauthorizedDeviceException') {
+          return responseUtil.send(response, {
+            statusCode: 400,
+            success: false,
+            messages: [error.message]
+          });
+        } else {
+          throw error;
+        }
+      }
+
+      request["device"] = device
+      await downloadRecording(request, response)
+    })
   );
 
   /**
