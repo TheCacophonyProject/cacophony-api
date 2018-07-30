@@ -33,3 +33,10 @@ class TestUserThermal:
         print("the change is reflected on the API server.")
         recording['comment'] = new_comment
         user.can_download_correct_recording(recording)
+
+    def test_can_upload_recording_for_device(self, helper):
+        data_collector, device = helper.given_new_user_with_device(self, "data_collector")
+        recording = data_collector.uploads_recording_for(device)
+
+        print("\nA user should be able to download the recording")
+        helper.admin_user().can_download_correct_recording(recording)

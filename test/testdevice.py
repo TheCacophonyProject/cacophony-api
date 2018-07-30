@@ -22,7 +22,17 @@ class TestDevice:
         return self.upload_audio_recording()
 
     def upload_recording(self):
-        props = {
+        props = self.get_new_recording_props()
+        filename = 'files/small.cptv'
+        recording_id = self._deviceapi.upload_recording(filename, props)
+
+        # Expect to see this in data returned by the API server.
+        props['rawMimeType'] = 'application/x-cptv'
+
+        return TestRecording(recording_id, props, slurp(filename))
+
+    def get_new_recording_props(self):
+        return {
             "type": "thermalRaw",
             "recordingDateTime": self._make_timestamp().isoformat(),
             "duration": 10,
@@ -35,13 +45,6 @@ class TestDevice:
                 "bar": "foo",
             },
         }
-        filename = 'files/small.cptv'
-        recording_id = self._deviceapi.upload_recording(filename, props)
-
-        # Expect to see this in data returned by the API server.
-        props['rawMimeType'] = 'application/x-cptv'
-
-        return TestRecording(recording_id, props, slurp(filename))
 
     def upload_audio_recording(self):
         ts = self._make_timestamp()

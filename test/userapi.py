@@ -229,3 +229,8 @@ class UserAPI(APIBase):
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
         return response.json()
+
+    def upload_recording_for(self, devicename, filename, props=None):
+        if not props:
+            props = {"type": "thermalRaw"}
+        return self._upload('/api/v1/recordings/{}'.format(devicename), filename, props)
