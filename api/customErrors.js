@@ -26,8 +26,8 @@ function ValidationError(errors) {
   this.flatten = () => {
     const mappedErrors = this.errors.mapped();
     var errors = [];
-    for (let name in mappedErrors) {
-      let error = mappedErrors[name];
+    for (const name in mappedErrors) {
+      const error = mappedErrors[name];
       if (typeof error.msg == "string") {
         errors.push(format(
           "%s: %s",
