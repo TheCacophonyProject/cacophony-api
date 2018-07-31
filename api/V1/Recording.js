@@ -94,26 +94,9 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateUser,
       middleware.getDeviceByName,
     ],
-    middleware.requestWrapper(async (request, response) => {
-      var device = request.body["device"];
-      try {
-        await request.user.checkUserControlsDevices([device.id])
-      }
-      catch (error) {
-        if (error.name == 'UnauthorizedDeviceException') {
-          return responseUtil.send(response, {
-            statusCode: 400,
-            success: false,
-            messages: [error.message]
-          });
-        } else {
-          throw error;
-        }
-      }
-
-      request["device"] = device
-      await downloadRecording(request, response)
-    })
+    middleware.ifUsersDeviceRequestWrapper(
+      downloadRecording
+    )
   );
 
   /**

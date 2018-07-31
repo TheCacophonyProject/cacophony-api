@@ -161,6 +161,32 @@ const parseArray = function(field) {
   });
 };
 
+// A request wrapper that also checks if user should be playing around with the
+// the named device before continuing.
+function ifUsersDeviceRequestWrapper(fn) {
+  var ifPermissionWrapper = async (request, response) => {
+    var device = request.body["device"];
+    try {
+      await request.user.checkUserControlsDevices([device.id])
+    }
+    catch (error) {
+      if (error.name == 'UnauthorizedDeviceException') {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: [error.message]
+        });
+      } else {
+        throw error;
+      }
+    }
+
+    request["device"] = device
+    await fn(request, response)
+  };
+  return requestWrapper(ifPermissionWrapper)
+}
+
 const requestWrapper = fn => (request, response, next) => {
   var logMessage = format('%s %s', request.method, request.url);
   if (request.user) {
@@ -201,4 +227,5 @@ exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
 exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
+exports.ifUsersDeviceRequestWrapper = ifUsersDeviceRequestWrapper;
 exports.isDateArray        = isDateArray;

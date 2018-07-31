@@ -106,25 +106,8 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateUser,
       middleware.getDeviceByName,
     ],
-    middleware.requestWrapper(async (request, response) => {
-      var device = request.body["device"];
-      try {
-        await request.user.checkUserControlsDevices([device.id])
-      }
-      catch (error) {
-        // TODO this should probably be in the normal requestWrapper
-        if (error.name == 'UnauthorizedDeviceException') {
-          return responseUtil.send(response, {
-            statusCode: 400,
-            success: false,
-            messages: [error.message]
-          });
-        } else {
-          throw error;
-        }
-      }
-
-      return getSchedule(device, response, request.user);
+    middleware.ifUsersDeviceRequestWrapper(async (request, response) => {
+      getSchedule(request.device, response, request.user);
     })
   );
 };
