@@ -28,29 +28,34 @@ module.exports = (app, baseUrl) => {
   });
 
   /**
+   * @apiDefine RecordingParams
+   *
+   * @apiParam {JSON} data Metadata about the recording.   Valid tags are:
+   * <ul>
+   * <li>(REQUIRED) type: must be 'thermalRaw'
+   * <li>duration
+   * <li>recordingDateTime
+   * <li>location
+   * <li>version
+   * <li>batteryCharging
+   * <li>batteryLevel
+   * <li>airplaneModeOn
+   * <li>additionalMetadata
+   * <li>comment
+   * </ul>
+   * @apiParam {File} file Recording file to upload
+   */
+
+  /**
    * @api {post} /api/v1/recordings Add a new recording.
    * @apiName PostRecording
    * @apiGroup Recordings
-   * @apiDescription This call is used for uploads of new recordings. It
-   * currently supports raw thermal video but will eventually support all
-   * recording types. It takes a 'data' field which contains a JSON object
-   * string that can contain any of the following fields, Note that 'type'
-   * is required:
-   * - type: REQUIRED, one of ('thermalRaw')
-   * - duration
-   * - recordingDateTime
-   * - location
-   * - version
-   * - batteryCharging
-   * - batteryLevel
-   * - airplaneModeOn
-   * - additionalMetadata
-   * - comment
+   * @apiDescription Uploads a device's own raw thermal video to the server.  It currently
+   * supports raw thermal video but will eventually support all recording types.
    *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {JSON} data Metadata about the recording (see above).
-   * @apiParam {File} file File of the recording.
+   * @apiUse RecordingParams
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
@@ -66,6 +71,22 @@ module.exports = (app, baseUrl) => {
     )
   );
 
+  /**
+   * @api {post} /api/v1/recordings/:devicename Add a new recording on behalf of device
+   * @apiName PostRecordingOnBehalf
+   * @apiGroup Recordings
+   * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
+   * It currently supports raw thermal video but will eventually support all
+   * recording types.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse RecordingParams
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} recordingId ID of the recording.
+   * @apiuse V1ResponseError
+   */
   app.post(
     apiUrl + "/:devicename",
     [
