@@ -76,7 +76,8 @@ module.exports = (app, baseUrl) => {
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
-   * It currently supports raw thermal video but will eventually support all
+   * The user must have permission to view videos from the device or the call will return an
+   * error.  It currently supports raw thermal video but will eventually support all
    * recording types.
    *
    * @apiUse V1UserAuthorizationHeader
