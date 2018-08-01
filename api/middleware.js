@@ -167,24 +167,23 @@ function ifUsersDeviceRequestWrapper(fn) {
   var ifPermissionWrapper = async (request, response) => {
     var device = request.body["device"];
     try {
-      await request.user.checkUserControlsDevices([device.id])
+      await request.user.checkUserControlsDevices([device.id]);
     }
     catch (error) {
       if (error.name == 'UnauthorizedDeviceException') {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: [error.message]
-        });
+        const cError = new customErrors.ClientError(error.message, 422);
+        cError.name = "authorisation";
+        log.info(cError.toJson());
+        throw cError;
       } else {
         throw error;
       }
     }
 
-    request["device"] = device
-    await fn(request, response)
+    request["device"] = device;
+    await fn(request, response);
   };
-  return requestWrapper(ifPermissionWrapper)
+  return requestWrapper(ifPermissionWrapper);
 }
 
 const requestWrapper = fn => (request, response, next) => {

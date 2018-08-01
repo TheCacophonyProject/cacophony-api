@@ -192,7 +192,7 @@ function catchError(error, response, responseFunction) {
   return responseUtil.serverError(response, error);
 }
 
-function multipartDownload(recordTypeName, buildRecord){
+function multipartUpload(recordTypeName, buildRecord){
   return (request, response) => {
     var key = uuidv4();
     var data;
@@ -292,4 +292,4 @@ exports.deleteDataPoint = deleteDataPoint;
 exports.parseJsonFromString = parseJsonFromString;
 exports.handleResponse = responseUtil.send;
 exports.catchError = catchError;
-exports.multipartDownload = multipartDownload;
+exports.multipartUpload = multipartUpload;

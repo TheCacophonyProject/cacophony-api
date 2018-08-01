@@ -12,7 +12,7 @@ const middleware        = require('../middleware');
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/recordings';
 
-  const downloadRecording = util.multipartDownload('recording', (request, data, key) => {
+  const downloadRecording = util.multipartUpload('recording', (request, data, key) => {
     var recording = models.Recording.build(data, {
       fields: models.Recording.apiSettableFields,
     });
