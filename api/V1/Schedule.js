@@ -29,26 +29,12 @@ module.exports = (app, baseUrl) => {
       middleware.parseArray('devices'),
       middleware.parseJSON('schedule'),
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.ifUsersDeviceRequestWrapper(async function(request, response) {
       var deviceIds = request.body.devices;
-      try {
-        await request.user.checkUserControlsDevices(deviceIds);
-      }
-      catch (error) {
-        if (error.name == 'UnauthorizedDeviceException') {
-          return responseUtil.send(response, {
-            statusCode: 400,
-            success: false,
-            messages: [error.message]
-          });
-        } else {
-          throw error;
-        }
-      }
 
       var instance = models.Schedule.build(request.body, ["schedule"]);
       instance.set('UserId', request.user.id);
-      // TODO make the device and scedule changes apply in a single transaction
+      // TODO make the device and schedule changes apply in a single transaction
       await instance.save();
 
       await models.Device.update(

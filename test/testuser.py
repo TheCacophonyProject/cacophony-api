@@ -257,7 +257,7 @@ class TestUser:
         # Expect to see this in data returned by the API server.
         props['rawMimeType'] = 'application/x-cptv'
 
-        return TestRecording(recording_id, props, slurp(filename))
+        return TestRecording(recording_id, props, filename)
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
@@ -333,6 +333,3 @@ class AudioBaitList:
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
 
-def slurp(filename):
-    with open(filename, 'rb') as f:
-        return f.read()

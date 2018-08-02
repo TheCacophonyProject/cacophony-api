@@ -165,22 +165,35 @@ const parseArray = function(field) {
 // the named device before continuing.
 function ifUsersDeviceRequestWrapper(fn) {
   var ifPermissionWrapper = async (request, response) => {
-    var device = request.body["device"];
+    let devices = [];
+    if ("device" in request.body && request.body.device) {
+      request["device"] = request.body.device;
+      devices = [request.body.device.id];
+    }
+    else if ("devices" in request.body) {
+      devices = request.body.devices;
+    } else {
+      throw new customErrors.ClientError("No devices specified.", 422);
+    }
+
+    if (!("user" in request)) {
+      throw new customErrors("No user specified.", 422);
+    }
+
     try {
-      await request.user.checkUserControlsDevices([device.id]);
+      await request.user.checkUserControlsDevices(devices);
     }
     catch (error) {
       if (error.name == 'UnauthorizedDeviceException') {
-        const cError = new customErrors.ClientError(error.message, 422);
+        log.info(error.message);
+        const cError = new customErrors.ClientError("User is not authorized for one (or more) of specified devices.", 422);
         cError.name = "authorisation";
-        log.info(cError.toJson());
         throw cError;
       } else {
         throw error;
       }
     }
 
-    request["device"] = device;
     await fn(request, response);
   };
   return requestWrapper(ifPermissionWrapper);

@@ -1,8 +1,8 @@
 class TestRecording:
-    def __init__(self, recordingId, props, content):
+    def __init__(self, recordingId, props, contentFilename):
         self.recordingId = recordingId
         self.props = props
-        self.content = content
+        self.content = slurp(contentFilename)
 
     def __repr__(self):
         return "<TestRecording: {}>".format(self.recordingId)
@@ -34,3 +34,7 @@ class TestTagPromise():
 
         testuser.tag_recording(self._testrecording.recordingId, self._tagData)
         return self._testrecording
+
+def slurp(filename):
+    with open(filename, 'rb') as f:
+        return f.read()
