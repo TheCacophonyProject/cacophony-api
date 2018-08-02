@@ -22,7 +22,17 @@ class TestDevice:
         return self.upload_audio_recording()
 
     def upload_recording(self):
-        props = {
+        props = self.get_new_recording_props()
+        filename = 'files/small.cptv'
+        recording_id = self._deviceapi.upload_recording(filename, props)
+
+        # Expect to see this in data returned by the API server.
+        props['rawMimeType'] = 'application/x-cptv'
+
+        return TestRecording(recording_id, props, filename)
+
+    def get_new_recording_props(self):
+        return {
             "type": "thermalRaw",
             "recordingDateTime": self._make_timestamp().isoformat(),
             "duration": 10,
@@ -35,13 +45,6 @@ class TestDevice:
                 "bar": "foo",
             },
         }
-        filename = 'files/small.cptv'
-        recording_id = self._deviceapi.upload_recording(filename, props)
-
-        # Expect to see this in data returned by the API server.
-        props['rawMimeType'] = 'application/x-cptv'
-
-        return TestRecording(recording_id, props, slurp(filename))
 
     def upload_audio_recording(self):
         ts = self._make_timestamp()
@@ -61,7 +64,7 @@ class TestDevice:
         }
         filename = 'files/small.mp3'
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
-        return TestRecording(recording_id, props, slurp(filename))
+        return TestRecording(recording_id, props, filename)
 
     def _make_timestamp(self):
         # recordings need to be recorded at different second times else the search code doesn't work
@@ -103,7 +106,3 @@ class TestDevice:
 
     def get_audio_schedule(self):
         return self._deviceapi.get_audio_schedule()
-
-def slurp(filename):
-    with open(filename, 'rb') as f:
-        return f.read()

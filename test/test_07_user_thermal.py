@@ -1,3 +1,5 @@
+import pytest
+
 class TestUserThermal:
     def test_can_download_recording(self, helper):
         device = helper.given_new_device(self, 'user-thermal-download')
@@ -33,3 +35,21 @@ class TestUserThermal:
         print("the change is reflected on the API server.")
         recording['comment'] = new_comment
         user.can_download_correct_recording(recording)
+
+    def test_can_upload_recording_for_device(self, helper):
+        data_collector, device = helper.given_new_user_with_device(self, "data_collector")
+        print("   and data_collector uploads a recording on behalf of the device")
+        recording = data_collector.uploads_recording_for(device)
+        print("Then an super user should be able to download the recording")
+        helper.admin_user().can_download_correct_recording(recording)
+
+    def test_must_have_permission_to_upload_recording_for_device(self, helper):
+        device = helper.given_new_device(self, 'random_device')
+
+        print("    and an unrelated user 'trouble'", end='')
+        trouble = helper.given_new_user(self, 'trouble')
+
+        print("Then 'trouble' should not be able to upload a recording on the behalf of the device.")
+        with pytest.raises(OSError, message="On no 'trouble' could upload a recording on behalf of the device!"):
+            recording = trouble.uploads_recording_for(device)
+

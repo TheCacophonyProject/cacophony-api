@@ -161,6 +161,44 @@ const parseArray = function(field) {
   });
 };
 
+// A request wrapper that also checks if user should be playing around with the
+// the named device before continuing.
+function ifUsersDeviceRequestWrapper(fn) {
+  var ifPermissionWrapper = async (request, response) => {
+    let devices = [];
+    if ("device" in request.body && request.body.device) {
+      request["device"] = request.body.device;
+      devices = [request.body.device.id];
+    }
+    else if ("devices" in request.body) {
+      devices = request.body.devices;
+    } else {
+      throw new customErrors.ClientError("No devices specified.", 422);
+    }
+
+    if (!("user" in request)) {
+      throw new customErrors("No user specified.", 422);
+    }
+
+    try {
+      await request.user.checkUserControlsDevices(devices);
+    }
+    catch (error) {
+      if (error.name == 'UnauthorizedDeviceException') {
+        log.info(error.message);
+        const cError = new customErrors.ClientError("User is not authorized for one (or more) of specified devices.", 422);
+        cError.name = "authorisation";
+        throw cError;
+      } else {
+        throw error;
+      }
+    }
+
+    await fn(request, response);
+  };
+  return requestWrapper(ifPermissionWrapper);
+}
+
 const requestWrapper = fn => (request, response, next) => {
   var logMessage = format('%s %s', request.method, request.url);
   if (request.user) {
@@ -201,4 +239,5 @@ exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
 exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
+exports.ifUsersDeviceRequestWrapper = ifUsersDeviceRequestWrapper;
 exports.isDateArray        = isDateArray;

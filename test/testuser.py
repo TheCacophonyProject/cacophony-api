@@ -2,6 +2,7 @@ import io
 import pytest
 
 from .testexception import TestException
+from .testrecording import TestRecording
 
 class TestUser:
     def __init__(self, username, userapi):
@@ -247,6 +248,17 @@ class TestUser:
     def get_audio_schedule(self, device):
         return self._userapi.get_audio_schedule(device.devicename)
 
+    def uploads_recording_for(self, testdevice):
+        props = testdevice.get_new_recording_props()
+
+        filename = 'files/small.cptv'
+        recording_id = self._userapi.upload_recording_for(testdevice.devicename, filename, props)
+
+        # Expect to see this in data returned by the API server.
+        props['rawMimeType'] = 'application/x-cptv'
+
+        return TestRecording(recording_id, props, filename)
+
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser
@@ -320,3 +332,4 @@ class AudioBaitList:
 
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
+

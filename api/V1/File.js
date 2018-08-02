@@ -31,7 +31,7 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateUser,
     ],
     middleware.requestWrapper(
-      util.multipartDownload('file', (request, data, key) => {
+      util.multipartUpload('file', (request, data, key) => {
         var dbRecord = models.File.build(data, {
           fields: models.File.apiSettableFields,
         });

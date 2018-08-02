@@ -1,6 +1,9 @@
 import json
+import os
 import requests
 from urllib.parse import urljoin
+
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 class APIBase:
@@ -76,3 +79,21 @@ class APIBase:
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
         return self._download_signed(response.json()['jwt'])
+
+    def _upload(self, url, filename, props):
+        url = urljoin(self._baseurl, url)
+        json_props = json.dumps(props)
+
+        with open(filename, 'rb') as content:
+            multipart_data = MultipartEncoder(
+                fields={
+                    'data': json_props,
+                    'file': (os.path.basename(filename), content),
+                })
+            headers = {
+                'Content-Type': multipart_data.content_type,
+                'Authorization': self._token
+            }
+            r = requests.post(url, data=multipart_data, headers=headers)
+        self._check_response(r)
+        return r.json()['recordingId']
