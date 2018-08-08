@@ -91,6 +91,11 @@ class TestUser:
 
         props = recording.props.copy()
 
+        if 'relativeToDawn' not in props:
+            props['relativeToDawn'] = None
+        if 'relativeToDusk' not in props:
+            props['relativeToDusk'] = None
+
         # # These are expected to be there but the values aren't tested.
         del recv_props['Device']
         del recv_props['Tags']
@@ -103,9 +108,15 @@ class TestUser:
         del recv_props['fileKey']
         del recv_props['fileSize']
         del recv_props['fileMimeType']
+        if 'type' not in props:
+            recv_props.pop('type', None)
+        if 'comment' not in props:
+            recv_props.pop('comment', None)
+        if 'recordingTime' not in recv_props:
+            props.pop('recordingTime', None)
 
         assert recv_props.pop('id') == recording.recordingId
-        assert recv_props.pop('processingState') == 'toMp4'
+        assert recv_props.pop('processingState') != 'FINISHED'
 
         # # Time formatting may differ so these are handled specially.
         assertDateTimeStrings(
@@ -143,8 +154,8 @@ class TestUser:
         self._userapi.get_audio(recording.recordingId)
 
     def cannot_see_audio_recording(self, recording):
-        with pytest.raises(IOError, match=r'.*No file found with given datapoint.'):
-            self._userapi.get_audio(recording.recordingId)
+        for row in self._userapi.query_audio():
+            assert row['id'] != recording.recordingId
 
     def cannot_see_any_audio_recordings(self):
         rows = self._userapi.query_audio()
@@ -182,41 +193,9 @@ class TestUser:
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
 
-    def can_download_correct_audio_recording(self, recording):
-        content = io.BytesIO()
-        for chunk in self._userapi.download_audio(recording.recordingId):
-            content.write(chunk)
-        assert content.getvalue() == recording.content
-
-        # For audio recordings there's no way to get audio metadata
-        # directly so the query API must be used.
-        for row in self._userapi.query_audio(limit=10):
-            if row['id'] == recording.recordingId:
-                props = recording.props.copy()
-
-                # These are expected to be there but the values aren't tested.
-                del row['id']
-                del row['groupId']
-                del row['group']
-                del row['deviceId']
-                del row['location']
-                del row['fileKey']
-
-                # Time formatting may differ so these are handled specially.
-                assertDateTimeStrings(
-                    row.pop('recordingDateTime'),
-                    props.pop('recordingDateTime'),
-                )
-
-                # Tags have never been used for audio recordings.
-                assert row.pop('tags') == []
-
-                # Compare the remaining properties.
-                assert row == props
-                return
-
-        # Shouldn't happen
-        raise ValueError("audio recording not found in query result")
+    def cannot_download_audio(self, recording):
+        with pytest.raises(IOError):
+            self._userapi.download_audio(recording.recordingId)
 
     def upload_audio_bait(self, details={"animal": "possum"}):
         props = {

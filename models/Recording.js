@@ -138,7 +138,7 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  var getOne = async function(user, id) {
+  var getOne = async function(user, id, type) {
     var query = {
       where: {
         "$and": [
@@ -152,6 +152,9 @@ module.exports = function(sequelize, DataTypes) {
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),
     };
+    if (type) {
+      query.where['$and'].push({'type': type});
+    }
 
     return await this.findOne(query);
   };
@@ -245,7 +248,6 @@ module.exports = function(sequelize, DataTypes) {
       isValidTagMode: function(mode) { return validTagModes.includes(mode); },
     },
     instanceMethods: {
-      canGetRaw: canGetRaw,
       getFileName: getFileName,
       getFileExt: getFileExt,
       getRawFileName: getRawFileName,
@@ -293,13 +295,6 @@ function getUserPermissions(user) {
   });
 }
 
-function canGetRaw() {
-  if (this.get('type') == 'thermalRaw') {
-    return true;
-  }
-  return false;
-}
-
 function getFileName() {
   var ext = this.getFileExt();
   return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
@@ -326,6 +321,8 @@ var userGetAttributes = [
   'processingState',
   'duration',
   'recordingDateTime',
+  'relativeToDawn',
+  'relativeToDusk',
   'location',
   'version',
   'batteryLevel',
@@ -342,6 +339,8 @@ var apiSettableFields = [
   'type',
   'duration',
   'recordingDateTime',
+  'relativeToDawn',
+  'relativeToDusk',
   'location',
   'version',
   'batteryCharging',
@@ -355,10 +354,12 @@ var apiSettableFields = [
 var apiUpdatableFields = [
   'location',
   'comment',
+  'additionalMetadata',
 ];
 
 var processingStates = {
   thermalRaw: ['toMp4', 'FINISHED'],
+  audio: ['toMp3', 'FINISHED'],
 };
 
 var processingAttributes = [

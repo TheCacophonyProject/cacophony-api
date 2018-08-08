@@ -192,7 +192,7 @@ function catchError(error, response, responseFunction) {
   return responseUtil.serverError(response, error);
 }
 
-function multipartUpload(recordTypeName, buildRecord){
+function multipartUpload(buildRecord){
   return (request, response) => {
     var key = uuidv4();
     var data;

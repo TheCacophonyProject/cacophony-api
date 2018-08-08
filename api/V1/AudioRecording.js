@@ -1,14 +1,29 @@
+const { param, header }  = require('express-validator/check');
+const moment = require('moment');
+const { format } = require('util');
+
 const middleware = require('../middleware');
 const models = require('../../models');
-const util = require('./util');
+const recordingUtil = require('./recordingUtil');
+const responseUtil = require('./responseUtil');
+
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/audiorecordings';
+
+
+  // Massage fields sent to the legacy AudioRecordings API so that
+  // they work in the Recordings schema.
+  const mungeAudioData = function(data) {
+    data.type = 'audio';
+    return data;
+  };
 
   /**
   * @api {post} /api/v1/audiorecordings/ Add a new audio recording
   * @apiName PostAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDeprecated use now (#Recordings:PostRecording)
   * @apiDescription This call is used to upload new audio recording. It takes a
   * `data` field which contains JSON object string that may contain any of the
   * following fields:
@@ -37,20 +52,18 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateDevice,
     ],
-    middleware.requestWrapper(async (req, res) => {
-      return util.addRecordingFromPost(models.AudioRecording, req, res);
-    })
+    middleware.requestWrapper(
+      recordingUtil.makeUploadHandler(mungeAudioData)
+    )
   );
-
 
   /**
   * @api {put} /api/v1/audiorecordings/:id Update the metadata for an existing audio recording
   * @apiName UpdateAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDeprecated use now (#Recordings:UpdateRecording)
   * @apiDescription This call is used to update the metadata for a previously
   * uploaded audio recording. It takes a `data` field which may contain any of the following fields:
-  * - recordingDateTime
-  * - recordingTime
   * - location
   * - additionalMetadata
   *
@@ -65,9 +78,18 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:id",
     [
       middleware.authenticateUser,
+      param('id').isInt(),
+      middleware.parseJSON('data'),
     ],
-    middleware.requestWrapper(async (req, res) => {
-      return util.updateDataFromPut(models.AudioRecording, req, res);
+    middleware.requestWrapper(async (request, response) => {
+      var updated = await models.Recording.updateOne(
+        request.user, request.params.id, request.body.data);
+
+      if (updated) {
+        responseUtil.validDatapointUpdate(response);
+      } else {
+        responseUtil.invalidDatapointUpdate(response, 'Failed to update recordings.');
+      }
     })
   );
 
@@ -75,6 +97,7 @@ module.exports = function(app, baseUrl) {
   * @api {delete} /api/v1/audiorecordings/:id Delete an existing audio recording
   * @apiName DeleteAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDeprecated use now (#Recordings:DeleteRecording)
   *
   * @apiUse V1UserAuthorizationHeader
   *
@@ -86,8 +109,8 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
     ],
-    middleware.requestWrapper(async (req, res) => {
-      return util.deleteDataPoint(models.AudioRecording, req, res);
+    middleware.requestWrapper(async (request, response) => {
+      await recordingUtil.delete_(request, response);
     })
   );
 
@@ -95,6 +118,7 @@ module.exports = function(app, baseUrl) {
   * @api {get} /api/v1/audiorecordings/ Query available audio recordings
   * @apiName GetAudioRecordings
   * @apiGroup AudioRecordings
+  * @apiDeprecated use now (#Recordings:QueryRecordings)
   *
   * @apiUse V1UserAuthorizationHeader
   *
@@ -114,16 +138,53 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
+      middleware.parseJSON('where').optional(),
+      header('offset').isInt(),
+      header('limit').isInt(),
     ],
-    middleware.requestWrapper(async (req, res) => {
-      return util.getRecordingsFromModel(models.AudioRecording, req, res);
+    middleware.requestWrapper(async (request, response) => {
+      const qresult = await recordingUtil.query(request, "audio");
+      var result = {
+        rows: [],
+        limit: request.query.limit,
+        offset: request.query.offset,
+        count: qresult.count,
+      };
+
+      // Just save the front end fields for each model.
+      for (const row of qresult.rows) {
+        result.rows.push(getFrontendFields(row));
+      }
+      responseUtil.validDatapointGet(response, result);
     })
   );
+
+  const getFrontendFields = function(rec) {
+    return {
+      id: rec.id,
+      recordingDateTime: rec.recordingDateTime,
+      relativeToDawn: rec.relativeToDawn,
+      relativeToDusk: rec.relativeToDusk,
+      recordingTime: moment.parseZone(format("%o", rec.recordingDateTime)).format("HH:mm:ss"),
+      duration: rec.duration,
+      location: rec.location,
+      fileKey: rec.fileKey,
+      batteryCharging: rec.batteryCharging,
+      batteryLevel: rec.batteryLevel,
+      airplaneModeOn: rec.airplaneModeOn,
+      version: rec.version,
+      deviceId: rec.Device.id,
+      groupId: rec.Group.id,
+      group: rec.Group.groupname,
+      additionalMetadata: rec.additionalMetadata,
+    };
+  };
 
   /**
   * @api {get} /api/v1/audiorecordings/:id Obtain token for retrieving audio recording
   * @apiName GetAudioRecording
   * @apiGroup AudioRecordings
+  * @apiDeprecated use now (#Recordings:GetRecording)
   * @apiDescription This call returns a new JSON Web Token (JWT) which
   * can be used to retrieve a specific audio recording. This is should
   * be used with the [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
@@ -139,9 +200,17 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:id",
     [
       middleware.authenticateUser,
+      param('id').isInt(),
     ],
-    middleware.requestWrapper(async (req, res) => {
-      return util.getRecordingFile(models.AudioRecording, req, res);
+    middleware.requestWrapper(async (request, response) => {
+      const { recording, cookedJWT } = await recordingUtil.get(request, "audio");
+      responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: [],
+        recording: recording,
+        jwt: cookedJWT,
+      });
     })
   );
 };

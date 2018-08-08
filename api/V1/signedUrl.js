@@ -1,9 +1,11 @@
-const config       = require('../../config');
-const log          = require('../../logging');
-const responseUtil = require('./responseUtil');
-const stream       = require('stream');
-const modelsUtil   = require('../../models/util/util');
-const middleware   = require('../middleware');
+const stream          = require('stream');
+
+const config          = require('../../config');
+const log             = require('../../logging');
+const middleware      = require('../middleware');
+const modelsUtil      = require('../../models/util/util');
+const responseUtil    = require('./responseUtil');
+const { ClientError } = require('../customErrors');
 
 
 module.exports = function(app, baseUrl) {
@@ -33,6 +35,9 @@ module.exports = function(app, baseUrl) {
       var filename = request.jwtDecoded.filename || "file";
 
       var key = request.jwtDecoded.key;
+      if (!key) {
+        throw new ClientError("no key provided");
+      }
 
       var s3 = modelsUtil.openS3();
       var params = {
@@ -46,7 +51,6 @@ module.exports = function(app, baseUrl) {
           log.error(err.stack);
           return responseUtil.serverError(response, err);
         }
-
 
         if (!request.headers.range) {
           response.setHeader('Content-disposition',

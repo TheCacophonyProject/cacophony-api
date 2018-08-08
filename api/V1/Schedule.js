@@ -9,12 +9,11 @@ module.exports = (app, baseUrl) => {
    * @api {post} /api/v1/schedules Adds a new schedule
    * @apiName PostSchedule
    * @apiGroup Schedules
-   * @apiDescription This call is used to upload a new audio bait schedule which controls when
-   * sound bait files are played.
+   * @apiDescription This call is used to upload a new audio bait
+   * schedule which controls when sound bait files are played. The
+   * body of the request should contain the schedule in JSON format.
    *
    * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiBody {JSON} data Metadata about the schedule in JSON format.
    *
    * @apiParam {Int[]} devices List of device Ids that schedule should apply to
    * @apiParam {JSON} schedule Schedule

@@ -53,3 +53,14 @@ class TestUserThermal:
         with pytest.raises(OSError, message="On no 'trouble' could upload a recording on behalf of the device!"):
             recording = trouble.uploads_recording_for(device)
 
+    def test_cant_download_recording_via_audio_api(self, helper):
+        device = helper.given_new_device(self, 'user-thermal-download')
+        recording = device.has_recording()
+
+        user = helper.admin_user()
+
+        print("\nA user should not be able to download the recording using the audio API")
+        user.cannot_download_audio(recording)
+
+        print("\nNor be able to see the recording through the audio query API")
+        user.cannot_see_audio_recording(recording)

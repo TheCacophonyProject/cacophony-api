@@ -19,7 +19,7 @@ class TestUserAudio:
 
         print("\nA user should be able to download the audio recording")
         user = helper.admin_user()
-        user.can_download_correct_audio_recording(recording)
+        user.can_download_correct_recording(recording)
 
     def test_can_query_audio_recordings(self, helper):
         print("If a new user clare", end='')
@@ -52,9 +52,11 @@ class TestUserAudio:
 
         print("\nWhen a user updates the audio recording")
         user = helper.admin_user()
-        new_meta = {'foo': 'bar'}
-        user.update_audio_recording(recording, additionalMetadata=new_meta)
+        meta = recording['additionalMetadata']
+        meta['foo'] = 'bar'
+        print(meta)
+        user.update_audio_recording(recording, additionalMetadata=meta)
 
         print("the change should be reflected on the API server")
-        recording['additionalMetadata'] = new_meta
-        user.can_download_correct_audio_recording(recording)
+        print(recording['additionalMetadata'])
+        user.can_download_correct_recording(recording)

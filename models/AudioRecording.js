@@ -86,7 +86,6 @@ module.exports = function(sequelize, DataTypes) {
       userCanEdit: util.userCanEdit,
     },
     instanceMethods: {
-      getFrontendFields: getFrontendFields,
       processRecording: util.processAudio,
       saveFile: util.saveFile,
     },
@@ -121,35 +120,6 @@ var apiSettableFields = [
 function addAssociations(models) {
   models.AudioRecording.belongsTo(models.Group);
   models.AudioRecording.hasMany(models.Tag);
-}
-
-function getFrontendFields() {
-  var model = this;
-  var group = null;
-  if (model.dataValues.Group)
-  {group = model.dataValues.Group.dataValues.groupname;}
-  var tags = [];
-  for (var tag in model.getDataValue('Tags'))
-  {tags.push(model.getDataValue('Tags')[tag].getFrontendFields());}
-  return {
-    id: model.getDataValue('id'),
-    recordingDateTime: model.getDataValue('recordingDateTime'),
-    recordingTime: model.getDataValue('recordingTime'),
-    duration: model.getDataValue('duration'),
-    location: model.getDataValue('location'),
-    fileKey: model.getDataValue('fileKey'),
-    batteryCharging: model.get('batteryCharging'),
-    batteryLevel: model.get('batteryLevel'),
-    airplaneModeOn: model.get('airplaneModeOn'),
-    relativeToDawn: model.get('relativeToDawn'),
-    relativeToDusk: model.get('relativeToDusk'),
-    version: model.get('version'),
-    additionalMetadata: model.get('additionalMetadata'),
-    deviceId: model.getDataValue('DeviceId'),
-    groupId: model.getDataValue('GroupId'),
-    group: group,
-    tags: tags,
-  };
 }
 
 function findAllWithUser(user, queryParams) {

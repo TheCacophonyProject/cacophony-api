@@ -62,7 +62,7 @@ class UserAPI(APIBase):
         return self._download_signed(d[jwt_key])
 
     def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
-        url = urljoin(self._baseurl, '/api/v1/audiorecordings')
+        headers = self._auth_header.copy()
 
         where = [{"duration": {"$gte": min_secs}}]
         if startDate is not None:
@@ -73,22 +73,22 @@ class UserAPI(APIBase):
             })
         if endDate is not None:
             where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
+        headers['where'] = json.dumps(where)
 
-        params = {}
         if limit is not None:
-            params['limit'] = limit
+            headers['limit'] = str(limit)
         if offset is not None:
-            params['offset'] = offset
+            headers['offset'] = str(offset)
 
-        r = requests.get(url, params=params, headers=self._auth_header)
+        url = urljoin(self._baseurl, '/api/v1/audiorecordings')
+        r = requests.get(url, headers=headers)
         if r.status_code == 200:
             return r.json()['result']['rows']
-        elif r.status_code == 400:
+        if r.status_code == 400:
             messages = r.json()['messages']
             raise IOError("request failed ({}): {}".format(
                 r.status_code, messages))
-        else:
-            r.raise_for_status()
+        r.raise_for_status()
 
     def get_audio(self, recording_id):
         url = urljoin(self._baseurl, '/api/v1/audiorecordings/{}'.format(recording_id))
