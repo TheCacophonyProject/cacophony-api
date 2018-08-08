@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+
+import argparse
+import os
+import subprocess
+
+IMAGE_NAME = "cacophony-api"
+CONTAINER_NAME = "cacophony-api"
+
+parser = argparse.ArgumentParser(
+    description="Run cacophony API server inside a Docker container"
+)
+parser.add_argument(
+    "--isolate",
+    default=False,
+    action="store_true",
+    help="Re-install npm dependencies, don't restart server when code changes",
+)
+parser.add_argument(
+    "--background",
+    default=False,
+    action="store_true",
+    help="Run container in background & don't show container logs",
+)
+args = parser.parse_args()
+
+print("Stopping $container_name container (if running)")
+subprocess.call(
+    ["sudo", "docker", "rm", "--force", CONTAINER_NAME],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.STDOUT,
+)
+
+print("Building the container")
+subprocess.check_call(["sudo", "docker", "build", ".", "-t", IMAGE_NAME])
+
+print("Starting container")
+run_cmd = [
+    "sudo",
+    "docker",
+    "run",
+    "-td",
+    "--rm",
+    "--name",
+    CONTAINER_NAME,
+    "-p",
+    "1080:1080",
+    "-p",
+    "2008:2008",
+    "-p",
+    "9001:9001",
+    "-p",
+    "5400:5432",
+    "--volume",
+    os.getcwd() + ":/app",
+]
+
+if args.isolate:
+    run_cmd.extend(
+        [
+            "-e",
+            "ISOLATE=1",  # copy code to a separate location & run "npm install"
+            "--volume",
+            "/app/node_modules",  # don't pass node_modules directory through
+            "-e",
+            "NODE_BIN=node",  # use node to run the server
+        ]
+    )
+else:
+    run_cmd.extend(
+        [
+            "-e",
+            "NODE_BIN=nodemon",  # use nodemon to restart the server when the code changes
+        ]
+    )
+run_cmd.append(IMAGE_NAME)
+subprocess.check_call(run_cmd)
+
+if not args.background:
+    print("\nShowing container logs")
+    try:
+        subprocess.call(["sudo", "docker", "logs", "--follow", CONTAINER_NAME])
+    except (KeyboardInterrupt, PermissionError):
+        pass
