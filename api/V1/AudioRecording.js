@@ -1,4 +1,4 @@
-const { query, param, header }  = require('express-validator/check');
+const { param, header }  = require('express-validator/check');
 const moment = require('moment');
 const { format } = require('util');
 
@@ -152,7 +152,7 @@ module.exports = function(app, baseUrl) {
       };
 
       // Just save the front end fields for each model.
-      for (let row of qresult.rows) {
+      for (const row of qresult.rows) {
         result.rows.push(getFrontendFields(row));
       }
       responseUtil.validDatapointGet(response, result);
@@ -160,7 +160,7 @@ module.exports = function(app, baseUrl) {
   );
 
   const getFrontendFields = function(rec) {
-    const out = {
+    return {
       id: rec.id,
       recordingDateTime: rec.recordingDateTime,
       relativeToDawn: rec.relativeToDawn,
@@ -178,13 +178,6 @@ module.exports = function(app, baseUrl) {
       group: rec.Group.groupname,
       additionalMetadata: rec.additionalMetadata,
     };
-    if (rec.relativeToDawn) {
-      out.relativeToDawn = rec.relativeToDawn;
-    }
-    if (rec.relativeToDusk) {
-      out.relativeToDusk = rec.relativeToDusk;
-    }
-    return out;
   };
 
   /**
@@ -210,7 +203,7 @@ module.exports = function(app, baseUrl) {
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      let { recording, cookedJWT } = await recordingUtil.get(request, "audio");
+      const { recording, cookedJWT } = await recordingUtil.get(request, "audio");
       responseUtil.send(response, {
         statusCode: 200,
         success: true,

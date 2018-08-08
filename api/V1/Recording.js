@@ -157,7 +157,7 @@ module.exports = (app, baseUrl) => {
       check('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      let { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
+      const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
       responseUtil.send(response, {
         statusCode: 200,
         success: true,
