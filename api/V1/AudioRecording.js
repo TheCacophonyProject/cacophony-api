@@ -1,4 +1,4 @@
-const { query, check }  = require('express-validator/check');
+const { query, param, header }  = require('express-validator/check');
 const moment = require('moment');
 const { format } = require('util');
 
@@ -78,7 +78,7 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:id",
     [
       middleware.authenticateUser,
-      check('id').isInt(),
+      param('id').isInt(),
       middleware.parseJSON('data'),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -139,8 +139,8 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
       middleware.parseJSON('where').optional(),
-      check('offset').isInt(),
-      check('limit').isInt(),
+      header('offset').isInt(),
+      header('limit').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const qresult = await recordingUtil.query(request, "audio");
@@ -207,7 +207,7 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:id",
     [
       middleware.authenticateUser,
-      check('id').isInt(),
+      param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       let { recording, cookedJWT } = await recordingUtil.get(request, "audio");
