@@ -6,63 +6,43 @@ cacophony-api is a Node server that provides an REST API server for
 uploading, processing and retrieving media collected for the Cacophony
 Project. This server used to be known as "Full_Noise".
 
-## Setup
+## Running the server
 
-To run the server you will need create a PostgreSQL database and a S3
-compatible service.
+For development and testing purposes it is easiest to run
+cacophony-api using Docker. To do this:
 
-### S3 Service Setup
+* Ensure your user account is set up to run commands as root using `sudo`.
+* Ensure the Docker is installed (`sudo apt install docker.io` on
+  Ubuntu)
+* Run cacophony-api using `./run`
 
-We recommend Minio for object storage.
+This will build a Docker container which includes all the services
+that cacophony-api relies on and then runs the container. The end
+result is a fully functioning API server. The container name is
+"cacophony-api".
 
-* Download and install Minio from https://minio.io/downloads.html
-  - The x64 download and install instructions are here:
-    https://minio.io/downloads.html#download-server-linux-x64
-* Create a bucket in minio called 'cacophony'
-  - `wget https://dl.minio.io/client/mc/release/linux-amd64/mc`
-  - `chmod +x mc`
-  - `./mc config host add myminio http://127.0.0.1:9000 <private key> <public key> ` (Note this line is the same as the command-line printed out when you start minio)
-  - `./mc mb myminio/cacophony`
-* Once Minio is running, note the access key and secret key it
-  generated, as well as the port it's running on (default is 9000)
+The first time `./run` is used will be somewhat slow as dependencies
+are downloaded. Future executions are quite fast as Docker caches the
+images it creates.
 
+## Running the tests
 
-### PostgreSQL Setup
+The Cacophony API server has a comprehensive function test suite. This
+requires Python 3.
 
-A user account needs to be created within PostgreSQL as the owner of a
-database. The PostGIS extension also needs to be enabled on that
-database.
+To run the tests, you need to do these steps once:
 
-* Choose a PostgreSQL database name, username & password
-* `sudo apt install postgresql-9.5 postgis --fix-missing`
-* `sudo -i -u postgres`
-* `psql`
-* `CREATE USER [username] WITH PASSWORD '[password]';`
-* `CREATE DATABASE [database] WITH OWNER [username];`
-* `\c [database]`
-* `CREATE EXTENSION postgis;`
-* `\q`
+* Create a virtualenv using your preferred method.
+* Activate the virtualenv.
+* `cd test`
+* Install dependencies: `pip install -r requirements.txt`
 
-### API Server Setup
+To run the tests:
 
-* Install Node version 8 or later from http://nodejs.org/  (You will have probably have an older version of node installed but it won't build properly)
-* `sudo apt install postgresql-server-dev-9.5`
-
-* `git clone https://github.com/TheCacophonyProject/cacophony-api.git`
-* `cd cacophony-api`
-* `npm install`
-* Create a configuration file for the API server by following the instructions in config/app_TEMPLATE.js
-* `node_modules/.bin/sequelize db:migrate`
-* Start server with `node Server.js`
-* If you get errors then you may need to run `run npm install bcrypt` and/or `npm install node-pre-gyp`
-
-
-
-### Generating API Documentation
-
-* Install apiDoc `npm install apidoc -g`
-* Generate API documentation with `apidoc -i api/V1/ -o apidoc/`
-
+* Start the API server as described above.
+* Activate the virtualenv created earlier.
+* `cd test`
+* Run the tests with: `pytest -s`
 
 ## Running in Virtual Box
 
@@ -74,7 +54,7 @@ If you want to continue using a different operating system (eg Windows/Mac OS X)
 * Install a Ubuntu server in VirtualBox (install ssh when doing this)
 * Run `VBoxManage modifyvm "<vm name>" --natdnshostresolver1 on` to make the virtual box play nicely when you change wifi networks.
 
-### SSH into Ubuntu the box 
+### SSH into Ubuntu the box
 It is much better to ssh in than use the default console which is awful. To get this working:
 *  Open up port 2222 to ssh into.   Go to VirtualBox console, click Ubuntu server and navigate to Settings/Network/Adaptor1(NAT)/Port Forwarding
 *  Add Ubuntu-SSH, host IP `127.0.0.1`, port `2222`, guest IP `10.0.2.15`, port `22`. 
@@ -89,8 +69,15 @@ It is much better to ssh in than use the default console which is awful. To get 
 * Enable symlinks on the Ubuntu Vitual Box else the application can't build. On your host(main) computer run
   - `VBoxManage setextradata "<vm name>" VBoxInternal2/SharedFoldersEnableSymlinksCreate/cacophony 1`
   - Verify it worked by running `VBoxManage getextradata "<vm name>" enumerate`\
-* Follow the above instructions to install cacophony.  All instructions should be run on the Ubuntu server except the git commands that should be run on on your host (main) environment.
+* Follow the instructions at the top of README.md to run the API server. All instructions should be run on the Ubuntu server except the git commands that should be run on on your host (main) environment.
 
+## API Documentation
+
+API documentation can be generated by running `npm run apidoc`. The
+resulting documentation ends up in the `apidoc` directory. 
+
+The API server also serves up the generated API documentation at it's
+root URL.
 
 ## License
 

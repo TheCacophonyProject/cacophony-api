@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+
+import argparse
+from datetime import datetime, timedelta
+import sys
+import time
+import urllib.request
+
+CONN_TIMEOUT = 5
+
+
+def is_api_server_up(host, port):
+    try:
+        r = urllib.request.urlopen(
+            "http://{}:{}/".format(host, port), timeout=CONN_TIMEOUT
+        )
+    except:
+        return False
+    return r.getcode() == 200
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Wait for API server to be running")
+    parser.add_argument(
+        "--port", default=1080, type=int, help="Port to check for the API server"
+    )
+    parser.add_argument(
+        "-w",
+        "--wait-mins",
+        default=5,
+        type=int,
+        help="Minutes to wait for the API server",
+    )
+    args = parser.parse_args()
+
+    print("waiting up to {} minutes for API server...".format(args.wait_mins))
+    max_time = datetime.now() + timedelta(minutes=args.wait_mins)
+    while datetime.now() < max_time:
+        if is_api_server_up("localhost", args.port):
+            print("API server is running")
+            return 0
+        time.sleep(3)
+
+    print("API server failed to start")
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

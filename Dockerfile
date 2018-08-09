@@ -19,13 +19,14 @@ RUN echo "host all all ::/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
+RUN npm install -g nodemon
 
 # https://minio.io/downloads.html#download-server-linux-x64
-RUN wget https://dl.minio.io/server/minio/release/linux-amd64/minio
+RUN wget --no-verbose https://dl.minio.io/server/minio/release/linux-amd64/minio
 RUN chmod +x minio
 
 # https://docs.minio.io/docs/minio-client-complete-guide
-RUN wget https://dl.minio.io/client/mc/release/linux-amd64/mc
+RUN wget --no-verbose https://dl.minio.io/client/mc/release/linux-amd64/mc
 RUN chmod +x mc
 
 COPY docker-entrypoint.sh /

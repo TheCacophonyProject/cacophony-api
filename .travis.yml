@@ -2,20 +2,21 @@ sudo: required
 
 services:
   - docker
-  
+
 dist: xenial
 
 language: python
 python:
   - "3.6"
-  
+
 install:
- - BG=1 ./docker-start.sh
+ - ./run --isolate --background
+ - npm install -g apidoc
+ - npm run apidoc
+ - npm install -g eslint
+ - pip install -r test/requirements.txt
 
 script:
- - npm install -g eslint && npm run lint
- - cd test 
- - pip install virtualenv
- - virtualenv env && source env/bin/activate
- - pip install -r requirements.txt
- - pytest -s  
+ - npm run lint
+ - ./wait-for-api || { docker ps; docker logs cacophony-api; exit 1; }
+ - cd test && pytest -s
