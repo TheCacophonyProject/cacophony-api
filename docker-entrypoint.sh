@@ -22,9 +22,11 @@ if [[ $ISOLATE -eq 1 ]]; then
     echo "---- Installing npm dependencies ----"
     cd /app-isolated
     npm install
+    npm run apidoc
 else
     cd /app
 fi
+
 
 echo "---- Migrating database ----"
 node_modules/sequelize-cli/bin/sequelize db:migrate --config config/app_test_default.js

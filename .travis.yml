@@ -11,6 +11,8 @@ python:
 
 install:
  - ./run --isolate --background
+ - npm install -g apidoc
+ - npm run apidoc
  - npm install -g eslint
  - pip install -r test/requirements.txt
 
