@@ -139,8 +139,8 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
       middleware.parseJSON('where').optional(),
-      header('offset').isInt(),
-      header('limit').isInt(),
+      header('offset').isInt().optional(),
+      header('limit').isInt().optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const qresult = await recordingUtil.query(request, "audio");
