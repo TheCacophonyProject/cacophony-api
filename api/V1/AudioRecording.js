@@ -143,6 +143,12 @@ module.exports = function(app, baseUrl) {
       header('limit').isInt().optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
+      // recordingUtil.query expects these as query parameters not
+      // headers so copy them across.
+      request.query.where = request.headers.where;
+      request.query.limit = request.headers.limit;
+      request.query.offset = request.headers.offset;
+
       const qresult = await recordingUtil.query(request, "audio");
       var result = {
         rows: [],

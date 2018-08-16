@@ -45,6 +45,26 @@ class TestUserAudio:
         print("Clare should be able to see exactly those the recordings")
         clare.can_see_audio_recordings(recordings)
 
+    def test_can_limit_audio_query(self, helper):
+        print("If a new user grace", end='')
+        grace = helper.given_new_user(self, 'grace')
+
+        print("   has a new group called 'area42'", end='')
+        group_name = helper.make_unique_group_name(self, 'area42')
+        grace.create_group(group_name)
+        print("({})".format(group_name))
+
+        description = "  and there is a new device called 'Bobby' in this group"
+        device = helper.given_new_device(self, 'Bobby', group_name, description=description)
+
+        print("When several recordings are uploaded")
+        recordings = []
+        for _ in range(3):
+            recordings.append(device.has_audio_recording())
+            print()
+
+        print("Grace will see just the latest recording if she asks for just one")
+        grace.can_see_audio_recordings(recordings[-1:], limit=1)
 
     def test_can_update_audio(self, helper):
         phone = helper.given_new_device(self, 'phone')

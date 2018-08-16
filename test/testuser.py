@@ -161,9 +161,9 @@ class TestUser:
         rows = self._userapi.query_audio()
         assert not rows
 
-    def can_see_audio_recordings(self, recordings):
+    def can_see_audio_recordings(self, recordings, **query_args):
         expected_ids = {rec.recordingId for rec in recordings}
-        actual_ids = {row['id'] for row in self._userapi.query_audio()}
+        actual_ids = {row['id'] for row in self._userapi.query_audio(**query_args)}
         assert actual_ids == expected_ids
 
     def delete_audio_recording(self, recording):
