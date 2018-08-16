@@ -1,6 +1,7 @@
 import json
 import os
 import requests
+from collections import defaultdict
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
 
@@ -12,17 +13,14 @@ class UserAPI(APIBase):
         super().__init__('user', baseurl, username, password)
 
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
-        where = [{"duration": {"$gte": min_secs}}]
+        where = defaultdict(dict)
+        where["duration"] = {"$gte": min_secs}
         if startDate is not None:
-            where.append({
-                'recordingDateTime': {
-                    '$gte': startDate.isoformat()
-                }
-            })
+            where["recordingDateTime"]['$gte'] = startDate.isoformat()
         if endDate is not None:
-            where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
-
+            where["recordingDateTime"]['$lte'] = endDate.isoformat()
         params = {'where': json.dumps(where)}
+
         if tagmode is not None:
             params['tagMode'] = tagmode
         if tags is not None:
@@ -64,15 +62,12 @@ class UserAPI(APIBase):
     def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
         headers = self._auth_header.copy()
 
-        where = [{"duration": {"$gte": min_secs}}]
+        where = defaultdict(dict)
+        where["duration"] = {"$gte": min_secs}
         if startDate is not None:
-            where.append({
-                'recordingDateTime': {
-                    '$gte': startDate.isoformat()
-                }
-            })
+            where["recordingDateTime"]['$gte'] = startDate.isoformat()
         if endDate is not None:
-            where.append({'recordingDateTime': {'$lte': endDate.isoformat()}})
+            where["recordingDateTime"]['$lte'] = endDate.isoformat()
         headers['where'] = json.dumps(where)
 
         if limit is not None:
