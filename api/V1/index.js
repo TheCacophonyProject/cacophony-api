@@ -10,7 +10,6 @@ module.exports = function(app) {
   apiRouts.splice(apiRouts.indexOf('requestUtil.js'), 1);
   apiRouts.splice(apiRouts.indexOf('responseUtil.js'), 1);
   apiRouts.splice(apiRouts.indexOf('recordingUtil.js'), 1);
-  apiRouts.splice(apiRouts.indexOf('tagsUtil.js'), 1);
   apiRouts.splice(apiRouts.indexOf('apidoc.js'), 1);
 
   for (var i in apiRouts)

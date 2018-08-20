@@ -124,8 +124,49 @@ function guessRawMimeType(type, filename) {
   }
 }
 
+async function addTag(request, response) {
+  const recording = await models.Recording.findById(request.body.recordingId);
+  if (!recording) {
+    responseUtil.send(response, {
+      statusCode: 400,
+      success: false,
+      messages: ['No such recording']
+    });
+    return;
+  }
+
+  if (request.user) {
+    const permissions = await recording.getUserPermissions(request.user);
+    if (!permissions.canTag) {
+      responseUtil.send(response, {
+        statusCode: 400,
+        success: false,
+        messages: ['User does not have permission to tag recording.']
+      });
+      return;
+    }
+  }
+
+  // Build tag instance
+  const tagInstance = models.Tag.build(request.body.tag, {
+    fields: models.Tag.apiSettableFields,
+  });
+  tagInstance.set('RecordingId', request.body.recordingId);
+  if (request.user !== undefined) {
+    tagInstance.set('taggerId', request.user.id);
+  }
+  await tagInstance.save();
+
+  responseUtil.send(response, {
+    statusCode: 200,
+    success: true,
+    messages: ['Added new tag.'],
+    tagId: tagInstance.id,
+  });
+}
 
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
 exports.get = get;
 exports.delete_ = delete_;
+exports.addTag = addTag;
