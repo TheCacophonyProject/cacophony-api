@@ -1,7 +1,9 @@
-const models       = require('../../models');
+const { check, body } = require('express-validator/check');
+
+const middleware = require('../middleware');
+const models = require('../../models');
+const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const { check }    = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
@@ -44,37 +46,10 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
       middleware.parseJSON('tag'),
-      check('recordingId').isInt(),
+      body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {
-
-      var recording = await models.Recording.findById(request.body.recordingId);
-      var permissions = await recording.getUserPermissions(request.user);
-      if (!permissions.canTag) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ['User does not have permission to tag recording.']
-        });
-      }
-
-      // Build tag instance
-      var tagInstance = models.Tag.build(request.body.tag, {
-        fields: models.Tag.apiSettableFields,
-      });
-      tagInstance.set('RecordingId', request.body.recordingId);
-      if (request.user !== undefined) {
-        tagInstance.set('taggerId', request.user.id);
-      }
-      await tagInstance.save();
-
-      // Respond to user.
-      return responseUtil.send(response, {
-        statusCode: 200,
-        success: true,
-        messages: ['Added new tag.'],
-        tagId: tagInstance.id,
-      });
+      recordingUtil.addTag(request, response);
     })
   );
 

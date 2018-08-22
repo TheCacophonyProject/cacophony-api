@@ -202,7 +202,6 @@ function getJwtDataValues() {
 }
 
 function addAssociations(models) {
-  models.Device.hasMany(models.AudioRecording);
   models.Device.hasMany(models.Recording);
   models.Device.hasMany(models.Event);
   models.Device.belongsToMany(models.User, { through: models.DeviceUsers });

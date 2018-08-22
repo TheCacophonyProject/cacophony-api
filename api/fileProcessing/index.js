@@ -1,7 +1,10 @@
-var models = require('../../models');
-var log = require('../../logging');
-var uuidv4 = require('uuid/v4');
-var tagsUtil = require('../V1/tagsUtil');
+const { body } = require('express-validator/check');
+
+const log = require('../../logging');
+const middleware = require('../middleware');
+const models = require('../../models');
+const recordingUtil = require('../V1/recordingUtil');
+const uuidv4 = require('uuid/v4');
 
 
 module.exports = function(app) {
@@ -145,9 +148,14 @@ module.exports = function(app) {
    * @apiuse V1ResponseError
    *
    */
-  app.post(apiUrl + "/tags", async (request, response) => {
-    log.info(request.method + " Request: " + request.url);
-    return tagsUtil.handleRecordingPOST(request, response);
-  });
-
+  app.post(
+    apiUrl + "/tags",
+    [
+      middleware.parseJSON('tag'),
+      body('recordingId').isInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      recordingUtil.addTag(request, response);
+    })
+  );
 };

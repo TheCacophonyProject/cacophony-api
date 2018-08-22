@@ -210,7 +210,6 @@ function getIdFromName(name) {
 
 function addAssociations(models) {
   models.Group.hasMany(models.Device);
-  models.Group.hasMany(models.AudioRecording);
   models.Group.belongsToMany(models.User, { through: models.GroupUsers });
   models.Group.hasMany(models.Recording);
 }

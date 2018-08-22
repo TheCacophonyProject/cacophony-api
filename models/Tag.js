@@ -100,7 +100,6 @@ var apiSettableFields = [
 ];
 
 function addAssociations(models) {
-  models.Tag.belongsTo(models.AudioRecording);
   models.Tag.belongsTo(models.User, {as: 'tagger'});
   models.Tag.belongsTo(models.Recording);
 }
