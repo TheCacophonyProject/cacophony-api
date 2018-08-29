@@ -58,6 +58,18 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
+  const getFromEmail = async function(email) {
+    return await this.findOne({where: {email: email}});
+  };
+
+  const freeEmail = async function(email) {
+    var user = getFromEmail(email);
+    if (user != null) {
+      throw new Error('username in use');
+    }
+    return true;
+  };
+
   const getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
@@ -89,6 +101,8 @@ module.exports = function(sequelize, DataTypes) {
       getFromId: getFromId,
       getFromName: getFromName,
       freeUsername: freeUsername,
+      getFromEmail: getFromEmail,
+      freeEmail: freeEmail,
     },
     instanceMethods: {
       comparePassword: comparePassword,
@@ -111,10 +125,11 @@ module.exports = function(sequelize, DataTypes) {
   return sequelize.define(name, attributes, options);
 };
 
-var apiSettableFields = [
+const apiSettableFields = Object.freeze([
   'firstName',
-  'lastName'
-];
+  'lastName',
+  'email'
+]);
 
 function getJwtDataValues() {
   return {

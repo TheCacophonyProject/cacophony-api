@@ -49,6 +49,45 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
+   * @api {patch} /api/v1/users Updateds your users details
+   * @apiName UpdateUser
+   * @apiGroup User
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {JSON} data Fields to update.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.patch(
+    apiUrl,
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('data'),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      var updated = await request.user.update(
+        request.body.data,
+        { fields: models.User.apiUpdateableFields }
+      );
+      if (updated) {
+        responseUtil.send(response, {
+          statusCode: 200,
+          success: true,
+          messages: ['Updated user.'],
+        });
+      } else {
+        responseUtil.send(response, {
+          statusCode: 400,
+          success: false,
+          messages: ['Failed to update user'],
+        });
+      }
+    })
+  );
+
+  /**
    * @api {get} api/v1/users/:username Get details for a user
    * @apiName GetUser
    * @apiGroup User
