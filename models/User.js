@@ -63,9 +63,10 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const freeEmail = async function(email) {
-    var user = getFromEmail(email);
+    var user = await this.findOne({where: {email: email}});
+    console.log(user);
     if (user != null) {
-      throw new Error('username in use');
+      throw new Error('email in use');
     }
     return true;
   };

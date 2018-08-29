@@ -3,6 +3,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const { body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -26,6 +27,8 @@ module.exports = function(app, baseUrl) {
     [
       middleware.checkNewName('username')
         .custom(value => { return models.User.freeUsername(value); }),
+      body('email').isEmail()
+        .custom(value => { return models.User.freeEmail(value); }),
       middleware.checkNewPassword('password'),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -33,6 +36,7 @@ module.exports = function(app, baseUrl) {
       var user = await models.User.create({
         username: request.body.username,
         password: request.body.password,
+        email: request.body.email,
       });
 
       var jwtData = user.getJwtDataValues();
