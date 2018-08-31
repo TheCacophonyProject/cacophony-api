@@ -16,6 +16,7 @@ module.exports = function(app, baseUrl) {
    *
    * @apiParam {String} username Username for new user.
    * @apiParam {String} password Password for new user.
+   * @apiParam {String} email Email for new user.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the user ID and type.
@@ -54,7 +55,7 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {patch} /api/v1/users Updateds your users details
+   * @api {patch} /api/v1/users Updates the authenticated user's details
    * @apiName UpdateUser
    * @apiGroup User
    *
