@@ -22,6 +22,11 @@ class Helper:
         api = UserAPI(self.config.api_server, username, None, password).login()
         return TestUser(username, api)
 
+    def login_with_email(self, username, email):
+        password = self._make_password(username)
+        api = UserAPI(self.config.api_server, username, email, password).login()
+        return TestUser(username, api, email)
+
     def login_as_device(self, devicename):
         password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_server, devicename, password).login()
@@ -45,7 +50,7 @@ class Helper:
             try:
                 api = UserAPI(self.config.api_server, testname, testemail, self._make_password(testname)).register_as_new()
                 self._print_actual_name(testname)
-                return TestUser(testname, api)
+                return TestUser(testname, api, testemail)
             except OSError:
                 pass
             testname = "{}{}".format(basename, num)

@@ -5,9 +5,10 @@ from .testexception import TestException
 from .testrecording import TestRecording
 
 class TestUser:
-    def __init__(self, username, userapi):
+    def __init__(self, username, userapi, email = None):
         self._userapi = userapi
         self.username = username
+        self.email = email
         self._group = None
 
     def when_searching_with(self, queryParams):
@@ -311,4 +312,3 @@ class AudioBaitList:
 
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
-

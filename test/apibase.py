@@ -14,9 +14,9 @@ class APIBase:
         self._logintype = logintype
         self._password = password
 
-    def login(self):
+    def login(self, email = None):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
-        response = requests.post(url, data=self._create_login_and_password_map())
+        response = requests.post(url, data=self._create_login_and_password_map(email))
 
         if response.status_code == 200:
             self._set_jwt_token(response)
@@ -47,7 +47,12 @@ class APIBase:
         return self
 
 
-    def _create_login_and_password_map(self):
+    def _create_login_and_password_map(self, email = None):
+        if email:
+            return {
+                'email': email,
+                'password': self._password
+            }
         nameProp = self._logintype + 'name'
         return {
                 nameProp: self._loginname,

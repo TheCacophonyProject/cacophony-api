@@ -16,6 +16,9 @@ class UserAPI(APIBase):
     def register_as_new(self):
         return super().register_as_new(email = self.email)
 
+    def login(self):
+        return super().login(email = self.email)
+
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
