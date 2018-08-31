@@ -66,7 +66,7 @@ module.exports = function(sequelize, DataTypes) {
   const freeEmail = async function(email) {
     email = email.toLowerCase();
     var user = await this.findOne({where: {email: email}});
-    if (user != null) {
+    if (user) {
       throw new Error('email in use');
     }
     return true;
@@ -224,7 +224,6 @@ function afterValidate(user) {
 
 function beforeValidate(user) {
   return new Promise((resolve) => {
-    console.log(user.getDataValue('email'));
     user.setDataValue('email', user.getDataValue('email').toLowerCase());
     resolve();
   });
