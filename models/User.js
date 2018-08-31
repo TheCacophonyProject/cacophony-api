@@ -17,6 +17,7 @@ module.exports = function(sequelize, DataTypes) {
     email: {
       type: DataTypes.STRING,
       validate: { isEmail: true },
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -58,6 +59,19 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
+  const getFromEmail = async function(email) {
+    return await this.findOne({where: {email: email}});
+  };
+
+  const freeEmail = async function(email) {
+    email = email.toLowerCase();
+    var user = await this.findOne({where: {email: email}});
+    if (user) {
+      throw new Error('email in use');
+    }
+    return true;
+  };
+
   const getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
@@ -89,6 +103,8 @@ module.exports = function(sequelize, DataTypes) {
       getFromId: getFromId,
       getFromName: getFromName,
       freeUsername: freeUsername,
+      getFromEmail: getFromEmail,
+      freeEmail: freeEmail,
     },
     instanceMethods: {
       comparePassword: comparePassword,
@@ -103,7 +119,8 @@ module.exports = function(sequelize, DataTypes) {
       checkUserControlsDevices: checkUserControlsDevices,
     },
     hooks: {
-      afterValidate: afterValidate
+      beforeValidate: beforeValidate,
+      afterValidate: afterValidate,
     }
   };
 
@@ -111,10 +128,11 @@ module.exports = function(sequelize, DataTypes) {
   return sequelize.define(name, attributes, options);
 };
 
-var apiSettableFields = [
+const apiSettableFields = Object.freeze([
   'firstName',
-  'lastName'
-];
+  'lastName',
+  'email'
+]);
 
 function getJwtDataValues() {
   return {
@@ -201,6 +219,13 @@ function afterValidate(user) {
         resolve();
       }
     });
+  });
+}
+
+function beforeValidate(user) {
+  return new Promise((resolve) => {
+    user.setDataValue('email', user.getDataValue('email').toLowerCase());
+    resolve();
   });
 }
 

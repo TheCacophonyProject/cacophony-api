@@ -7,11 +7,13 @@ class TestConfig:
                  api_server='http://127.0.0.1:1080',
                  admin_username='admin_test',
                  admin_password='admin_test',
+                 admin_email='admin@email.com',
                  default_group='test-group'):
         self.api_server = api_server
         self.admin_username = admin_username
         self.admin_password = admin_password
         self.default_group = default_group
+        self.admin_email=admin_email
 
     def load_config(self):
         config_file = 'testconfig.json'
