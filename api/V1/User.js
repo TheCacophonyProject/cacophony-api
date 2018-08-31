@@ -4,6 +4,7 @@ const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { body }     = require('express-validator/check');
+const { ClientError } = require('../customErrors');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -71,23 +72,21 @@ module.exports = function(app, baseUrl) {
       middleware.parseJSON('data'),
     ],
     middleware.requestWrapper(async (request, response) => {
-      var updated = await request.user.update(
-        request.body.data,
-        { fields: models.User.apiUpdateableFields }
-      );
-      if (updated) {
-        responseUtil.send(response, {
-          statusCode: 200,
-          success: true,
-          messages: ['Updated user.'],
-        });
-      } else {
-        responseUtil.send(response, {
-          statusCode: 400,
-          success: false,
-          messages: ['Failed to update user'],
-        });
+      const email = request.body.data.email;
+      const user = request.user;
+      if (email) {
+        try {
+          await models.User.freeEmail(email);
+        } catch (e) {
+          throw new ClientError('Error: ' + e.message);
+        }
       }
+      await user.update(request.body.data, { fields: user.apiSettableFields });
+      responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ['Updated user.'],
+      });
     })
   );
 

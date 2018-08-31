@@ -64,8 +64,8 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const freeEmail = async function(email) {
+    email = email.toLowerCase();
     var user = await this.findOne({where: {email: email}});
-    console.log(user);
     if (user != null) {
       throw new Error('email in use');
     }
@@ -119,7 +119,8 @@ module.exports = function(sequelize, DataTypes) {
       checkUserControlsDevices: checkUserControlsDevices,
     },
     hooks: {
-      afterValidate: afterValidate
+      beforeValidate: beforeValidate,
+      afterValidate: afterValidate,
     }
   };
 
@@ -218,6 +219,14 @@ function afterValidate(user) {
         resolve();
       }
     });
+  });
+}
+
+function beforeValidate(user) {
+  return new Promise((resolve) => {
+    console.log(user.getDataValue('email'));
+    user.setDataValue('email', user.getDataValue('email').toLowerCase());
+    resolve();
   });
 }
 
