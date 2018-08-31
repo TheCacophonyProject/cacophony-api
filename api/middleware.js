@@ -87,6 +87,7 @@ const getModelByName = function(modelType, fieldName, checkFunc=check) {
 };
 
 const getUserByEmail = body('email').isEmail().custom(async (email, { req }) => {
+  email = email.toLowerCase();
   const user = await models.User.getFromEmail(email);
   if (user === null) {
     throw new Error('could not find user with email: ' + email);
