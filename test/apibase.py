@@ -29,13 +29,14 @@ class APIBase:
 
         return self
 
-    def register_as_new(self, group = None):
+    def register_as_new(self, group = None, email = None):
         url = urljoin(self._baseurl, "/api/v1/{}s".format(self._logintype))
         data = self._create_login_and_password_map()
 
         if group:
             data['group'] = group
-
+        if email:
+            data['email'] = email
         response = requests.post(url, data=data)
 
         if response.status_code == 200:

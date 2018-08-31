@@ -9,8 +9,12 @@ from .apibase import APIBase
 
 
 class UserAPI(APIBase):
-    def __init__(self, baseurl, username, password='password'):
+    def __init__(self, baseurl, username, email, password='password'):
         super().__init__('user', baseurl, username, password)
+        self.email = email
+
+    def register_as_new(self):
+        return super().register_as_new(email = self.email)
 
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
         where = defaultdict(dict)

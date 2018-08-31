@@ -19,7 +19,7 @@ class Helper:
 
     def login_as(self, username):
         password = self._make_password(username)
-        api = UserAPI(self.config.api_server, username, password).login()
+        api = UserAPI(self.config.api_server, username, None, password).login()
         return TestUser(username, api)
 
     def login_as_device(self, devicename):
@@ -34,17 +34,22 @@ class Helper:
         device = self.given_new_device(None, devicename, group=user.get_own_group(), description='    with a device')
         return (user, device)
 
-    def given_new_user(self, testClass, username):
+    def given_new_user(self, testClass, username, email=None):
+        if (email == None):
+            email = username+'@email.com'
         basename = self._make_long_name(testClass, username)
         testname = basename
+        baseemail = self._make_long_email(testClass, email)
+        testemail = baseemail
         for num in range(2,200):
             try:
-                api = UserAPI(self.config.api_server, testname, self._make_password(testname)).register_as_new()
+                api = UserAPI(self.config.api_server, testname, testemail, self._make_password(testname)).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api)
             except OSError:
                 pass
             testname = "{}{}".format(basename, num)
+            testemail = "{}{}".format(num, baseemail)
 
         raise TestException("Could not create username like '{}'".format(basename))
 
@@ -96,6 +101,12 @@ class Helper:
             testName = testName[4:]
         return "{}_{}_{}".format(date.today().strftime('%m%d'), testName, name)
 
+    def _make_long_email(self, testClass, email):
+        testName = type(testClass).__name__
+        if testName[:4] == "Test":
+            testName = testName[4:]
+        return "{}_{}_{}".format(date.today().strftime('%m%d'), testName, email)
+
     def _make_password(self, loginname):
         return "p{}".format(loginname)
 
@@ -105,7 +116,12 @@ class Helper:
     def _get_admin(self):
         if not self._admin:
             print("Logging on as Admin once")
-            self._admin = UserAPI(self.config.api_server, self.config.admin_username, self.config.admin_password).login()
+            self._admin = UserAPI(
+                self.config.api_server,
+                self.config.admin_username,
+                self.config.admin_email,
+                self.config.admin_password
+            ).login()
         return self._admin
 
     def _print_actual_name(self, name):
@@ -115,12 +131,18 @@ class Helper:
         print(description, end='')
 
     def _check_admin_and_group_exist(self):
+        print("group_esists")
         try:
             self._get_admin()
         except Exception:
             # create admin
             print('Creating admin user')
-            UserAPI(self.config.api_server, self.config.admin_username, self.config.admin_password).register_as_new()
+            UserAPI(
+                self.config.api_server,
+                self.config.admin_username,
+                self.config.admin_email,
+                self.config.admin_password
+            ).register_as_new()
 
         allGroups = self._get_admin().get_groups_as_string()
 
