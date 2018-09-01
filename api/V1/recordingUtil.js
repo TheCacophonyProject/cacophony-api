@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 const jsonwebtoken      = require('jsonwebtoken');
 const mime             = require('mime');
 
@@ -59,7 +77,7 @@ function query(request, type) {
 async function get(request, type) {
   const recording = await models.Recording.getOne(request.user, request.params.id, type);
   if (!recording) {
-    throw new ClientError("No file found with given datapoint");
+    throw new ClientError("No file found with given datapoint.");
   }
 
   const downloadFileData = {
@@ -130,7 +148,7 @@ async function addTag(request, response) {
     responseUtil.send(response, {
       statusCode: 400,
       success: false,
-      messages: ['No such recording']
+      messages: ['No such recording.']
     });
     return;
   }

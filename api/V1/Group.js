@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
@@ -35,7 +53,7 @@ module.exports = function(app, baseUrl) {
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
-        messages: ['created new group']
+        messages: ['Created new group.']
       });
     })
   );
@@ -108,13 +126,13 @@ module.exports = function(app, baseUrl) {
         return responseUtil.send(response, {
           statusCode: 200,
           success: true,
-          messages: ['Added user to group'],
+          messages: ['Added user to group.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
           success: false,
-          messages: ['Failed to add user to group'],
+          messages: ['Failed to add user to group.'],
         });
       }
     })
@@ -153,13 +171,13 @@ module.exports = function(app, baseUrl) {
         return responseUtil.send(response, {
           statusCode: 200,
           success: true,
-          messages: ['Removed user from the group'],
+          messages: ['Removed user from the group.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
           success: false,
-          messages: ['Failed to remove user from the group'],
+          messages: ['Failed to remove user from the group.'],
         });
       }
     })

@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var log = require('../../logging');
 var jwt = require('jsonwebtoken');
 var config = require('../../config');
@@ -7,8 +25,8 @@ const VALID_DATAPOINT_UPDATE_REQUEST = 'Datapoint was updated.';
 const VALID_DATAPOINT_GET_REQUEST = 'Successful datapoint get request.';
 const VALID_FILE_REQUEST = 'Successful file request.';
 
-const INVALID_DATAPOINT_UPLOAD_REQUEST = 'Request for uploading a datapoint was invalid';
-const INVALID_DATAPOINT_UPDATE_REQUEST = 'Request for updating a datapoint was invalid';
+const INVALID_DATAPOINT_UPLOAD_REQUEST = 'Request for uploading a datapoint was invalid.';
+const INVALID_DATAPOINT_UPDATE_REQUEST = 'Request for updating a datapoint was invalid.';
 
 
 function send(response, data) {
@@ -20,7 +38,7 @@ function send(response, data) {
     typeof data.success != 'boolean'
   ) {
     // Responde with server error if data is invalid.
-    log.error('Invalid response data');
+    log.error('Invalid response data.');
     return serverError(response, data);
   }
   var statusCode = data.statusCode;
