@@ -104,6 +104,16 @@ const getModelByName = function(modelType, fieldName, checkFunc=check) {
   });
 };
 
+const getUserByEmail = body('email').isEmail().custom(async (email, { req }) => {
+  email = email.toLowerCase();
+  const user = await models.User.getFromEmail(email);
+  if (user === null) {
+    throw new Error('could not find user with email: ' + email);
+  }
+  req.body.user = user;
+  return true;
+});
+
 function modelTypeName(modelType) {
   return modelType.options.name.singular.toLowerCase();
 }
@@ -259,3 +269,4 @@ exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
 exports.ifUsersDeviceRequestWrapper = ifUsersDeviceRequestWrapper;
 exports.isDateArray        = isDateArray;
+exports.getUserByEmail     = getUserByEmail;

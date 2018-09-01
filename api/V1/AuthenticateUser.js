@@ -20,7 +20,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const { body, oneOf }     = require('express-validator/check');
 
 
 module.exports = function(app) {
@@ -39,7 +39,11 @@ module.exports = function(app) {
   app.post(
     '/authenticate_user',
     [
-      middleware.getUserByName,
+      oneOf([
+        middleware.getUserByName,
+        middleware.getUserByEmail,
+      ],
+      "could not find a user with the given username or email"),
       body('password').exists(),
     ],
     middleware.requestWrapper(async (request, response) => {
