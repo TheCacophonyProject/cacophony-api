@@ -1,4 +1,22 @@
-const models       = require('../models');
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+const models = require('../models');
 const config       = require('../config');
 const jwt          = require('jsonwebtoken');
 const format       = require('util').format;
@@ -13,17 +31,17 @@ const authenticate = function(type) {
   return header('Authorization').custom(async (value, {req}) => {
     const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
     if (token == null) {
-      throw new Error('could not find JWT token');
+      throw new Error('Could not find JWT token.');
     }
     var jwtDecoded;
     try {
       jwtDecoded = jwt.verify(token, config.server.passportSecret);
     } catch(e) {
-      throw new Error('failed to verify JWT');
+      throw new Error('Failed to verify JWT.');
     }
 
     if (type && type != jwtDecoded._type) {
-      throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s', type, jwtDecoded._type));
+      throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s.', type, jwtDecoded._type));
     }
     var result;
     switch(jwtDecoded._type) {
@@ -38,7 +56,7 @@ const authenticate = function(type) {
       break;
     }
     if (result == null) {
-      throw new Error(format('could not find a %s from the JWT', type));
+      throw new Error(format('Could not find a %s from the JWT.', type));
     }
     req[type] = result;
     return true;
@@ -51,13 +69,13 @@ const authenticateAny   = authenticate(null);
 
 const signedUrl = query('jwt').custom((value, {req}) => {
   if (value == null) {
-    throw new Error('could not find JWT token');
+    throw new Error('Could not find JWT token.');
   }
   var jwtDecoded;
   try {
     jwtDecoded = jwt.verify(value, config.server.passportSecret);
   } catch(e) {
-    throw new Error('failed to verify JWT');
+    throw new Error('Failed to verify JWT.');
   }
   req.jwtDecoded = jwtDecoded;
   return true;
@@ -68,7 +86,7 @@ const getModelById = function(modelType, fieldName, checkFunc=check) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.findById(val);
     if (model === null) {
-      throw new Error(format('Could not find a %s with an id of %s', modelType.name, val));
+      throw new Error(format('Could not find a %s with an id of %s.', modelType.name, val));
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
@@ -79,7 +97,7 @@ const getModelByName = function(modelType, fieldName, checkFunc=check) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.getFromName(val);
     if (model === null) {
-      throw new Error(format('could not find %s of %s', fieldName, val));
+      throw new Error(format('Could not find %s of %s.', fieldName, val));
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
@@ -90,7 +108,7 @@ const getUserByEmail = body('email').isEmail().custom(async (email, { req }) => 
   email = email.toLowerCase();
   const user = await models.User.getFromEmail(email);
   if (user === null) {
-    throw new Error('could not find user with email: ' + email);
+    throw new Error('Could not find user with email: ' + email);
   }
   req.body.user = user;
   return true;
@@ -146,7 +164,7 @@ const parseJSON = function(field) {
       req[location][path] = JSON.parse(value);
       return true;
     } catch(e) {
-      throw new Error(format('could not parse field %s to a json', path));
+      throw new Error(format('Could not parse field %s to a JSON.', path));
     }
   });
 };
@@ -157,7 +175,7 @@ const parseArray = function(field) {
     try {
       arr = JSON.parse(value);
     } catch(e) {
-      throw new Error(format('could not parse field %s to a json', path));
+      throw new Error(format('Could not parse field %s to a JSON.', path));
     }
     if (Array.isArray(arr)) {
       req[location][path] = arr;
