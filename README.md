@@ -32,8 +32,12 @@ requires Python 3.
 
 To run the tests, you need to do these steps once:
 
-* Create a virtualenv using your preferred method.
-* Activate the virtualenv.
+* Create a virtualenv using your preferred method. Ensure that the
+  virtualenv using Python 3. One approach way to create a virtualenv
+  is: `python3 -m venv /path/to/venvs/cacophony-api-tests`. You may
+  also want to consider [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/).
+* Activate the virtualenv. For example:
+  `source /path/to/venvs/cacophony-api-tests/bin/activate`
 * `cd test`
 * Install dependencies: `pip install -r requirements.txt`
 
