@@ -108,7 +108,7 @@ const getUserByEmail = body('email').isEmail().custom(async (email, { req }) => 
   email = email.toLowerCase();
   const user = await models.User.getFromEmail(email);
   if (user === null) {
-    throw new Error('could not find user with email: ' + email);
+    throw new Error('Could not find user with email: ' + email);
   }
   req.body.user = user;
   return true;
@@ -164,7 +164,7 @@ const parseJSON = function(field) {
       req[location][path] = JSON.parse(value);
       return true;
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a json.', path));
+      throw new Error(format('Could not parse field %s to a JSON.', path));
     }
   });
 };
@@ -175,7 +175,7 @@ const parseArray = function(field) {
     try {
       arr = JSON.parse(value);
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a json.', path));
+      throw new Error(format('Could not parse field %s to a JSON.', path));
     }
     if (Array.isArray(arr)) {
       req[location][path] = arr;

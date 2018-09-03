@@ -61,7 +61,7 @@ function ValidationError(errors) {
   };
   this.toJson = () => {
     return {
-      errorType: this.name,
+      errorType: this.name.toLowerCase(),
       message: this.flatten(),
       errors: this.errors.mapped(),
     };
@@ -83,7 +83,7 @@ function ClientError(message, statusCode) {
   this.toJson = () => {
     return {
       message: message,
-      errorType: this.name,
+      errorType: this.name.toLowerCase(),
     };
   };
 }
