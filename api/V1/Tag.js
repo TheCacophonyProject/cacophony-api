@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { check, body } = require('express-validator/check');
+const { body } = require('express-validator/check');
 
 const middleware = require('../middleware');
 const models = require('../../models');
@@ -63,7 +63,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('tag'),
+      middleware.parseJSON('tag', body),
       body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {
@@ -76,7 +76,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      check('tagId').isInt(),
+      body('tagId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {
 

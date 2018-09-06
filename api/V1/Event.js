@@ -52,7 +52,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateDevice,
-      middleware.getEventDetailById.optional(),
+      middleware.getEventDetailById(body).optional(),
       middleware.isDateArray("dateTimes", "List of times event occured is required."),
       oneOf([
         body("eventDetailId").exists(),
@@ -126,10 +126,10 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where'),
+      middleware.parseJSON('where', query),
       query('offset').isInt().optional(),
       query('limit').isInt().optional(),
-      middleware.parseJSON('order').optional(),
+      middleware.parseJSON('order', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
 

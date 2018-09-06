@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { query, check } = require('express-validator/check');
+const { query, param, body } = require('express-validator/check');
 
 const middleware        = require('../middleware');
 const models            = require('../../models');
@@ -93,7 +93,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + "/:devicename",
     [
       middleware.authenticateUser,
-      middleware.getDeviceByName,
+      middleware.getDeviceByName(param),
     ],
     middleware.ifUsersDeviceRequestWrapper(
       recordingUtil.makeUploadHandler()
@@ -128,11 +128,11 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where'),
+      middleware.parseJSON('where', query),
       query('offset').isInt(),
       query('limit').isInt(),
-      middleware.parseJSON('order').optional(),
-      middleware.parseArray('tags').optional(),
+      middleware.parseJSON('order', query).optional(),
+      middleware.parseArray('tags', query).optional(),
       query('tagMode')
         .optional()
         .custom(value => { return models.Recording.isValidTagMode(value); }),
@@ -172,7 +172,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
-      check('id').isInt(),
+      param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
@@ -201,7 +201,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
-      check('id').isInt(),
+      param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       return recordingUtil.delete_(request, response);
@@ -234,8 +234,8 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
-      check('id').isInt(),
-      middleware.parseJSON('updates'),
+      param('id').isInt(),
+      middleware.parseJSON('updates', body),
     ],
     middleware.requestWrapper(async (request, response) => {
       var updated = await models.Recording.updateOne(

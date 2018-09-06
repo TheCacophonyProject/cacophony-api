@@ -38,7 +38,7 @@ module.exports = function(app) {
   app.post(
     '/authenticate_device',
     [
-      middleware.getDeviceByName,
+      middleware.getDeviceByName(body),
       body('password').exists(),
     ],
     middleware.requestWrapper(async (request, response) => {

@@ -40,7 +40,7 @@ module.exports = function(app) {
     '/authenticate_user',
     [
       oneOf([
-        middleware.getUserByName,
+        middleware.getUserByName(body),
         middleware.getUserByEmail,
       ],
       "could not find a user with the given username or email"),
