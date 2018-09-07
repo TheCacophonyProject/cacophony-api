@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { param, header }  = require('express-validator/check');
+const { param, header, body }  = require('express-validator/check');
 const moment = require('moment');
 const { format } = require('util');
 
@@ -97,7 +97,7 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
       param('id').isInt(),
-      middleware.parseJSON('data'),
+      middleware.parseJSON('data', body),
     ],
     middleware.requestWrapper(async (request, response) => {
       var updated = await models.Recording.updateOne(
@@ -126,6 +126,7 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
+      param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       await recordingUtil.delete_(request, response);
@@ -156,7 +157,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where').optional(),
+      middleware.parseJSON('where', header).optional(),
       header('offset').isInt().optional(),
       header('limit').isInt().optional(),
     ],

@@ -23,7 +23,7 @@ const format       = require('util').format;
 const ExtractJwt   = require('passport-jwt').ExtractJwt;
 const log          = require('../logging');
 const customErrors = require('./customErrors');
-const { body, check, header, validationResult, query } = require('express-validator/check');
+const { body, header, validationResult, query } = require('express-validator/check');
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
@@ -82,7 +82,7 @@ const signedUrl = query('jwt').custom((value, {req}) => {
 });
 
 
-const getModelById = function(modelType, fieldName, checkFunc=check) {
+const getModelById = function(modelType, fieldName, checkFunc) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.findById(val);
     if (model === null) {
@@ -93,7 +93,7 @@ const getModelById = function(modelType, fieldName, checkFunc=check) {
   });
 };
 
-const getModelByName = function(modelType, fieldName, checkFunc=check) {
+const getModelByName = function(modelType, fieldName, checkFunc) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.getFromName(val);
     if (model === null) {
@@ -134,18 +134,37 @@ const isDateArray = function(fieldName, customError) {
   });
 };
 
-const getUserById = getModelById(models.User, 'userId');
-const getUserByName = getModelByName(models.User, 'username');
+function getUserById(checkFunc) {
+  return getModelById(models.User, 'userId', checkFunc);
+}
 
-const getGroupById = getModelById(models.Group, 'groupId');
-const getGroupByName = getModelByName(models.Group, 'group');
+function getUserByName(checkFunc) {
+  return getModelByName(models.User, 'username', checkFunc);
+}
 
-const getDeviceById = getModelById(models.Device, 'deviceId');
-const getDeviceByName = getModelByName(models.Device, 'devicename');
+function getGroupById(checkFunc) {
+  return getModelById(models.Group, 'groupId', checkFunc);
+}
 
-const getEventDetailById = getModelById(models.EventDetail, 'eventDetailId');
+function getGroupByName(checkFunc) {
+  return getModelByName(models.Group, 'group', checkFunc);
+}
 
-const getFileById = getModelById(models.File, 'id');
+function getDeviceById(checkFunc) {
+  return getModelById(models.Device, 'deviceId', checkFunc);
+}
+
+function getDeviceByName(checkFunc) {
+  return getModelByName(models.Device, 'devicename', checkFunc);
+}
+
+function getEventDetailById(checkFunc) {
+  return getModelById(models.EventDetail, 'eventDetailId', checkFunc);
+}
+
+function getFileById(checkFunc) {
+  return getModelById(models.File, 'id', checkFunc);
+}
 
 const checkNewName = function(field) {
   return body(field, 'invalid name')
@@ -158,8 +177,8 @@ const checkNewPassword = function(field) {
     .isLength({ min: 8 });
 };
 
-const parseJSON = function(field) {
-  return check(field).custom((value, {req, location, path}) => {
+const parseJSON = function(field, checkFunc) {
+  return checkFunc(field).custom((value, {req, location, path}) => {
     try {
       req[location][path] = JSON.parse(value);
       return true;
@@ -169,8 +188,8 @@ const parseJSON = function(field) {
   });
 };
 
-const parseArray = function(field) {
-  return check(field).custom((value, {req, location, path}) => {
+const parseArray = function(field, checkFunc) {
+  return checkFunc(field).custom((value, {req, location, path}) => {
     var arr;
     try {
       arr = JSON.parse(value);

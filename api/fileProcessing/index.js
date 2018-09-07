@@ -151,7 +151,7 @@ module.exports = function(app) {
   app.post(
     apiUrl + "/tags",
     [
-      middleware.parseJSON('tag'),
+      middleware.parseJSON('tag', body),
       body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {

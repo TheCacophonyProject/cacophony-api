@@ -21,7 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const { body, param } = require('express-validator/check');
 const { ClientError } = require('../customErrors');
 
 module.exports = function(app, baseUrl) {
@@ -88,7 +88,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('data'),
+      middleware.parseJSON('data', body),
     ],
     middleware.requestWrapper(async (request, response) => {
       const email = request.body.data.email;
@@ -125,7 +125,7 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:username",
     [
       middleware.authenticateUser,
-      middleware.getUserByName,
+      middleware.getUserByName(param),
     ],
     middleware.requestWrapper(async (request, response) => {
       return responseUtil.send(response, {

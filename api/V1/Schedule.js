@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+const { body, param } = require('express-validator/check');
 const models = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
@@ -43,8 +44,8 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseArray('devices'),
-      middleware.parseJSON('schedule'),
+      middleware.parseArray('devices', body),
+      middleware.parseJSON('schedule', body),
     ],
     middleware.ifUsersDeviceRequestWrapper(async function(request, response) {
       var deviceIds = request.body.devices;
@@ -107,7 +108,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + "/:devicename",
     [
       middleware.authenticateUser,
-      middleware.getDeviceByName,
+      middleware.getDeviceByName(param),
     ],
     middleware.ifUsersDeviceRequestWrapper(async (request, response) => {
       getSchedule(request.device, response, request.user);

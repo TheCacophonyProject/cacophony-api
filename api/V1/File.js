@@ -22,7 +22,7 @@ const responseUtil      = require('./responseUtil');
 const config            = require('../../config');
 const jsonwebtoken      = require('jsonwebtoken');
 const middleware        = require('../middleware');
-const { query }  = require('express-validator/check');
+const { query, param }  = require('express-validator/check');
 
 
 module.exports = (app, baseUrl) => {
@@ -76,10 +76,10 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where'),
+      middleware.parseJSON('where', query),
       query('offset').isInt().optional(),
       query('limit').isInt().optional(),
-      middleware.parseJSON('order').optional(),
+      middleware.parseJSON('order', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
 
@@ -128,7 +128,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateAny,
-      middleware.getFileById,
+      middleware.getFileById(param),
     ],
     middleware.requestWrapper(async (request, response) => {
 
@@ -171,7 +171,7 @@ module.exports = (app, baseUrl) => {
     apiUrl + '/:id',
     [
       middleware.authenticateUser,
-      middleware.getFileById,
+      middleware.getFileById(param),
     ],
     middleware.requestWrapper(async (request, response) => {
 

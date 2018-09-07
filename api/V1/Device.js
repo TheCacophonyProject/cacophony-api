@@ -21,7 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { check }    = require('express-validator/check');
+const { body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -46,7 +46,7 @@ module.exports = function(app, baseUrl) {
       middleware.checkNewName('devicename')
         .custom(value => { return models.Device.freeDevicename(value); }),
       middleware.checkNewPassword('password'),
-      middleware.getGroupByName,
+      middleware.getGroupByName(body),
     ],
     middleware.requestWrapper(async (request, response) => {
       const device = await models.Device.create({
@@ -112,7 +112,7 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
       middleware.getDeviceById,
       middleware.getUserById,
-      check('admin').isIn([true, false]),
+      body('admin').isIn([true, false]),
     ],
     middleware.requestWrapper(async (request, response) => {
       var added = await models.Device.addUserToDevice(
@@ -158,8 +158,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUserById,
-      middleware.getDeviceById,
+      middleware.getUserById(body),
+      middleware.getDeviceById(body),
     ],
     middleware.requestWrapper(async function(request, response) {
       var removed = await models.Device.removeUserFromDevice(
