@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { check, query, body } = require('express-validator/check');
+const { query, body } = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/groups';
@@ -112,7 +112,7 @@ module.exports = function(app, baseUrl) {
       middleware.authenticateUser,
       middleware.getGroupById(body),
       middleware.getUserById(body),
-      check('admin').isBoolean(),
+      body('admin').isBoolean(),
     ],
     middleware.requestWrapper(async (request, response) => {
 
