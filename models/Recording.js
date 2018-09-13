@@ -211,9 +211,17 @@ module.exports = function(sequelize, DataTypes) {
     ]};
   };
 
+  const getFileBaseName = function() {
+    return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
+      .format("YYYYMMDD-HHmmss");
+  };
+
   const getRawFileName = function() {
-    const ext = this.getRawFileExt();
-    return moment.tz('Pacific/Auckland').format('YYYYMMDD-HHmmss') + ext;
+    return this.getFileBaseName() + this.getRawFileExt();
+  };
+
+  const getFileName = function() {
+    return this.getFileBaseName() + this.getFileExt();
   };
 
   const getRawFileExt = function() {
@@ -250,6 +258,7 @@ module.exports = function(sequelize, DataTypes) {
     instanceMethods: {
       getFileName: getFileName,
       getFileExt: getFileExt,
+      getFileBaseName: getFileBaseName,
       getRawFileName: getRawFileName,
       getRawFileExt: getRawFileExt,
       getUserPermissions: getUserPermissions,
@@ -293,12 +302,6 @@ function getUserPermissions(user) {
     }
     return resolve(permissions);
   });
-}
-
-function getFileName() {
-  var ext = this.getFileExt();
-  return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
-    .format("YYYYMMDD-HHmmss") + ext;
 }
 
 function getFileExt() {
