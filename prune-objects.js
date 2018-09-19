@@ -87,8 +87,6 @@ async function pgConnect() {
 async function allDBKeys(client) {
   var keys = new Set();
   const res = await client.query(`
-        select "fileKey" as fk, NULL as rk from "AudioRecordings"
-        union
         select "fileKey" as fk, "rawFileKey" as rk from "Recordings"
         union
         select "fileKey" as fk, NULL as rk from "Files"
