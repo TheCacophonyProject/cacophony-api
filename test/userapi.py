@@ -19,6 +19,13 @@ class UserAPI(APIBase):
     def login(self):
         return super().login(email = self.email)
 
+    def name_or_email_login(self, nameOrEmail):
+        url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
+        data = {'nameOrEmail': nameOrEmail, 'password': self._password}
+        response = requests.post(url, data=data)
+        self.check_login_response(response)
+        return self
+
     def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}

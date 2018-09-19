@@ -17,7 +17,10 @@ class APIBase:
     def login(self, email = None):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
         response = requests.post(url, data=self._create_login_and_password_map(email))
+        self.check_login_response(response)
+        return self
 
+    def check_login_response(self, response):
         if response.status_code == 200:
             self._set_jwt_token(response)
         elif response.status_code == 422:
@@ -26,8 +29,6 @@ class APIBase:
             raise ValueError("Could not log on as '{}'.  Please check password.".format(self._loginname))
         else:
             response.raise_for_status()
-
-        return self
 
     def register_as_new(self, group = None, email = None):
         url = urljoin(self._baseurl, "/api/v1/{}s".format(self._logintype))

@@ -30,8 +30,11 @@ module.exports = function(app) {
   * @apiGroup Authentication
   * @apiDescription Checks the username corresponds to an existing user account
   * and the password matches the account.
+  * One of 'username', 'email', or 'nameOrEmail' is required.
   *
   * @apiParam {String} username Username identifying a valid user account
+  * @apiParam {String} email Email identifying a valid user account
+  * @apiParam {String} nameOrEmail Username or email of a valid user account.
   * @apiParam {String} password Password for the user account
   *
   * @apiSuccess {String} token JWT string to provide to further API requests
@@ -41,7 +44,9 @@ module.exports = function(app) {
     [
       oneOf([
         middleware.getUserByName(body),
-        middleware.getUserByEmail,
+        middleware.getUserByName(body, 'nameOrEmail'),
+        middleware.getUserByEmail(body),
+        middleware.getUserByEmail(body, 'nameOrEmail'),
       ],
       "could not find a user with the given username or email"),
       body('password').exists(),
