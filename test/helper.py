@@ -27,6 +27,13 @@ class Helper:
         api = UserAPI(self.config.api_server, username, email, password).login()
         return TestUser(username, api, email)
 
+    def login_with_name_or_email(self, username, nameOrEmail):
+        password = self._make_password(username)
+        api = UserAPI(self.config.api_server, username, None, password)
+        api.name_or_email_login(nameOrEmail)
+        return TestUser(username, api)
+
+
     def login_as_device(self, devicename):
         password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_server, devicename, password).login()

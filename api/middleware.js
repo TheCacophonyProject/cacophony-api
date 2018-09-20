@@ -104,15 +104,17 @@ const getModelByName = function(modelType, fieldName, checkFunc) {
   });
 };
 
-const getUserByEmail = body('email').isEmail().custom(async (email, { req }) => {
-  email = email.toLowerCase();
-  const user = await models.User.getFromEmail(email);
-  if (user === null) {
-    throw new Error('Could not find user with email: ' + email);
-  }
-  req.body.user = user;
-  return true;
-});
+const getUserByEmail = function(checkFunc, fieldName = 'email') {
+  return checkFunc(fieldName).isEmail().custom(async (email, { req }) => {
+    email = email.toLowerCase();
+    const user = await models.User.getFromEmail(email);
+    if (user === null) {
+      throw new Error('Could not find user with email: ' + email);
+    }
+    req.body.user = user;
+    return true;
+  });
+};
 
 function modelTypeName(modelType) {
   return modelType.options.name.singular.toLowerCase();
@@ -138,8 +140,8 @@ function getUserById(checkFunc) {
   return getModelById(models.User, 'userId', checkFunc);
 }
 
-function getUserByName(checkFunc) {
-  return getModelByName(models.User, 'username', checkFunc);
+function getUserByName(checkFunc, fieldName = 'username') {
+  return getModelByName(models.User, fieldName, checkFunc);
 }
 
 function getGroupById(checkFunc) {
