@@ -79,25 +79,25 @@ module.exports = function(sequelize, DataTypes) {
   User.addAssociations = function(models) {
     models.User.belongsToMany(models.Group, { through: models.GroupUsers });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
-  }
+  };
   
   /* .. */
   User.getAll = async function(where) {
     return await this.findAll({
       where: where,
-      attributes: publicFields,
+      attributes: this.publicFields,
     });
-  }
+  };
 
   /* .. */
   User.getFromId = async function(id) {
     return await this.findById(id);
-  }
+  };
 
   /* .. */
   User.getFromName = async function(name) {
     return await this.findOne({ where: { username: name }});
-  }
+  };
 
   /* .. */
   User.freeUsername = async function(username) {
@@ -106,12 +106,12 @@ module.exports = function(sequelize, DataTypes) {
       throw new Error('username in use');
     }
     return true;
-  }
+  };
 
   /* .. */
   User.getFromEmail = async function(email) {
     return await this.findOne({where: {email: email}});
-  }
+  };
 
   /* .. */
   User.freeEmail = async function(email) {
@@ -121,7 +121,7 @@ module.exports = function(sequelize, DataTypes) {
       throw new Error('email in use');
     }
     return true;
-  }
+  };
 
   //------------------
   // INSTANCE METHODS
@@ -140,7 +140,7 @@ module.exports = function(sequelize, DataTypes) {
     else {
       return [];
     }
-  }
+  };
 
   /* .. */
   User.prototype.getWhereDeviceVisible = async function () {
@@ -150,7 +150,7 @@ module.exports = function(sequelize, DataTypes) {
 
     var allDeviceIds = await this.getAllDeviceIds();
     return { DeviceId: {[Op.in]: allDeviceIds}};
-  }
+  };
 
   /* .. */
   User.prototype.getJwtDataValues = function() {
@@ -158,7 +158,7 @@ module.exports = function(sequelize, DataTypes) {
       id: this.getDataValue('id'),
       _type: 'user'
     };
-  }
+  };
 
   /* .. */
   User.prototype.getDataValues = function() {
@@ -176,7 +176,7 @@ module.exports = function(sequelize, DataTypes) {
           });
         });
     });
-  }
+  };
 
   // Returns the groups that are associated with this user (via
   // GroupUsers).
@@ -185,7 +185,7 @@ module.exports = function(sequelize, DataTypes) {
       .then(function(groups) {
         return groups.map(g => g.id);
       });
-  }
+  };
 
   // Returns the devices that are directly associated with this user
   // (via DeviceUsers).
@@ -194,7 +194,7 @@ module.exports = function(sequelize, DataTypes) {
       .then(function(devices) {
         return devices.map(d => d.id);
       });
-  }
+  };
 
   /* .. */
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
@@ -207,7 +207,7 @@ module.exports = function(sequelize, DataTypes) {
         }
       });
     }
-  }
+  };
 
   /* .. */
   User.prototype.getAllDeviceIds = async function() {
@@ -215,7 +215,7 @@ module.exports = function(sequelize, DataTypes) {
     var groupedDeviceIds = await this.getGroupDeviceIds();
 
     return directDeviceIds.concat(groupedDeviceIds);
-  }
+  };
 
   /* .. */
   User.prototype.comparePassword = function(password) {
@@ -229,10 +229,10 @@ module.exports = function(sequelize, DataTypes) {
         }
       });
     });
-  }
+  };
 
   return User;
-}
+};
 
 //-----------------
 // LOCAL FUNCTIONS

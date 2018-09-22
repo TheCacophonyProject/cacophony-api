@@ -42,7 +42,7 @@ module.exports = function(sequelize, DataTypes) {
   /* .. */
   Event.addAssociations = function(models) {
     models.Event.belongsTo(models.EventDetail);
-  }
+  };
   
   /**
   * Return one or more recordings for a user matching the query

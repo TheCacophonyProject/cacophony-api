@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
   /* .. */
   EventDetail.addAssociations = function(models) {
     models.EventDetail.hasMany(models.Event);
-  }
+  };
   
   /* .. */
   EventDetail.getMatching = async function(searchType, searchDetails) {
@@ -53,12 +53,12 @@ module.exports = function(sequelize, DataTypes) {
       type: searchType,
       details: searchDetails,
     }});
-  }
+  };
   
   /* .. */
   EventDetail.getFromId = async function(id) {
     return await this.findById(id);
-  }
+  };
 
   return EventDetail;
 };

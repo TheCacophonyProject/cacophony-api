@@ -29,14 +29,14 @@ module.exports = function(sequelize, DataTypes) {
   var options = {
   };
 
-  DeviceUsers = sequelize.define(name, attributes, options);
+  var DeviceUsers = sequelize.define(name, attributes, options);
 
   //---------------
   // CLASS METHODS
   //---------------
 
   /* .. */
-  DeviceUsers.addAssociations = function() {}
+  DeviceUsers.addAssociations = function() {};
 
   /* .. */
   DeviceUsers.isAdmin = async function(deviceId, userId) {
@@ -48,7 +48,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     });
     return deviceUser != null;
-  }
+  };
 
   return DeviceUsers;
 };

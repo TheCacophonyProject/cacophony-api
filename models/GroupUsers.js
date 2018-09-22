@@ -47,7 +47,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     });
     return groupUsers != null;
-  }
+  };
 
   return GroupUsers;
 };

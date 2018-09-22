@@ -45,7 +45,7 @@ module.exports = function(sequelize, DataTypes) {
   /* .. */
   File.addAssociations = function(models) {
     models.File.belongsTo(models.User);
-  }
+  };
 
   /**
   * Return one or more files for a user matching the query
@@ -66,7 +66,7 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
     };
     return this.findAndCount(q);
-  }
+  };
 
   /* .. */
   File.deleteIfAllowed = async function(user, file) {
@@ -77,7 +77,7 @@ module.exports = function(sequelize, DataTypes) {
     else {
       return false;
     }
-  }
+  };
 
   return File;
 };

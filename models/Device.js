@@ -56,7 +56,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  const Device = sequelize.define(name, attributes, options);
+  var Device = sequelize.define(name, attributes, options);
 
   //---------------
   // CLASS METHODS
@@ -69,7 +69,7 @@ module.exports = function(sequelize, DataTypes) {
     models.Device.hasMany(models.Event);
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
-  }
+  };
   
   /**
   * Adds/update a user to a Device, if the given user has permission to do so.
@@ -173,12 +173,12 @@ module.exports = function(sequelize, DataTypes) {
   /* .. */
   Device.userPermissions = async function(user) {
     if (user.superuser) {
-      return newUserPermissions(true);
+      return this.newUserPermissions(true);
     }
 
     const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
-    return newUserPermissions(isGroupAdmin || isDeviceAdmin);
+    return this.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
 
   /* .. */
@@ -218,7 +218,7 @@ module.exports = function(sequelize, DataTypes) {
       id: this.getDataValue('id'),
       _type: 'device'
     };
-  }
+  };
 
   /* .. */
   Device.prototype.comparePassword = function(password) {
@@ -232,7 +232,7 @@ module.exports = function(sequelize, DataTypes) {
         }
       });
     });
-  }
+  };
   
   // Fields that are directly settable by the API.
   Device.apiSettableFields = [

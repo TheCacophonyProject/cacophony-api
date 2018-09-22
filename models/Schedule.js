@@ -37,7 +37,7 @@ module.exports = function(sequelize, DataTypes) {
   Schedule.addAssociations = function(models) {
     models.Schedule.belongsTo(models.User);
     models.Schedule.hasMany(models.Device);
-  }
+  };
 
   return Schedule;
 };

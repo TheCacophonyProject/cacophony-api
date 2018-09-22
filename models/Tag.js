@@ -70,17 +70,17 @@ module.exports = function(sequelize, DataTypes) {
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, {as: 'tagger'});
     models.Tag.belongsTo(models.Recording);
-  }
+  };
   
   /* .. */
   Tag.getFromId = function(id, user, attributes) {
     util.GetFromId(id, user, attributes);
-  }
+  };
   
   /* .. */
   Tag.deleteModelInstance = function(id, user) {
     util.deleteModelInstance(id, user);
-  }
+  };
   
   /* .. */
   Tag.deleteFromId = async function(id, user) {
@@ -93,7 +93,7 @@ module.exports = function(sequelize, DataTypes) {
       return true;
     }
     else {return false;}
-  }
+  };
   
   /* .. */
   Tag.prototype.getFrontendFields = function() {
@@ -110,7 +110,7 @@ module.exports = function(sequelize, DataTypes) {
       sex: model.getDataValue('sex'),
       age: model.getDataValue('age'),
     };
-  }
+  };
   
   Tag.apiUpdateableFields = [];
   

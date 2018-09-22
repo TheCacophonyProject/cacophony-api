@@ -42,7 +42,7 @@ module.exports = function(sequelize, DataTypes) {
     models.Group.hasMany(models.Device);
     models.Group.belongsToMany(models.User, { through: models.GroupUsers });
     models.Group.hasMany(models.Recording);
-  }  
+  };
 
   /**
    * Adds a user to a Group, if the given user has permission to do so.
@@ -74,7 +74,7 @@ module.exports = function(sequelize, DataTypes) {
 
     await group.addUser(userToAdd.id, {admin: admin});
     return true;
-  }
+  };
 
   /**
    * Removes a user from a Group, if the given user has permission to do so.
@@ -101,7 +101,7 @@ module.exports = function(sequelize, DataTypes) {
       await groupUsers[i].destroy();
     }
     return true;
-  }
+  };
 
   /**
    * Return one or more groups matching the where condition. Only get groups
@@ -174,12 +174,12 @@ module.exports = function(sequelize, DataTypes) {
       });
 
     });
-  }
+  };
 
   /* .. */
   Group.getFromId = async function(id) {
     return await this.findById(id);
-  }
+  };
 
   /* .. */
   Group.getFromName = async function(name) {
@@ -193,7 +193,7 @@ module.exports = function(sequelize, DataTypes) {
       throw new Error('groupname in use');
     }
     return true;
-  }
+  };
 
   /* .. */
   Group.getIdFromName = function(name) {
@@ -208,7 +208,7 @@ module.exports = function(sequelize, DataTypes) {
           }
         });
     });
-  }
+  };
   
   //------------------
   // Instance methods
@@ -220,7 +220,7 @@ module.exports = function(sequelize, DataTypes) {
       return newUserPermissions(true);
     }
     return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));
-  }
+  };
 
   /* .. */
   const newUserPermissions = function(enabled) {
@@ -228,7 +228,7 @@ module.exports = function(sequelize, DataTypes) {
       canAddUsers: enabled,
       canRemoveUsers: enabled,
     };
-  }
+  };
 
   return Group;
 };

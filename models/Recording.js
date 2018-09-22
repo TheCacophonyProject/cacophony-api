@@ -82,12 +82,12 @@ module.exports = function(sequelize, DataTypes) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
     models.Recording.hasMany(models.Tag);
-  }
+  };
 
   /* .. */
   Recording.isValidTagMode = function(mode) { 
     return validTagModes.includes(mode); 
-  }
+  };
 
   /**
     * Return one or more recordings for a user matching the query
@@ -122,7 +122,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: this.userGetAttributes,
     };
     return this.findAndCount(q);
-  }
+  };
 
   // local
   var handleTagMode = (tagMode) => {
@@ -200,7 +200,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     return await this.findOne(query);
-  }
+  };
 
   /**
    * Deletes a single recording if the user has permission to do so.
@@ -217,7 +217,7 @@ module.exports = function(sequelize, DataTypes) {
       await recording.destroy();
       return true;
     }
-  }
+  };
 
   /**
    * Updates a single recording if the user has permission to do so.
@@ -239,7 +239,7 @@ module.exports = function(sequelize, DataTypes) {
       await recording.update(updates);
       return true;
     }
-  }
+  };
 
   // local
   var recordingsFor = async function(user) {
@@ -329,7 +329,7 @@ module.exports = function(sequelize, DataTypes) {
       }
       return resolve(permissions);
     });
-  }
+  };
   
   /* .. */
   Recording.prototype.getFileExt = function() {
@@ -341,7 +341,7 @@ module.exports = function(sequelize, DataTypes) {
       return "." + ext;
     }
     return "";
-  }
+  };
 
   /* .. */
   Recording.userGetAttributes = [
