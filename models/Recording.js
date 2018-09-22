@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var mime = require('mime');
 var moment = require('moment-timezone');
 
@@ -46,13 +64,34 @@ module.exports = function(sequelize, DataTypes) {
     airplaneModeOn: DataTypes.BOOLEAN,
   };
 
+  
+  var options = {
+  };
+
+  var Recording = sequelize.define(name, attributes, options);
+
+  //---------------
+  // CLASS METHODS
+  //---------------
   var models = sequelize.models;
+
+  /* .. */
+  Recording.addAssociations = function(models) {
+    models.Recording.belongsTo(models.Group);
+    models.Recording.belongsTo(models.Device);
+    models.Recording.hasMany(models.Tag);
+  }
+
+  /* .. */
+  Recording.isValidTagMode = function(mode) { 
+    return validTagModes.includes(mode); 
+  }
 
   /**
     * Return one or more recordings for a user matching the query
     * arguments given.
     */
-  var query = async function(user, where, tagMode, tags, offset, limit, order) {
+  Recording.query = async function(user, where, tagMode, tags, offset, limit, order) {
     if (order == null) {
       order = [
         // Sort by recordingDatetime but handle the case of the
@@ -78,11 +117,12 @@ module.exports = function(sequelize, DataTypes) {
       ],
       limit: limit,
       offset: offset,
-      attributes: userGetAttributes,
+      attributes: this.userGetAttributes,
     };
     return this.findAndCount(q);
-  };
+  }
 
+  // local
   var handleTagMode = (tagMode) => {
     switch (tagMode) {
     case 'any':
@@ -107,6 +147,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
+  // local
   var makeTagsWhere = (tags) => {
     if (!tags || tags.length === 0) {
       return null;
@@ -138,7 +179,7 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  var getOne = async function(user, id, type) {
+  Recording.getOne = async function(user, id, type) {
     var query = {
       where: {
         "$and": [
@@ -157,12 +198,12 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     return await this.findOne(query);
-  };
+  }
 
   /**
    * Deletes a single recording if the user has permission to do so.
    */
-  var deleteOne = async function(user, id) {
+  Recording.deleteOne = async function(user, id) {
     var recording = await this.getOne(user, id);
     if (recording == null) {
       return false;
@@ -174,12 +215,12 @@ module.exports = function(sequelize, DataTypes) {
       await recording.destroy();
       return true;
     }
-  };
+  }
 
   /**
    * Updates a single recording if the user has permission to do so.
    */
-  var updateOne = async function(user, id, updates) {
+  Recording.updateOne = async function(user, id, updates) {
     for (var key in updates) {
       if (apiUpdatableFields.indexOf(key) == -1) {
         return false;
@@ -196,8 +237,9 @@ module.exports = function(sequelize, DataTypes) {
       await recording.update(updates);
       return true;
     }
-  };
+  }
 
+  // local
   var recordingsFor = async function(user) {
     if (user.superuser) {
       return null;
@@ -211,20 +253,28 @@ module.exports = function(sequelize, DataTypes) {
     ]};
   };
 
-  const getFileBaseName = function() {
+  //------------------
+  // INSTANCE METHODS
+  //------------------
+
+  /* .. */
+  Recording.prototype.getFileBaseName = function() {
     return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
       .format("YYYYMMDD-HHmmss");
   };
 
-  const getRawFileName = function() {
+  /* .. */
+  Recording.prototype.getRawFileName = function() {
     return this.getFileBaseName() + this.getRawFileExt();
   };
 
-  const getFileName = function() {
+  /* .. */
+  Recording.prototype.getFileName = function() {
     return this.getFileBaseName() + this.getFileExt();
   };
-
-  const getRawFileExt = function() {
+  
+  /* .. */
+  Recording.prototype.getRawFileExt = function() {
     if (this.rawMimeType == 'application/x-cptv') {
       return ".cptv";
     }
@@ -242,153 +292,132 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      query: query,
-      getOne: getOne,
-      deleteOne: deleteOne,
-      updateOne: updateOne,
-      processingAttributes: processingAttributes,
-      processingStates: processingStates,
-      apiSettableFields: apiSettableFields,
-      userGetAttributes: userGetAttributes,
-      isValidTagMode: function(mode) { return validTagModes.includes(mode); },
-    },
-    instanceMethods: {
-      getFileName: getFileName,
-      getFileExt: getFileExt,
-      getFileBaseName: getFileBaseName,
-      getRawFileName: getRawFileName,
-      getRawFileExt: getRawFileExt,
-      getUserPermissions: getUserPermissions,
-    },
-  };
-
-  return sequelize.define(name, attributes, options);
-};
-
-/**
- * Returns JSON describing what the user can do to the recording.
- * Permission types: DELETE, TAG, VIEW,
- * //TODO This will be edited in the future when recordings can be public.
- */
-function getUserPermissions(user) {
-  // superusers can do everything.
-  if (user.superuser) {
-    return {
-      canDelete: true,
-      canTag: true,
-      canView: true,
-      canUpdate: true,
-    };
-  }
-
-  // For now if the user is in the group that owns the recording they have all
-  // permission. This will be changed in the future.
-  var permissions = {
-    canDelete: false,
-    canTag: false,
-    canView: false,
-    canUpdate: false,
-  };
-  return new Promise(async (resolve) => {
-    var groupIds = await user.getGroupsIds();
-    if (groupIds.indexOf(this.GroupId) !== -1) {
-      permissions.canDelete = true;
-      permissions.canTag = true;
-      permissions.canView = true;
-      permissions.canUpdate = true;
+  /**
+   * Returns JSON describing what the user can do to the recording.
+   * Permission types: DELETE, TAG, VIEW,
+   * //TODO This will be edited in the future when recordings can be public.
+   */
+  Recording.prototype.getUserPermissions = function(user) {
+    // superusers can do everything.
+    if (user.superuser) {
+      return {
+        canDelete: true,
+        canTag: true,
+        canView: true,
+        canUpdate: true,
+      };
     }
-    return resolve(permissions);
-  });
-}
 
-function getFileExt() {
-  if (this.fileMimeType == 'video/mp4') {
-    return ".mp4";
+    // For now if the user is in the group that owns the recording they have all
+    // permission. This will be changed in the future.
+    var permissions = {
+      canDelete: false,
+      canTag: false,
+      canView: false,
+      canUpdate: false,
+    };
+
+    return new Promise(async (resolve) => {
+      var groupIds = await user.getGroupsIds();
+      if (groupIds.indexOf(this.GroupId) !== -1) {
+        permissions.canDelete = true;
+        permissions.canTag = true;
+        permissions.canView = true;
+        permissions.canUpdate = true;
+      }
+      return resolve(permissions);
+    });
   }
-  const ext = mime.getExtension(this.fileMimeType);
-  if (ext) {
-    return "." + ext;
+  
+  /* .. */
+  Recording.prototype.getFileExt = function() {
+    if (this.fileMimeType == 'video/mp4') {
+      return ".mp4";
+    }
+    const ext = mime.getExtension(this.fileMimeType);
+    if (ext) {
+      return "." + ext;
+    }
+    return "";
   }
-  return "";
-}
 
-var userGetAttributes = [
-  'id',
-  'rawFileSize',
-  'rawMimeType',
-  'fileSize',
-  'fileMimeType',
-  'processingState',
-  'duration',
-  'recordingDateTime',
-  'relativeToDawn',
-  'relativeToDusk',
-  'location',
-  'version',
-  'batteryLevel',
-  'batteryCharging',
-  'airplaneModeOn',
-  'type',
-  'additionalMetadata',
-  'GroupId',
-  'fileKey',
-  'comment',
-];
+  /* .. */
+  Recording.userGetAttributes = [
+    'id',
+    'rawFileSize',
+    'rawMimeType',
+    'fileSize',
+    'fileMimeType',
+    'processingState',
+    'duration',
+    'recordingDateTime',
+    'relativeToDawn',
+    'relativeToDusk',
+    'location',
+    'version',
+    'batteryLevel',
+    'batteryCharging',
+    'airplaneModeOn',
+    'type',
+    'additionalMetadata',
+    'GroupId',
+    'fileKey',
+    'comment',
+  ];
+  
+  /* .. */
+  Recording.apiSettableFields = [
+    'type',
+    'duration',
+    'recordingDateTime',
+    'relativeToDawn',
+    'relativeToDusk',
+    'location',
+    'version',
+    'batteryCharging',
+    'batteryLevel',
+    'airplaneModeOn',
+    'additionalMetadata',
+    'processingMeta',
+    'comment',
+  ];
 
-var apiSettableFields = [
-  'type',
-  'duration',
-  'recordingDateTime',
-  'relativeToDawn',
-  'relativeToDusk',
-  'location',
-  'version',
-  'batteryCharging',
-  'batteryLevel',
-  'airplaneModeOn',
-  'additionalMetadata',
-  'processingMeta',
-  'comment',
-];
-
-var apiUpdatableFields = [
-  'location',
-  'comment',
-  'additionalMetadata',
-];
-
-var processingStates = {
-  thermalRaw: ['toMp4', 'FINISHED'],
-  audio: ['toMp3', 'FINISHED'],
+  // local
+  var apiUpdatableFields = [
+    'location',
+    'comment',
+    'additionalMetadata',
+  ];
+  
+  /* .. */
+  Recording.processingStates = {
+    thermalRaw: ['toMp4', 'FINISHED'],
+    audio: ['toMp3', 'FINISHED'],
+  };
+  
+  /* .. */
+  Recording.processingAttributes = [
+    'id',
+    'type',
+    'jobKey',
+    'rawFileKey',
+    'rawMimeType',
+    'fileKey',
+    'fileMimeType',
+    'processingState',
+    'processingMeta',
+  ];
+  
+  // local
+  const validTagModes = Object.freeze([
+    'any',
+    'untagged',
+    'tagged',
+    'no-human',  // untagged or automatic only
+    'automatic-only',
+    'human-only',
+    'automatic+human',
+  ]);
+  
+  return Recording;
 };
-
-var processingAttributes = [
-  'id',
-  'type',
-  'jobKey',
-  'rawFileKey',
-  'rawMimeType',
-  'fileKey',
-  'fileMimeType',
-  'processingState',
-  'processingMeta',
-];
-
-const validTagModes = Object.freeze([
-  'any',
-  'untagged',
-  'tagged',
-  'no-human',  // untagged or automatic only
-  'automatic-only',
-  'human-only',
-  'automatic+human',
-]);
-
-function addAssociations(models) {
-  models.Recording.belongsTo(models.Group);
-  models.Recording.belongsTo(models.Device);
-  models.Recording.hasMany(models.Tag);
-}

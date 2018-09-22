@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var util = require('./util/util');
 
 module.exports = function(sequelize, DataTypes) {
@@ -40,66 +58,74 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields,
-      apiUpdateableFields: apiUpdateableFields,
-      getFromId: util.getFromId,
-      deleteModelInstance: util.deleteModelInstance,
-      deleteFromId: deleteFromId,
-    },
-    instanceMethods: {
-      getFrontendFields: getFrontendFields,
+  };
+
+  var Tag = sequelize.define(name, attributes, options);
+
+  //---------------
+  // CLASS METHODS
+  //---------------
+
+  /* .. */
+  Tag.addAssociations = function(models) {
+    models.Tag.belongsTo(models.User, {as: 'tagger'});
+    models.Tag.belongsTo(models.Recording);
+  }
+  
+  /* .. */
+  Tag.getFromId = function(id, user, attributes) {
+    util.GetFromId(id, user, attributes);
+  }
+  
+  /* .. */
+  Tag.deleteModelInstance = function(id, user) {
+    util.deleteModelInstance(id, user);
+  }
+  
+  /* .. */
+  Tag.deleteFromId = async function(id, user) {
+    var tag = await this.findOne({where: {id: id}});
+    if (tag == null) {
+      return false;
     }
-  };
-
-  return sequelize.define(name, attributes, options);
+    if (tag.taggerId === user.id) {
+      await tag.destroy();
+      return true;
+    }
+    else {return false;}
+  }
+  
+  /* .. */
+  Tag.prototype.getFrontendFields = function() {
+    var model = this;
+    return {
+      id: model.getDataValue('id'),
+      animal: model.getDataValue('animal'),
+      confidence: model.getDataValue('confidence'),
+      startTime: model.getDataValue('startTime'),
+      duration: model.getDataValue('duration'),
+      number: model.getDataValue('number'),
+      trapType: model.getDataValue('trapType'),
+      event: model.getDataValue('event'),
+      sex: model.getDataValue('sex'),
+      age: model.getDataValue('age'),
+    };
+  }
+  
+  Tag.apiUpdateableFields = [];
+  
+  Tag.apiSettableFields = [
+    'animal',
+    'confidence',
+    'startTime',
+    'duration',
+    'number',
+    'trapType',
+    'event',
+    'sex',
+    'age',
+    'automatic',
+  ];
+  
+  return Tag;
 };
-
-async function deleteFromId(id, user) {
-  var tag = await this.findOne({where: {id: id}});
-  if (tag == null) {
-    return false;
-  }
-  if (tag.taggerId === user.id) {
-    await tag.destroy();
-    return true;
-  }
-  else {return false;}
-}
-
-var apiUpdateableFields = [];
-
-function getFrontendFields() {
-  var model = this;
-  return {
-    id: model.getDataValue('id'),
-    animal: model.getDataValue('animal'),
-    confidence: model.getDataValue('confidence'),
-    startTime: model.getDataValue('startTime'),
-    duration: model.getDataValue('duration'),
-    number: model.getDataValue('number'),
-    trapType: model.getDataValue('trapType'),
-    event: model.getDataValue('event'),
-    sex: model.getDataValue('sex'),
-    age: model.getDataValue('age'),
-  };
-}
-
-var apiSettableFields = [
-  'animal',
-  'confidence',
-  'startTime',
-  'duration',
-  'number',
-  'trapType',
-  'event',
-  'sex',
-  'age',
-  'automatic',
-];
-
-function addAssociations(models) {
-  models.Tag.belongsTo(models.User, {as: 'tagger'});
-  models.Tag.belongsTo(models.Recording);
-}

@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 'use strict';
 module.exports = function(sequelize, DataTypes) {
   var name = 'File';
@@ -9,16 +27,31 @@ module.exports = function(sequelize, DataTypes) {
     details: DataTypes.JSONB
   };
 
-  var apiSettableFields = [
+
+  var options = {
+  };
+
+  var File = sequelize.define(name, attributes, options);
+  
+  File.apiSettableFields = [
     'type',
     'details',
   ];
+
+  //---------------
+  // CLASS METHODS
+  //---------------
+
+  /* .. */
+  File.addAssociations = function(models) {
+    models.File.belongsTo(models.User);
+  }
 
   /**
   * Return one or more files for a user matching the query
   * arguments given.
   */
-  var query = async function(where, offset, limit, order) {
+  File.query = async function(where, offset, limit, order) {
     if (order == null) {
       order = [
         ["id", "DESC"],
@@ -33,9 +66,10 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
     };
     return this.findAndCount(q);
-  };
+  }
 
-  var deleteIfAllowed = async function(user, file) {
+  /* .. */
+  File.deleteIfAllowed = async function(user, file) {
     if (user.superuser || user.id == file.UserId) {
       await file.destroy();
       return true;
@@ -43,22 +77,8 @@ module.exports = function(sequelize, DataTypes) {
     else {
       return false;
     }
-  };
+  }
 
-  var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields,
-      query: query,
-      deleteIfAllowed: deleteIfAllowed
-    },
-  };
-
-  return sequelize.define(name, attributes, options);
+  return File;
 };
-
-
-function addAssociations(models) {
-  models.File.belongsTo(models.User);
-}
 
