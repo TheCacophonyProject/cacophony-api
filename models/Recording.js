@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var mime = require('mime');
 var moment = require('moment-timezone');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 var util = require('./util/util');
 var validation = require('./util/validation');
@@ -103,7 +105,7 @@ module.exports = function(sequelize, DataTypes) {
 
     var q = {
       where: {
-        "$and": [
+        [Op.and]: [
           where, // User query
           await recordingsFor(user),
           sequelize.literal(handleTagMode(tagMode)),
@@ -159,8 +161,8 @@ module.exports = function(sequelize, DataTypes) {
       switch (tag) {
       case "interesting":
         parts.push({
-          "$not": {
-            "$or": [
+          [Op.not]: {
+            [Op.or]: [
               {animal: null, event: "false positive"},
               {animal: "bird"},
             ]},
@@ -173,7 +175,7 @@ module.exports = function(sequelize, DataTypes) {
     if (parts.Length == 1) {
       return parts[0];
     }
-    return {"$or": parts};
+    return {[Op.or]: parts};
   };
 
   /**
@@ -182,7 +184,7 @@ module.exports = function(sequelize, DataTypes) {
   Recording.getOne = async function(user, id, type) {
     var query = {
       where: {
-        "$and": [
+        [Op.and]: [
           { id: id },
           await recordingsFor(user),
         ],
@@ -194,7 +196,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: this.userGetAttributes.concat(['rawFileKey']),
     };
     if (type) {
-      query.where['$and'].push({'type': type});
+      query.where[Op.and].push({'type': type});
     }
 
     return await this.findOne(query);
@@ -246,10 +248,10 @@ module.exports = function(sequelize, DataTypes) {
     }
     var deviceIds = await user.getDeviceIds();
     var groupIds = await user.getGroupsIds();
-    return {"$or": [
+    return {[Op.or]: [
       {public: true},
-      {GroupId: {"$in": groupIds}},
-      {DeviceId: {"$in": deviceIds}},
+      {GroupId: {[Op.in]: groupIds}},
+      {DeviceId: {[Op.in]: deviceIds}},
     ]};
   };
 

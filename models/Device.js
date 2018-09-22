@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var bcrypt = require('bcrypt');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
@@ -143,13 +145,13 @@ module.exports = function(sequelize, DataTypes) {
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
 
-    const usersDevice = { "$or": [
-      {GroupId: {"$in": userGroupIds}},
-      {id: {"$in": deviceIds}},
+    const usersDevice = { [Op.or]: [
+      {GroupId: {[Op.in]: userGroupIds}},
+      {id: {[Op.in]: deviceIds}},
     ]};
 
     return this.findAndCount({
-      where: { "$and": [usersDevice, conditions] },
+      where: { [Op.and]: [usersDevice, conditions] },
       attributes: ["devicename", "id"],
       order: ['devicename'],
       include: includeData,

@@ -16,6 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 module.exports = function(sequelize, DataTypes) {
   var name = 'EventDetail';
 
@@ -42,7 +45,7 @@ module.exports = function(sequelize, DataTypes) {
   EventDetail.getMatching = async function(searchType, searchDetails) {
     if (!searchDetails) {
       searchDetails = {
-        $eq: null
+        [Op.eq]: null
       };
     }
   

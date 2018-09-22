@@ -17,6 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 'use strict';
+
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 module.exports = function(sequelize, DataTypes) {
   var name = 'Event';
 
@@ -56,7 +60,7 @@ module.exports = function(sequelize, DataTypes) {
 
     var q = {
       where: {
-        "$and": [
+        [Op.and]: [
           where, // User query
           await user.getWhereDeviceVisible(), // can only see devices they should
         ],

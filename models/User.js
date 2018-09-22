@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var bcrypt = require('bcrypt');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'User';
@@ -130,7 +132,7 @@ module.exports = function(sequelize, DataTypes) {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
       var devices = await models.Device.findAll({
-        where: { GroupId: { "$in": groupIds }},
+        where: { GroupId: { [Op.in]: groupIds }},
         attributes: ['id'],
       });
       return devices.map(d => d.id);
@@ -147,7 +149,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     var allDeviceIds = await this.getAllDeviceIds();
-    return { DeviceId: {"$in": allDeviceIds}};
+    return { DeviceId: {[Op.in]: allDeviceIds}};
   }
 
   /* .. */
