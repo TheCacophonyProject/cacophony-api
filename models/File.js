@@ -36,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var deleteIfAllowed = async function(user, file) {
-    if (user.superuser || user.id == file.UserId) {
+    if (user.globalPermission == 'write' || user.id == file.UserId) {
       await file.destroy();
       return true;
     }
@@ -61,4 +61,3 @@ module.exports = function(sequelize, DataTypes) {
 function addAssociations(models) {
   models.File.belongsTo(models.User);
 }
-

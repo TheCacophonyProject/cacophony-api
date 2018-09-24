@@ -23,10 +23,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    superuser: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    }
+    globalPermission: {
+      type: DataTypes.ENUM,
+      values: ['off', 'read', 'write'],
+      defaultValue: 'off',
+    },
   };
 
   const models = sequelize.models;
@@ -87,7 +88,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const getWhereDeviceVisible = async function () {
-    if (this.superuser) {
+    if (['write', 'read'].includes(this.globalPermission)) {
       return null;
     }
 
@@ -190,7 +191,7 @@ UnauthorizedDeviceException.prototype = new Error();
 UnauthorizedDeviceException.prototype.constructor = UnauthorizedDeviceException;
 
 const checkUserControlsDevices = async function(deviceIds) {
-  if (!this.superuser) {
+  if (this.globalPermission != 'write') {
     var usersDevices = await this.getAllDeviceIds();
 
     deviceIds.forEach(deviceId => {

@@ -70,13 +70,13 @@ module.exports = function(sequelize, DataTypes) {
 
   /**
    * Return one or more groups matching the where condition. Only get groups
-   * that the user belongs if not a superuser.
+   * that the user belongs if user does not have global read/write permission.
    */
   const query = async function(where, user) {
 
-    var userWhere = null;
-    if (!user.superuser) {
-      userWhere = { id: user.id };
+    var userWhere = { id: user.id };
+    if (['read', 'write'].includes(user.globalPermission)) {
+      userWhere = null;
     }
 
     return await models.Group.findAll({
@@ -142,7 +142,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const userPermissions = async function(user) {
-    if (user.superuser) {
+    if (user.globalPermission == 'write') {
       return newUserPermissions(true);
     }
     return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));

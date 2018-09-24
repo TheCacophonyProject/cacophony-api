@@ -35,7 +35,7 @@ module.exports = function(sequelize, DataTypes) {
   /**
   * Adds/update a user to a Device, if the given user has permission to do so.
   * The authenticated user must either be admin of the group that the device
-  * belongs to, an admin of that device, or a superuser.
+  * belongs to, an admin of that device, or have global write permission.
   */
   const addUserToDevice = async function(authUser, deviceId, userToAddId, admin) {
     const device = await models.Device.findById(deviceId);
@@ -66,7 +66,7 @@ module.exports = function(sequelize, DataTypes) {
 
   /**
    * Removes a user from a Device, if the given user has permission to do so.
-   * The user must be a group or device admin, or superuser to do this. .
+   * The user must be a group or device admin, or have global write permission to do this. .
    */
   var removeUserFromDevice = async function(authUser, deviceId, userToRemoveId) {
     const device = await models.Device.findById(deviceId);
@@ -92,8 +92,8 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
-    // Return all devices if superuser.
-    if (user.superuser) {
+    // Return all devices if user has global write/read permission.
+    if (user.globalPermission == 'write' || user.globalPermission == 'read') {
       return this.findAndCount({
         where: conditions,
         attributes: ["devicename", "id"],
@@ -130,7 +130,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const userPermissions = async function(user) {
-    if (user.superuser) {
+    if (user.globalPermission == 'write') {
       return newUserPermissions(true);
     }
 
@@ -238,5 +238,3 @@ function comparePassword(password) {
     });
   });
 }
-
-

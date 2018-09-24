@@ -66,7 +66,7 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         "$and": [
           where, // User query
-          await recordingsFor(user),
+          await userReadFilter(user),
           sequelize.literal(handleTagMode(tagMode)),
         ],
       },
@@ -143,7 +143,7 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         "$and": [
           { id: id },
-          await recordingsFor(user),
+          await userReadFilter(user),
         ],
       },
       include: [
@@ -198,8 +198,9 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var recordingsFor = async function(user) {
-    if (user.superuser) {
+  // Returns a sequelize formatted query filter for recordings a user can read.
+  const userReadFilter = async function(user) {
+    if (user.globalPermission == 'write' || user.globalPermission == 'read') {
       return null;
     }
     var deviceIds = await user.getDeviceIds();
@@ -273,9 +274,13 @@ module.exports = function(sequelize, DataTypes) {
  * Permission types: DELETE, TAG, VIEW,
  * //TODO This will be edited in the future when recordings can be public.
  */
-function getUserPermissions(user) {
-  // superusers can do everything.
-  if (user.superuser) {
+async function getUserPermissions(user) {
+  var userInGroup = await new Promise(async (resolve) => {
+    var groupIds = await user.getGroupsIds();
+    resolve (groupIds.indexOf(this.GroupId) !== -1);
+  });
+
+  if (userInGroup || user.globalPermission == 'write') {
     return {
       canDelete: true,
       canTag: true,
@@ -284,24 +289,14 @@ function getUserPermissions(user) {
     };
   }
 
-  // For now if the user is in the group that owns the recording they have all
-  // permission. This will be changed in the future.
-  var permissions = {
-    canDelete: false,
-    canTag: false,
-    canView: false,
-    canUpdate: false,
-  };
-  return new Promise(async (resolve) => {
-    var groupIds = await user.getGroupsIds();
-    if (groupIds.indexOf(this.GroupId) !== -1) {
-      permissions.canDelete = true;
-      permissions.canTag = true;
-      permissions.canView = true;
-      permissions.canUpdate = true;
-    }
-    return resolve(permissions);
-  });
+  if (user.globalPermission == 'read') {
+    return {
+      canDelete: false,
+      canTag: false,
+      canView: true,
+      canUpdate: false,
+    };
+  }
 }
 
 function getFileExt() {
