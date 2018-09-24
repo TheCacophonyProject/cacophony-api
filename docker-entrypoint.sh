@@ -29,7 +29,7 @@ fi
 
 
 echo "---- Migrating database ----"
-node_modules/sequelize-cli/bin/sequelize db:migrate --config config/app_test_default.js
+node_modules/.bin/sequelize db:migrate --config config/app_test_default.js
 sudo -i -u postgres psql cacophonytest -f /app/test/db-seed.sql
 
 $NODE_BIN Server.js --config=config/app_test_default.js
