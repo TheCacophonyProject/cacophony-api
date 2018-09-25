@@ -24,22 +24,26 @@ const ExtractJwt   = require('passport-jwt').ExtractJwt;
 const log          = require('../logging');
 const customErrors = require('./customErrors');
 const { body, header, validationResult, query } = require('express-validator/check');
+
+const getVerifiedJWT = (req) => {
+  const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
+  if (token == null) {
+    throw new Error('Could not find JWT token.');
+  }
+  try {
+    var jwtDecoded = jwt.verify(token, config.server.passportSecret);
+    return jwtDecoded;
+  } catch(e) {
+    throw new Error('Failed to verify JWT.');
+  }
+};
+
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
 const authenticate = function(type) {
   return header('Authorization').custom(async (value, {req}) => {
-    const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
-    if (token == null) {
-      throw new Error('Could not find JWT token.');
-    }
-    var jwtDecoded;
-    try {
-      jwtDecoded = jwt.verify(token, config.server.passportSecret);
-    } catch(e) {
-      throw new Error('Failed to verify JWT.');
-    }
-
+    var jwtDecoded = getVerifiedJWT(req);
     if (type && type != jwtDecoded._type) {
       throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s.', type, jwtDecoded._type));
     }
@@ -63,9 +67,25 @@ const authenticate = function(type) {
   });
 };
 
-const authenticateUser         = authenticate('user');
-const authenticateDevice       = authenticate('device');
-const authenticateAny   = authenticate(null);
+const authenticateUser   = authenticate('user');
+const authenticateDevice = authenticate('device');
+const authenticateAny    = authenticate(null);
+
+const authenticateAdmin = header('Authorization').custom(async (value, {req}) => {
+  const jwtDecoded = getVerifiedJWT(req);
+  if (jwtDecoded._type != 'user') {
+    throw new Error('Admin has to be a user');
+  }
+  const user = await models.User.findById(jwtDecoded.id);
+  if (!user) {
+    throw new Error('Could not find user from JWT.');
+  }
+  if (!user.isAdmin()) {
+    throw new Error('User is not an admin.');
+  }
+  req.admin = user;
+  return true;
+});
 
 const signedUrl = query('jwt').custom((value, {req}) => {
   if (value == null) {
@@ -273,7 +293,8 @@ const requestWrapper = fn => (request, response, next) => {
 
 exports.authenticateUser   = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
-exports.authenticateAny = authenticateAny;
+exports.authenticateAny    = authenticateAny;
+exports.authenticateAdmin  = authenticateAdmin;
 exports.signedUrl          = signedUrl;
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;

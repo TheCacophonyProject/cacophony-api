@@ -106,6 +106,7 @@ module.exports = function(sequelize, DataTypes) {
       freeUsername: freeUsername,
       getFromEmail: getFromEmail,
       freeEmail: freeEmail,
+      changeGlobalPermission: changeGlobalPermission,
     },
     instanceMethods: {
       comparePassword: comparePassword,
@@ -118,6 +119,7 @@ module.exports = function(sequelize, DataTypes) {
       getAllDeviceIds: getAllDeviceIds,
       getWhereDeviceVisible: getWhereDeviceVisible,
       checkUserControlsDevices: checkUserControlsDevices,
+      isAdmin: isAdmin,
     },
     hooks: {
       beforeValidate: beforeValidate,
@@ -127,6 +129,19 @@ module.exports = function(sequelize, DataTypes) {
 
   // Define table
   return sequelize.define(name, attributes, options);
+};
+
+const changeGlobalPermission = async function(admin, user, permission) {
+  if (!user || !admin || !admin.isAdmin()) {
+    return false;
+  }
+  user.setDataValue('globalPermission', permission);
+  await user.save();
+  return true;
+};
+
+const isAdmin = function() {
+  return this.globalPermission == 'write';
 };
 
 const apiSettableFields = Object.freeze([
