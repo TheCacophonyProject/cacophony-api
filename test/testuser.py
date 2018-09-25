@@ -239,6 +239,9 @@ class TestUser:
 
         return TestRecording(recording_id, props, filename)
 
+    def set_global_permission(self, user, permission):
+        self._userapi.set_global_permission(user, permission)
+
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser
