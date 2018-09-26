@@ -66,25 +66,19 @@ module.exports = function(sequelize, DataTypes) {
     airplaneModeOn: DataTypes.BOOLEAN,
   };
 
-  
-  var options = {
-  };
-
-  var Recording = sequelize.define(name, attributes, options);
+  var Recording = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
   var models = sequelize.models;
 
-  /* .. */
   Recording.addAssociations = function(models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
     models.Recording.hasMany(models.Tag);
   };
 
-  /* .. */
   Recording.isValidTagMode = function(mode) { 
     return validTagModes.includes(mode); 
   };
@@ -259,23 +253,19 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
-  /* .. */
   Recording.prototype.getFileBaseName = function() {
     return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
       .format("YYYYMMDD-HHmmss");
   };
 
-  /* .. */
   Recording.prototype.getRawFileName = function() {
     return this.getFileBaseName() + this.getRawFileExt();
   };
 
-  /* .. */
   Recording.prototype.getFileName = function() {
     return this.getFileBaseName() + this.getFileExt();
   };
   
-  /* .. */
   Recording.prototype.getRawFileExt = function() {
     if (this.rawMimeType == 'application/x-cptv') {
       return ".cptv";
@@ -331,7 +321,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
   
-  /* .. */
   Recording.prototype.getFileExt = function() {
     if (this.fileMimeType == 'video/mp4') {
       return ".mp4";
@@ -343,7 +332,6 @@ module.exports = function(sequelize, DataTypes) {
     return "";
   };
 
-  /* .. */
   Recording.userGetAttributes = [
     'id',
     'rawFileSize',
@@ -367,7 +355,6 @@ module.exports = function(sequelize, DataTypes) {
     'comment',
   ];
   
-  /* .. */
   Recording.apiSettableFields = [
     'type',
     'duration',
@@ -391,13 +378,11 @@ module.exports = function(sequelize, DataTypes) {
     'additionalMetadata',
   ];
   
-  /* .. */
   Recording.processingStates = {
     thermalRaw: ['toMp4', 'FINISHED'],
     audio: ['toMp3', 'FINISHED'],
   };
   
-  /* .. */
   Recording.processingAttributes = [
     'id',
     'type',

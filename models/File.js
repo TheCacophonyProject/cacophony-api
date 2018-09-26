@@ -27,11 +27,7 @@ module.exports = function(sequelize, DataTypes) {
     details: DataTypes.JSONB
   };
 
-
-  var options = {
-  };
-
-  var File = sequelize.define(name, attributes, options);
+  var File = sequelize.define(name, attributes);
   
   File.apiSettableFields = [
     'type',
@@ -42,7 +38,6 @@ module.exports = function(sequelize, DataTypes) {
   // CLASS METHODS
   //---------------
 
-  /* .. */
   File.addAssociations = function(models) {
     models.File.belongsTo(models.User);
   };
@@ -68,7 +63,6 @@ module.exports = function(sequelize, DataTypes) {
     return this.findAndCount(q);
   };
 
-  /* .. */
   File.deleteIfAllowed = async function(user, file) {
     if (user.superuser || user.id == file.UserId) {
       await file.destroy();
@@ -81,4 +75,3 @@ module.exports = function(sequelize, DataTypes) {
 
   return File;
 };
-

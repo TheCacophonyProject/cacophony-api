@@ -28,18 +28,13 @@ module.exports = function(sequelize, DataTypes) {
     dateTime: DataTypes.DATE,
   };
 
-  
-  var options = {
-  };
-
-  var Event = sequelize.define(name, attributes, options);
+  var Event = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
   var models = sequelize.models;
 
-  /* .. */
   Event.addAssociations = function(models) {
     models.Event.belongsTo(models.EventDetail);
   };

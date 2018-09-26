@@ -63,7 +63,6 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   const models = sequelize.models;
 
-  /* .. */
   Device.addAssociations = function(models) {
     models.Device.hasMany(models.Recording);
     models.Device.hasMany(models.Event);
@@ -130,7 +129,6 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  /* .. */
   Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if superuser.
     if (user.superuser) {
@@ -158,7 +156,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  /* .. */
   Device.allForUser = async function(user) {
     const includeData = [
       {
@@ -170,7 +167,6 @@ module.exports = function(sequelize, DataTypes) {
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
-  /* .. */
   Device.userPermissions = async function(user) {
     if (user.superuser) {
       return this.newUserPermissions(true);
@@ -181,7 +177,6 @@ module.exports = function(sequelize, DataTypes) {
     return this.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
 
-  /* .. */
   Device.newUserPermissions = function(enabled) {
     return {
       canAddUsers: enabled,
@@ -189,7 +184,6 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
-  /* .. */
   Device.freeDevicename = async function(devicename) {
     var device = await this.findOne({where: { devicename:devicename }});
     if (device != null) {
@@ -198,12 +192,10 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  /* .. */
   Device.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  /* .. */
   Device.getFromName = async function(name) {
     return await this.findOne({ where: { devicename: name }});
   };
@@ -212,7 +204,6 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
-  /* .. */
   Device.prototype.getJwtDataValues = function() {
     return {
       id: this.getDataValue('id'),
@@ -220,7 +211,6 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
-  /* .. */
   Device.prototype.comparePassword = function(password) {
     var device = this;
     return new Promise(function(resolve, reject) {
@@ -247,7 +237,6 @@ module.exports = function(sequelize, DataTypes) {
 /* Validation methods */
 /********************/
 
-/* .. */
 function afterValidate(device) {
 
   if (device.password !== undefined) {

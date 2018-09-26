@@ -75,13 +75,11 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   const models = sequelize.models;
 
-  /* .. */
   User.addAssociations = function(models) {
     models.User.belongsToMany(models.Group, { through: models.GroupUsers });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
   };
   
-  /* .. */
   User.getAll = async function(where) {
     return await this.findAll({
       where: where,
@@ -89,17 +87,14 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  /* .. */
   User.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  /* .. */
   User.getFromName = async function(name) {
     return await this.findOne({ where: { username: name }});
   };
 
-  /* .. */
   User.freeUsername = async function(username) {
     var user = await this.findOne({where: {username: username }});
     if (user != null) {
@@ -108,12 +103,10 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  /* .. */
   User.getFromEmail = async function(email) {
     return await this.findOne({where: {email: email}});
   };
 
-  /* .. */
   User.freeEmail = async function(email) {
     email = email.toLowerCase();
     var user = await this.findOne({where: {email: email}});
@@ -127,7 +120,6 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
-  /* .. */
   User.prototype.getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
@@ -142,7 +134,6 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  /* .. */
   User.prototype.getWhereDeviceVisible = async function () {
     if (this.superuser) {
       return null;
@@ -152,7 +143,6 @@ module.exports = function(sequelize, DataTypes) {
     return { DeviceId: {[Op.in]: allDeviceIds}};
   };
 
-  /* .. */
   User.prototype.getJwtDataValues = function() {
     return {
       id: this.getDataValue('id'),
@@ -160,7 +150,6 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
-  /* .. */
   User.prototype.getDataValues = function() {
     var user = this;
     return new Promise(function(resolve) {
@@ -196,7 +185,6 @@ module.exports = function(sequelize, DataTypes) {
       });
   };
 
-  /* .. */
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
     if (!this.superuser) {
       var usersDevices = await this.getAllDeviceIds();
@@ -209,7 +197,6 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  /* .. */
   User.prototype.getAllDeviceIds = async function() {
     var directDeviceIds = await this.getDeviceIds();
     var groupedDeviceIds = await this.getGroupDeviceIds();
@@ -217,7 +204,6 @@ module.exports = function(sequelize, DataTypes) {
     return directDeviceIds.concat(groupedDeviceIds);
   };
 
-  /* .. */
   User.prototype.comparePassword = function(password) {
     var user = this;
     return new Promise(function(resolve, reject) {
@@ -238,7 +224,6 @@ module.exports = function(sequelize, DataTypes) {
 // LOCAL FUNCTIONS
 //-----------------
 
-/* .. */
 function UnauthorizedDeviceException(username, deviceId) {
   this.name = "UnauthorizedDeviceException";
   this.message = ("Unauthorized use of device " + deviceId + " by " + username);
@@ -251,7 +236,6 @@ UnauthorizedDeviceException.prototype.constructor = UnauthorizedDeviceException;
 // VALIDATION FUNCTIONS
 //----------------------
 
-/* .. */
 function afterValidate(user) {
   // TODO see if this can be done elsewhere, or when just validating the password.
   return new Promise(function(resolve, reject) {
@@ -266,7 +250,6 @@ function afterValidate(user) {
   });
 }
 
-/* .. */
 function beforeValidate(user) {
   return new Promise((resolve) => {
     user.setDataValue('email', user.getDataValue('email').toLowerCase());

@@ -26,19 +26,14 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
-  var options = {
-  };
-
-  var DeviceUsers = sequelize.define(name, attributes, options);
+  var DeviceUsers = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
 
-  /* .. */
   DeviceUsers.addAssociations = function() {};
 
-  /* .. */
   DeviceUsers.isAdmin = async function(deviceId, userId) {
     var deviceUser = await this.findOne({
       where: {

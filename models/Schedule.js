@@ -24,16 +24,12 @@ module.exports = function(sequelize, DataTypes) {
     schedule: DataTypes.JSONB
   };
 
-  var options = {
-  };
-
-  var Schedule = sequelize.define(name, attributes, options);
+  var Schedule = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
   
-  /* .. */
   Schedule.addAssociations = function(models) {
     models.Schedule.belongsTo(models.User);
     models.Schedule.hasMany(models.Device);

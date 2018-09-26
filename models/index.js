@@ -36,7 +36,7 @@ dbConfig.logging = function(msg, timeMs) {
 // String-based operators are deprecated in sequelize v4 as a security concern.
 // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 // Because they are currently used via the API, we need to keep them enabled.
-// The following definition explicitly enables all supported aliases. 
+// The following definition explicitly enables the aliases we want to support. 
 const Op = Sequelize.Op;
 dbConfig.operatorsAliases = {
   $eq: Op.eq,
@@ -53,26 +53,13 @@ dbConfig.operatorsAliases = {
   $notLike: Op.notLike,
   $iLike: Op.iLike,
   $notILike: Op.notILike,
-  $regexp: Op.regexp,
-  $notRegexp: Op.notRegexp,
-  $iRegexp: Op.iRegexp,
-  $notIRegexp: Op.notIRegexp,
   $between: Op.between,
   $notBetween: Op.notBetween,
-  $overlap: Op.overlap,
   $contains: Op.contains,
-  $contained: Op.contained,
-  $adjacent: Op.adjacent,
-  $strictLeft: Op.strictLeft,
-  $strictRight: Op.strictRight,
-  $noExtendRight: Op.noExtendRight,
-  $noExtendLeft: Op.noExtendLeft,
   $and: Op.and,
   $or: Op.or,
   $any: Op.any,
-  $all: Op.all,
-  $values: Op.values,
-  $col: Op.col
+  $all: Op.all
 };
 
 const sequelize = new Sequelize(

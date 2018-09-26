@@ -25,10 +25,7 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
-  var options = {
-  };
-
-  var Group = sequelize.define(name, attributes, options);
+  var Group = sequelize.define(name, attributes);
 
   Group.apiSettableFields = [];
 
@@ -37,7 +34,6 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   var models = sequelize.models;
 
-  /* .. */
   Group.addAssociations = function(models) {
     models.Group.hasMany(models.Device);
     models.Group.belongsToMany(models.User, { through: models.GroupUsers });
@@ -176,17 +172,14 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  /* .. */
   Group.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  /* .. */
   Group.getFromName = async function(name) {
     return await this.findOne({ where: { groupname: name }});
   };
 
-  /* .. */
   Group.freeGroupname = async function(name) {
     var group = await this.findOne({where: { groupname: name }});
     if (group != null) {
@@ -195,7 +188,6 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  /* .. */
   Group.getIdFromName = function(name) {
     var Group = this;
     return new Promise(function(resolve) {
@@ -214,7 +206,6 @@ module.exports = function(sequelize, DataTypes) {
   // Instance methods
   //------------------
 
-  /* .. */
   Group.prototype.userPermissions = async function(user) {
     if (user.superuser) {
       return newUserPermissions(true);
@@ -222,7 +213,6 @@ module.exports = function(sequelize, DataTypes) {
     return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));
   };
 
-  /* .. */
   const newUserPermissions = function(enabled) {
     return {
       canAddUsers: enabled,

@@ -36,12 +36,10 @@ module.exports = function(sequelize, DataTypes) {
   // CLASS METHODS
   //---------------
 
-  /* .. */
   EventDetail.addAssociations = function(models) {
     models.EventDetail.hasMany(models.Event);
   };
   
-  /* .. */
   EventDetail.getMatching = async function(searchType, searchDetails) {
     if (!searchDetails) {
       searchDetails = {
@@ -55,7 +53,6 @@ module.exports = function(sequelize, DataTypes) {
     }});
   };
   
-  /* .. */
   EventDetail.getFromId = async function(id) {
     return await this.findById(id);
   };

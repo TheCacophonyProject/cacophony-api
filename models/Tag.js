@@ -57,32 +57,25 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
-  var options = {
-  };
-
-  var Tag = sequelize.define(name, attributes, options);
+  var Tag = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
 
-  /* .. */
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, {as: 'tagger'});
     models.Tag.belongsTo(models.Recording);
   };
   
-  /* .. */
   Tag.getFromId = function(id, user, attributes) {
     util.GetFromId(id, user, attributes);
   };
   
-  /* .. */
   Tag.deleteModelInstance = function(id, user) {
     util.deleteModelInstance(id, user);
   };
   
-  /* .. */
   Tag.deleteFromId = async function(id, user) {
     var tag = await this.findOne({where: {id: id}});
     if (tag == null) {
@@ -95,7 +88,6 @@ module.exports = function(sequelize, DataTypes) {
     else {return false;}
   };
   
-  /* .. */
   Tag.prototype.getFrontendFields = function() {
     var model = this;
     return {

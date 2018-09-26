@@ -26,10 +26,7 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
-  var options = {
-  };
-
-  var GroupUsers = sequelize.define(name, attributes, options);
+  var GroupUsers = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
