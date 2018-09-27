@@ -15,7 +15,6 @@
     "express": "^4.16.3",
     "express-validator": "^4.3.0",
     "express-winston": "^2.5.0",
-    "fluent-ffmpeg": "^2.1.0",
     "fs": "0.0.2",
     "install": "^0.12.1",
     "json-pointer": "^0.5.0",
