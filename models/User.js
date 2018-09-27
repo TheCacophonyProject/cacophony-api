@@ -1,4 +1,24 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var bcrypt = require('bcrypt');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'User';
@@ -29,29 +49,53 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  const models = sequelize.models;
+  var options = {
+    hooks: {
+      beforeValidate: beforeValidate,
+      afterValidate: afterValidate,
+    }
+  };
 
-  const publicFields = Object.freeze([
+  // Define table
+  var User = sequelize.define(name, attributes, options);
+
+  User.publicFields = Object.freeze([
     'id',
     'username',
   ]);
+  
+  User.apiSettableFields = Object.freeze([
+    'firstName',
+    'lastName',
+    'email'
+  ]);
 
-  var getAll = async function(where) {
+  //---------------
+  // CLASS METHODS
+  //---------------
+  const models = sequelize.models;
+
+  User.addAssociations = function(models) {
+    models.User.belongsToMany(models.Group, { through: models.GroupUsers });
+    models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
+  };
+  
+  User.getAll = async function(where) {
     return await this.findAll({
       where: where,
-      attributes: publicFields,
+      attributes: this.publicFields,
     });
   };
 
-  const getFromId = async function(id) {
+  User.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  const getFromName = async function(name) {
+  User.getFromName = async function(name) {
     return await this.findOne({ where: { username: name }});
   };
 
-  const freeUsername = async function(username) {
+  User.freeUsername = async function(username) {
     var user = await this.findOne({where: {username: username }});
     if (user != null) {
       throw new Error('username in use');
@@ -59,11 +103,11 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  const getFromEmail = async function(email) {
+  User.getFromEmail = async function(email) {
     return await this.findOne({where: {email: email}});
   };
 
-  const freeEmail = async function(email) {
+  User.freeEmail = async function(email) {
     email = email.toLowerCase();
     var user = await this.findOne({where: {email: email}});
     if (user) {
@@ -72,11 +116,15 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  const getGroupDeviceIds = async function() {
+  //------------------
+  // INSTANCE METHODS
+  //------------------
+
+  User.prototype.getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
       var devices = await models.Device.findAll({
-        where: { GroupId: { "$in": groupIds }},
+        where: { GroupId: { [Op.in]: groupIds }},
         attributes: ['id'],
       });
       return devices.map(d => d.id);
@@ -86,100 +134,95 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  const getWhereDeviceVisible = async function () {
+  User.prototype.getWhereDeviceVisible = async function () {
     if (this.superuser) {
       return null;
     }
 
     var allDeviceIds = await this.getAllDeviceIds();
-    return { DeviceId: {"$in": allDeviceIds}};
+    return { DeviceId: {[Op.in]: allDeviceIds}};
   };
 
-  var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields,
-      getAll: getAll,
-      getFromId: getFromId,
-      getFromName: getFromName,
-      freeUsername: freeUsername,
-      getFromEmail: getFromEmail,
-      freeEmail: freeEmail,
-    },
-    instanceMethods: {
-      comparePassword: comparePassword,
-      getGroupsIds: getGroupsIds,
-      getDeviceIds: getDeviceIds,
-      getGroupDeviceIds: getGroupDeviceIds,
-      getJwtDataValues: getJwtDataValues,
-      getDataValues: getDataValues,
-      getAll: getAll,
-      getAllDeviceIds: getAllDeviceIds,
-      getWhereDeviceVisible: getWhereDeviceVisible,
-      checkUserControlsDevices: checkUserControlsDevices,
-    },
-    hooks: {
-      beforeValidate: beforeValidate,
-      afterValidate: afterValidate,
+  User.prototype.getJwtDataValues = function() {
+    return {
+      id: this.getDataValue('id'),
+      _type: 'user'
+    };
+  };
+
+  User.prototype.getDataValues = function() {
+    var user = this;
+    return new Promise(function(resolve) {
+      user.getGroups()
+        .then(function(groups) {
+          resolve({
+            id: user.getDataValue('id'),
+            username: user.getDataValue('username'),
+            firstName: user.getDataValue('firstName'),
+            lastName: user.getDataValue('lastName'),
+            email: user.getDataValue('email'),
+            groups: groups
+          });
+        });
+    });
+  };
+
+  // Returns the groups that are associated with this user (via
+  // GroupUsers).
+  User.prototype.getGroupsIds = function() {
+    return this.getGroups()
+      .then(function(groups) {
+        return groups.map(g => g.id);
+      });
+  };
+
+  // Returns the devices that are directly associated with this user
+  // (via DeviceUsers).
+  User.prototype.getDeviceIds = function() {
+    return this.getDevices()
+      .then(function(devices) {
+        return devices.map(d => d.id);
+      });
+  };
+
+  User.prototype.checkUserControlsDevices = async function(deviceIds) {
+    if (!this.superuser) {
+      var usersDevices = await this.getAllDeviceIds();
+
+      deviceIds.forEach(deviceId => {
+        if (!usersDevices.includes(deviceId)) {
+          throw new UnauthorizedDeviceException(this.username, deviceId);
+        }
+      });
     }
   };
 
-  // Define table
-  return sequelize.define(name, attributes, options);
+  User.prototype.getAllDeviceIds = async function() {
+    var directDeviceIds = await this.getDeviceIds();
+    var groupedDeviceIds = await this.getGroupDeviceIds();
+
+    return directDeviceIds.concat(groupedDeviceIds);
+  };
+
+  User.prototype.comparePassword = function(password) {
+    var user = this;
+    return new Promise(function(resolve, reject) {
+      bcrypt.compare(password, user.password, function(err, isMatch) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(isMatch);
+        }
+      });
+    });
+  };
+
+  return User;
 };
 
-const apiSettableFields = Object.freeze([
-  'firstName',
-  'lastName',
-  'email'
-]);
-
-function getJwtDataValues() {
-  return {
-    id: this.getDataValue('id'),
-    _type: 'user'
-  };
-}
-
-function getDataValues() {
-  var user = this;
-  return new Promise(function(resolve) {
-    user.getGroups()
-      .then(function(groups) {
-        resolve({
-          id: user.getDataValue('id'),
-          username: user.getDataValue('username'),
-          firstName: user.getDataValue('firstName'),
-          lastName: user.getDataValue('lastName'),
-          email: user.getDataValue('email'),
-          groups: groups
-        });
-      });
-  });
-}
-
-function addAssociations(models) {
-  models.User.belongsToMany(models.Group, { through: models.GroupUsers });
-  models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
-}
-
-// Returns the groups that are associated with this user (via
-// GroupUsers).
-function getGroupsIds() {
-  return this.getGroups()
-    .then(function(groups) {
-      return groups.map(g => g.id);
-    });
-}
-
-// Returns the devices that are directly associated with this user
-// (via DeviceUsers).
-function getDeviceIds() {
-  return this.getDevices()
-    .then(function(devices) {
-      return devices.map(d => d.id);
-    });
-}
+//-----------------
+// LOCAL FUNCTIONS
+//-----------------
 
 function UnauthorizedDeviceException(username, deviceId) {
   this.name = "UnauthorizedDeviceException";
@@ -189,27 +232,12 @@ function UnauthorizedDeviceException(username, deviceId) {
 UnauthorizedDeviceException.prototype = new Error();
 UnauthorizedDeviceException.prototype.constructor = UnauthorizedDeviceException;
 
-const checkUserControlsDevices = async function(deviceIds) {
-  if (!this.superuser) {
-    var usersDevices = await this.getAllDeviceIds();
-
-    deviceIds.forEach(deviceId => {
-      if (!usersDevices.includes(deviceId)) {
-        throw new UnauthorizedDeviceException(this.username, deviceId);
-      }
-    });
-  }
-};
-
-const getAllDeviceIds = async function() {
-  var directDeviceIds = await this.getDeviceIds();
-  var groupedDeviceIds = await this.getGroupDeviceIds();
-
-  return directDeviceIds.concat(groupedDeviceIds);
-};
+//----------------------
+// VALIDATION FUNCTIONS
+//----------------------
 
 function afterValidate(user) {
-  // TODO see if thsi can be done elsewhere, or when just validating the password.
+  // TODO see if this can be done elsewhere, or when just validating the password.
   return new Promise(function(resolve, reject) {
     bcrypt.hash(user.password, 10, function(err, hash) {
       if (err) {
@@ -226,18 +254,5 @@ function beforeValidate(user) {
   return new Promise((resolve) => {
     user.setDataValue('email', user.getDataValue('email').toLowerCase());
     resolve();
-  });
-}
-
-function comparePassword(password) {
-  var user = this;
-  return new Promise(function(resolve, reject) {
-    bcrypt.compare(password, user.password, function(err, isMatch) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(isMatch);
-      }
-    });
   });
 }
