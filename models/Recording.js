@@ -290,15 +290,7 @@ module.exports = function(sequelize, DataTypes) {
    * //TODO This will be edited in the future when recordings can be public.
    */
   Recording.prototype.getUserPermissions = async function(user) {
-    var userInGroup = await new Promise(async (resolve) => {
-      var groupIds = await user.getGroupsIds();
-      if (groupIds.indexOf(this.GroupId) !== -1) {
-        resolve(true);
-        return;
-      }
-      resolve(false);
-    });
-    if (user.isAdmin() || userInGroup) {
+    if (user.isAdmin() || await user.isInGroup(this.GroupId)) {
       return {
         canDelete: true,
         canTag: true,
@@ -332,6 +324,11 @@ module.exports = function(sequelize, DataTypes) {
       return "." + ext;
     }
     return "";
+  };
+
+  Recording.prototype.isInGroup = async function(id) {
+    var groupIds = await this.getGroupsIds();
+    return (groupIds.includes(id));
   };
 
   Recording.userGetAttributes = [
