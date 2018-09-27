@@ -18,10 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var AWS = require('aws-sdk');
 var log = require('../../logging');
-var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var mime = require('mime');
-var path = require('path');
 var config = require('../../config');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
@@ -69,76 +67,6 @@ function findAllWithUser(model, user, queryParams) {
           resolve(result);
         });
     }
-  });
-}
-
-/**
- * Converts the audio file to a mp3, if not one already.
- * @param {Object} file - Audio file.
- * @return {Promise} resolves with the file path.
- */
-function processAudio(file) {
-  log.debug('Processing audio file.');
-  return new Promise(function(resolve, reject) {
-    if (!file.name.endsWith(".m4a") && !file.name.endsWith(".mp3")) {
-      var convertedAudioPath = file.path + '.mp3';
-      ffmpeg(file.path)
-        .output(convertedAudioPath)
-        .audioBitrate(128)
-        .on('end', function() {
-          fs.unlink(file.path);
-          resolve(getMetadataFromFile(convertedAudioPath));
-        })
-        .on('error', function(err) {
-          fs.unlink(file.path);
-          reject(err);
-        })
-        .run();
-    } else {
-      resolve(getMetadataFromFile(file.path, file.name));
-    }
-  });
-}
-
-/**
- * Converts the video file to a mp4, if not one already.
- * @param {Object} file - Audio file.
- * @return {Promise} resolves with the file path.
- */
-function processVideo(file) {
-  log.debug('Processing video file.');
-  return new Promise(function(resolve, reject) {
-    if (file.type != 'video/mp4' && !file.name.endsWith('.mp4')) {
-      var convertedVideoPath = file.path + '.mp4';
-      ffmpeg(file.path)
-        .output(convertedVideoPath)
-        .on('end', function() {
-          fs.unlink(file.path);
-          resolve(getMetadataFromFile(convertedVideoPath));
-        })
-        .on('error', function(err) {
-          fs.unlink(file.path);
-          reject(err);
-        })
-        .run();
-    } else {
-      resolve(getMetadataFromFile(file.path, file.type));
-    }
-  });
-}
-
-function getMetadataFromFile(filePath, fileName) {
-  return new Promise(function(resolve) {
-    var size = fs.statSync(filePath).size || 0;
-    var mimeType = mime.getType(fileName || filePath);
-    var extname = path.extname(filePath) || '';
-    var fileData = {
-      path: filePath,
-      mimeType: mimeType,
-      extname: extname,
-      size: size,
-    };
-    resolve(fileData);
   });
 }
 
@@ -402,8 +330,6 @@ function deleteFile(fileKey) {
 
 exports.geometrySetter = geometrySetter;
 exports.findAllWithUser = findAllWithUser;
-exports.processAudio = processAudio;
-exports.processVideo = processVideo;
 exports.getFileData = getFileData;
 exports.migrationAddBelongsTo = migrationAddBelongsTo;
 exports.migrationRemoveBelongsTo = migrationRemoveBelongsTo;
