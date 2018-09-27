@@ -1,4 +1,24 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var bcrypt = require('bcrypt');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Device';
@@ -30,14 +50,32 @@ module.exports = function(sequelize, DataTypes) {
     },
   };
 
+  var options = {
+    hooks: {
+      afterValidate: afterValidate
+    }
+  };
+
+  var Device = sequelize.define(name, attributes, options);
+
+  //---------------
+  // CLASS METHODS
+  //---------------
   const models = sequelize.models;
+
+  Device.addAssociations = function(models) {
+    models.Device.hasMany(models.Recording);
+    models.Device.hasMany(models.Event);
+    models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
+    models.Device.belongsTo(models.Schedule);
+  };
 
   /**
   * Adds/update a user to a Device, if the given user has permission to do so.
   * The authenticated user must either be admin of the group that the device
   * belongs to, an admin of that device, or have global write permission.
   */
-  const addUserToDevice = async function(authUser, deviceId, userToAddId, admin) {
+  Device.addUserToDevice = async function(authUser, deviceId, userToAddId, admin) {
     const device = await models.Device.findById(deviceId);
     const userToAdd = await models.User.findById(userToAddId);
     if (device == null || userToAdd == null) {
@@ -68,7 +106,7 @@ module.exports = function(sequelize, DataTypes) {
    * Removes a user from a Device, if the given user has permission to do so.
    * The user must be a group or device admin, or have global write permission to do this. .
    */
-  var removeUserFromDevice = async function(authUser, deviceId, userToRemoveId) {
+  Device.removeUserFromDevice = async function(authUser, deviceId, userToRemoveId) {
     const device = await models.Device.findById(deviceId);
     const userToRemove = await models.User.findById(userToRemoveId);
     if (device == null || userToRemove == null) {
@@ -91,7 +129,7 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  var onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
+  Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if user has global write/read permission.
     if (user.globalPermission == 'write' || user.globalPermission == 'read') {
       return this.findAndCount({
@@ -105,20 +143,20 @@ module.exports = function(sequelize, DataTypes) {
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
 
-    const usersDevice = { "$or": [
-      {GroupId: {"$in": userGroupIds}},
-      {id: {"$in": deviceIds}},
+    const usersDevice = { [Op.or]: [
+      {GroupId: {[Op.in]: userGroupIds}},
+      {id: {[Op.in]: deviceIds}},
     ]};
 
     return this.findAndCount({
-      where: { "$and": [usersDevice, conditions] },
+      where: { [Op.and]: [usersDevice, conditions] },
       attributes: ["devicename", "id"],
       order: ['devicename'],
       include: includeData,
     });
   };
 
-  var allForUser = async function(user) {
+  Device.allForUser = async function(user) {
     const includeData = [
       {
         model: models.User,
@@ -129,25 +167,24 @@ module.exports = function(sequelize, DataTypes) {
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
-  const userPermissions = async function(user) {
+  Device.userPermissions = async function(user) {
     if (user.globalPermission == 'write') {
       return newUserPermissions(true);
     }
 
     const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
-    return newUserPermissions(isGroupAdmin || isDeviceAdmin);
+    return this.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
 
-
-  const newUserPermissions = function(enabled) {
+  Device.newUserPermissions = function(enabled) {
     return {
       canAddUsers: enabled,
       canRemoveUsers: enabled,
     };
   };
 
-  const freeDevicename = async function(devicename) {
+  Device.freeDevicename = async function(devicename) {
     var device = await this.findOne({where: { devicename:devicename }});
     if (device != null) {
       throw new Error('device name in use');
@@ -155,58 +192,50 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  const getFromId = async function(id) {
+  Device.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  const getFromName = async function(name) {
+  Device.getFromName = async function(name) {
     return await this.findOne({ where: { devicename: name }});
   };
 
-  var options = {
-    classMethods: {
-      addAssociations: addAssociations,
-      apiSettableFields: apiSettableFields,
-      freeDevicename: freeDevicename,
-      addUserToDevice: addUserToDevice,
-      allForUser: allForUser,
-      removeUserFromDevice: removeUserFromDevice,
-      getFromId: getFromId,
-      getFromName: getFromName,
-      onlyUsersDevicesMatching: onlyUsersDevicesMatching
-    },
-    instanceMethods: {
-      comparePassword: comparePassword,
-      getJwtDataValues: getJwtDataValues,
-      userPermissions: userPermissions,
-    },
-    hooks: {
-      afterValidate: afterValidate
-    }
+  //------------------
+  // INSTANCE METHODS
+  //------------------
+
+  Device.prototype.getJwtDataValues = function() {
+    return {
+      id: this.getDataValue('id'),
+      _type: 'device'
+    };
   };
 
-  return sequelize.define(name, attributes, options);
+  Device.prototype.comparePassword = function(password) {
+    var device = this;
+    return new Promise(function(resolve, reject) {
+      bcrypt.compare(password, device.password, function(err, isMatch) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(isMatch);
+        }
+      });
+    });
+  };
+
+  // Fields that are directly settable by the API.
+  Device.apiSettableFields = [
+    'location',
+    'newConfig'
+  ];
+
+  return Device;
 };
 
-// Fields that are directly settable by the API.
-var apiSettableFields = [
-  'location',
-  'newConfig'
-];
-
-function getJwtDataValues() {
-  return {
-    id: this.getDataValue('id'),
-    _type: 'device'
-  };
-}
-
-function addAssociations(models) {
-  models.Device.hasMany(models.Recording);
-  models.Device.hasMany(models.Event);
-  models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
-  models.Device.belongsTo(models.Schedule);
-}
+/********************/
+/* Validation methods */
+/********************/
 
 function afterValidate(device) {
 
@@ -224,17 +253,4 @@ function afterValidate(device) {
       });
     });
   }
-}
-
-function comparePassword(password) {
-  var device = this;
-  return new Promise(function(resolve, reject) {
-    bcrypt.compare(password, device.password, function(err, isMatch) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(isMatch);
-      }
-    });
-  });
 }

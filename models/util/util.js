@@ -1,3 +1,21 @@
+/*
+cacophony-api: The Cacophony Project API server
+Copyright (C) 2018  The Cacophony Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 var AWS = require('aws-sdk');
 var log = require('../../logging');
 var ffmpeg = require('fluent-ffmpeg');
@@ -5,6 +23,8 @@ var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
 var config = require('../../config');
+var Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 
 function findAllWithUser(model, user, queryParams) {
@@ -19,7 +39,7 @@ function findAllWithUser(model, user, queryParams) {
     if (!user) {
       // Not logged in, can onnly see public recordings.
       model.findAndCount({
-        where: { "$and": [queryParams.where, { public: true }] },
+        where: { [Op.and]: [queryParams.where, { public: true }] },
         include: [models.Group],
         limit: queryParams.limit,
         offset: queryParams.offset
@@ -33,9 +53,9 @@ function findAllWithUser(model, user, queryParams) {
         .then(function(ids) {
           // Adding filter so they only see recordings that they are allowed to.
           queryParams.where = {
-            "$and": [
+            [Op.and]: [
               queryParams.where,
-              { "$or": [{ public: true }, { GroupId: { "$in": ids } }] }
+              { [Op.or]: [{ public: true }, { GroupId: { [Op.in]: ids } }] }
             ]
           };
           queryParams.include = [
@@ -266,7 +286,7 @@ function getFromId(id, user, attributes) {
         var condition = {
           where: {
             id: id,
-            "$or": [{ GroupId: { "$in": ids } }, { public: true }],
+            [Op.or]: [{ GroupId: { [Op.in]: ids } }, { public: true }],
           },
           attributes: attributes,
         };
