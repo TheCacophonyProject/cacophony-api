@@ -94,7 +94,7 @@ module.exports = function(app, baseUrl) {
   * @apiName AddUserToGroup
   * @apiGroup Group
   * @apiDescription This call can add a user to a group. Has to be authenticated
-  * by an admin from the group or a superuser. It can also be used to update the
+  * by an admin from the group or a user with global write permission. It can also be used to update the
   * admin status of a user for the group by setting admin to true or false.
   *
   * @apiUse V1UserAuthorizationHeader
@@ -143,7 +143,7 @@ module.exports = function(app, baseUrl) {
   * @apiName RemoveUserFromGroup
   * @apiGroup Group
   * @apiDescription This call can remove a user from a group. Has to be authenticated
-  * by an admin from the group or a superuser.
+  * by an admin from the group or a user with global write permission.
   *
   * @apiUse V1UserAuthorizationHeader
   *

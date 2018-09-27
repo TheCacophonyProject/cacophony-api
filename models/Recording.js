@@ -79,8 +79,8 @@ module.exports = function(sequelize, DataTypes) {
     models.Recording.hasMany(models.Tag);
   };
 
-  Recording.isValidTagMode = function(mode) { 
-    return validTagModes.includes(mode); 
+  Recording.isValidTagMode = function(mode) {
+    return validTagModes.includes(mode);
   };
 
   /**
@@ -237,7 +237,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // local
   var recordingsFor = async function(user) {
-    if (user.superuser) {
+    if (user.hasGlobalRead()) {
       return null;
     }
     var deviceIds = await user.getDeviceIds();
@@ -265,7 +265,7 @@ module.exports = function(sequelize, DataTypes) {
   Recording.prototype.getFileName = function() {
     return this.getFileBaseName() + this.getFileExt();
   };
-  
+
   Recording.prototype.getRawFileExt = function() {
     if (this.rawMimeType == 'application/x-cptv') {
       return ".cptv";
@@ -289,9 +289,8 @@ module.exports = function(sequelize, DataTypes) {
    * Permission types: DELETE, TAG, VIEW,
    * //TODO This will be edited in the future when recordings can be public.
    */
-  Recording.prototype.getUserPermissions = function(user) {
-    // superusers can do everything.
-    if (user.superuser) {
+  Recording.prototype.getUserPermissions = async function(user) {
+    if (user.hasGlobalWrite() || await user.isInGroup(this.GroupId)) {
       return {
         canDelete: true,
         canTag: true,
@@ -300,27 +299,22 @@ module.exports = function(sequelize, DataTypes) {
       };
     }
 
-    // For now if the user is in the group that owns the recording they have all
-    // permission. This will be changed in the future.
-    var permissions = {
+    if (user.hasGlobalRead()) {
+      return {
+        canDelete: false,
+        canTag: false,
+        canView: true,
+        canUpdate: false,
+      };
+    }
+    return {
       canDelete: false,
       canTag: false,
       canView: false,
       canUpdate: false,
     };
-
-    return new Promise(async (resolve) => {
-      var groupIds = await user.getGroupsIds();
-      if (groupIds.indexOf(this.GroupId) !== -1) {
-        permissions.canDelete = true;
-        permissions.canTag = true;
-        permissions.canView = true;
-        permissions.canUpdate = true;
-      }
-      return resolve(permissions);
-    });
   };
-  
+
   Recording.prototype.getFileExt = function() {
     if (this.fileMimeType == 'video/mp4') {
       return ".mp4";
@@ -330,6 +324,11 @@ module.exports = function(sequelize, DataTypes) {
       return "." + ext;
     }
     return "";
+  };
+
+  Recording.prototype.isInGroup = async function(id) {
+    var groupIds = await this.getGroupsIds();
+    return (groupIds.includes(id));
   };
 
   Recording.userGetAttributes = [
@@ -354,7 +353,7 @@ module.exports = function(sequelize, DataTypes) {
     'fileKey',
     'comment',
   ];
-  
+
   Recording.apiSettableFields = [
     'type',
     'duration',
@@ -377,12 +376,12 @@ module.exports = function(sequelize, DataTypes) {
     'comment',
     'additionalMetadata',
   ];
-  
+
   Recording.processingStates = {
     thermalRaw: ['toMp4', 'FINISHED'],
     audio: ['toMp3', 'FINISHED'],
   };
-  
+
   Recording.processingAttributes = [
     'id',
     'type',
@@ -394,7 +393,7 @@ module.exports = function(sequelize, DataTypes) {
     'processingState',
     'processingMeta',
   ];
-  
+
   // local
   const validTagModes = Object.freeze([
     'any',
@@ -405,6 +404,6 @@ module.exports = function(sequelize, DataTypes) {
     'human-only',
     'automatic+human',
   ]);
-  
+
   return Recording;
 };

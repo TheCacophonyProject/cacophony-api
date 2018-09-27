@@ -20,6 +20,15 @@ var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+const PERMISSION_WRITE = 'write';
+const PERMISSION_READ = 'read';
+const PERMISSION_OFF = 'off';
+const PERMISSIONS = Object.freeze([
+  PERMISSION_WRITE,
+  PERMISSION_READ,
+  PERMISSION_OFF,
+]);
+
 module.exports = function(sequelize, DataTypes) {
   var name = 'User';
 
@@ -43,10 +52,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    superuser: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    }
+    globalPermission: {
+      type: DataTypes.ENUM,
+      values: PERMISSIONS,
+      defaultValue: PERMISSION_OFF,
+    },
   };
 
   var options = {
@@ -63,12 +73,17 @@ module.exports = function(sequelize, DataTypes) {
     'id',
     'username',
   ]);
-  
+
   User.apiSettableFields = Object.freeze([
     'firstName',
     'lastName',
     'email'
   ]);
+
+  Object.defineProperty(User, 'GLOBAL_PERMISSIONS', {
+    value: PERMISSIONS,
+    writable: false,
+  });
 
   //---------------
   // CLASS METHODS
@@ -79,7 +94,7 @@ module.exports = function(sequelize, DataTypes) {
     models.User.belongsToMany(models.Group, { through: models.GroupUsers });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
   };
-  
+
   User.getAll = async function(where) {
     return await this.findAll({
       where: where,
@@ -116,9 +131,26 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
+  User.changeGlobalPermission = async function(admin, user, permission) {
+    if (!user || !admin || !admin.hasGlobalWrite()) {
+      return false;
+    }
+    user.globalPermission = permission;
+    await user.save();
+    return true;
+  };
+
   //------------------
   // INSTANCE METHODS
   //------------------
+
+  User.prototype.hasGlobalWrite = function() {
+    return PERMISSION_WRITE == this.globalPermission;
+  };
+
+  User.prototype.hasGlobalRead = function() {
+    return [PERMISSION_WRITE, PERMISSION_READ].includes(this.globalPermission);
+  };
 
   User.prototype.getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
@@ -135,7 +167,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.getWhereDeviceVisible = async function () {
-    if (this.superuser) {
+    if (this.hasGlobalRead()) {
       return null;
     }
 
@@ -186,7 +218,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
-    if (!this.superuser) {
+    if (!this.hasGlobalWrite()) {
       var usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach(deviceId => {
