@@ -39,7 +39,7 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateAdmin,
       middleware.getUserByName(param),
-      body('permission').isIn(['read','write','off']),
+      body('permission').isIn(models.User.globalPermissions),
     ],
     middleware.requestWrapper(async (request, response) => {
       const updated = await models.User.changeGlobalPermission(

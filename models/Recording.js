@@ -237,7 +237,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // local
   var recordingsFor = async function(user) {
-    if (user.globalPermission == 'write' || user.globalPermission == 'read') {
+    if (user.hasGlobalRead()) {
       return null;
     }
     var deviceIds = await user.getDeviceIds();
@@ -298,7 +298,7 @@ module.exports = function(sequelize, DataTypes) {
       }
       resolve(false);
     });
-    if (user.globalPermission == 'write' || userInGroup) {
+    if (user.isAdmin() || userInGroup) {
       return {
         canDelete: true,
         canTag: true,
@@ -307,7 +307,7 @@ module.exports = function(sequelize, DataTypes) {
       };
     }
 
-    if (user.globalPermission == 'read') {
+    if (user.hasGlobalRead()) {
       return {
         canDelete: false,
         canTag: false,

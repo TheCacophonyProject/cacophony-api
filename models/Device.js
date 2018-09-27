@@ -131,7 +131,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if user has global write/read permission.
-    if (user.globalPermission == 'write' || user.globalPermission == 'read') {
+    if (user.hasGlobalRead()) {
       return this.findAndCount({
         where: conditions,
         attributes: ["devicename", "id"],
@@ -168,8 +168,8 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.userPermissions = async function(user) {
-    if (user.globalPermission == 'write') {
-      return newUserPermissions(true);
+    if (user.isAdmin()) {
+      return this.newUserPermissions(true);
     }
 
     const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);

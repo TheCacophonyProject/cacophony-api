@@ -20,6 +20,15 @@ var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+const PERMISSION_WRITE = 'write';
+const PERMISSION_READ = 'read';
+const PERMISSION_OFF = 'off';
+const PERMISSIONS = Object.freeze([
+  PERMISSION_WRITE,
+  PERMISSION_READ,
+  PERMISSION_OFF,
+]);
+
 module.exports = function(sequelize, DataTypes) {
   var name = 'User';
 
@@ -45,8 +54,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     globalPermission: {
       type: DataTypes.ENUM,
-      values: ['off', 'read', 'write'],
-      defaultValue: 'off',
+      values: PERMISSIONS,
+      defaultValue: PERMISSION_OFF,
     },
   };
 
@@ -70,6 +79,8 @@ module.exports = function(sequelize, DataTypes) {
     'lastName',
     'email'
   ]);
+
+  User.globalPermissions = PERMISSIONS;
 
   //---------------
   // CLASS METHODS
@@ -130,6 +141,14 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
+  User.prototype.isAdmin = function() {
+    return PERMISSION_WRITE == this.globalPermission;
+  };
+
+  User.prototype.hasGlobalRead = function() {
+    return [PERMISSION_WRITE, PERMISSION_READ].includes(this.globalPermission);
+  };
+
   User.prototype.getGroupDeviceIds = async function() {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
@@ -145,7 +164,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.getWhereDeviceVisible = async function () {
-    if (['write', 'read'].includes(this.globalPermission)) {
+    if (this.hasGlobalRead()) {
       return null;
     }
 
@@ -177,10 +196,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  User.prototype.isAdmin = function() {
-    return this.globalPermission == 'write';
-  };
-
   // Returns the groups that are associated with this user (via
   // GroupUsers).
   User.prototype.getGroupsIds = function() {
@@ -200,7 +215,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
-    if (this.globalPermission != 'write') {
+    if (!this.isAdmin()) {
       var usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach(deviceId => {

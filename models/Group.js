@@ -106,7 +106,7 @@ module.exports = function(sequelize, DataTypes) {
   Group.query = async function(where, user) {
 
     var userWhere = { id: user.id };
-    if (['read', 'write'].includes(user.globalPermission)) {
+    if (user.hasGlobalRead()) {
       userWhere = null;
     }
 
@@ -207,7 +207,7 @@ module.exports = function(sequelize, DataTypes) {
   //------------------
 
   Group.prototype.userPermissions = async function(user) {
-    if (user.globalPermission == 'write') {
+    if (user.isAdmin()) {
       return newUserPermissions(true);
     }
     return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));
