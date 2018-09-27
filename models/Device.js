@@ -168,7 +168,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.userPermissions = async function(user) {
-    if (user.isAdmin()) {
+    if (user.hasGlobalWrite()) {
       return this.newUserPermissions(true);
     }
 

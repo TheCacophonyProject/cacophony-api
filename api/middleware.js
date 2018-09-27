@@ -80,7 +80,7 @@ const authenticateAdmin = header('Authorization').custom(async (value, {req}) =>
   if (!user) {
     throw new Error('Could not find user from JWT.');
   }
-  if (!user.isAdmin()) {
+  if (!user.hasGlobalWrite()) {
     throw new Error('User is not an admin.');
   }
   req.admin = user;

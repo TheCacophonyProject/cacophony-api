@@ -290,7 +290,7 @@ module.exports = function(sequelize, DataTypes) {
    * //TODO This will be edited in the future when recordings can be public.
    */
   Recording.prototype.getUserPermissions = async function(user) {
-    if (user.isAdmin() || await user.isInGroup(this.GroupId)) {
+    if (user.hasGlobalWrite() || await user.isInGroup(this.GroupId)) {
       return {
         canDelete: true,
         canTag: true,

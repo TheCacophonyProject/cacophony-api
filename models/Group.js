@@ -207,7 +207,7 @@ module.exports = function(sequelize, DataTypes) {
   //------------------
 
   Group.prototype.userPermissions = async function(user) {
-    if (user.isAdmin()) {
+    if (user.hasGlobalWrite()) {
       return newUserPermissions(true);
     }
     return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));

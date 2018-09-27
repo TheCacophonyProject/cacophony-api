@@ -64,7 +64,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   File.deleteIfAllowed = async function(user, file) {
-    if (user.isAdmin() || user.id == file.UserId) {
+    if (user.hasGlobalWrite() || user.id == file.UserId) {
       await file.destroy();
       return true;
     }

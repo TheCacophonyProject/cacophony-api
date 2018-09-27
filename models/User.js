@@ -80,7 +80,10 @@ module.exports = function(sequelize, DataTypes) {
     'email'
   ]);
 
-  User.globalPermissions = PERMISSIONS;
+  Object.defineProperty(User, 'GLOBAL_PERMISSIONS', {
+    value: PERMISSIONS,
+    writable: false,
+  });
 
   //---------------
   // CLASS METHODS
@@ -129,7 +132,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.changeGlobalPermission = async function(admin, user, permission) {
-    if (!user || !admin || !admin.isAdmin()) {
+    if (!user || !admin || !admin.hasGlobalWrite()) {
       return false;
     }
     user.globalPermission = permission;
@@ -141,7 +144,7 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
-  User.prototype.isAdmin = function() {
+  User.prototype.hasGlobalWrite = function() {
     return PERMISSION_WRITE == this.globalPermission;
   };
 
@@ -215,7 +218,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
-    if (!this.isAdmin()) {
+    if (!this.hasGlobalWrite()) {
       var usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach(deviceId => {
