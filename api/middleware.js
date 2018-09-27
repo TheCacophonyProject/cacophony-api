@@ -27,7 +27,7 @@ const { body, header, validationResult, query } = require('express-validator/che
 
 const getVerifiedJWT = (req) => {
   const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
-  if (token == null) {
+  if (!token) {
     throw new Error('Could not find JWT token.');
   }
   try {

@@ -11,9 +11,9 @@ module.exports = {
       defaultValue: 'off',
     })
       .then(() => queryInterface.sequelize.query(
-        'UPDATE "Users" SET "globalPermission" = CASE ' +
-      'WHEN "superuser" = true THEN \'write\'::"enum_Users_globalPermission"' +
-      ' ELSE \'off\'::"enum_Users_globalPermission" END'))
+        `UPDATE "Users" SET "globalPermission" = CASE
+           WHEN "superuser" = true THEN 'write'::"enum_Users_globalPermission"
+           ELSE 'off'::"enum_Users_globalPermission" END`))
       .then(() => queryInterface.removeColumn('Users', 'superuser'));
   },
 
@@ -23,7 +23,7 @@ module.exports = {
       defaultValue: false,
     })
       .then(() => queryInterface.sequelize.query(
-        'UPDATE "Users" SET "superuser" = "globalPermission" = \'write\'::"enum_Users_globalPermission"'
+        `UPDATE "Users" SET "superuser" = "globalPermission" = 'write'::"enum_Users_globalPermission"`
       ))
       .then(() => queryInterface.removeColumn('Users', 'globalPermission'))
       .then(() => queryInterface.sequelize.query('drop type "enum_Users_globalPermission"'));

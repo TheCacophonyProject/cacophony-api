@@ -7,7 +7,7 @@ class TestGlobalPermission:
         tom = helper.given_new_user(self, 'tom')
         bob = helper.given_new_user(self, 'bob')
 
-        print("  Tom shoudl not be able to change global permissions for himself")
+        print("  Tom shoud not be able to change global permissions for himself")
         with pytest.raises(OSError):
             tom.set_global_permission(tom.username, 'write')
 
@@ -19,7 +19,7 @@ class TestGlobalPermission:
         admin = helper.admin_user()
         admin.set_global_permission(tom.username, 'read')
 
-        print(" he shoudl still not be able to change global permissions for himself")
+        print(" he shoud still not be able to change global permissions for himself")
         with pytest.raises(OSError):
             tom.set_global_permission(tom.username, 'write')
 

@@ -132,7 +132,7 @@ module.exports = function(sequelize, DataTypes) {
     if (!user || !admin || !admin.isAdmin()) {
       return false;
     }
-    user.setDataValue('globalPermission', permission);
+    user.globalPermission = permission;
     await user.save();
     return true;
   };
