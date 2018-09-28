@@ -119,6 +119,10 @@ module.exports = (app, baseUrl) => {
    * <li>human-only: match only recordings which have been manually tagged
    * <li>automatic+human: match only recordings which have been both automatically & manually tagged
    * </ul>
+   * @apiParam {JSON} [filterOptions] options for filtering the recordings data.
+   * <ul>
+   * <li>latLongAcc: Maximum accuracy of latitude longitude coordinates in meters. Minimum 100m
+   * </ul>
    *
    * @apiUse V1ResponseSuccessQuery
    *
