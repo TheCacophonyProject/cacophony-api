@@ -71,7 +71,9 @@ function query(request, type) {
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order);
+    request.query.order,
+    request.query.filterOptions,
+  );
 }
 
 async function get(request, type) {

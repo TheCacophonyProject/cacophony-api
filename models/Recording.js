@@ -87,7 +87,7 @@ module.exports = function(sequelize, DataTypes) {
     * Return one or more recordings for a user matching the query
     * arguments given.
     */
-  Recording.query = async function(user, where, tagMode, tags, offset, limit, order) {
+  Recording.query = async function(user, where, tagMode, tags, offset, limit, order, filterOptions) {
     if (order == null) {
       order = [
         // Sort by recordingDatetime but handle the case of the
@@ -115,8 +115,42 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
       attributes: this.userGetAttributes,
     };
-    return this.findAndCount(q);
+
+    var queryResponse = await this.findAndCount(q);
+    filterRecordings(user, queryResponse.rows, filterOptions);
+    return queryResponse;
   };
+
+  function filterRecordings(user, recordings, options = {}) {
+    if (typeof options.latLongAcc != 'number') {
+      options.latLongAcc = 100;
+    }
+    if (!user.hasGlobalWrite()) {
+      options.latLongAcc = Math.max(options.latLongAcc, 100);
+    }
+
+    for (var i in recordings) {
+      if (recordings[i].location) {
+        filterLatLong(recordings[i].location.coordinates, options.latLongAcc);
+      }
+    }
+  }
+
+  function filterLatLong(latLong, acc) {
+    const resolution = acc*360/40000000;
+    latLong[0] = latLong[0] - latLong[0]%resolution;
+    if (latLong[0] > 0) {
+      latLong[0] += resolution/2;
+    } else {
+      latLong[0] -= resolution/2;
+    }
+    latLong[1] = latLong[1] - latLong[1]%resolution;
+    if (latLong[1] > 0) {
+      latLong[1] += resolution/2;
+    } else {
+      latLong[1] -= resolution/2;
+    }
+  }
 
   // local
   var handleTagMode = (tagMode) => {

@@ -136,6 +136,7 @@ module.exports = (app, baseUrl) => {
       query('tagMode')
         .optional()
         .custom(value => { return models.Recording.isValidTagMode(value); }),
+      middleware.parseJSON('filterOptions', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
