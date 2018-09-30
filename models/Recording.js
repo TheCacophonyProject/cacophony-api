@@ -20,6 +20,7 @@ var mime = require('mime');
 var moment = require('moment-timezone');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const assert = require('assert');
 
 var util = require('./util/util');
 var validation = require('./util/validation');
@@ -117,40 +118,10 @@ module.exports = function(sequelize, DataTypes) {
     };
 
     var queryResponse = await this.findAndCount(q);
-    filterRecordings(user, queryResponse.rows, filterOptions);
+    filterOptions = makeFilterOptions(user, filterOptions);
+    queryResponse.rows.map(rec => rec.filterData(filterOptions));
     return queryResponse;
   };
-
-  function filterRecordings(user, recordings, options = {}) {
-    if (typeof options.latLongAcc != 'number') {
-      options.latLongAcc = 100;
-    }
-    if (!user.hasGlobalWrite()) {
-      options.latLongAcc = Math.max(options.latLongAcc, 100);
-    }
-
-    for (var i in recordings) {
-      if (recordings[i].location) {
-        filterLatLong(recordings[i].location.coordinates, options.latLongAcc);
-      }
-    }
-  }
-
-  function filterLatLong(latLong, acc) {
-    const resolution = acc*360/40000000;
-    latLong[0] = latLong[0] - latLong[0]%resolution;
-    if (latLong[0] > 0) {
-      latLong[0] += resolution/2;
-    } else {
-      latLong[0] -= resolution/2;
-    }
-    latLong[1] = latLong[1] - latLong[1]%resolution;
-    if (latLong[1] > 0) {
-      latLong[1] += resolution/2;
-    } else {
-      latLong[1] -= resolution/2;
-    }
-  }
 
   // local
   var handleTagMode = (tagMode) => {
@@ -209,7 +180,7 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  Recording.getOne = async function(user, id, type) {
+  Recording.getOne = async function(user, id, type, filterOptions) {
     var query = {
       where: {
         [Op.and]: [
@@ -227,7 +198,10 @@ module.exports = function(sequelize, DataTypes) {
       query.where[Op.and].push({'type': type});
     }
 
-    return await this.findOne(query);
+    filterOptions = makeFilterOptions(user, filterOptions);
+    var recording = await this.findOne(query);
+    recording.filterData(filterOptions);
+    return recording;
   };
 
   /**
@@ -364,6 +338,38 @@ module.exports = function(sequelize, DataTypes) {
     var groupIds = await this.getGroupsIds();
     return (groupIds.includes(id));
   };
+
+  Recording.prototype.filterData = function(options) {
+    if (this.location) {
+      this.location.coordinates = reduceLatLonPrecision(
+        this.location.coordinates, options.latLongPrec);
+    }
+  };
+
+  function makeFilterOptions(user, options = {}) {
+    if (typeof options.latLongPrec != 'number') {
+      options.latLongPrec = 100;
+    }
+    if (!user.hasGlobalWrite()) {
+      options.latLongPrec = Math.max(options.latLongPrec, 100);
+    }
+    return options;
+  }
+
+  function reduceLatLonPrecision(latLon, prec) {
+    assert (latLon.length == 2);
+    const resolution = prec * 360 / 40000000;
+    const half_resolution = resolution / 2;
+    return latLon.map((val) => {
+      val = val - (val % resolution);
+      if (val > 0) {
+        val += half_resolution;
+      } else {
+        val -= half_resolution;
+      }
+      return val;
+    });
+  }
 
   Recording.userGetAttributes = [
     'id',
