@@ -77,7 +77,12 @@ function query(request, type) {
 }
 
 async function get(request, type) {
-  const recording = await models.Recording.getOne(request.user, request.params.id, type);
+  const recording = await models.Recording.getOne(
+    request.user,
+    request.params.id,
+    type,
+    request.query.filterOptions,
+  );
   if (!recording) {
     throw new ClientError("No file found with given datapoint.");
   }
