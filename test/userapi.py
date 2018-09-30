@@ -26,7 +26,7 @@ class UserAPI(APIBase):
         self.check_login_response(response)
         return self
 
-    def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None):
+    def query(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0, tagmode=None, tags=None, filterOptions=None):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
         if startDate is not None:
@@ -40,11 +40,11 @@ class UserAPI(APIBase):
         if tags is not None:
             params['tags'] = json.dumps(tags)
 
-        return self._query_results('recordings', params, limit, offset)
+        return self._query_results('recordings', params, limit, offset, filterOptions)
 
-    def get_recording(self, recording_id):
+    def get_recording(self, recording_id, params=None):
         url = urljoin(self._baseurl, '/api/v1/recordings/{}'.format(recording_id))
-        r = requests.get(url, headers=self._auth_header)
+        r = requests.get(url, headers=self._auth_header, params=params)
         return self._check_response(r)['recording']
 
     def delete_recording(self, recording_id):
@@ -182,13 +182,15 @@ class UserAPI(APIBase):
         return self._check_response(response)
 
 
-    def _query_results(self, queryname, params,limit=100, offset=0):
+    def _query_results(self, queryname, params,limit=100, offset=0, filterOptions=None):
         url = urljoin(self._baseurl, '/api/v1/' + queryname)
 
         if limit is not None:
             params['limit'] = limit
         if offset is not None:
             params['offset'] = offset
+        if offset is not filterOptions:
+            params['filterOptions'] = filterOptions
 
         response = requests.get(url, params=params, headers=self._auth_header)
         if response.status_code == 200:

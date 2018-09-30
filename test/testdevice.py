@@ -21,8 +21,10 @@ class TestDevice:
             self.devicename))
         return self.upload_audio_recording()
 
-    def upload_recording(self):
+    def upload_recording(self, properties = {}):
         props = self.get_new_recording_props()
+        for key in properties:
+            props[key] = properties[key]
         filename = 'files/small.cptv'
         recording_id = self._deviceapi.upload_recording(filename, props)
 
