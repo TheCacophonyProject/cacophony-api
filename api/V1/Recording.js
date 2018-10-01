@@ -119,6 +119,7 @@ module.exports = (app, baseUrl) => {
    * <li>human-only: match only recordings which have been manually tagged
    * <li>automatic+human: match only recordings which have been both automatically & manually tagged
    * </ul>
+   * @apiUse FilterOptions
    *
    * @apiUse V1ResponseSuccessQuery
    *
@@ -136,6 +137,7 @@ module.exports = (app, baseUrl) => {
       query('tagMode')
         .optional()
         .custom(value => { return models.Recording.isValidTagMode(value); }),
+      middleware.parseJSON('filterOptions', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
@@ -159,6 +161,7 @@ module.exports = (app, baseUrl) => {
    * @apiUse MetaDataAndJWT
    * @apiUse V1UserAuthorizationHeader
    *
+   * @apiUse FilterOptions
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
    * recording file.
@@ -173,6 +176,7 @@ module.exports = (app, baseUrl) => {
     [
       middleware.authenticateUser,
       param('id').isInt(),
+      middleware.parseJSON('filterOptions', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);

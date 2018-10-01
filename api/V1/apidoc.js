@@ -51,3 +51,11 @@
  * content. The web token should be used with the
  * [/api/v1/signedUrl API](#api-SignedUrl-GetFile) to retrieve the file.
 */
+
+/**
+ * @apiDefine FilterOptions
+ * @apiParam {JSON} [filterOptions] options for filtering the recordings data.
+ * <ul>
+ * <li>latLongPrec: Maximum precision of latitude longitude coordinates in meters. Minimum 100m
+ * </ul>
+*/

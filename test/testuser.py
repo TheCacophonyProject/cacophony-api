@@ -22,6 +22,12 @@ class TestUser:
         queryParams = {"tags": tags}
         return RecordingQueryPromise(self, queryParams)
 
+    def get_recording(self, recording_id, params=None):
+        return self._userapi.get_recording(recording_id, params)
+
+    def query_recordings(self, **options):
+        return self._userapi.query(**options)
+
     def can_see_recordings(self, *expectedTestRecordings):
         self._can_see_recordings_with_query({}, *expectedTestRecordings)
 

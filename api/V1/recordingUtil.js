@@ -71,11 +71,18 @@ function query(request, type) {
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order);
+    request.query.order,
+    request.query.filterOptions,
+  );
 }
 
 async function get(request, type) {
-  const recording = await models.Recording.getOne(request.user, request.params.id, type);
+  const recording = await models.Recording.getOne(
+    request.user,
+    request.params.id,
+    type,
+    request.query.filterOptions,
+  );
   if (!recording) {
     throw new ClientError("No file found with given datapoint.");
   }

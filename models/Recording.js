@@ -20,6 +20,7 @@ var mime = require('mime');
 var moment = require('moment-timezone');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const assert = require('assert');
 
 var util = require('./util/util');
 var validation = require('./util/validation');
@@ -87,7 +88,7 @@ module.exports = function(sequelize, DataTypes) {
     * Return one or more recordings for a user matching the query
     * arguments given.
     */
-  Recording.query = async function(user, where, tagMode, tags, offset, limit, order) {
+  Recording.query = async function(user, where, tagMode, tags, offset, limit, order, filterOptions) {
     if (order == null) {
       order = [
         // Sort by recordingDatetime but handle the case of the
@@ -115,7 +116,11 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
       attributes: this.userGetAttributes,
     };
-    return this.findAndCount(q);
+
+    var queryResponse = await this.findAndCount(q);
+    filterOptions = makeFilterOptions(user, filterOptions);
+    queryResponse.rows.map(rec => rec.filterData(filterOptions));
+    return queryResponse;
   };
 
   // local
@@ -175,7 +180,7 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  Recording.getOne = async function(user, id, type) {
+  Recording.getOne = async function(user, id, type, filterOptions) {
     var query = {
       where: {
         [Op.and]: [
@@ -193,7 +198,10 @@ module.exports = function(sequelize, DataTypes) {
       query.where[Op.and].push({'type': type});
     }
 
-    return await this.findOne(query);
+    filterOptions = makeFilterOptions(user, filterOptions);
+    var recording = await this.findOne(query);
+    recording.filterData(filterOptions);
+    return recording;
   };
 
   /**
@@ -330,6 +338,38 @@ module.exports = function(sequelize, DataTypes) {
     var groupIds = await this.getGroupsIds();
     return (groupIds.includes(id));
   };
+
+  Recording.prototype.filterData = function(options) {
+    if (this.location) {
+      this.location.coordinates = reduceLatLonPrecision(
+        this.location.coordinates, options.latLongPrec);
+    }
+  };
+
+  function makeFilterOptions(user, options = {}) {
+    if (typeof options.latLongPrec != 'number') {
+      options.latLongPrec = 100;
+    }
+    if (!user.hasGlobalWrite()) {
+      options.latLongPrec = Math.max(options.latLongPrec, 100);
+    }
+    return options;
+  }
+
+  function reduceLatLonPrecision(latLon, prec) {
+    assert (latLon.length == 2);
+    const resolution = prec * 360 / 40000000;
+    const half_resolution = resolution / 2;
+    return latLon.map((val) => {
+      val = val - (val % resolution);
+      if (val > 0) {
+        val += half_resolution;
+      } else {
+        val -= half_resolution;
+      }
+      return val;
+    });
+  }
 
   Recording.userGetAttributes = [
     'id',
