@@ -33,7 +33,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiParam {JSON} data Metadata about the recording.   Valid tags are:
    * <ul>
-   * <li>(REQUIRED) type: must be 'thermalRaw'
+   * <li>(REQUIRED) type: 'thermalRaw', or 'audio'
    * <li>duration
    * <li>recordingDateTime
    * <li>location
