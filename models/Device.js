@@ -167,16 +167,6 @@ module.exports = function(sequelize, DataTypes) {
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
-  Device.userPermissions = async function(user) {
-    if (user.hasGlobalWrite()) {
-      return this.newUserPermissions(true);
-    }
-
-    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
-    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
-    return this.newUserPermissions(isGroupAdmin || isDeviceAdmin);
-  };
-
   Device.newUserPermissions = function(enabled) {
     return {
       canAddUsers: enabled,
@@ -203,6 +193,16 @@ module.exports = function(sequelize, DataTypes) {
   //------------------
   // INSTANCE METHODS
   //------------------
+
+  Device.prototype.userPermissions = async function(user) {
+    if (user.hasGlobalWrite()) {
+      return Device.newUserPermissions(true);
+    }
+
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
 
   Device.prototype.getJwtDataValues = function() {
     return {

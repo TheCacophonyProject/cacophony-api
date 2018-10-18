@@ -110,8 +110,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getDeviceById,
-      middleware.getUserById,
+      middleware.getDeviceById(body),
+      middleware.getUserById(body),
       body('admin').isIn([true, false]),
     ],
     middleware.requestWrapper(async (request, response) => {
