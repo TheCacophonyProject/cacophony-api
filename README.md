@@ -27,7 +27,7 @@ images it creates.
 
 Once the container is running, you can start a bash session inside
 the container with `docker exec -it cacophony-api bash`.  You can then use
-psql to query the database `sudo -i -u postgres psql cacophony-test`
+psql to query the database `sudo -i -u postgres psql cacophonytest`
 
 ## Running the tests
 
