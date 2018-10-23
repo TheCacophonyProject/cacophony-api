@@ -229,10 +229,7 @@ class UserAPI(APIBase):
             "devices" : json.dumps(devicesIds),
             "schedule" : json.dumps(schedule),
         }
-        headers = {
-            'Authorization': self._token
-        }
-        response = requests.post(url, data=props, headers=headers)
+        response = requests.post(url, data=props, headers=self._auth_header)
         self._check_response(response)
 
     def get_audio_schedule(self, devicename):
@@ -249,4 +246,23 @@ class UserAPI(APIBase):
     def set_global_permission(self, user, permission):
         url = urljoin(self._baseurl, "/api/v1/admin/global_permission/"+user,)
         response = requests.patch(url, headers=self._auth_header, data={'permission': permission})
+        self._check_response(response)
+
+    def add_user_to_group(self, newuser, groupname):
+        url = urljoin(self._baseurl, "/api/v1/groups/users")
+        props = {
+            "group" : groupname,
+            "username" : newuser.username,
+            "admin" : "false"
+        }
+        response = requests.post(url, headers=self._auth_header, data=props)
+        self._check_response(response)
+
+    def remove_user_from_group(self, olduser, groupname):
+        url = urljoin(self._baseurl, "/api/v1/groups/users")
+        props = {
+            "group" : groupname,
+            "username" : olduser.username,
+        }
+        response = requests.delete(url, headers=self._auth_header, data=props)
         self._check_response(response)

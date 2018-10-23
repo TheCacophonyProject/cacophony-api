@@ -49,7 +49,7 @@ module.exports = function(app, baseUrl) {
     middleware.requestWrapper(async (request, response) => {
 
       const newGroup = await models.Group.create({groupname: request.body.groupname});
-      await newGroup.addUser(request.user.id, {admin: true});
+      await newGroup.addUser(request.user.id, {through: {admin: true}});
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
@@ -99,8 +99,8 @@ module.exports = function(app, baseUrl) {
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiParam {Number} groupId ID of the group.
-  * @apiParam {Number} userId ID of the user to add to the grouop.
+  * @apiParam {Number} group name of the group.
+  * @apiParam {Number} username name of the user to add to the grouop.
   * @apiParam {Boolean} admin If the user should be an admin for the group.
   *
   * @apiUse V1ResponseSuccess
@@ -110,16 +110,16 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getGroupById(body),
-      middleware.getUserById(body),
+      middleware.getGroupByName(body),
+      middleware.getUserByName(body),
       body('admin').isBoolean(),
     ],
     middleware.requestWrapper(async (request, response) => {
 
       var added = await models.Group.addUserToGroup(
         request.user,
-        request.body.group.id,
-        request.body.user.id,
+        request.body.group,
+        request.body.user,
         request.body.admin,
       );
       if (added) {
@@ -147,8 +147,8 @@ module.exports = function(app, baseUrl) {
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiParam {Number} groupId ID of the group.
-  * @apiParam {Number} userId ID of the user to remove from the grouop.
+  * @apiParam {Number} group name of the group.
+  * @apiParam {Number} username username of user to remove from the grouop.
   *
   * @apiUse V1ResponseSuccess
   * @apiUse V1ResponseError
@@ -157,15 +157,15 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUserById(body),
-      middleware.getGroupById(body),
+      middleware.getUserByName(body),
+      middleware.getGroupByName(body),
     ],
     middleware.requestWrapper(async (request, response) => {
 
       var removed = await models.Group.removeUserFromGroup(
         request.user,
-        request.body.group.id,
-        request.body.user.id,
+        request.body.group,
+        request.body.user,
       );
       if (removed) {
         return responseUtil.send(response, {

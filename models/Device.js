@@ -98,7 +98,7 @@ module.exports = function(sequelize, DataTypes) {
       return true;
     }
 
-    await device.addUser(userToAdd.id, {admin: admin});
+    await device.addUser(userToAdd.id, {through: {admin: admin}});
     return true;
   };
 
