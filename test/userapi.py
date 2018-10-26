@@ -266,3 +266,22 @@ class UserAPI(APIBase):
         }
         response = requests.delete(url, headers=self._auth_header, data=props)
         self._check_response(response)
+
+    def add_user_to_group(self, newuser, deviceid):
+        url = urljoin(self._baseurl, "/api/v1/devices/users")
+        props = {
+            "deviceId" : deviceid,
+            "username" : newuser.username,
+            "admin" : "false"
+        }
+        response = requests.post(url, headers=self._auth_header, data=props)
+        self._check_response(response)
+
+    def remove_user_from_group(self, olduser, deviceid):
+        url = urljoin(self._baseurl, "/api/v1/devices/users")
+        props = {
+            "deviceId" : deviceid,
+            "username" : olduser.username,
+        }
+        response = requests.delete(url, headers=self._auth_header, data=props)
+        self._check_response(response)
