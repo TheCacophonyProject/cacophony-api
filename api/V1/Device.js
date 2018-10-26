@@ -110,8 +110,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
+      middleware.getUserByNameOrId(body),
       middleware.getDeviceById(body),
-      middleware.getUserByName(body),
       body('admin').isIn([true, false]),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -158,8 +158,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUserByName(body),
       middleware.getDeviceById(body),
+      middleware.getUserByNameOrId(body),
     ],
     middleware.requestWrapper(async function(request, response) {
       var removed = await models.Device.removeUserFromDevice(

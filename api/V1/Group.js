@@ -110,8 +110,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getGroupByName(body),
-      middleware.getUserByName(body),
+      middleware.getGroupByNameOrId(body),
+      middleware.getUserByNameOrId(body),
       body('admin').isBoolean(),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -157,8 +157,8 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUserByName(body),
-      middleware.getGroupByName(body),
+      middleware.getUserByNameOrId(body),
+      middleware.getGroupByNameOrId(body),
     ],
     middleware.requestWrapper(async (request, response) => {
 
