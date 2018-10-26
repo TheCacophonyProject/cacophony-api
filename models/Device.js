@@ -192,6 +192,16 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE METHODS
   //------------------
 
+  Device.prototype.userPermissions = async function(user) {
+    if (user.hasGlobalWrite()) {
+      return Device.newUserPermissions(true);
+    }
+
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
+
   Device.prototype.getJwtDataValues = function() {
     return {
       id: this.getDataValue('id'),
