@@ -171,7 +171,7 @@ module.exports = function(sequelize, DataTypes) {
         parts.push({animal: tag});
       }
     }
-    if (parts.Length == 1) {
+    if (parts.length == 1) {
       return parts[0];
     }
     return {[Op.or]: parts};
