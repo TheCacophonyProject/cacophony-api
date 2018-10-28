@@ -23,7 +23,7 @@ const format       = require('util').format;
 const ExtractJwt   = require('passport-jwt').ExtractJwt;
 const log          = require('../logging');
 const customErrors = require('./customErrors');
-const { body, header, validationResult, query } = require('express-validator/check');
+const { body, header, validationResult, query, oneOf } = require('express-validator/check');
 
 const getVerifiedJWT = (req) => {
   const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
@@ -164,12 +164,26 @@ function getUserByName(checkFunc, fieldName = 'username') {
   return getModelByName(models.User, fieldName, checkFunc);
 }
 
+function getUserByNameOrId(checkFunc) {
+  return oneOf([
+    getUserByName(checkFunc),
+    getUserById(checkFunc),
+  ], "Either 'username' or 'userId' must be specified.");
+}
+
 function getGroupById(checkFunc) {
   return getModelById(models.Group, 'groupId', checkFunc);
 }
 
 function getGroupByName(checkFunc) {
   return getModelByName(models.Group, 'group', checkFunc);
+}
+
+function getGroupByNameOrId(checkFunc) {
+  return oneOf([
+    getGroupById(checkFunc),
+    getGroupByName(checkFunc),
+  ], "Either 'group' or 'groupId' must be specified.");
 }
 
 function getDeviceById(checkFunc) {
@@ -298,8 +312,10 @@ exports.authenticateAdmin  = authenticateAdmin;
 exports.signedUrl          = signedUrl;
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;
+exports.getUserByNameOrId  = getUserByNameOrId;
 exports.getGroupById       = getGroupById;
 exports.getGroupByName     = getGroupByName;
+exports.getGroupByNameOrId = getGroupByNameOrId;
 exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
 exports.getEventDetailById = getEventDetailById;

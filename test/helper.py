@@ -83,7 +83,6 @@ class Helper:
         return self._make_unique_name(testClass, groupName, groups)
 
 
-
     def given_new_device(self, testClass, devicename, group=None, description=None):
         if not description:
             description = "Given a new device '{}'".format(devicename)
@@ -143,21 +142,7 @@ class Helper:
         print(description, end='')
 
     def _check_admin_and_group_exist(self):
-        print("group_esists")
-        try:
-            self._get_admin()
-        except Exception:
-            # create admin
-            print('Creating admin user')
-            UserAPI(
-                self.config.api_server,
-                self.config.admin_username,
-                self.config.admin_email,
-                self.config.admin_password
-            ).register_as_new()
-
         allGroups = self._get_admin().get_groups_as_string()
-
         default_group = self.config.default_group
         if ('"{}"'.format(default_group) not in allGroups):
             print('Creating default group')

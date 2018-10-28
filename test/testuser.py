@@ -248,6 +248,18 @@ class TestUser:
     def set_global_permission(self, user, permission):
         self._userapi.set_global_permission(user, permission)
 
+    def add_to_group(self, newuser, groupname):
+        self._userapi.add_user_to_group(newuser, groupname)
+
+    def remove_from_group(self, olduser, groupname):
+        self._userapi.remove_user_from_group(olduser, groupname)
+
+    def add_to_device(self, newuser, device):
+        self._userapi.add_user_to_device(newuser, device.get_id())
+
+    def remove_from_device(self, olduser, device):
+        self._userapi.remove_user_from_device(olduser, device.get_id())
+
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser

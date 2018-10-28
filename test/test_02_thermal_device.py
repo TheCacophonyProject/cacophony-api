@@ -11,3 +11,4 @@ class TestThermalDevice:
 
         print("And the CPTV file should be visible to super users")
         helper.admin_user().can_see_recording_from(destroyer)
+

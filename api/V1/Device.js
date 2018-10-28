@@ -100,7 +100,7 @@ module.exports = function(app, baseUrl) {
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiParam {Number} deviceId ID of the device.
-  * @apiParam {Number} userId ID of the user to add to the device.
+  * @apiParam {Number} username Name of the user to add to the device.
   * @apiParam {Boolean} admin If true, the user should have administrator access to the device..
   *
   * @apiUse V1ResponseSuccess
@@ -110,15 +110,15 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
+      middleware.getUserByNameOrId(body),
       middleware.getDeviceById(body),
-      middleware.getUserById(body),
       body('admin').isIn([true, false]),
     ],
     middleware.requestWrapper(async (request, response) => {
       var added = await models.Device.addUserToDevice(
         request.user,
-        request.body.device.id,
-        request.body.user.id,
+        request.body.device,
+        request.body.user,
         request.body.admin,
       );
 
@@ -148,7 +148,7 @@ module.exports = function(app, baseUrl) {
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiParam {Number} userId ID of the user to delete from the device.
+  * @apiParam {Number} username name of the user to delete from the device.
   * @apiParam {Number} deviceId ID of the device.
   *
   * @apiUse V1ResponseSuccess
@@ -158,14 +158,14 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getUserById(body),
       middleware.getDeviceById(body),
+      middleware.getUserByNameOrId(body),
     ],
     middleware.requestWrapper(async function(request, response) {
       var removed = await models.Device.removeUserFromDevice(
         request.user,
-        request.body.device.id,
-        request.body.user.id,
+        request.body.device,
+        request.body.user,
       );
 
       if (removed) {

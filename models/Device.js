@@ -58,6 +58,8 @@ module.exports = function(sequelize, DataTypes) {
 
   var Device = sequelize.define(name, attributes, options);
 
+
+
   //---------------
   // CLASS METHODS
   //---------------
@@ -75,9 +77,7 @@ module.exports = function(sequelize, DataTypes) {
   * The authenticated user must either be admin of the group that the device
   * belongs to, an admin of that device, or have global write permission.
   */
-  Device.addUserToDevice = async function(authUser, deviceId, userToAddId, admin) {
-    const device = await models.Device.findById(deviceId);
-    const userToAdd = await models.User.findById(userToAddId);
+  Device.addUserToDevice = async function(authUser, device, userToAdd, admin) {
     if (device == null || userToAdd == null) {
       return false;
     }
@@ -88,7 +88,7 @@ module.exports = function(sequelize, DataTypes) {
     // Get association if already there and update it.
     var deviceUser = await models.DeviceUsers.findOne({
       where: {
-        DeviceId: deviceId,
+        DeviceId: device.id,
         UserId: userToAdd.id,
       }
     });
@@ -98,7 +98,7 @@ module.exports = function(sequelize, DataTypes) {
       return true;
     }
 
-    await device.addUser(userToAdd.id, {admin: admin});
+    await device.addUser(userToAdd.id, {through: {admin: admin}});
     return true;
   };
 
@@ -106,9 +106,7 @@ module.exports = function(sequelize, DataTypes) {
    * Removes a user from a Device, if the given user has permission to do so.
    * The user must be a group or device admin, or have global write permission to do this. .
    */
-  Device.removeUserFromDevice = async function(authUser, deviceId, userToRemoveId) {
-    const device = await models.Device.findById(deviceId);
-    const userToRemove = await models.User.findById(userToRemoveId);
+  Device.removeUserFromDevice = async function(authUser, device, userToRemove) {
     if (device == null || userToRemove == null) {
       return false;
     }
@@ -229,6 +227,16 @@ module.exports = function(sequelize, DataTypes) {
     'location',
     'newConfig'
   ];
+
+  Device.prototype.userPermissions = async function(user) {
+    if (user.hasGlobalWrite()) {
+      return Device.newUserPermissions(true);
+    }
+
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
 
   return Device;
 };

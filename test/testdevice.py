@@ -11,6 +11,9 @@ class TestDevice:
         self._recordingtimeoffset = 24
         self._id = None
 
+    def get_id(self):
+        return self._id
+
     def has_recording(self):
         self._print_description("    and '{}' has a recording ".format(
             self.devicename))
