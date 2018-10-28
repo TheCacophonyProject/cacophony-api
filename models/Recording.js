@@ -334,11 +334,6 @@ module.exports = function(sequelize, DataTypes) {
     return "";
   };
 
-  Recording.prototype.isInGroup = async function(id) {
-    var groupIds = await this.getGroupsIds();
-    return (groupIds.includes(id));
-  };
-
   Recording.prototype.filterData = function(options) {
     if (this.location) {
       this.location.coordinates = reduceLatLonPrecision(
