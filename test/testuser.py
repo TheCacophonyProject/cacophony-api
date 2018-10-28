@@ -255,10 +255,10 @@ class TestUser:
         self._userapi.remove_user_from_group(olduser, groupname)
 
     def add_to_device(self, newuser, device):
-        self._userapi.add_user_to_group(newuser, device.get_id())
+        self._userapi.add_user_to_device(newuser, device.get_id())
 
     def remove_from_device(self, olduser, device):
-        self._userapi.remove_user_from_group(olduser, device.get_id())
+        self._userapi.remove_user_from_device(olduser, device.get_id())
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
