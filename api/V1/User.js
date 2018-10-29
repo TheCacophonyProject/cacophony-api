@@ -95,7 +95,7 @@ module.exports = function(app, baseUrl) {
       const user = request.user;
       if (email) {
         try {
-          await models.User.freeEmail(email);
+          await models.User.freeEmail(email, user.id);
         } catch (e) {
           throw new ClientError('Error: ' + e.message);
         }
