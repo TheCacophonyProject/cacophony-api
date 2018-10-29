@@ -208,9 +208,9 @@ module.exports = function(sequelize, DataTypes) {
       });
   };
 
-  User.prototype.isInGroup = async function(id) {
+  User.prototype.isInGroup = async function(groupId) {
     var groupIds = await this.getGroupsIds();
-    return groupIds.includes(id);
+    return groupIds.includes(groupId);
   };
 
   // Returns the devices that are directly associated with this user
