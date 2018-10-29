@@ -67,7 +67,7 @@ module.exports = function(app, baseUrl) {
       body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {
-      recordingUtil.addTag(request, response);
+      await recordingUtil.addTag(request, response);
     })
   );
 
