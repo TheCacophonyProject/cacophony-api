@@ -109,7 +109,7 @@ module.exports = function(sequelize, DataTypes) {
       order: order,
       include: [
         { model: models.Group },
-        { model: models.Tag, where: makeTagsWhere(tags) },
+        { model: models.Tag, where: makeTagsWhere(tags), include: [{association: 'tagger', attributes: ['username']}] },
         { model: models.Device, where: {}, attributes: ["devicename", "id"] },
       ],
       limit: limit,
@@ -189,7 +189,7 @@ module.exports = function(sequelize, DataTypes) {
         ],
       },
       include: [
-        { model: models.Tag, },
+        { model: models.Tag, include: [{association: 'tagger', attributes: ['username']}] },
         { model: models.Device, where: {}, attributes: ["devicename", "id"] },
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),
