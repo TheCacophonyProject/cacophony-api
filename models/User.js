@@ -208,6 +208,11 @@ module.exports = function(sequelize, DataTypes) {
       });
   };
 
+  User.prototype.isInGroup = async function(groupId) {
+    var groupIds = await this.getGroupsIds();
+    return groupIds.includes(groupId);
+  };
+
   // Returns the devices that are directly associated with this user
   // (via DeviceUsers).
   User.prototype.getDeviceIds = function() {

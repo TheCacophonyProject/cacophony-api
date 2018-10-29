@@ -171,7 +171,7 @@ module.exports = function(sequelize, DataTypes) {
         parts.push({animal: tag});
       }
     }
-    if (parts.Length == 1) {
+    if (parts.length == 1) {
       return parts[0];
     }
     return {[Op.or]: parts};
@@ -332,11 +332,6 @@ module.exports = function(sequelize, DataTypes) {
       return "." + ext;
     }
     return "";
-  };
-
-  Recording.prototype.isInGroup = async function(id) {
-    var groupIds = await this.getGroupsIds();
-    return (groupIds.includes(id));
   };
 
   Recording.prototype.filterData = function(options) {
