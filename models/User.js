@@ -122,9 +122,13 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findOne({where: {email: email}});
   };
 
-  User.freeEmail = async function(email) {
+  User.freeEmail = async function(email, userId) {
     email = email.toLowerCase();
-    var user = await this.findOne({where: {email: email, id: {[Op.not]: this.id}}});
+    const where = {email: email};
+    if (userId) { //Ignore email from this user
+      where.id = {[Op.not]: userId};
+    }
+    var user = await this.findOne({where: where});
     if (user) {
       throw new Error('email in use');
     }
