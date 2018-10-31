@@ -168,7 +168,7 @@ function getUserByNameOrId(checkFunc) {
   return oneOf([
     getUserByName(checkFunc),
     getUserById(checkFunc),
-  ], "Either 'username' or 'userId' must be specified.");
+  ]);
 }
 
 function getGroupById(checkFunc) {
@@ -183,7 +183,7 @@ function getGroupByNameOrId(checkFunc) {
   return oneOf([
     getGroupById(checkFunc),
     getGroupByName(checkFunc),
-  ], "Either 'group' or 'groupId' must be specified.");
+  ], "Group doesn't exist or hasn't been specified.");
 }
 
 function getDeviceById(checkFunc) {
