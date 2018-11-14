@@ -68,6 +68,7 @@ module.exports = function(app) {
     var jobKey = request.body.jobKey;
     var success = request.body.success;
     var result = request.body.result;
+    var complete = request.body.complete;
     var newProcessedFileKey = request.body.newProcessedFileKey;
 
     // Validate request.
@@ -88,6 +89,9 @@ module.exports = function(app) {
         errorMessages.push("'result' field was not a valid JSON.");
       }
     }
+    if (complete == null) {
+      complete = true;
+    }
     if (errorMessages.length > 0) {
       return response.status(400).json({
         messages: errorMessages,
@@ -107,9 +111,11 @@ module.exports = function(app) {
       var jobs = models.Recording.processingStates[recording.type];
       var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
       recording.set('processingState', nextJob);
-      recording.set('processingStartTime', null);
       recording.set('fileKey', newProcessedFileKey);
-      recording.set('jobKey', null);
+      if (complete) {
+        recording.set('jobKey', null);
+        recording.set('processingStartTime', null);
+      }
 
       // Process extra data from file processing
       if (result.fieldUpdates != null) {
@@ -156,6 +162,32 @@ module.exports = function(app) {
     ],
     middleware.requestWrapper(async (request, response) => {
       recordingUtil.addTag(request, response);
+    })
+  );
+
+  /**
+   * @api {post} /api/fileProcessing/metadata Add a tag to a recording
+   * @apiName updateMetaData
+   * @apiGroup FileProcessing
+   *
+   * @apiDescription This call updates the metadata for a recording
+   *
+   * @apiParam {Number} recordingId ID of the recording that you want to tag.
+   * @apiparam {JSON} Meta data of recording to ammend.  See /api/V1/recording for more details
+   *
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.post(
+    apiUrl + "/metadata",
+    [
+      middleware.getRecordingById(body),
+      middleware.parseJSON('metadata', body),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      recordingUtil.updateMetadata(request.body.recording, request.body.metadata);
     })
   );
 };

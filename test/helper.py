@@ -110,7 +110,7 @@ class Helper:
         testName = type(testClass).__name__
         if testName[:4] == "Test":
             testName = testName[4:]
-        return "{}_{}_{}".format(date.today().strftime('%m%d'), testName, name)
+        return "{}_{}_{}".format(testName, name, date.today().strftime('%m%d'))
 
     def _make_long_email(self, testClass, email):
         testName = type(testClass).__name__
