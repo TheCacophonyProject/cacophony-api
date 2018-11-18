@@ -59,6 +59,7 @@ module.exports = function(app) {
    * @apiParam {String} jobKey Key given when reqesting the job.
    * @apiParam {Boolean} success If the job was finished successfully.
    * @apiParam {JSON} [result] Result of the file processing
+   * @apiParam {Boolean} complete true if the processing is complete, or false if file will be processed further.
    * @apiParam {String} [newProcessedFileKey] LeoFS Key of the new file.
    */
   app.put(apiUrl, async (request, response) => {
@@ -68,6 +69,7 @@ module.exports = function(app) {
     var jobKey = request.body.jobKey;
     var success = request.body.success;
     var result = request.body.result;
+    var complete = (request.body.complete == "true") || (request.body.complete == "True");
     var newProcessedFileKey = request.body.newProcessedFileKey;
 
     // Validate request.
@@ -88,6 +90,7 @@ module.exports = function(app) {
         errorMessages.push("'result' field was not a valid JSON.");
       }
     }
+
     if (errorMessages.length > 0) {
       return response.status(400).json({
         messages: errorMessages,
@@ -107,9 +110,12 @@ module.exports = function(app) {
       var jobs = models.Recording.processingStates[recording.type];
       var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
       recording.set('processingState', nextJob);
-      recording.set('processingStartTime', null);
       recording.set('fileKey', newProcessedFileKey);
-      recording.set('jobKey', null);
+      log.info("Complete is " + complete);
+      if (complete) {
+        recording.set('jobKey', null);
+        recording.set('processingStartTime', null);
+      }
 
       // Process extra data from file processing
       if (result.fieldUpdates != null) {
@@ -156,6 +162,32 @@ module.exports = function(app) {
     ],
     middleware.requestWrapper(async (request, response) => {
       recordingUtil.addTag(request, response);
+    })
+  );
+
+  /**
+   * @api {post} /api/fileProcessing/metadata Updates the metadata for the recording
+   * @apiName updateMetaData
+   * @apiGroup FileProcessing
+   *
+   * @apiDescription This call updates the metadata for a recording
+   *
+   * @apiParam {Number} recordingId ID of the recording that you want to tag.
+   * @apiparam {JSON} metadata Metadata to be updated for the recording.  See /api/V1/recording for more details
+   *
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.post(
+    apiUrl + "/metadata",
+    [
+      middleware.getRecordingById(body),
+      middleware.parseJSON('metadata', body),
+    ],
+    middleware.requestWrapper(async (request) => {
+      recordingUtil.updateMetadata(request.body.recording, request.body.metadata);
     })
   );
 };

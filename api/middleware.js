@@ -168,7 +168,7 @@ function getUserByNameOrId(checkFunc) {
   return oneOf([
     getUserByName(checkFunc),
     getUserById(checkFunc),
-  ], "Either 'username' or 'userId' must be specified.");
+  ], "User doesn't exist or was not specified");
 }
 
 function getGroupById(checkFunc) {
@@ -183,7 +183,7 @@ function getGroupByNameOrId(checkFunc) {
   return oneOf([
     getGroupById(checkFunc),
     getGroupByName(checkFunc),
-  ], "Either 'group' or 'groupId' must be specified.");
+  ], "Group doesn't exist or hasn't been specified.");
 }
 
 function getDeviceById(checkFunc) {
@@ -200,6 +200,10 @@ function getEventDetailById(checkFunc) {
 
 function getFileById(checkFunc) {
   return getModelById(models.File, 'id', checkFunc);
+}
+
+function getRecordingById(checkFunc) {
+  return getModelById(models.Recording, 'id', checkFunc);
 }
 
 const checkNewName = function(field) {
@@ -320,6 +324,7 @@ exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
 exports.getEventDetailById = getEventDetailById;
 exports.getFileById        = getFileById;
+exports.getRecordingById   = getRecordingById;
 exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
