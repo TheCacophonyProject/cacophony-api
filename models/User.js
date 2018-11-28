@@ -197,7 +197,8 @@ module.exports = function(sequelize, DataTypes) {
             firstName: user.getDataValue('firstName'),
             lastName: user.getDataValue('lastName'),
             email: user.getDataValue('email'),
-            groups: groups
+            groups: groups,
+            globalPermission: user.getDataValue('globalPermission'),
           });
         });
     });
