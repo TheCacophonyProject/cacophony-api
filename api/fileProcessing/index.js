@@ -118,11 +118,7 @@ module.exports = function(app) {
       }
 
       // Process extra data from file processing
-      if (result.fieldUpdates != null) {
-        for (var i in result.fieldUpdates) {
-          recording.set(i, result.fieldUpdates[i]);
-        }
-      }
+      recording.mergeUpdate(result.fieldUpdates);
 
       await recording.save();
       return response.status(200).json({messages: ["Processing finished."]});
