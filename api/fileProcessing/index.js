@@ -118,7 +118,9 @@ module.exports = function(app) {
       }
 
       // Process extra data from file processing
-      recording.mergeUpdate(result.fieldUpdates);
+      if (result && result.fieldUpdates) {
+        recording.mergeUpdate(result.fieldUpdates);
+      }
 
       await recording.save();
       return response.status(200).json({messages: ["Processing finished."]});
