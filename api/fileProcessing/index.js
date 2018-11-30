@@ -118,10 +118,8 @@ module.exports = function(app) {
       }
 
       // Process extra data from file processing
-      if (result.fieldUpdates != null) {
-        for (var i in result.fieldUpdates) {
-          recording.set(i, result.fieldUpdates[i]);
-        }
+      if (result && result.fieldUpdates) {
+        recording.mergeUpdate(result.fieldUpdates);
       }
 
       await recording.save();

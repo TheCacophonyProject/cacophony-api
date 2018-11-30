@@ -323,6 +323,28 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
+  // Bulk update recording values. Any new additionalMetadata fields
+  // will be merged.
+  Recording.prototype.mergeUpdate = function(newValues) {
+    for (const name in newValues) {
+      const newValue = newValues[name];
+      if (name == "additionalMetadata") {
+        this.mergeAdditionalMetadata(newValue);
+      } else {
+        this.set(name, newValue);
+      }
+    }
+  };
+
+  // Update additionalMetadata fields with new values supplied.
+  Recording.prototype.mergeAdditionalMetadata = function(newValues) {
+    const meta = this.additionalMetadata || {};
+    for (const name in newValues) {
+      meta[name] = newValues[name];
+    }
+    this.additionalMetadata = meta;
+  };
+
   Recording.prototype.getFileExt = function() {
     if (this.fileMimeType == 'video/mp4') {
       return ".mp4";

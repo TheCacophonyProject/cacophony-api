@@ -1,3 +1,5 @@
+import random
+import string
 from datetime import date
 
 from .userapi import UserAPI
@@ -7,8 +9,6 @@ from .testdevice import TestDevice
 from .testconfig import TestConfig
 from .testexception import TestException
 
-import random
-import string
 
 class Helper:
 
@@ -19,24 +19,24 @@ class Helper:
 
     def login_as(self, username):
         password = self._make_password(username)
-        api = UserAPI(self.config.api_server, username, None, password).login()
+        api = UserAPI(self.config.api_url, username, None, password).login()
         return TestUser(username, api)
 
     def login_with_email(self, username, email):
         password = self._make_password(username)
-        api = UserAPI(self.config.api_server, username, email, password).login()
+        api = UserAPI(self.config.api_url, username, email, password).login()
         return TestUser(username, api, email)
 
     def login_with_name_or_email(self, username, nameOrEmail):
         password = self._make_password(username)
-        api = UserAPI(self.config.api_server, username, None, password)
+        api = UserAPI(self.config.api_url, username, None, password)
         api.name_or_email_login(nameOrEmail)
         return TestUser(username, api)
 
 
     def login_as_device(self, devicename):
         password = self._make_password(devicename)
-        device = DeviceAPI(self.config.api_server, devicename, password).login()
+        device = DeviceAPI(self.config.api_url, devicename, password).login()
         return TestDevice(devicename, device, self)
 
     def given_new_user_with_device(self, testClass, username_base):
@@ -47,15 +47,15 @@ class Helper:
         return (user, device)
 
     def given_new_user(self, testClass, username, email=None):
-        if (email == None):
+        if not email:
             email = username+'@email.com'
         basename = self._make_long_name(testClass, username)
         testname = basename
         baseemail = self._make_long_email(testClass, email)
         testemail = baseemail
-        for num in range(2,200):
+        for num in range(2, 200):
             try:
-                api = UserAPI(self.config.api_server, testname, testemail, self._make_password(testname)).register_as_new()
+                api = UserAPI(self.config.api_url, testname, testemail, self._make_password(testname)).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api, testemail)
             except OSError:
@@ -83,7 +83,10 @@ class Helper:
         return self._make_unique_name(testClass, groupName, groups)
 
 
-    def given_new_device(self, testClass, devicename, group=None, description=None):
+    def given_new_device(self, testClass, devicename=None, group=None, description=None):
+        if not devicename:
+            devicename = 'random-device'
+
         if not description:
             description = "Given a new device '{}'".format(devicename)
         self._print_description(description)
@@ -98,13 +101,16 @@ class Helper:
             group = self.config.default_group
 
         try:
-            device = DeviceAPI(self.config.api_server, uniqueName, self._make_password(uniqueName)).register_as_new(group)
+            device = DeviceAPI(self.config.api_url, uniqueName, self._make_password(uniqueName)).register_as_new(group)
             self._print_actual_name(uniqueName)
             return TestDevice(uniqueName, device, self)
         except Exception as exception:
             raise TestException("Failed to create device {}.  If error is 'device name in use', your super-user needs admin rights".format(exception))
 
 
+    def given_a_recording(self, testClass, devicename=None, group=None):
+        device = self.given_new_device(testClass, devicename=devicename, group=group)
+        return device.has_recording()
 
     def _make_long_name(self, testClass, name):
         testName = type(testClass).__name__
@@ -128,7 +134,7 @@ class Helper:
         if not self._admin:
             print("Logging on as Admin once")
             self._admin = UserAPI(
-                self.config.api_server,
+                self.config.api_url,
                 self.config.admin_username,
                 self.config.admin_email,
                 self.config.admin_password

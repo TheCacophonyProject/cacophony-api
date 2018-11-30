@@ -1,30 +1,25 @@
 import json
 from pathlib import Path
 
+import attr
 
+CONFIG_FILE = 'testconfig.json'
+
+
+@attr.s
 class TestConfig:
-    def __init__(self,
-                 api_server='http://127.0.0.1:1080',
-                 admin_username='admin_test',
-                 admin_password='admin_test',
-                 admin_email='admin@email.com',
-                 default_group='test-group'):
-        self.api_server = api_server
-        self.admin_username = admin_username
-        self.admin_password = admin_password
-        self.default_group = default_group
-        self.admin_email=admin_email
+    api_url = attr.ib(default='http://127.0.0.1:1080')
+    admin_username = attr.ib(default='admin_test')
+    admin_password = attr.ib(default='admin_test')
+    admin_email = attr.ib(default='admin@email.com')
+    default_group = attr.ib(default='test-group')
+    fileprocessing_url = attr.ib(default='http://127.0.0.1:2008')
 
     def load_config(self):
-        config_file = 'testconfig.json'
-
-        if not Path(config_file).is_file():
-            print("No config file '{}'.  Running with default config.".format(
-                config_file))
+        if not Path(CONFIG_FILE).is_file():
+            print("No config file '{}'.  Running with default config.".format(CONFIG_FILE))
             return self
 
-        with open(config_file) as json_data_file:
-            print("Attempting to load config from file '{}'...".format(
-                config_file))
-            data = json.load(json_data_file)
-            return TestConfig(**data)
+        print("Attempting to load config from file '{}'...".format(CONFIG_FILE))
+        with open(CONFIG_FILE) as f:
+            return TestConfig(**json.load(f))

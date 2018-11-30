@@ -5,7 +5,7 @@ class TestSmoke:
     groupName = "group107"
 
     def test_can_upload_audio(self, helper):
-        helper.config.api_server = self.test_server
+        helper.config.api_url = self.test_server
 
         listener = helper.given_new_device(self, 'Listener_' + self.groupName, group=self.groupName)
 
@@ -16,7 +16,7 @@ class TestSmoke:
         recording = listener.upload_audio_recording()
 
     def test_can_upload_cptv(self, helper):
-        helper.config.api_server = self.test_server
+        helper.config.api_url = self.test_server
 
         watcher = helper.given_new_device(self, 'Watcher_' + self.groupName, group=self.groupName)
 
