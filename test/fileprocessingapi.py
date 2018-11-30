@@ -16,14 +16,15 @@ class FileProcessingAPI:
             return r.json()["recording"]
         raise IOError(r.text)
 
-    def put(self, recording, success, updates, complete, new_object_key=None):
+    def put(self, recording, success, complete, updates=None, new_object_key=None):
         data = {
             "id": recording["id"],
             "jobKey": recording["jobKey"],
             "success": success,
-            "result": json.dumps({"fieldUpdates": updates}),
             "complete": complete,
         }
+        if updates:
+            data["result"] = json.dumps({"fieldUpdates": updates})
         if new_object_key:
             data["newProcessedFileKey"] = new_object_key
 
