@@ -16,17 +16,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var log = require('../../logging');
-var responseUtil = require('./responseUtil');
-const uuidv4            = require('uuid/v4');
-const multiparty        = require('multiparty');
-const config            = require('../../config');
-const modelsUtil        = require('../../models/util/util');
+const moment       = require('moment');
+const uuidv4       = require('uuid/v4');
+const multiparty   = require('multiparty');
+const log          = require('../../logging');
+const responseUtil = require('./responseUtil');
+const config       = require('../../config');
+const modelsUtil   = require('../../models/util/util');
 
 
 function multipartUpload(buildRecord){
   return (request, response) => {
-    var key = uuidv4();
+    var key = moment().format('YYYY/MM/DD/') + uuidv4();
     var data;
     var filename;
     var upload;
