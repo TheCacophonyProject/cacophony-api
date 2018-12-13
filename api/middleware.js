@@ -207,13 +207,13 @@ function getRecordingById(checkFunc) {
 }
 
 const checkNewName = function(field) {
-  return body(field, 'invalid name')
+  return body(field, 'Invalid username')
     .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
-  return body(field, 'Invalid password.  Password must be at least 8 characters long.')
+  return body(field, 'Password must be at least 8 characters long')
     .isLength({ min: 8 });
 };
 

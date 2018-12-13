@@ -47,11 +47,7 @@ function ValidationError(errors) {
     for (const name in mappedErrors) {
       const error = mappedErrors[name];
       if (typeof error.msg == "string") {
-        errors.push(format(
-          "%s: %s",
-          name,
-          error.msg,
-        ));
+        errors.push(error.msg);
       }
     }
     return errors.join('; ');
