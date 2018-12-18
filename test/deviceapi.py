@@ -8,18 +8,18 @@ from .apibase import APIBase
 
 
 class DeviceAPI(APIBase):
-    def __init__(self, baseurl, devicename, password='password'):
-        super().__init__('device', baseurl, devicename, password)
+    def __init__(self, baseurl, devicename, password="password"):
+        super().__init__("device", baseurl, devicename, password)
 
     def upload_recording(self, filename, props=None):
         if not props:
             props = {"type": "thermalRaw"}
-        return self._upload('/api/v1/recordings', filename, props)
+        return self._upload("/api/v1/recordings", filename, props)
 
     def upload_audio_recording(self, filename, props=None):
         if not props:
             props = {}
-        return self._upload('/api/v1/audiorecordings', filename, props)
+        return self._upload("/api/v1/audiorecordings", filename, props)
 
     def record_event_data(self, eventData, times):
         eventData["dateTimes"] = times
@@ -29,9 +29,13 @@ class DeviceAPI(APIBase):
         return (response.json()["eventsAdded"], response.json()["eventDetailId"])
 
     def record_event(self, _type, details, times=[datetime.utcnow().isoformat()]):
-        return self.record_event_data({"description" : {"type": _type, "details": details}}, times)
+        return self.record_event_data(
+            {"description": {"type": _type, "details": details}}, times
+        )
 
-    def record_event_from_id(self, eventDetailId, times=[datetime.utcnow().isoformat()]):
+    def record_event_from_id(
+        self, eventDetailId, times=[datetime.utcnow().isoformat()]
+    ):
         return self.record_event_data({"eventDetailId": eventDetailId}, times)
 
     def get_audio_schedule(self):

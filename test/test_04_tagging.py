@@ -2,7 +2,7 @@ class TestTagging:
     def test_recording_can_be_retrieved_by_tagmode_types(self, helper):
         admin = helper.admin_user()
 
-        destroyer = helper.given_new_device(self, 'The Destroyer')
+        destroyer = helper.given_new_device(self, "The Destroyer")
 
         possum_human = destroyer.has_recording().is_tagged_as("possum").by(admin)
 
@@ -18,44 +18,57 @@ class TestTagging:
         admin.can_see_recordings(*allrecordings)
 
         # Tagmode tests
-        admin.when_searching_with_tagmode("any").can_see_all_recordings_from_(allrecordings)
+        admin.when_searching_with_tagmode("any").can_see_all_recordings_from_(
+            allrecordings
+        )
 
-        admin.when_searching_with_tagmode("untagged") \
-             .can_only_see_recordings(no_tag) \
-             .from_(allrecordings)
-        admin.when_searching_with_tagmode("tagged") \
-             .can_only_see_recordings(possum_human, bird_both, stoat_ai, rat_both_diff) \
-             .from_(allrecordings)
+        admin.when_searching_with_tagmode("untagged").can_only_see_recordings(
+            no_tag
+        ).from_(allrecordings)
+        admin.when_searching_with_tagmode("tagged").can_only_see_recordings(
+            possum_human, bird_both, stoat_ai, rat_both_diff
+        ).from_(allrecordings)
 
-        admin.when_searching_with_tagmode("no-human") \
-             .can_only_see_recordings(no_tag, stoat_ai).from_(allrecordings)
+        admin.when_searching_with_tagmode("no-human").can_only_see_recordings(
+            no_tag, stoat_ai
+        ).from_(allrecordings)
 
-        admin.when_searching_with_tagmode("human-only") \
-             .can_only_see_recordings(possum_human).from_(allrecordings)
+        admin.when_searching_with_tagmode("human-only").can_only_see_recordings(
+            possum_human
+        ).from_(allrecordings)
 
-        admin.when_searching_with_tagmode("automatic-only") \
-             .can_only_see_recordings(stoat_ai).from_(allrecordings)
+        admin.when_searching_with_tagmode("automatic-only").can_only_see_recordings(
+            stoat_ai
+        ).from_(allrecordings)
 
-        admin.when_searching_with_tagmode("automatic+human") \
-             .can_only_see_recordings(rat_both_diff, bird_both).from_(allrecordings)
+        admin.when_searching_with_tagmode("automatic+human").can_only_see_recordings(
+            rat_both_diff, bird_both
+        ).from_(allrecordings)
 
         # Specified tags tests
-        print('Test human only tags found')
-        admin.when_searching_for_tags("possum") \
-             .can_only_see_recordings(possum_human).from_(allrecordings)
+        print("Test human only tags found")
+        admin.when_searching_for_tags("possum").can_only_see_recordings(
+            possum_human
+        ).from_(allrecordings)
 
-        print('Test automatic only tags found')
-        admin.when_searching_for_tags("stoat") \
-             .can_only_see_recordings(stoat_ai).from_(allrecordings)
+        print("Test automatic only tags found")
+        admin.when_searching_for_tags("stoat").can_only_see_recordings(stoat_ai).from_(
+            allrecordings
+        )
 
-        print('Test first tag found if different')
-        admin.when_searching_for_tags("hedgehog") \
-             .can_only_see_recordings(rat_both_diff).from_(allrecordings)
+        print("Test first tag found if different")
+        admin.when_searching_for_tags("hedgehog").can_only_see_recordings(
+            rat_both_diff
+        ).from_(allrecordings)
 
-        print('Test second tag found if different')
-        admin.when_searching_for_tags("rat") \
-             .can_only_see_recordings(rat_both_diff).from_(allrecordings)
+        print("Test second tag found if different")
+        admin.when_searching_for_tags("rat").can_only_see_recordings(
+            rat_both_diff
+        ).from_(allrecordings)
 
-        print('Test several tags found if different')
-        admin.when_searching_for_tags("possum", "bird", "stoat") \
-             .can_only_see_recordings(possum_human, bird_both, stoat_ai).from_(allrecordings)
+        print("Test several tags found if different")
+        admin.when_searching_for_tags(
+            "possum", "bird", "stoat"
+        ).can_only_see_recordings(possum_human, bird_both, stoat_ai).from_(
+            allrecordings
+        )

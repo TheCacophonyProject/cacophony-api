@@ -17,11 +17,11 @@ class TestRecording:
         return TestTagPromise(self, animal)
 
 
-class TestTagPromise():
+class TestTagPromise:
     def __init__(self, testrecording, animal):
         self._testrecording = testrecording
         self._tagData = {"animal": animal}
-        print("  which is tagged as a {}".format(animal), end='')
+        print("  which is tagged as a {}".format(animal), end="")
 
     def by(self, testuser):
         print(" by {}".format(testuser.username))
@@ -30,11 +30,12 @@ class TestTagPromise():
 
     def byAI(self, testuser):
         print(" by {}".format("by AI"))
-        self._tagData['automatic'] = True
+        self._tagData["automatic"] = True
 
         testuser.tag_recording(self._testrecording.recordingId, self._tagData)
         return self._testrecording
 
+
 def slurp(filename):
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         return f.read()
