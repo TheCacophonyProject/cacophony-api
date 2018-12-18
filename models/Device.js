@@ -229,16 +229,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  Device.prototype.userPermissions = async function(user) {
-    if (user.hasGlobalWrite()) {
-      return Device.newUserPermissions(true);
-    }
-
-    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
-    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
-    return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
-  };
-
   // Returns users that have access to this device either via group
   // membership or direct assignment. By default, only "safe" user
   // attributes are returned.
