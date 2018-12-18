@@ -167,6 +167,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Device.newUserPermissions = function(enabled) {
     return {
+      canListUsers: enabled,
       canAddUsers: enabled,
       canRemoveUsers: enabled,
     };
@@ -187,6 +188,12 @@ module.exports = function(sequelize, DataTypes) {
   Device.getFromName = async function(name) {
     return await this.findOne({ where: { devicename: name }});
   };
+
+  // Fields that are directly settable by the API.
+  Device.apiSettableFields = [
+    'location',
+    'newConfig'
+  ];
 
   //------------------
   // INSTANCE METHODS
@@ -222,12 +229,6 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
-  // Fields that are directly settable by the API.
-  Device.apiSettableFields = [
-    'location',
-    'newConfig'
-  ];
-
   Device.prototype.userPermissions = async function(user) {
     if (user.hasGlobalWrite()) {
       return Device.newUserPermissions(true);
@@ -236,6 +237,22 @@ module.exports = function(sequelize, DataTypes) {
     const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
     return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
+  };
+
+  // Returns users that have access to this device either via group
+  // membership or direct assignment. By default, only "safe" user
+  // attributes are returned.
+  Device.prototype.users = async function(authUser, attrs = ['id', 'username', 'email']) {
+    if (!(await this.userPermissions(authUser)).canListUsers) {
+      return [];
+    }
+
+    const device_users = await this.getUsers({ attributes: attrs });
+
+    const group = await models.Group.findOne(this.groupId);
+    const group_users = await group.getUsers({ attributes: attrs });
+
+    return device_users.concat(group_users);
   };
 
   return Device;

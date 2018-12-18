@@ -269,6 +269,16 @@ class TestUser:
     def remove_from_device(self, olduser, device):
         self._userapi.remove_user_from_device(olduser, device.get_id())
 
+    def device_has_device_users(self, device, *users):
+        assert self._get_device_users(device, "device") == {u.username for u in users}
+
+    def device_has_group_users(self, device, *users):
+        assert self._get_device_users(device, "group") == {u.username for u in users}
+
+    def _get_device_users(self, device, relation):
+        users = self._userapi.list_device_users(device.get_id())
+        return {u["username"] for u in users if u["relation"] == relation}
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):

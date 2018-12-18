@@ -47,3 +47,34 @@ class TestDeviceUsers:
             OSError, message=["Expected failed to remove user from device."]
         ):
             violet.remove_from_device(helper.admin_user(), shaker)
+
+    def test_can_list_device_users(self, helper):
+        admin_user = helper.admin_user()
+
+        # A new device has just the admin user as a group user.
+        device = helper.given_new_device(self, "Zoe")
+        admin_user.device_has_group_users(device, admin_user)
+        admin_user.device_has_device_users(device)
+
+        # Now add a user and see that it's reported.
+        samantha = helper.given_new_user(self, "Samantha")
+        admin_user.add_to_device(samantha, device)
+        admin_user.device_has_device_users(device, samantha)
+
+        # Now add a another device user and see that both users are reported.
+        bobby = helper.given_new_user(self, "Bobby")
+        admin_user.add_to_device(bobby, device)
+        admin_user.device_has_device_users(device, samantha, bobby)
+
+    def test_random_user_cant_list_group(self, helper):
+        admin_user = helper.admin_user()
+
+        # Set up a device with a group user (admin) and another user.
+        device = helper.given_new_device(self, "sentinel")
+        admin_user.add_to_device(helper.given_new_user(self, "Samantha"), device)
+
+        # Ensure another user who is not a member of the group can't
+        # list the users.
+        hacker = helper.given_new_user(self, "Hacker")
+        hacker.device_has_group_users(device)
+        hacker.device_has_device_users(device)
