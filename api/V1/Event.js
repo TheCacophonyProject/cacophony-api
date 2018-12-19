@@ -21,6 +21,7 @@ const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { body, query, oneOf } = require('express-validator/check');
 
+
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/events';
 
@@ -111,7 +112,7 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} /api/v1/events Query events recorded
+   * @api {get} /api/v1/events Query recorded events
    * @apiName QueryEvents
    * @apiGroup Events
    *
@@ -127,33 +128,28 @@ module.exports = function(app, baseUrl) {
     [
       middleware.authenticateUser,
       middleware.parseJSON('where', query),
-      query('offset').isInt().optional(),
-      query('limit').isInt().optional(),
+      query('offset').isInt().optional().toInt(),
+      query('limit').isInt().optional().toInt(),
       middleware.parseJSON('order', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      if (request.query.offset == null) {
-        request.query.offset = '0';
-      }
-
-      if (request.query.offset == null) {
-        request.query.limit = '100';
-      }
+      const query = request.query;
+      query.offset = query.offset || 0;
+      query.limit = query.limit || 100;
 
       var result = await models.Event.query(
         request.user,
-        request.query.where,
-        request.query.offset,
-        request.query.limit,
-        request.query.order);
+        query.where,
+        query.offset,
+        query.limit,
+        query.order);
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ["Completed query."],
-        limit: request.query.limit,
-        offset: request.query.offset,
+        limit: query.limit,
+        offset: query.offset,
         count: result.count,
         rows: result.rows,
       });
