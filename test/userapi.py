@@ -45,9 +45,6 @@ class UserAPI(APIBase):
         if endDate is not None:
             where["recordingDateTime"]["$lte"] = endDate.isoformat()
 
-        if tags is not None:
-            tags = json.dumps(tags)
-
         return self._query(
             "recordings",
             where=where,
@@ -202,7 +199,7 @@ class UserAPI(APIBase):
         req_params = {}
         for name, value in params.items():
             if value is not None:
-                if name == "where":
+                if isinstance(value, (dict, list, tuple)):
                     value = json.dumps(value)
                 elif isinstance(value, datetime):
                     value = value.isoformat()
