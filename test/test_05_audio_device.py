@@ -1,7 +1,7 @@
 class TestAudioDevice:
     def test_can_upload_audio(self, helper):
         description = "If a new device 'Listener' signs up"
-        listener = helper.given_new_device(self, 'Listener', description=description)
+        listener = helper.given_new_device(self, "Listener", description=description)
 
         print("Then 'Listener' should able to log in")
         helper.login_as_device(listener.devicename)
