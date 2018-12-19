@@ -223,7 +223,7 @@ const parseJSON = function(field, checkFunc) {
       req[location][path] = JSON.parse(value);
       return true;
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a JSON.', path));
+      throw new Error(format('Could not parse JSON field %s.', path));
     }
   });
 };
@@ -234,7 +234,7 @@ const parseArray = function(field, checkFunc) {
     try {
       arr = JSON.parse(value);
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a JSON.', path));
+      throw new Error(format('Could not parse JSON field %s.', path));
     }
     if (Array.isArray(arr)) {
       req[location][path] = arr;
