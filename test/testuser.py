@@ -200,12 +200,9 @@ class TestUser:
 
     def cannot_see_events(self):
         events = self._userapi.query_events(limit=10)
-        if events:
-            raise TestException(
-                "User '{}' can see a events from '{}'".format(
-                    self.username, recordings[0]["DeviceId"]
-                )
-            )
+        assert not events, "User '{}' can see events when it shouldn't".format(
+            self.username
+        )
 
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
