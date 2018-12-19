@@ -21,7 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const { query, body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -88,6 +88,59 @@ module.exports = function(app, baseUrl) {
       });
     })
   );
+
+  /**
+  * @api {get} /api/v1/devices/users Get all users who can access a device.
+  * @apiName GetDeviceUsers
+  * @apiGroup Device
+  * @apiDescription Returns all users that have access to the device
+  * through both group membership and direct assignment.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {Number} deviceId ID of the device.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {JSON} rows Array of users who have access to the
+  * device. Each element includes `id` (user id), `username`, `email`,
+  * `relation` (either `group` or `device`) and `admin` (boolean).
+  * @apiUse V1ResponseError
+  */
+  app.get(
+    apiUrl + '/users',
+    [
+      middleware.authenticateUser,
+      middleware.getDeviceById(query),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      let users = await request.body.device.users(request.user);
+
+      users = users.map(u => {
+        u = u.get({ plain: true });
+
+        // Extract the useful parts from DeviceUsers/GroupUsers.
+        if (u.DeviceUsers) {
+          u.relation = "device";
+          u.admin = u.DeviceUsers.admin;
+          delete u.DeviceUsers;
+        } else if (u.GroupUsers) {
+          u.relation = "group";
+          u.admin = u.GroupUsers.admin;
+          delete u.GroupUsers;
+        }
+
+        return u;
+      });
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        success: true,
+        messages: ["OK."],
+        rows: users
+      });
+    })
+  );
+
 
   /**
   * @api {post} /api/v1/devices/users Add a user to a device.

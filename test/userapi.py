@@ -279,3 +279,10 @@ class UserAPI(APIBase):
         props = {"deviceId": deviceid, "username": olduser.username}
         response = requests.delete(url, headers=self._auth_header, data=props)
         self._check_response(response)
+
+    def list_device_users(self, deviceid):
+        url = urljoin(self._baseurl, "/api/v1/devices/users")
+        response = requests.get(
+            url, headers=self._auth_header, params={"deviceId": deviceid}
+        )
+        return self._check_response(response).get("rows", [])
