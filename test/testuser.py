@@ -192,14 +192,16 @@ class TestUser:
             self._group = self.create_group(self.username + "s_devices", False)
         return self._group
 
-    def can_see_events(self, device=None):
+    def can_see_events(self, device=None, startTime=None, endTime=None):
         deviceId = None
         if device is not None:
             deviceId = device.get_id()
-        return self._userapi.query_events(limit=10, deviceId=deviceId)
+        return self._userapi.query_events(
+            deviceId=deviceId, startTime=startTime, endTime=endTime
+        )
 
     def cannot_see_events(self):
-        events = self._userapi.query_events(limit=10)
+        events = self._userapi.query_events()
         assert not events, "User '{}' can see events when it shouldn't".format(
             self.username
         )

@@ -4,6 +4,7 @@ import requests
 from collections import defaultdict
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
+from datetime import datetime
 
 from .apibase import APIBase
 
@@ -177,11 +178,10 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
-    def query_events(self, deviceId=None, limit=None, offset=None):
-        where = {}
-        if deviceId is not None:
-            where["DeviceId"] = deviceId
-        return self._query("events", where=where, limit=limit, offset=offset)
+    def query_events(self, deviceId=None, startTime=None, endTime=None):
+        return self._query(
+            "events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=20
+        )
 
     def query_files(self, where=None, limit=None, offset=None):
         if where is None:
@@ -204,6 +204,8 @@ class UserAPI(APIBase):
             if value is not None:
                 if name == "where":
                     value = json.dumps(value)
+                elif isinstance(value, datetime):
+                    value = value.isoformat()
                 req_params[name] = value
 
         response = requests.get(url, params=req_params, headers=self._auth_header)

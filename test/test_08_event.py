@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta, timezone
+
+
 class TestEvent:
     def test_can_create_new_event(self, helper):
         doer = helper.given_new_device(self, "The Do-er")
@@ -99,3 +102,30 @@ class TestEvent:
         assert event["EventDetail"]["details"]["lure_id"] == "possum_screams"
         print("    and EventDetail.details.description = '{}'".format(description))
         assert event["EventDetail"]["details"]["description"] == description
+
+    def test_time_filtering(self, helper):
+        fred, freds_device = helper.given_new_user_with_device(self, "freddie")
+
+        now = datetime.now(tz=timezone.utc)
+        freds_device.record_event("playLure", {"lure_id": "possum_screech"}, [now])
+        assert len(fred.can_see_events()) == 1
+
+        sec = timedelta(seconds=1)
+
+        # Window which covers event
+        assert fred.can_see_events(startTime=now - sec, endTime=now + sec)
+
+        # Window which doesn't cover event.
+        assert not fred.can_see_events(startTime=now - (2 * sec), endTime=now - sec)
+
+        # Just end time, before the event
+        assert not fred.can_see_events(endTime=now - sec)
+
+        # Just end time, after the event
+        assert fred.can_see_events(endTime=now + sec)
+
+        # Just start time, after the event
+        assert not fred.can_see_events(startTime=now + sec)
+
+        # Just start time, on the event
+        assert fred.can_see_events(startTime=now)

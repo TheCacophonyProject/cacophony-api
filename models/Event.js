@@ -38,37 +38,39 @@ module.exports = function(sequelize, DataTypes) {
   Event.addAssociations = function(models) {
     models.Event.belongsTo(models.EventDetail);
   };
-  
+
   /**
   * Return one or more recordings for a user matching the query
   * arguments given.
   */
-  Event.query = async function(user, where, offset, limit, order) {
-    if (order == null) {
-      order = [
-        // Sort by recordingDatetime but handle the case of the
-        // timestamp being missing and fallback to sorting by id.
-        [sequelize.fn("COALESCE", sequelize.col('dateTime'), '1970-01-01'), "DESC"],
-        ["id", "DESC"],
-      ];
+  Event.query = async function(user, startTime, endTime, deviceId, offset, limit) {
+    const where = {};
+
+    if (startTime || endTime) {
+      const dateTime = where.dateTime = {};
+      if (startTime) { dateTime[Op.gte] = startTime; }
+      if (endTime) { dateTime[Op.lt] = endTime; }
     }
 
-    var q = {
+    if (deviceId) {
+      where.DeviceId = deviceId;
+    }
+
+    return this.findAndCount({
       where: {
         [Op.and]: [
           where, // User query
           await user.getWhereDeviceVisible(), // can only see devices they should
         ],
       },
-      order: order,
+      order: ["dateTime"],
       include: [
         { model: models.EventDetail, attributes: ['type', 'details'] },
       ],
       attributes: { exclude : ['updatedAt'] },
       limit: limit,
       offset: offset,
-    };
-    return this.findAndCount(q);
+    });
   };
 
   return Event;

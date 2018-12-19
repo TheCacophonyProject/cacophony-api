@@ -91,11 +91,8 @@ class TestDevice:
 
     def record_three_events_at_once(self, detailId):
         print("    which has three events uploaded with detail id {}.".format(detailId))
-        times = [
-            datetime.utcnow().isoformat(),
-            (datetime.utcnow() - timedelta(seconds=2)).isoformat(),
-            (datetime.utcnow() - timedelta(seconds=4)).isoformat(),
-        ]
+        now = datetime.now()
+        times = [now, now - timedelta(seconds=2), now - timedelta(seconds=4)]
         eventsAdded, detailsId = self._deviceapi.record_event_from_id(detailId, times)
 
         print("Then three events should have been recorded.")

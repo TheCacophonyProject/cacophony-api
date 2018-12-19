@@ -45,7 +45,7 @@ module.exports = function(app, baseUrl) {
    * @apiParam {JSON} data Metadata about the recording (see above).
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {Integer} eventsAdded Numbeer of events added
+   * @apiSuccess {Integer} eventsAdded Number of events added
    * @apiSuccess {Integer} eventDetailId Id of the Event Detail record used.  May be existing or newly created
    * @apiuse V1ResponseError
    */
@@ -117,20 +117,24 @@ module.exports = function(app, baseUrl) {
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
+   * @apiParam {Datetime} startTime Return only events after this time (optional)
+   * @apiParam {Datetime} endTime Return only events from before this time (optional)
+   * @apiParam {Integer} deviceId Return only events for this device id (optional)
+   * @apiParam {Integer} limit Limit returned events to this number (default is 100) (optional)
+   * @apiParam {Integer} offset Offset returned events by this amount (default is 0) (optional)
    *
-   * @apiUse QueryParams
-   *
+   * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
    * @apiUse V1ResponseError
    */
-
   app.get(
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where', query),
+      query('startTime').isISO8601({ strict: true }).optional(),
+      query('endTime').isISO8601({ strict: true }).optional(),
+      query('deviceId').isInt().optional().toInt(),
       query('offset').isInt().optional().toInt(),
       query('limit').isInt().optional().toInt(),
-      middleware.parseJSON('order', query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
@@ -139,10 +143,11 @@ module.exports = function(app, baseUrl) {
 
       var result = await models.Event.query(
         request.user,
-        query.where,
+        query.startTime,
+        query.endTime,
+        query.deviceId,
         query.offset,
-        query.limit,
-        query.order);
+        query.limit);
 
       return responseUtil.send(response, {
         statusCode: 200,
