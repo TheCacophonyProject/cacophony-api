@@ -21,7 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const { query, body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -110,7 +110,7 @@ module.exports = function(app, baseUrl) {
     apiUrl + '/users',
     [
       middleware.authenticateUser,
-      middleware.getDeviceById(body),
+      middleware.getDeviceById(query),
     ],
     middleware.requestWrapper(async (request, response) => {
       let users = await request.body.device.users(request.user);

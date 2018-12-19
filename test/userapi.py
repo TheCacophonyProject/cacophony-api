@@ -282,8 +282,7 @@ class UserAPI(APIBase):
 
     def list_device_users(self, deviceid):
         url = urljoin(self._baseurl, "/api/v1/devices/users")
-        props = {
-            "deviceId" : deviceid,
-        }
-        response = requests.get(url, headers=self._auth_header, data=props)
+        response = requests.get(
+            url, headers=self._auth_header, params={"deviceId": deviceid}
+        )
         return self._check_response(response).get("rows", [])
