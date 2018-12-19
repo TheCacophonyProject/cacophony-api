@@ -221,7 +221,7 @@ class TestUser:
         return self._userapi.download_file(file_id)
 
     def get_all_audio_baits(self):
-        return AudioBaitList(self._userapi.query_files('{"type":"audioBait"}'))
+        return AudioBaitList(self._userapi.query_files(where={"type": "audioBait"}))
 
     def delete_audio_bait_file(self, file_id):
         self._userapi.delete_file(file_id)
