@@ -175,9 +175,13 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
-    def query_events(self, deviceId=None, startTime=None, endTime=None):
+    def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
         return self._query(
-            "events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=20
+            "events",
+            deviceId=deviceId,
+            startTime=startTime,
+            endTime=endTime,
+            limit=limit,
         )
 
     def query_files(self, where=None, limit=None, offset=None):
