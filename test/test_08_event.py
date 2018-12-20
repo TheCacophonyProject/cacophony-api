@@ -7,10 +7,7 @@ class TestEvent:
         new_event_name = "E_" + helper.random_id()
 
         screech = doer.record_event(new_event_name, {"lure_id": "possum_screech"})
-
-        screech2 = doer.record_event(
-            new_event_name, {"lure_id": "possum_screech"}, "    and also"
-        )
+        screech2 = doer.record_event(new_event_name, {"lure_id": "possum_screech"})
 
         print(
             "Then these events with the same details should use the same eventDetailId."
@@ -19,9 +16,7 @@ class TestEvent:
             screech == screech2
         ), "And events with the same details should use the same eventDetailId"
 
-        howl = doer.record_event(
-            new_event_name, {"lure_id": "possum_howl"}, "Given this device also"
-        )
+        howl = doer.record_event(new_event_name, {"lure_id": "possum_howl"})
 
         print(
             "Then the events with some different details should have different eventDetailIds."
@@ -30,7 +25,7 @@ class TestEvent:
             screech != howl
         ), "Events with different details should link to different eventDetailIds"
 
-        no_lure_id = doer.record_event(new_event_name, "", "Given this device also")
+        no_lure_id = doer.record_event(new_event_name, "")
 
         print(
             "Then the event with no details should should have a different eventDetailId."
