@@ -20,4 +20,4 @@ script:
  - npm run lint
  - test/check-style
  - ./wait-for-api || { docker ps; docker logs cacophony-api; exit 1; }
- - cd test && pytest -s
+ - cd test && pytest

@@ -192,20 +192,19 @@ class TestUser:
             self._group = self.create_group(self.username + "s_devices", False)
         return self._group
 
-    def can_see_events(self, device=None):
+    def can_see_events(self, device=None, startTime=None, endTime=None):
         deviceId = None
         if device is not None:
             deviceId = device.get_id()
-        return self._userapi.query_events(limit=10, deviceId=deviceId)
+        return self._userapi.query_events(
+            deviceId=deviceId, startTime=startTime, endTime=endTime
+        )
 
     def cannot_see_events(self):
-        events = self._userapi.query_events(limit=10)
-        if events:
-            raise TestException(
-                "User '{}' can see a events from '{}'".format(
-                    self.username, recordings[0]["DeviceId"]
-                )
-            )
+        events = self._userapi.query_events()
+        assert not events, "User '{}' can see events when it shouldn't".format(
+            self.username
+        )
 
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
@@ -224,7 +223,7 @@ class TestUser:
         return self._userapi.download_file(file_id)
 
     def get_all_audio_baits(self):
-        return AudioBaitList(self._userapi.query_files('{"type":"audioBait"}'))
+        return AudioBaitList(self._userapi.query_files(where={"type": "audioBait"}))
 
     def delete_audio_bait_file(self, file_id):
         self._userapi.delete_file(file_id)

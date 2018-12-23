@@ -50,19 +50,18 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 function query(request, type) {
-  if (request.query.tagMode == null) {
+  if (!request.query.tagMode) {
     request.query.tagMode = 'any';
   }
   if (!request.query.where) {
     request.query.where = {};
   }
-
-  // remove legacy tag mode selector (if included)
-  delete request.query.where._tagged;
-
   if (type) {
     request.query.where.type = type;
   }
+
+  // remove legacy tag mode selector (if included)
+  delete request.query.where._tagged;
 
   return models.Recording.query(
     request.user,

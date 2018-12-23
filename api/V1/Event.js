@@ -21,6 +21,7 @@ const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
 const { body, query, oneOf } = require('express-validator/check');
 
+
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/events';
 
@@ -44,7 +45,7 @@ module.exports = function(app, baseUrl) {
    * @apiParam {JSON} data Metadata about the recording (see above).
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {Integer} eventsAdded Numbeer of events added
+   * @apiSuccess {Integer} eventsAdded Number of events added
    * @apiSuccess {Integer} eventDetailId Id of the Event Detail record used.  May be existing or newly created
    * @apiuse V1ResponseError
    */
@@ -111,49 +112,49 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} /api/v1/events Query events recorded
+   * @api {get} /api/v1/events Query recorded events
    * @apiName QueryEvents
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
+   * @apiParam {Datetime} [startTime] Return only events after this time
+   * @apiParam {Datetime} [endTime] Return only events from before this time
+   * @apiParam {Integer} [deviceId] Return only events for this device id
+   * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
+   * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
    *
-   * @apiUse QueryParams
-   *
+   * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
    * @apiUse V1ResponseError
    */
-
   app.get(
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where', query),
-      query('offset').isInt().optional(),
-      query('limit').isInt().optional(),
-      middleware.parseJSON('order', query).optional(),
+      query('startTime').isISO8601({ strict: true }).optional(),
+      query('endTime').isISO8601({ strict: true }).optional(),
+      query('deviceId').isInt().optional().toInt(),
+      query('offset').isInt().optional().toInt(),
+      query('limit').isInt().optional().toInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      if (request.query.offset == null) {
-        request.query.offset = '0';
-      }
-
-      if (request.query.offset == null) {
-        request.query.limit = '100';
-      }
+      const query = request.query;
+      query.offset = query.offset || 0;
+      query.limit = query.limit || 100;
 
       var result = await models.Event.query(
         request.user,
-        request.query.where,
-        request.query.offset,
-        request.query.limit,
-        request.query.order);
+        query.startTime,
+        query.endTime,
+        query.deviceId,
+        query.offset,
+        query.limit);
 
       return responseUtil.send(response, {
         statusCode: 200,
         success: true,
         messages: ["Completed query."],
-        limit: request.query.limit,
-        offset: request.query.offset,
+        limit: query.limit,
+        offset: query.offset,
         count: result.count,
         rows: result.rows,
       });

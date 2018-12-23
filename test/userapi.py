@@ -4,6 +4,7 @@ import requests
 from collections import defaultdict
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
+from datetime import datetime
 
 from .apibase import APIBase
 
@@ -43,14 +44,16 @@ class UserAPI(APIBase):
             where["recordingDateTime"]["$gte"] = startDate.isoformat()
         if endDate is not None:
             where["recordingDateTime"]["$lte"] = endDate.isoformat()
-        params = {"where": json.dumps(where)}
 
-        if tagmode is not None:
-            params["tagMode"] = tagmode
-        if tags is not None:
-            params["tags"] = json.dumps(tags)
-
-        return self._query_results("recordings", params, limit, offset, filterOptions)
+        return self._query(
+            "recordings",
+            where=where,
+            limit=limit,
+            offset=offset,
+            tagMode=tagmode,
+            tags=tags,
+            filterOptions=filterOptions,
+        )
 
     def get_recording(self, recording_id, params=None):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
@@ -172,43 +175,49 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
-    def query_events(self, limit=None, offset=None, deviceId=None):
-        if deviceId is None:
-            where = "{}"
-        else:
-            where = '{"DeviceId":' + "{}".format(deviceId) + "}"
-        return self._query_results("events", {"where": where}, limit, offset)
+    def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
+        return self._query(
+            "events",
+            deviceId=deviceId,
+            startTime=startTime,
+            endTime=endTime,
+            limit=limit,
+        )
 
-    def query_files(self, where="{}", limit=None, offset=None):
-        return self._query_results("files", {"where": where}, limit, offset)
+    def query_files(self, where=None, limit=None, offset=None):
+        if where is None:
+            where = {}
+        return self._query("files", where=where, limit=limit, offset=offset)
 
     def _do_delete(self, deleteType, id):
         url = urljoin(self._baseurl, "/api/v1/{}/{}".format(deleteType, id))
         response = requests.delete(url, headers=self._auth_header)
         return self._check_response(response)
 
-    def _query_results(
-        self, queryname, params, limit=100, offset=0, filterOptions=None
-    ):
+    def _query(self, queryname, **params):
         url = urljoin(self._baseurl, "/api/v1/" + queryname)
 
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
-        if offset is not filterOptions:
-            params["filterOptions"] = filterOptions
+        params.setdefault("limit", 100)
+        params.setdefault("offset", 0)
 
-        response = requests.get(url, params=params, headers=self._auth_header)
+        req_params = {}
+        for name, value in params.items():
+            if value is not None:
+                if isinstance(value, (dict, list, tuple)):
+                    value = json.dumps(value)
+                elif isinstance(value, datetime):
+                    value = value.isoformat()
+                req_params[name] = value
+
+        response = requests.get(url, params=req_params, headers=self._auth_header)
         if response.status_code == 200:
             return response.json()["rows"]
-        elif response.status_code == 400:
-            messages = response.json()["messages"]
+        if response.status_code in (400, 422):
+            message = response.json()["message"]
             raise IOError(
-                "request failed ({}): {}".format(response.status_code, messages)
+                "request failed ({}): {}".format(response.status_code, message)
             )
-        else:
-            response.raise_for_status()
+        response.raise_for_status()
 
     def upload_file(self, filename, props):
         url = urljoin(self._baseurl, "api/v1/files")
