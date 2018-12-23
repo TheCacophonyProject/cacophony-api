@@ -117,11 +117,11 @@ module.exports = function(app, baseUrl) {
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
-   * @apiParam {Datetime} startTime Return only events after this time (optional)
-   * @apiParam {Datetime} endTime Return only events from before this time (optional)
-   * @apiParam {Integer} deviceId Return only events for this device id (optional)
-   * @apiParam {Integer} limit Limit returned events to this number (default is 100) (optional)
-   * @apiParam {Integer} offset Offset returned events by this amount (default is 0) (optional)
+   * @apiParam {Datetime} [startTime] Return only events after this time
+   * @apiParam {Datetime} [endTime] Return only events from before this time
+   * @apiParam {Integer} [deviceId] Return only events for this device id
+   * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
+   * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
    *
    * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
    * @apiUse V1ResponseError

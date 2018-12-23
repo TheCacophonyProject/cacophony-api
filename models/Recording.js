@@ -89,7 +89,13 @@ module.exports = function(sequelize, DataTypes) {
     * arguments given.
     */
   Recording.query = async function(user, where, tagMode, tags, offset, limit, order, filterOptions) {
-    if (order == null) {
+    if (!offset) {
+      offset = 0;
+    }
+    if (!limit) {
+      limit = 300;
+    }
+    if (!order) {
       order = [
         // Sort by recordingDatetime but handle the case of the
         // timestamp being missing and fallback to sorting by id.
