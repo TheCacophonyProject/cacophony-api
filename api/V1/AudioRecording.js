@@ -231,7 +231,6 @@ module.exports = function(app, baseUrl) {
       const { recording, cookedJWT } = await recordingUtil.get(request, "audio");
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         recording: recording,
         jwt: cookedJWT,

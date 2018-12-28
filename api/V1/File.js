@@ -99,7 +99,6 @@ module.exports = (app, baseUrl) => {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Completed query."],
         limit: request.query.limit,
         offset: request.query.offset,
@@ -141,7 +140,6 @@ module.exports = (app, baseUrl) => {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         file: file,
         jwt: jsonwebtoken.sign(
@@ -179,13 +177,11 @@ module.exports = (app, baseUrl) => {
       if (deleted) {
         responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ["Deleted file."],
         });
       } else {
         responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ["Failed to delete file. Files can only be deleted by the admins and the person who uploaded the file."],
         });
       }

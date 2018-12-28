@@ -143,7 +143,6 @@ module.exports = (app, baseUrl) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Completed query."],
         limit: request.query.limit,
         offset: request.query.offset,
@@ -182,7 +181,6 @@ module.exports = (app, baseUrl) => {
       const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         recording: recording,
         downloadFileJWT: cookedJWT,
@@ -248,13 +246,11 @@ module.exports = (app, baseUrl) => {
       if (updated) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Updated recording.']
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to update recordings.'],
         });
       }

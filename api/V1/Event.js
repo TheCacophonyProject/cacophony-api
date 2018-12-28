@@ -96,14 +96,12 @@ module.exports = function(app, baseUrl) {
       } catch (exception) {
         return responseUtil.send(response, {
           statusCode: 500,
-          success: false,
           messages: ["Failed to record events.", exception.message],
         });
       }
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ['Added events.'],
         eventsAdded: count,
         eventDetailId: detailsId,
@@ -151,7 +149,6 @@ module.exports = function(app, baseUrl) {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Completed query."],
         limit: query.limit,
         offset: query.offset,

@@ -47,13 +47,11 @@ module.exports = function(app, baseUrl) {
       if (updated) {
         responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Users global permission updated.'],
         });
       } else {
         responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to update users global permission.'],
         });
       }

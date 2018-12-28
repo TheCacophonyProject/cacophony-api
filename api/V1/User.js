@@ -64,7 +64,6 @@ module.exports = function(app, baseUrl) {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ['Created new user.'],
         token: 'JWT ' + jwt.sign(jwtData, config.server.passportSecret),
         userData: userData
@@ -103,7 +102,6 @@ module.exports = function(app, baseUrl) {
       await user.update(request.body.data, { fields: user.apiSettableFields });
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ['Updated user.'],
       });
     })
@@ -130,7 +128,6 @@ module.exports = function(app, baseUrl) {
     middleware.requestWrapper(async (request, response) => {
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         userData: await request.body.user.getDataValues(),
       });

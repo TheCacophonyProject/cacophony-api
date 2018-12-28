@@ -88,7 +88,6 @@ module.exports = function(app, baseUrl) {
       if (!userCanDeleteTag)
         return responseUtil.send(res, {
           statusCode: 400,
-          success: false,
           messages: [
             "Given user does not have permission to delete the tag."
           ]
@@ -100,13 +99,11 @@ module.exports = function(app, baseUrl) {
       if (tagDeleteResult) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ["Deleted tag."]
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ["Failed to delete tag."]
         });
       }

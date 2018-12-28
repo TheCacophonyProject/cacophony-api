@@ -52,7 +52,6 @@ module.exports = function(app, baseUrl) {
       await newGroup.addUser(request.user.id, {through: {admin: true}});
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ['Created new group.']
       });
     })
@@ -82,7 +81,6 @@ module.exports = function(app, baseUrl) {
       var groups = await models.Group.query(request.query.where, request.user);
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         groups: groups,
       });
@@ -125,13 +123,11 @@ module.exports = function(app, baseUrl) {
       if (added) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Added user to group.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to add user to group.'],
         });
       }
@@ -170,13 +166,11 @@ module.exports = function(app, baseUrl) {
       if (removed) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Removed user from the group.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to remove user from the group.'],
         });
       }

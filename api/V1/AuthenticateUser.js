@@ -60,7 +60,6 @@ module.exports = function(app) {
         data._type = 'user';
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ["Successful login."],
           token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
           userData: userData
@@ -68,7 +67,6 @@ module.exports = function(app) {
       } else {
         return responseUtil.send(response, {
           statusCode: 401,
-          success: false,
           messages: ["Wrong password or username."]
         });
       }

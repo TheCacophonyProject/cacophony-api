@@ -57,7 +57,6 @@ module.exports = function(app, baseUrl) {
       const data = device.getJwtDataValues();
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Created new device."],
         token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
       });
@@ -83,7 +82,6 @@ module.exports = function(app, baseUrl) {
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
-        success: true,
         messages: ["Completed get devices query."],
       });
     })
@@ -134,7 +132,6 @@ module.exports = function(app, baseUrl) {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["OK."],
         rows: users
       });
@@ -178,13 +175,11 @@ module.exports = function(app, baseUrl) {
       if (added) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Added user to device.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to add user to device.']
         });
       }
@@ -224,13 +219,11 @@ module.exports = function(app, baseUrl) {
       if (removed) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Removed user from the device.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to remove user from the device.'],
         });
       }
