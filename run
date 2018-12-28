@@ -25,7 +25,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 if not os.path.exists("node_modules"):
-    print("Node modules have not been installed yet, doing do now")
+    print("Node modules have not been installed yet, doing so now")
     subprocess.call(["npm", "install"])
 
 print("Stopping $container_name container (if running)")
