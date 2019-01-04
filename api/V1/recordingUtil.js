@@ -121,13 +121,11 @@ async function delete_(request, response) {
   if (deleted) {
     responseUtil.send(response, {
       statusCode: 200,
-      success: true,
       messages: ["Deleted recording."],
     });
   } else {
     responseUtil.send(response, {
       statusCode: 400,
-      success: false,
       messages: ["Failed to delete recording."],
     });
   }
@@ -153,7 +151,6 @@ async function addTag(request, response) {
   if (!recording) {
     responseUtil.send(response, {
       statusCode: 400,
-      success: false,
       messages: ['No such recording.']
     });
     return;
@@ -164,7 +161,6 @@ async function addTag(request, response) {
     if (!permissions.canTag) {
       responseUtil.send(response, {
         statusCode: 400,
-        success: false,
         messages: ['User does not have permission to tag recording.']
       });
       return;
@@ -183,7 +179,6 @@ async function addTag(request, response) {
 
   responseUtil.send(response, {
     statusCode: 200,
-    success: true,
     messages: ['Added new tag.'],
     tagId: tagInstance.id,
   });

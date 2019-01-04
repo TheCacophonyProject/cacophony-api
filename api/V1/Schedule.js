@@ -62,7 +62,6 @@ module.exports = (app, baseUrl) => {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ['Added new schedule for the calling device(s).'],
       });
     })
@@ -124,7 +123,6 @@ async function getSchedule(device, response, user = null) {
     if (!schedule) {
       return responseUtil.send(response, {
         statusCode: 400,
-        success: false,
         devicename: device.devicename,
         messages: ["Cannot find schedule."],
       });
@@ -145,7 +143,6 @@ async function getSchedule(device, response, user = null) {
 
   return responseUtil.send(response, {
     statusCode: 200,
-    success: true,
     messages: [],
     devices: devices,
     schedule: schedule.schedule,
