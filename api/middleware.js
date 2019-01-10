@@ -207,13 +207,13 @@ function getRecordingById(checkFunc) {
 }
 
 const checkNewName = function(field) {
-  return body(field, 'invalid name')
+  return body(field, 'Invalid username')
     .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
-  return body(field, 'Invalid password.  Password must be at least 8 characters long.')
+  return body(field, 'Password must be at least 8 characters long')
     .isLength({ min: 8 });
 };
 
@@ -223,7 +223,7 @@ const parseJSON = function(field, checkFunc) {
       req[location][path] = JSON.parse(value);
       return true;
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a JSON.', path));
+      throw new Error(format('Could not parse JSON field %s.', path));
     }
   });
 };
@@ -234,7 +234,7 @@ const parseArray = function(field, checkFunc) {
     try {
       arr = JSON.parse(value);
     } catch(e) {
-      throw new Error(format('Could not parse field %s to a JSON.', path));
+      throw new Error(format('Could not parse JSON field %s.', path));
     }
     if (Array.isArray(arr)) {
       req[location][path] = arr;

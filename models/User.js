@@ -113,7 +113,7 @@ module.exports = function(sequelize, DataTypes) {
   User.freeUsername = async function(username) {
     var user = await this.findOne({where: {username: username }});
     if (user != null) {
-      throw new Error('username in use');
+      throw new Error('Username in use');
     }
     return true;
   };
@@ -130,7 +130,7 @@ module.exports = function(sequelize, DataTypes) {
     }
     var user = await this.findOne({where: where});
     if (user) {
-      throw new Error('email in use');
+      throw new Error('Email in use');
     }
     return true;
   };

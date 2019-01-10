@@ -34,14 +34,13 @@ function send(response, data) {
   if (
     typeof data != 'object' ||
     typeof data.statusCode != 'number' ||
-    typeof data.messages != 'object' ||
-    typeof data.success != 'boolean'
+    typeof data.messages != 'object'
   ) {
-    // Responde with server error if data is invalid.
-    log.error('Invalid response data.');
+    // Respond with server error if data is invalid.
     return serverError(response, data);
   }
   var statusCode = data.statusCode;
+  data.success = (200 <= statusCode <= 299);
   delete data.statusCode;
   return response.status(statusCode).json(data);
 }
@@ -56,14 +55,13 @@ function invalidDatapointUpdate(response, message) {
 }
 
 function badRequest(response, messages) {
-  send(response, { statusCode: 400, success: false, messages: messages });
+  send(response, { statusCode: 400, messages: messages });
 }
 
 //======VALID REQUESTS=========
 function validRecordingUpload(response, idOfRecording) {
   send(response, {
     statusCode: 200,
-    success: true,
     messages: [VALID_DATAPOINT_UPLOAD_REQUEST],
     recordingId: idOfRecording
   });
@@ -72,7 +70,6 @@ function validRecordingUpload(response, idOfRecording) {
 function validDatapointUpdate(response) {
   send(response, {
     statusCode: 200,
-    success: true,
     messages: [VALID_DATAPOINT_UPDATE_REQUEST]
   });
 }
@@ -80,7 +77,6 @@ function validDatapointUpdate(response) {
 function validDatapointGet(response, result) {
   send(response, {
     statusCode: 200,
-    success: true,
     messages: [VALID_DATAPOINT_GET_REQUEST],
     result: result,
   });
@@ -89,7 +85,6 @@ function validDatapointGet(response, result) {
 function validFileRequest(response, data) {
   send(response, {
     statusCode: 200,
-    success: true,
     messages: [VALID_FILE_REQUEST],
     jwt: jwt.sign(data, config.server.passportSecret, { expiresIn: 60 * 10 }),
   });
@@ -98,7 +93,6 @@ function validFileRequest(response, data) {
 function serverError(response, err) {
   log.error(err);
   return response.status(500).json({
-    success: false,
     messages: ["Server error. Sorry!"]
   });
 }

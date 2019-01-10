@@ -22,14 +22,14 @@
 
 /**
  * @apiDefine QueryParams
- * @apiParam {JSON} where Selection criteria as a map of keys and requried value, or a list of possible values.
+ * @apiParam {JSON} [where] Selection criteria as a map of keys and requried value, or a list of possible values.
  * * For example {"device": 1}  or {"name": ["bob", "charles"]}.
  * * All matches must be exact.
  * * Records must match all criteria.
  * * Use a '.' to join keys embeded in other keys.  For example, use {"details.name": "sample"}
  * to match { "details": {"name": "sample"}}.  Note: Only some embeded keys will work.
- * @apiParam {Number} offset Zero-based page number. Use '0' to get the first page.  Each page has 'limit' number of records.
- * @apiParam {Number} limit Max number of records to be returned.
+ * @apiParam {Number} [offset] Zero-based page number. Use '0' to get the first page.  Each page has 'limit' number of records.
+ * @apiParam {Number} [limit] Max number of records to be returned.
  * @apiParam {JSON} [order] Sorting order for records.
  * * For example, ["dateTime"] or [["dateTime", "ASC"]].
 */

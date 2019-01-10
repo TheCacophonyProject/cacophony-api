@@ -108,8 +108,8 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse QueryParams
-   * @apiParam {JSON} tags Only return recordings tagged with one or more of the listed tags (JSON array).
-   * @apiParam {String} tagMode Only return recordings with specific types of tags. Valid values:
+   * @apiParam {JSON} [tags] Only return recordings tagged with one or more of the listed tags (JSON array).
+   * @apiParam {String} [tagMode] Only return recordings with specific types of tags. Valid values:
    * <ul>
    * <li>any: match recordings with any (or no) tag
    * <li>untagged: match only recordings with no tags
@@ -129,9 +129,9 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       middleware.authenticateUser,
-      middleware.parseJSON('where', query),
-      query('offset').isInt(),
-      query('limit').isInt(),
+      middleware.parseJSON('where', query).optional(),
+      query('offset').isInt().optional(),
+      query('limit').isInt().optional(),
       middleware.parseJSON('order', query).optional(),
       middleware.parseArray('tags', query).optional(),
       query('tagMode')
@@ -143,7 +143,6 @@ module.exports = (app, baseUrl) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Completed query."],
         limit: request.query.limit,
         offset: request.query.offset,
@@ -182,7 +181,6 @@ module.exports = (app, baseUrl) => {
       const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         recording: recording,
         downloadFileJWT: cookedJWT,
@@ -248,13 +246,11 @@ module.exports = (app, baseUrl) => {
       if (updated) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Updated recording.']
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to update recordings.'],
         });
       }

@@ -141,9 +141,9 @@ module.exports = function(app, baseUrl) {
   *
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiHeader {String} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
-  * @apiHeader {Number} offset Query result offset (for paging).
-  * @apiHeader {Number} limit Query result limit (for paging).
+  * @apiHeader {String} [where] [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query
+  * @apiHeader {Number} [offset] Query result offset (for paging).
+  * @apiHeader {Number} [limit] Query result limit (for paging).
   *
   * @apiUse V1ResponseSuccess
   * @apiSuccess {Number} offset Mirrors request offset parameter.
@@ -231,7 +231,6 @@ module.exports = function(app, baseUrl) {
       const { recording, cookedJWT } = await recordingUtil.get(request, "audio");
       responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: [],
         recording: recording,
         jwt: cookedJWT,

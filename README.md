@@ -29,6 +29,10 @@ Once the container is running, you can start a bash session inside
 the container with `docker exec -it cacophony-api bash`.  You can then use
 psql to query the database `sudo -i -u postgres psql cacophonytest`
 
+Note that the source code is mounted on to the docker image, so any changes 
+causes the server to reload. However, running `./run --isolate` will run the server
+independently of the source code, include the node_modules.
+
 ## Running the tests
 
 The Cacophony API server has a comprehensive function test suite. This

@@ -50,19 +50,18 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 function query(request, type) {
-  if (request.query.tagMode == null) {
+  if (!request.query.tagMode) {
     request.query.tagMode = 'any';
   }
   if (!request.query.where) {
     request.query.where = {};
   }
-
-  // remove legacy tag mode selector (if included)
-  delete request.query.where._tagged;
-
   if (type) {
     request.query.where.type = type;
   }
+
+  // remove legacy tag mode selector (if included)
+  delete request.query.where._tagged;
 
   return models.Recording.query(
     request.user,
@@ -122,13 +121,11 @@ async function delete_(request, response) {
   if (deleted) {
     responseUtil.send(response, {
       statusCode: 200,
-      success: true,
       messages: ["Deleted recording."],
     });
   } else {
     responseUtil.send(response, {
       statusCode: 400,
-      success: false,
       messages: ["Failed to delete recording."],
     });
   }
@@ -154,7 +151,6 @@ async function addTag(request, response) {
   if (!recording) {
     responseUtil.send(response, {
       statusCode: 400,
-      success: false,
       messages: ['No such recording.']
     });
     return;
@@ -165,7 +161,6 @@ async function addTag(request, response) {
     if (!permissions.canTag) {
       responseUtil.send(response, {
         statusCode: 400,
-        success: false,
         messages: ['User does not have permission to tag recording.']
       });
       return;
@@ -184,7 +179,6 @@ async function addTag(request, response) {
 
   responseUtil.send(response, {
     statusCode: 200,
-    success: true,
     messages: ['Added new tag.'],
     tagId: tagInstance.id,
   });

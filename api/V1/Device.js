@@ -21,7 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const { query, body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -57,7 +57,6 @@ module.exports = function(app, baseUrl) {
       const data = device.getJwtDataValues();
       return responseUtil.send(response, {
         statusCode: 200,
-        success: true,
         messages: ["Created new device."],
         token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
       });
@@ -83,11 +82,62 @@ module.exports = function(app, baseUrl) {
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
-        success: true,
         messages: ["Completed get devices query."],
       });
     })
   );
+
+  /**
+  * @api {get} /api/v1/devices/users Get all users who can access a device.
+  * @apiName GetDeviceUsers
+  * @apiGroup Device
+  * @apiDescription Returns all users that have access to the device
+  * through both group membership and direct assignment.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {Number} deviceId ID of the device.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {JSON} rows Array of users who have access to the
+  * device. Each element includes `id` (user id), `username`, `email`,
+  * `relation` (either `group` or `device`) and `admin` (boolean).
+  * @apiUse V1ResponseError
+  */
+  app.get(
+    apiUrl + '/users',
+    [
+      middleware.authenticateUser,
+      middleware.getDeviceById(query),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      let users = await request.body.device.users(request.user);
+
+      users = users.map(u => {
+        u = u.get({ plain: true });
+
+        // Extract the useful parts from DeviceUsers/GroupUsers.
+        if (u.DeviceUsers) {
+          u.relation = "device";
+          u.admin = u.DeviceUsers.admin;
+          delete u.DeviceUsers;
+        } else if (u.GroupUsers) {
+          u.relation = "group";
+          u.admin = u.GroupUsers.admin;
+          delete u.GroupUsers;
+        }
+
+        return u;
+      });
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["OK."],
+        rows: users
+      });
+    })
+  );
+
 
   /**
   * @api {post} /api/v1/devices/users Add a user to a device.
@@ -125,13 +175,11 @@ module.exports = function(app, baseUrl) {
       if (added) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Added user to device.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to add user to device.']
         });
       }
@@ -171,13 +219,11 @@ module.exports = function(app, baseUrl) {
       if (removed) {
         return responseUtil.send(response, {
           statusCode: 200,
-          success: true,
           messages: ['Removed user from the device.'],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          success: false,
           messages: ['Failed to remove user from the device.'],
         });
       }
