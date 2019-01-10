@@ -10,5 +10,6 @@ if (process.argv.length != 3) {
   console.log("usage: node hash-passwd.js <password>");
   process.exit(1);
 }
-
-console.log(bcrypt.hashSync(process.argv[2], 10));
+var hash  = bcrypt.hashSync(process.argv[2], 10);
+console.log(hash);
+console.log(`UPDATE "Users" SET password = '`+hash+`' WHERE username = '<username>'`);
