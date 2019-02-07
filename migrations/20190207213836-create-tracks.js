@@ -53,7 +53,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, 'TrackTags', 'Users');
   },
 
-  down: async function(queryInterface, Sequelize) {
+  down: async function(queryInterface) {
     await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Users');
     await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Tracks');
     await queryInterface.dropTable('TrackTags');

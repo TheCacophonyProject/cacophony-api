@@ -93,6 +93,7 @@ module.exports = function(sequelize, DataTypes) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
     models.Recording.hasMany(models.Tag);
+    models.Recording.hasMany(models.Track);
   };
 
   Recording.isValidTagMode = function(mode) {
@@ -400,6 +401,21 @@ module.exports = function(sequelize, DataTypes) {
       return val;
     });
   }
+
+  // Return a specific track for the recording.
+  Recording.prototype.getTrack = async function(trackId) {
+    const track = await models.Track.findById(trackId);
+    if (!track) {
+      return null;
+    }
+
+    // Ensure track belongs to this recording.
+    if (track.RecordingId !== this.id) {
+      return null;
+    }
+
+    return track;
+  };
 
   Recording.userGetAttributes = [
     'id',

@@ -1,8 +1,11 @@
 import io
+import random
+
 import pytest
 
 from .testexception import TestException
 from .testrecording import TestRecording
+from .testtrack import TestTrack, TestTrackTag
 
 
 class TestUser:
@@ -277,6 +280,88 @@ class TestUser:
     def _get_device_users(self, device, relation):
         users = self._userapi.list_device_users(device.get_id())
         return {u["username"] for u in users if u["relation"] == relation}
+
+    def can_add_track_to_recording(self, recording):
+        track = TestTrack(recording, algorithm=42, data={"foo": [[1, 2], [3, 4]]})
+        track_id = self._userapi.add_track(
+            recording.recordingId, track.algorithm, track.data
+        )
+        track.track_id = track_id
+        return track
+
+    def cannot_add_track_to_recording(self, recording):
+        with pytest.raises(IOError):
+            self.can_add_track_to_recording(recording)
+
+    def can_see_track(self, expected_track, expected_tags=None):
+        recording = expected_track.recording
+        tracks = self._userapi.get_tracks(recording.recordingId)
+        for t in tracks:
+            this_track = TestTrack(recording, t["algorithm"], t["data"], t["id"])
+            if this_track == expected_track:
+                if expected_tags:
+                    tags = [
+                        TestTrackTag(
+                            tt["id"],
+                            this_track,
+                            tt["what"],
+                            tt["confidence"],
+                            tt["automatic"],
+                            tt["data"],
+                        )
+                        for tt in t["TrackTags"]
+                    ]
+                    for expected_tag in expected_tags:
+                        assert expected_tag in tags
+                return
+
+        pytest.fail("no such track found: {}".format(expected_track))
+
+    def cannot_see_track(self, target):
+        tracks = self._userapi.get_tracks(target.recording.recordingId)
+        for t in tracks:
+            if (
+                TestTrack(target.recording, t["algorithm"], t["data"], t["id"])
+                == target
+            ):
+                pytest.fail("track not deleted: {}".format(target))
+
+    def delete_track(self, track):
+        self._userapi.delete_track(track.recording.recordingId, track.track_id)
+
+    def cannot_delete_track(self, track):
+        with pytest.raises(IOError):
+            self._userapi.delete_track(track.recording.recordingId, track.track_id)
+
+    def can_tag_track(self, track):
+        what = random.choice(["possum", "rat", "stoat"])
+        confidence = random.choice([0.5, 0.8, 0.9])
+        automatic = random.choice([True, False])
+        data = random.choice([["foo", 1], ["bar", 2], ["what", 3]])
+        track_tag_id = self._userapi.add_track_tag(
+            recording_id=track.recording.recordingId,
+            track_id=track.track_id,
+            what=what,
+            confidence=confidence,
+            automatic=automatic,
+            data=data,
+        )
+        return TestTrackTag(track_tag_id, track, what, confidence, automatic, data)
+
+    def cannot_tag_track(self, track):
+        with pytest.raises(IOError):
+            self.can_tag_track(track)
+
+    def can_delete_track_tag(self, tag):
+        self._userapi.delete_track_tag(
+            recording_id=tag.track.recording.recordingId,
+            track_id=tag.track.track_id,
+            track_tag_id=tag.id_,
+        )
+
+    def cannot_delete_track_tag(self, tag):
+        with pytest.raises(IOError):
+            self.can_delete_track_tag(tag)
 
 
 class RecordingQueryPromise:

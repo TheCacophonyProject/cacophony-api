@@ -128,7 +128,7 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
   if (opts.name) {
     columnName = opts.name + 'Id';
   }
-  let constraintName = childTable + '_' + columnName + '_fkey';
+  const constraintName = childTable + '_' + columnName + '_fkey';
 
   var deleteBehaviour = 'SET NULL';
   if (opts.cascade) {
