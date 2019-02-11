@@ -186,8 +186,12 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  Recording.getOne = async function(user, id, type, filterOptions) {
-    var query = {
+  Recording.get = async function(user, id, permission, options={}) {
+    if (typeof permission != "string") {
+      throw "permission must be specified (e.g. 'canDelete')";
+    }
+
+    const query = {
       where: {
         [Op.and]: [
           { id: id },
@@ -200,13 +204,21 @@ module.exports = function(sequelize, DataTypes) {
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),
     };
-    if (type) {
-      query.where[Op.and].push({'type': type});
+
+    if (options.type) {
+      query.where[Op.and].push({'type': options.type});
     }
 
-    filterOptions = makeFilterOptions(user, filterOptions);
-    var recording = await this.findOne(query);
-    recording.filterData(filterOptions);
+    const recording = await this.findOne(query);
+    if (!recording) {
+      return null;
+    }
+    const userPermissions = await recording.getUserPermissions(user);
+    if (!userPermissions[permission]) {
+      return null;
+    }
+
+    recording.filterData(makeFilterOptions(user, options.filterOptions));
     return recording;
   };
 
@@ -214,17 +226,12 @@ module.exports = function(sequelize, DataTypes) {
    * Deletes a single recording if the user has permission to do so.
    */
   Recording.deleteOne = async function(user, id) {
-    var recording = await this.getOne(user, id);
-    if (recording == null) {
+    const recording = await Recording.get(user, id, "canDelete");
+    if (!recording) {
       return false;
     }
-    var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canDelete != true) {
-      return false;
-    } else {
-      await recording.destroy();
-      return true;
-    }
+    await recording.destroy();
+    return true;
   };
 
   /**
@@ -236,17 +243,13 @@ module.exports = function(sequelize, DataTypes) {
         return false;
       }
     }
-    var recording = await this.getOne(user, id);
-    if (recording == null) {
+
+    const recording = await Recording.get(user, id, "canUpdate");
+    if (!recording) {
       return false;
     }
-    var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canUpdate != true) {
-      return false;
-    } else {
-      await recording.update(updates);
-      return true;
-    }
+    await recording.update(updates);
+    return true;
   };
 
   // local
