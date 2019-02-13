@@ -1,7 +1,7 @@
 # Build:                   sudo docker build --no-cache . -t cacophony-api
 # Run interactive session: sudo docker run -it cacophony-api
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN apt-get update
 RUN apt-get install -y apt-utils
@@ -12,10 +12,10 @@ RUN ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
 
 RUN apt-get -y install curl wget sudo make build-essential g++
 
-RUN apt-get -y install postgis postgresql-server-dev-9.5
-RUN echo "listen_addresses = '*'" >> /etc/postgresql/9.5/main/postgresql.conf
-RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
-RUN echo "host all all ::/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
+RUN apt-get -y install postgis postgresql-server-dev-10
+RUN echo "listen_addresses = '*'" >> /etc/postgresql/10/main/postgresql.conf
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
+RUN echo "host all all ::/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
