@@ -79,7 +79,7 @@ async function get(request, type) {
   const recording = await models.Recording.get(
     request.user,
     request.params.id,
-    "canView",
+    models.Recording.Perms.VIEW,
     {
       type: type,
       filterOptions: request.query.filterOptions,
@@ -161,7 +161,7 @@ async function addTag(request, response) {
 
   if (request.user) {
     const permissions = await recording.getUserPermissions(request.user);
-    if (!permissions.canTag) {
+    if (!permissions.includes(models.Recording.Perms.TAG)) {
       responseUtil.send(response, {
         statusCode: 400,
         messages: ['User does not have permission to tag recording.']
