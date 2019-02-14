@@ -76,11 +76,14 @@ function query(request, type) {
 }
 
 async function get(request, type) {
-  const recording = await models.Recording.getOne(
+  const recording = await models.Recording.get(
     request.user,
     request.params.id,
-    type,
-    request.query.filterOptions,
+    models.Recording.Perms.VIEW,
+    {
+      type: type,
+      filterOptions: request.query.filterOptions,
+    }
   );
   if (!recording) {
     throw new ClientError("No file found with given datapoint.");
@@ -158,7 +161,7 @@ async function addTag(request, response) {
 
   if (request.user) {
     const permissions = await recording.getUserPermissions(request.user);
-    if (!permissions.canTag) {
+    if (!permissions.includes(models.Recording.Perms.TAG)) {
       responseUtil.send(response, {
         statusCode: 400,
         messages: ['User does not have permission to tag recording.']

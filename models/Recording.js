@@ -74,6 +74,21 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   var models = sequelize.models;
 
+  Recording.Perms = Object.freeze({
+    DELETE: "delete",
+    TAG: "tag",
+    VIEW: "view",
+    UPDATE: "update",
+
+    all: function() {
+      return Object.values(this).filter(v => typeof v === "string");
+    },
+
+    isValid: function(p) {
+      return this.all().includes(p);
+    },
+  });
+
   Recording.addAssociations = function(models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
@@ -186,8 +201,12 @@ module.exports = function(sequelize, DataTypes) {
   /**
    * Return a single recording for a user.
    */
-  Recording.getOne = async function(user, id, type, filterOptions) {
-    var query = {
+  Recording.get = async function(user, id, permission, options={}) {
+    if (!Recording.Perms.isValid(permission)) {
+      throw "valid permission must be specified (e.g. models.Recording.Perms.VIEW)";
+    }
+
+    const query = {
       where: {
         [Op.and]: [
           { id: id },
@@ -200,13 +219,21 @@ module.exports = function(sequelize, DataTypes) {
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),
     };
-    if (type) {
-      query.where[Op.and].push({'type': type});
+
+    if (options.type) {
+      query.where[Op.and].push({'type': options.type});
     }
 
-    filterOptions = makeFilterOptions(user, filterOptions);
-    var recording = await this.findOne(query);
-    recording.filterData(filterOptions);
+    const recording = await this.findOne(query);
+    if (!recording) {
+      return null;
+    }
+    const userPermissions = await recording.getUserPermissions(user);
+    if (!userPermissions.includes(permission)) {
+      return null;
+    }
+
+    recording.filterData(makeFilterOptions(user, options.filterOptions));
     return recording;
   };
 
@@ -214,17 +241,12 @@ module.exports = function(sequelize, DataTypes) {
    * Deletes a single recording if the user has permission to do so.
    */
   Recording.deleteOne = async function(user, id) {
-    var recording = await this.getOne(user, id);
-    if (recording == null) {
+    const recording = await Recording.get(user, id, Recording.Perms.DELETE);
+    if (!recording) {
       return false;
     }
-    var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canDelete != true) {
-      return false;
-    } else {
-      await recording.destroy();
-      return true;
-    }
+    await recording.destroy();
+    return true;
   };
 
   /**
@@ -236,17 +258,13 @@ module.exports = function(sequelize, DataTypes) {
         return false;
       }
     }
-    var recording = await this.getOne(user, id);
-    if (recording == null) {
+
+    const recording = await Recording.get(user, id, Recording.Perms.UPDATE);
+    if (!recording) {
       return false;
     }
-    var userPermissions = await recording.getUserPermissions(user);
-    if (userPermissions.canUpdate != true) {
-      return false;
-    } else {
-      await recording.update(updates);
-      return true;
-    }
+    await recording.update(updates);
+    return true;
   };
 
   // local
@@ -300,33 +318,22 @@ module.exports = function(sequelize, DataTypes) {
 
   /**
    * Returns JSON describing what the user can do to the recording.
-   * Permission types: DELETE, TAG, VIEW,
+   * Permission types: DELETE, TAG, VIEW, UPDATE
    * //TODO This will be edited in the future when recordings can be public.
    */
   Recording.prototype.getUserPermissions = async function(user) {
     if (user.hasGlobalWrite() || await user.isInGroup(this.GroupId)) {
-      return {
-        canDelete: true,
-        canTag: true,
-        canView: true,
-        canUpdate: true,
-      };
+      return [
+        Recording.Perms.DELETE,
+        Recording.Perms.TAG,
+        Recording.Perms.VIEW,
+        Recording.Perms.UPDATE,
+      ];
     }
-
     if (user.hasGlobalRead()) {
-      return {
-        canDelete: false,
-        canTag: false,
-        canView: true,
-        canUpdate: false,
-      };
+      return [Recording.Perms.VIEW];
     }
-    return {
-      canDelete: false,
-      canTag: false,
-      canView: false,
-      canUpdate: false,
-    };
+    return [];
   };
 
   // Bulk update recording values. Any new additionalMetadata fields
