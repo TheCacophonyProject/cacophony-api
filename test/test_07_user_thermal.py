@@ -52,14 +52,12 @@ class TestUserThermal:
         print("    and an unrelated user 'trouble'", end="")
         trouble = helper.given_new_user(self, "trouble")
 
-        print(
-            "Then 'trouble' should not be able to upload a recording on the behalf of the device."
-        )
-        with pytest.raises(
-            OSError,
-            message="On no 'trouble' could upload a recording on behalf of the device!",
-        ):
-            recording = trouble.uploads_recording_for(device)
+        print("Then 'trouble' should not be able to upload a recording on the behalf of the device.")
+        try:
+            trouble.uploads_recording_for(device)
+            pytest.fail("On no 'trouble' could upload a recording on behalf of the device!")
+        except OSError:
+            pass
 
     def test_cant_download_recording_via_audio_api(self, helper):
         device = helper.given_new_device(self, "user-thermal-download")

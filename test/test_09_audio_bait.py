@@ -54,10 +54,11 @@ class TestBait:
         james.delete_audio_bait_file(file1)
 
         print("But his friend Karl should not.")
-        with pytest.raises(
-            OSError, message="Karl should not have permissions to delete the file"
-        ):
+        try:
             helper.given_new_user(self, "karl").delete_audio_bait_file(file2)
+            pytest.fail("Karl should not have permissions to delete the file")
+        except OSError:
+            pass
 
         print("And the admin should also be able to delete a file")
         helper.admin_user().delete_audio_bait_file(file2)
