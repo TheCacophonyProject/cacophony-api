@@ -69,24 +69,15 @@ class TestGlobalPermission:
         fred.can_see_recordings(recording)
 
         print("  But not delete the recording")
-        with pytest.raises(
-            OSError,
-            message="Fred shoudl not be able to delete the recording with only global read permission",
-        ):
+        with pytest.raises(OSError):
             fred.delete_recording(recording)
 
         print("  Or update the recording")
-        with pytest.raises(
-            OSError,
-            message="Fred shoudl not be able to update the recording with only global read permission",
-        ):
+        with pytest.raises(OSError):
             fred.update_recording(recording, comment="testing")
 
         print("  Or tag the recording")
-        with pytest.raises(
-            OSError,
-            message="Fred shoudl not be able to tag the recording with only global read permission",
-        ):
+        with pytest.raises(OSError):
             fred.tag_recording(recording, {})
 
         print("When Fred is given global write permission")

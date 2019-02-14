@@ -47,7 +47,7 @@ class TestGroup:
         print(
             "Then Robert shouldn't be able to add himself to default group belonged to the admin"
         )
-        with pytest.raises(OSError, message=["Failed to add user to group."]):
+        with pytest.raises(OSError, match=r"Failed to add user to group."):
             robert.add_to_group(robert, helper.config.default_group)
 
     def test_user_cant_remove_person_from_group_unless_they_are_an_admin(self, helper):
@@ -58,7 +58,5 @@ class TestGroup:
         print(
             "Then Steve shouldn't be able to remove the admin from a group he is not an admin for"
         )
-        with pytest.raises(
-            OSError, message=["'Failed to remove user from the group.'"]
-        ):
+        with pytest.raises(OSError, match=r"Failed to remove user from the group."):
             steve.remove_from_group(helper.admin_user(), helper.config.default_group)
