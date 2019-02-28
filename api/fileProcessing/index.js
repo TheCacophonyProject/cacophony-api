@@ -1,9 +1,10 @@
-const { body } = require('express-validator/check');
+const { body, param } = require('express-validator/check');
 
 const log = require('../../logging');
 const middleware = require('../middleware');
 const models = require('../../models');
 const recordingUtil = require('../V1/recordingUtil');
+const responseUtil = require('../V1/responseUtil');
 const uuidv4 = require('uuid/v4');
 
 
@@ -63,8 +64,6 @@ module.exports = function(app) {
    * @apiParam {String} [newProcessedFileKey] LeoFS Key of the new file.
    */
   app.put(apiUrl, async (request, response) => {
-    log.info(request.method + " Request: " + request.url);
-
     var id = parseInt(request.body.id);
     var jobKey = request.body.jobKey;
     var success = request.body.success;
@@ -188,4 +187,140 @@ module.exports = function(app) {
       recordingUtil.updateMetadata(request.body.recording, request.body.metadata);
     })
   );
+
+  /**
+   * @api {post} /api/fileProcessing/:id/tracks Add track to recording
+   * @apiName PostTrack
+   * @apiGroup FileProcessing
+   *
+   * @apiParam {JSON} data Data which defines the track (type specific).
+   * @apiParam {Number} algorithm Tracking algorithm version number.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} trackId Unique id of the newly created track.
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.post(
+    apiUrl + "/:id/tracks",
+    [
+      param('id').isInt().toInt(),
+      middleware.parseJSON('data', body),
+      body('algorithm').isInt().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.findById(request.params.id);
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording."],
+        });
+        return;
+      }
+      const track = await recording.createTrack({
+        data: request.body.data,
+        algorithm: request.body.algorithm,
+      });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track added."],
+        trackId: track.id,
+      });
+    })
+  );
+
+  /**
+   * @api {delete} /api/fileProcessing/:id/tracks Delete all tracks for a recording
+   * @apiName DeleteTracks
+   * @apiGroup FileProcessing
+   *
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiuse V1ResponseError
+   *
+   */
+  app.delete(
+    apiUrl + "/:id/tracks",
+    [
+      param('id').isInt().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.findById(request.params.id);
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording."],
+        });
+        return;
+      }
+
+      const tracks = await recording.getTracks();
+      tracks.forEach((track) => track.destroy());
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Tracks cleared."],
+      });
+    })
+  );
+
+  /**
+  * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
+  * @apiName PostTrackTag
+   * @apiGroup FileProcessing
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {String} what Object/event to tag.
+  * @apiParam {Number} confidence Tag confidence score.
+  * @apiParam {JSON} data Data Additional tag data.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
+  *
+  * @apiUse V1ResponseError
+  */
+  app.post(
+    apiUrl + '/:id/tracks/:trackId/tags',
+    [
+      param('id').isInt().toInt(),
+      param('trackId').isInt().toInt(),
+      body('what'),
+      body('confidence').isFloat().toFloat(),
+      middleware.parseJSON('data', body).optional(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.findById(request.params.id);
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording."],
+        });
+        return;
+      }
+
+      const track = await recording.getTrack(request.params.trackId);
+      if (!track) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such track."],
+        });
+        return;
+      }
+
+      const tag = await track.createTrackTag({
+        what: request.body.what,
+        confidence: request.body.confidence,
+        automatic: true,
+        data: request.body.data,
+      });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track tag added."],
+        trackTagId: tag.id,
+      });
+    })
+  );
+
 };

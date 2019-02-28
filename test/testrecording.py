@@ -37,5 +37,7 @@ class TestTagPromise:
 
 
 def slurp(filename):
+    if not filename:
+        return None
     with open(filename, "rb") as f:
         return f.read()

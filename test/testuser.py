@@ -1,5 +1,4 @@
 import io
-import random
 
 import pytest
 
@@ -282,7 +281,7 @@ class TestUser:
         return {u["username"] for u in users if u["relation"] == relation}
 
     def can_add_track_to_recording(self, recording):
-        track = TestTrack(recording, algorithm=42, data={"foo": [[1, 2], [3, 4]]})
+        track = TestTrack.create(recording)
         track_id = self._userapi.add_track(
             recording.recordingId, track.algorithm, track.data
         )
@@ -334,19 +333,16 @@ class TestUser:
             self._userapi.delete_track(track.recording.recordingId, track.track_id)
 
     def can_tag_track(self, track):
-        what = random.choice(["possum", "rat", "stoat"])
-        confidence = random.choice([0.5, 0.8, 0.9])
-        automatic = random.choice([True, False])
-        data = random.choice([["foo", 1], ["bar", 2], ["what", 3]])
-        track_tag_id = self._userapi.add_track_tag(
+        tag = TestTrackTag.create(track)
+        tag.id_ = self._userapi.add_track_tag(
             recording_id=track.recording.recordingId,
             track_id=track.track_id,
-            what=what,
-            confidence=confidence,
-            automatic=automatic,
-            data=data,
+            what=tag.what,
+            confidence=tag.confidence,
+            automatic=tag.automatic,
+            data=tag.data,
         )
-        return TestTrackTag(track_tag_id, track, what, confidence, automatic, data)
+        return tag
 
     def cannot_tag_track(self, track):
         with pytest.raises(IOError):
