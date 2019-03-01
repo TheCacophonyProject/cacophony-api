@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 
 import requests
 
-from .testrecording import TestRecording
+from .recording import Recording
 
 
 class FileProcessingAPI:
@@ -17,13 +17,13 @@ class FileProcessingAPI:
         if r.status_code == 200:
             data = r.json()["recording"]
             id_ = data.pop("id")
-            return TestRecording(id_, data, None)
+            return Recording(id_, data, None)
 
         raise IOError(r.text)
 
     def put(self, recording, success, complete, updates=None, new_object_key=None):
         post_data = {
-            "id": recording.recordingId,
+            "id": recording.id_,
             "jobKey": recording["jobKey"],
             "success": success,
             "complete": complete,
@@ -39,7 +39,7 @@ class FileProcessingAPI:
         raise IOError(r.text)
 
     def add_track(self, recording, track):
-        url = self._url + "/{}/tracks".format(recording.recordingId)
+        url = self._url + "/{}/tracks".format(recording.id_)
         post_data = {"data": json.dumps(track.data), "algorithm": track.algorithm}
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
@@ -47,13 +47,11 @@ class FileProcessingAPI:
         raise IOError(r.text)
 
     def clear_tracks(self, recording):
-        r = requests.delete(self._url + "/{}/tracks".format(recording.recordingId))
+        r = requests.delete(self._url + "/{}/tracks".format(recording.id_))
         r.raise_for_status()
 
     def add_track_tag(self, track, tag):
-        url = self._url + "/{}/tracks/{}/tags".format(
-            track.recording.recordingId, track.track_id
-        )
+        url = self._url + "/{}/tracks/{}/tags".format(track.recording.id_, track.id_)
         post_data = {
             "what": tag.what,
             "confidence": tag.confidence,

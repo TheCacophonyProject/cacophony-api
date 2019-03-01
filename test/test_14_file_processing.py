@@ -1,6 +1,6 @@
-from .testrecording import TestRecording
-from .testtrack import TestTrack
-from .testtrack import TestTrackTag
+from .recording import Recording
+from .track import Track
+from .track import TrackTag
 
 
 class TestFileProcessing:
@@ -76,8 +76,8 @@ class TestFileProcessing:
 
         recording = file_processing.get("thermalRaw", "getMetadata")
 
-        track = TestTrack.create(recording)
-        track.track_id = file_processing.add_track(recording, track)
+        track = Track.create(recording)
+        track.id_ = file_processing.add_track(recording, track)
 
         user.can_see_track(track)
 
@@ -88,10 +88,10 @@ class TestFileProcessing:
         recording = file_processing.get("thermalRaw", "getMetadata")
 
         # Add some tracks to the recording.
-        track0 = TestTrack.create(recording)
-        track0.track_id = file_processing.add_track(recording, track0)
-        track1 = TestTrack.create(recording)
-        track1.track_id = file_processing.add_track(recording, track1)
+        track0 = Track.create(recording)
+        track0.id_ = file_processing.add_track(recording, track0)
+        track1 = Track.create(recording)
+        track1.id_ = file_processing.add_track(recording, track1)
         user.can_see_track(track0)
         user.can_see_track(track1)
 
@@ -106,17 +106,17 @@ class TestFileProcessing:
 
         recording = file_processing.get("thermalRaw", "getMetadata")
 
-        track = TestTrack.create(recording)
-        track.track_id = file_processing.add_track(recording, track)
+        track = Track.create(recording)
+        track.id_ = file_processing.add_track(recording, track)
 
-        tag = TestTrackTag.create(track, automatic=True)
+        tag = TrackTag.create(track, automatic=True)
         tag.id_ = file_processing.add_track_tag(track, tag)
 
         user.can_see_track(track, [tag])
 
 
 def check_recording(user, recording, **expected):
-    r = user.get_recording(recording.recordingId)
+    r = user.get_recording(recording.id_)
     print(r)
     for name, value in expected.items():
         if name == "additionalMetadata":

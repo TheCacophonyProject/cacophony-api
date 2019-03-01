@@ -169,9 +169,9 @@ class UserAPI(APIBase):
         response = requests.get(url, headers=self._auth_header)
         return response.json()
 
-    def tag_recording(self, recordingId, tagDictionary):
+    def tag_recording(self, recording_id, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
-        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
+        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recording_id}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 

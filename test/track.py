@@ -4,20 +4,20 @@ import attr
 
 
 @attr.s
-class TestTrack:
+class Track:
+    id_ = attr.ib()
     recording = attr.ib()
     algorithm = attr.ib()
     data = attr.ib()
-    track_id = attr.ib(default=None)
 
     @classmethod
     def create(cls, recording):
         "Make a TestTrack with some plausible data."
-        return cls(recording, algorithm=42, data={"foo": [[1, 2], [3, 4]]})
+        return cls(None, recording, algorithm=42, data={"foo": [[1, 2], [3, 4]]})
 
 
 @attr.s
-class TestTrackTag:
+class TrackTag:
     id_ = attr.ib()
     track = attr.ib()
     what = attr.ib()
