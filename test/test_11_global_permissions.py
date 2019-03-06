@@ -90,7 +90,7 @@ class TestGlobalPermission:
         fred.update_recording(recording, comment="testing")
 
         print("  And tag the recording")
-        fred.tag_recording(recording.id_, {"animal": "cat"})
+        fred.tag_recording(recording, {"animal": "cat"})
 
         print("  And delete the recording")
         fred.delete_recording(recording)
