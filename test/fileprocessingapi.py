@@ -3,6 +3,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from .recording import Recording
+
 
 class FileProcessingAPI:
     def __init__(self, baseurl):
@@ -13,22 +15,49 @@ class FileProcessingAPI:
         if r.status_code == 204:
             return None
         if r.status_code == 200:
-            return r.json()["recording"]
+            data = r.json()["recording"]
+            id_ = data.pop("id")
+            return Recording(id_, data, None)
+
         raise IOError(r.text)
 
     def put(self, recording, success, complete, updates=None, new_object_key=None):
-        data = {
-            "id": recording["id"],
+        post_data = {
+            "id": recording.id_,
             "jobKey": recording["jobKey"],
             "success": success,
             "complete": complete,
         }
         if updates:
-            data["result"] = json.dumps({"fieldUpdates": updates})
+            post_data["result"] = json.dumps({"fieldUpdates": updates})
         if new_object_key:
-            data["newProcessedFileKey"] = new_object_key
+            post_data["newProcessedFileKey"] = new_object_key
 
-        r = requests.put(self._url, data=data)
+        r = requests.put(self._url, data=post_data)
         if r.status_code == 200:
             return
+        raise IOError(r.text)
+
+    def add_track(self, recording, track):
+        url = self._url + "/{}/tracks".format(recording.id_)
+        post_data = {"data": json.dumps(track.data), "algorithm": track.algorithm}
+        r = requests.post(url, data=post_data)
+        if r.status_code == 200:
+            return r.json()["trackId"]
+        raise IOError(r.text)
+
+    def clear_tracks(self, recording):
+        r = requests.delete(self._url + "/{}/tracks".format(recording.id_))
+        r.raise_for_status()
+
+    def add_track_tag(self, track, tag):
+        url = self._url + "/{}/tracks/{}/tags".format(track.recording.id_, track.id_)
+        post_data = {
+            "what": tag.what,
+            "confidence": tag.confidence,
+            "data": json.dumps(tag.data),
+        }
+        r = requests.post(url, data=post_data)
+        if r.status_code == 200:
+            return r.json()["trackTagId"]
         raise IOError(r.text)

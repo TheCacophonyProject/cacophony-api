@@ -64,6 +64,12 @@ resulting documentation ends up in the `apidoc` directory.
 The API server also serves up the generated API documentation at it's
 root URL.
 
+## Database Migrations
+
+To run any pending database migrations: `npm run db-migrate`
+
+To create a new database migration file: `npm run new-migration <name>`
+
 ## License
 
 This project is licensed under the Affero General Public License

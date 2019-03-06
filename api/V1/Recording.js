@@ -48,7 +48,7 @@ module.exports = (app, baseUrl) => {
    */
 
   /**
-   * @api {post} /api/v1/recordings Add a new recording.
+   * @api {post} /api/v1/recordings Add a new recording
    * @apiName PostRecording
    * @apiGroup Recordings
    * @apiDescription Uploads a device's own raw thermal video to the server.  It currently
@@ -256,4 +256,247 @@ module.exports = (app, baseUrl) => {
       }
     })
   );
+
+  /**
+  * @api {post} /api/v1/recordings/:id/tracks Add new track to recording
+  * @apiName PostTrack
+  * @apiGroup Tracks
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {JSON} data Data which defines the track (type specific).
+  * @apiParam {Number} algorithm Tracking algorithm version number.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {int} trackId Unique id of the newly created track.
+  *
+  * @apiUse V1ResponseError
+  *
+  */
+  app.post(
+    apiUrl + '/:id/tracks',
+    [
+      middleware.authenticateUser,
+      param('id').isInt().toInt(),
+      middleware.parseJSON('data', body),
+      body('algorithm').isInt().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.get(
+        request.user,
+        request.params.id,
+        models.Recording.Perms.UPDATE,
+      );
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording or access denied."],
+        });
+        return;
+      }
+      const track = await recording.createTrack({
+        data: request.body.data,
+        algorithm: request.body.algorithm,
+      });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track added."],
+        trackId: track.id,
+      });
+    })
+  );
+
+  /**
+  * @api {get} /api/v1/recordings/:id/tracks Get tracks for recording
+  * @apiName GetTracks
+  * @apiGroup Tracks
+  * @apiDescription Get all tracks for a given recording and their tags.
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {JSON} tracks Array with elements containing id,
+  * algorithm, data and tags fields.
+  *
+  * @apiUse V1ResponseError
+  */
+  app.get(
+    apiUrl + '/:id/tracks',
+    [
+      middleware.authenticateUser,
+      param('id').isInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.get(
+        request.user,
+        request.params.id,
+        models.Recording.Perms.VIEW,
+      );
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording or access denied."],
+        });
+        return;
+      }
+
+      const tracks = await recording.getTracks({ include: [{model: models.TrackTag}]});
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["OK."],
+        tracks: tracks.map(t => {
+          delete t.dataValues.RecordingId;
+          return t;
+        }),
+      });
+    })
+  );
+
+  /**
+  * @api {delete} /api/v1/recordings/:id/tracks/:trackId Remove track from recording
+  * @apiName DeleteTrack
+  * @apiGroup Tracks
+  *
+  * @apiUse V1UserAuthorizationHeader
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  *
+  */
+  app.delete(
+    apiUrl + '/:id/tracks/:trackId',
+    [
+      middleware.authenticateUser,
+      param('id').isInt().toInt(),
+      param('trackId').isInt().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const track = await loadTrack(request, response);
+      if (!track) {
+        return;
+      }
+      await track.destroy();
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track deleted."],
+      });
+    })
+  );
+
+  /**
+  * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
+  * @apiName PostTrackTag
+  * @apiGroup Tracks
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiParam {String} what Object/event to tag.
+  * @apiParam {Number} confidence Tag confidence score.
+  * @apiParam {Boolean} automatic "true" if tag is machine generated, "false" otherwise.
+  * @apiParam {JSON} data Data Additional tag data.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
+  *
+  * @apiUse V1ResponseError
+  */
+  app.post(
+    apiUrl + '/:id/tracks/:trackId/tags',
+    [
+      middleware.authenticateUser,
+      param('id').isInt().toInt(),
+      param('trackId').isInt().toInt(),
+      body('what'),
+      body('confidence').isFloat().toFloat(),
+      body('automatic').isBoolean().toBoolean(),
+      middleware.parseJSON('data', body).optional(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const track = await loadTrack(request, response);
+      if (!track) {
+        return;
+      }
+
+      const tag = await track.createTrackTag({
+        what: request.body.what,
+        confidence: request.body.confidence,
+        automatic: request.body.automatic,
+        data: request.body.data,
+      });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track tag added."],
+        trackTagId: tag.id,
+      });
+    })
+  );
+
+  /**
+  * @api {delete} /api/v1/recordings/:id/tracks/:trackId/tags/:trackTagId Delete a track tag
+  * @apiName DeleteTrackTag
+  * @apiGroup Tracks
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiUse V1ResponseError
+  */
+  app.delete(
+    apiUrl + '/:id/tracks/:trackId/tags/:trackTagId',
+    [
+      middleware.authenticateUser,
+      param('id').isInt().toInt(),
+      param('trackId').isInt().toInt(),
+      param('trackTagId').isInt().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const track = await loadTrack(request, response);
+      if (!track) {
+        return;
+      }
+
+      const tag = await track.getTrackTag(request.params.trackTagId);
+      if (!tag) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such track tag."],
+        });
+        return;
+      }
+
+      await tag.destroy();
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track tag deleted."],
+      });
+    })
+  );
+
+
+  async function loadTrack(request, response) {
+    const recording = await models.Recording.get(
+      request.user,
+      request.params.id,
+      models.Recording.Perms.UPDATE,
+    );
+    if (!recording) {
+      responseUtil.send(response, {
+        statusCode: 400,
+        messages: ["No such recording or access denied."],
+      });
+      return;
+    }
+
+    const track = await recording.getTrack(request.params.trackId);
+    if (!track) {
+      responseUtil.send(response, {
+        statusCode: 400,
+        messages: ["No such track."],
+      });
+      return;
+    }
+
+    return track;
+  }
+
 };

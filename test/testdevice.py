@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from .testrecording import TestRecording
+from .recording import Recording
 
 
 class TestDevice:
@@ -34,7 +34,7 @@ class TestDevice:
         # Expect to see this in data returned by the API server.
         props["rawMimeType"] = "application/x-cptv"
 
-        return TestRecording(recording_id, props, filename)
+        return Recording(recording_id, props, filename)
 
     def get_new_recording_props(self):
         return {
@@ -65,7 +65,7 @@ class TestDevice:
         }
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
-        return TestRecording(recording_id, props, filename)
+        return Recording(recording_id, props, filename)
 
     def _make_timestamp(self):
         # recordings need to be recorded at different second times else the search code doesn't work

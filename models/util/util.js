@@ -113,18 +113,38 @@ function geometrySetter(val) {
   this.setDataValue('location', { type: 'Point', coordinates: val });
 }
 
-function migrationAddBelongsTo(queryInterface, childTable, parentTable, name) {
+function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
+  if (!opts) {
+    opts = {};
+  }
+  if (opts === "strict") {
+    opts = {
+      notNull: true,
+      cascade: true,
+    };
+  }
+
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
-  if (name)
-  {columnName = name + 'Id';}
-  else
-  {columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';}
-  var constraintName = childTable + '_' + columnName + '_fkey';
+  if (opts.name) {
+    columnName = opts.name + 'Id';
+  }
+  const constraintName = childTable + '_' + columnName + '_fkey';
+
+  var deleteBehaviour = 'SET NULL';
+  if (opts.cascade) {
+    deleteBehaviour = 'CASCADE';
+  }
+
+  var columnNull = '';
+  if (opts.notNull) {
+    columnNull = 'NOT NULL';
+  }
+
   return new Promise(function(resolve, reject) {
     queryInterface.sequelize.query(
       'ALTER TABLE "' + childTable +
         '" ADD COLUMN "' + columnName +
-        '" INTEGER;'
+        '" INTEGER ' + columnNull + ';'
     )
       .then(() => {
         return queryInterface.sequelize.query(
@@ -132,7 +152,7 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, name) {
           '" ADD CONSTRAINT "' + constraintName +
           '" FOREIGN KEY ("' + columnName +
           '") REFERENCES "' + parentTable +
-          '" (id) ON DELETE SET NULL ON UPDATE CASCADE;');
+          '" (id) ON DELETE ' + deleteBehaviour + ' ON UPDATE CASCADE;');
       })
       .then(() => resolve())
       .catch((err) => {

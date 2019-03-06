@@ -169,9 +169,9 @@ class UserAPI(APIBase):
         response = requests.get(url, headers=self._auth_header)
         return response.json()
 
-    def tag_recording(self, recordingId, tagDictionary):
+    def tag_recording(self, recording_id, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
-        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recordingId}
+        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recording_id}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         response.raise_for_status()
 
@@ -295,3 +295,56 @@ class UserAPI(APIBase):
             url, headers=self._auth_header, params={"deviceId": deviceid}
         )
         return self._check_response(response).get("rows", [])
+
+    def add_track(self, recording_id, algorithm, data):
+        response = requests.post(
+            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks".format(recording_id)),
+            headers=self._auth_header,
+            data={"algorithm": algorithm, "data": json.dumps(data)},
+        )
+        return self._check_response(response)["trackId"]
+
+    def get_tracks(self, recording_id):
+        response = requests.get(
+            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks".format(recording_id)),
+            headers=self._auth_header,
+        )
+        return self._check_response(response)["tracks"]
+
+    def delete_track(self, recording_id, track_id):
+        response = requests.delete(
+            urljoin(
+                self._baseurl,
+                "/api/v1/recordings/{}/tracks/{}".format(recording_id, track_id),
+            ),
+            headers=self._auth_header,
+        )
+        return self._check_response(response)["messages"]
+
+    def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data):
+        response = requests.post(
+            urljoin(
+                self._baseurl,
+                "/api/v1/recordings/{}/tracks/{}/tags".format(recording_id, track_id),
+            ),
+            headers=self._auth_header,
+            data={
+                "what": what,
+                "confidence": confidence,
+                "automatic": "true" if automatic else "false",
+                "data": json.dumps(data),
+            },
+        )
+        return self._check_response(response)["trackTagId"]
+
+    def delete_track_tag(self, recording_id, track_id, track_tag_id):
+        response = requests.delete(
+            urljoin(
+                self._baseurl,
+                "/api/v1/recordings/{}/tracks/{}/tags/{}".format(
+                    recording_id, track_id, track_tag_id
+                ),
+            ),
+            headers=self._auth_header,
+        )
+        return self._check_response(response)["messages"]

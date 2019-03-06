@@ -77,7 +77,7 @@ module.exports = {
             util.migrationAddBelongsTo(queryInterface, 'Tags',
               'ThermalVideoRecordings'),
             util.migrationAddBelongsTo(queryInterface, 'Tags',
-              'Users', 'tagger')
+              'Users', {'name': 'tagger'})
           ]);
         })
         .then(() => {

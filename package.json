@@ -46,6 +46,7 @@
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",
     "apidoc": "apidoc -i api/V1/ -o apidoc/",
-    "db-migrate": "sequelize db:migrate"
+    "db-migrate": "sequelize db:migrate",
+    "new-migration": "sequelize migration:generate --name"
   }
 }
