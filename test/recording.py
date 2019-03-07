@@ -25,14 +25,14 @@ class TagPromise:
 
     def by(self, user):
         print(" by {}".format(user.username))
-        user.tag_recording(self._recording.id_, self._tag_data)
+        user.tag_recording(self._recording, self._tag_data)
         return self._recording
 
     def byAI(self, user):
         print(" by {}".format("by AI"))
         self._tag_data["automatic"] = True
 
-        user.tag_recording(self._recording.id_, self._tag_data)
+        user.tag_recording(self._recording, self._tag_data)
         return self._recording
 
 

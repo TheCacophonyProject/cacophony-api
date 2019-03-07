@@ -12,17 +12,17 @@ class TestRecordingsFilter:
         rec = bobsDevice.upload_recording({"location": [20, 20]})
 
         print("  The recording shoudl have a defautl precision of 100m")
-        rec_prec_default = bob.get_recording(rec.id_)
+        rec_prec_default = bob.get_recording(rec)
         assert rec_prec_default["location"]["coordinates"] == [20.00025, 20.00025]
 
         print("  Bob should not be able to get a precision higher than 100m")
         params_prec_10 = {"filterOptions": json.dumps({"latLongPrec": 10})}
-        rec_prec_attempt_10 = bob.get_recording(rec.id_, params_prec_10)
+        rec_prec_attempt_10 = bob.get_recording(rec, params_prec_10)
         assert rec_prec_attempt_10["location"]["coordinates"] == [20.00025, 20.00025]
 
         print("  Bob should be able to use a precision lower than 100m")
         params_prec_200 = {"filterOptions": json.dumps({"latLongPrec": 200})}
-        rec_prec_attempt_200 = bob.get_recording(rec.id_, params_prec_200)
+        rec_prec_attempt_200 = bob.get_recording(rec, params_prec_200)
         assert rec_prec_attempt_200["location"]["coordinates"] == [
             20.000700000000002,
             20.000700000000002,
@@ -30,9 +30,7 @@ class TestRecordingsFilter:
 
         print("  An admin should be able to use a precision higher than 100m")
         params_prec_200 = {"filterOptions": json.dumps({"latLongPrec": 10})}
-        rec_prec_attempt_200 = helper.admin_user().get_recording(
-            rec.id_, params_prec_200
-        )
+        rec_prec_attempt_200 = helper.admin_user().get_recording(rec, params_prec_200)
         assert rec_prec_attempt_200["location"]["coordinates"] == [20.000025, 20.000025]
 
         print("  Recordings from a normal query shoudl also be filtered", end="")

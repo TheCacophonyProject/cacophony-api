@@ -116,7 +116,7 @@ class TestFileProcessing:
 
 
 def check_recording(user, recording, **expected):
-    r = user.get_recording(recording.id_)
+    r = user.get_recording(recording)
     print(r)
     for name, value in expected.items():
         if name == "additionalMetadata":

@@ -25,8 +25,8 @@ class TestUser:
         queryParams = {"tags": tags}
         return RecordingQueryPromise(self, queryParams)
 
-    def get_recording(self, recording_id, params=None):
-        return self._userapi.get_recording(recording_id, params)
+    def get_recording(self, recording, params=None):
+        return self._userapi.get_recording(recording.id_, params)
 
     def query_recordings(self, **options):
         return self._userapi.query(**options)
@@ -164,8 +164,8 @@ class TestUser:
     def get_user_details(self, user):
         self._userapi.get_user_details(user.username)
 
-    def tag_recording(self, recording_id, tagDictionary):
-        self._userapi.tag_recording(recording_id, tagDictionary)
+    def tag_recording(self, recording, tagDictionary):
+        self._userapi.tag_recording(recording.id_, tagDictionary)
 
     def can_see_audio_recording(self, recording):
         self._userapi.get_audio(recording.id_)
