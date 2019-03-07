@@ -53,6 +53,7 @@ fileProcessingApp.use(bodyParser.urlencoded({ extended: false }));
 require('./api/fileProcessing')(fileProcessingApp);
 http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
 log.info('Starting file processing on', config.fileProcessing.port);
+fileProcessingApp.use(require('./api/customErrors').errorHandler);
 
 log.info("Connecting to database.....");
 models.sequelize
