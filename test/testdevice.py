@@ -8,10 +8,11 @@ class TestDevice:
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
-        self._recordingtimeoffset = 24
         self._id = None
 
     def get_id(self):
+        if self._id is None:
+            self._id = self._helper.admin_user().get_device_id(self.devicename)
         return self._id
 
     def has_recording(self):
@@ -39,7 +40,7 @@ class TestDevice:
     def get_new_recording_props(self):
         return {
             "type": "thermalRaw",
-            "recordingDateTime": self._make_timestamp().isoformat(),
+            "recordingDateTime": _new_timestamp().isoformat(),
             "duration": 10,
             "comment": "hmmm",
             "batteryLevel": 98,
@@ -50,7 +51,7 @@ class TestDevice:
         }
 
     def upload_audio_recording(self):
-        ts = self._make_timestamp()
+        ts = _new_timestamp()
         props = {
             "recordingDateTime": ts.isoformat(),
             "recordingTime": ts.strftime("%H:%M:%S"),
@@ -66,14 +67,6 @@ class TestDevice:
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
         return Recording(recording_id, props, filename)
-
-    def _make_timestamp(self):
-        # recordings need to be recorded at different second times else the search code doesn't work
-        timestamp = datetime.now(timezone.utc) - timedelta(
-            seconds=self._recordingtimeoffset
-        )
-        self._recordingtimeoffset -= 1
-        return timestamp
 
     def _print_description(self, description):
         print(description, end="")
@@ -93,13 +86,12 @@ class TestDevice:
         assert eventsAdded == 3
         return detailsId
 
-    def get_id(self):
-        if self._id is None:
-            self._id = self._helper.admin_user().get_device_id(self.devicename)
-        return self._id
-
     def download_audio_bait(self, file_id):
         return self._deviceapi.download_file(file_id)
 
     def get_audio_schedule(self):
         return self._deviceapi.get_audio_schedule()
+
+
+def _new_timestamp():
+    return datetime.now(timezone.utc)
