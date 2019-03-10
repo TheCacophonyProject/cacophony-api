@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from .recording import Recording
 from .track import Track
 from .track import TrackTag
@@ -69,6 +71,17 @@ class TestFileProcessing:
         check_recording(
             user, recording, additionalMetadata={"one": "1", "two": "foo", "three": "3"}
         )
+
+    def test_can_upload_and_find_algorithm_keys(self, helper, file_processing):
+        # Should be created
+        algorithm1 = file_processing.get_algorithm_id({'timestamp': datetime.now(timezone.utc).isoformat()})
+        algorithm2 = file_processing.get_algorithm_id({'speed': 'quick'})
+        # Should be found in already in the database
+        algorithm3 = file_processing.get_algorithm_id({'speed': 'quick'})
+
+        assert algorithm1 != algorithm2
+        assert algorithm2 == algorithm3
+
 
     def test_can_add_track_to_recording(self, helper, file_processing):
         user = helper.admin_user()

@@ -38,9 +38,18 @@ class FileProcessingAPI:
             return
         raise IOError(r.text)
 
-    def add_track(self, recording, track):
+    def get_algorithm_id(self, algorithm):
+        url = self._url + "/algorithm"
+        post_data = {"algorithm": json.dumps(algorithm)}
+        r = requests.post(url, data=post_data)
+        if r.status_code == 200:
+            return r.json()["algorithmId"]
+        raise IOError(r.text)
+
+    def add_track(self, recording, track, algorithm={"tracking-format": 42}):
+        algorithm_id = self.get_algorithm_id(algorithm)
         url = self._url + "/{}/tracks".format(recording.id_)
-        post_data = {"data": json.dumps(track.data), "algorithm": track.algorithm}
+        post_data = {"data": json.dumps(track.data), "algorithmId": algorithm_id}
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
             return r.json()["trackId"]

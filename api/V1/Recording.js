@@ -264,8 +264,9 @@ module.exports = (app, baseUrl) => {
   *
   * @apiUse V1UserAuthorizationHeader
   *
+  * @apiParam {number} id Id of the recording to add the track to.
   * @apiParam {JSON} data Data which defines the track (type specific).
-  * @apiParam {Number} algorithm Tracking algorithm version number.
+  * @apiParam {JSON} algorithm (Optional) Description of algorithm that generated track
   *
   * @apiUse V1ResponseSuccess
   * @apiSuccess {int} trackId Unique id of the newly created track.
@@ -279,7 +280,7 @@ module.exports = (app, baseUrl) => {
       middleware.authenticateUser,
       param('id').isInt().toInt(),
       middleware.parseJSON('data', body),
-      body('algorithm').isInt().toInt(),
+      middleware.parseJSON('algorithm', body).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.get(
@@ -294,9 +295,13 @@ module.exports = (app, baseUrl) => {
         });
         return;
       }
+
+      algorithm = (request.body.algorithm ? request.body.algorithm : "{'status': 'User added.'");
+      algorithmId = await models.DetailSnapshot.getOrCreateMatching("algorithm", algorithm);
+
       const track = await recording.createTrack({
         data: request.body.data,
-        algorithm: request.body.algorithm,
+        AlgorithmId: algorithmId.id,
       });
       responseUtil.send(response, {
         statusCode: 200,

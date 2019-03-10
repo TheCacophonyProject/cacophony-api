@@ -20,7 +20,7 @@ var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'EventDetail';
+  var name = 'DetailSnapshot';
 
   var attributes = {
     type: DataTypes.STRING,
@@ -30,32 +30,44 @@ module.exports = function(sequelize, DataTypes) {
   var options = {
   };
 
-  var EventDetail = sequelize.define(name, attributes, options);
+  var DetailSnapshot = sequelize.define(name, attributes, options);
 
   //---------------
   // CLASS METHODS
   //---------------
 
-  EventDetail.addAssociations = function(models) {
-    models.EventDetail.hasMany(models.Event);
+  DetailSnapshot.addAssociations = function(models) {
+    models.DetailSnapshot.hasMany(models.Event, { foreignKey: 'EventDetailId' } );
+    models.DetailSnapshot.hasMany(models.Track, { foreignKey: 'AlgorithmId'});
   };
-  
-  EventDetail.getMatching = async function(searchType, searchDetails) {
+
+  DetailSnapshot.getOrCreateMatching = async function(searchType, searchDetails) {
     if (!searchDetails) {
       searchDetails = {
         [Op.eq]: null
       };
     }
-  
-    return await this.findOne({ where: {
+
+    existing =  await this.findOne({ where: {
       type: searchType,
       details: searchDetails,
     }});
+
+    if (existing) {
+      return existing;
+    }
+    else {
+      return await this.create({
+        type: searchType,
+        details: searchDetails,
+      });
+    }
   };
-  
-  EventDetail.getFromId = async function(id) {
+
+
+  DetailSnapshot.getFromId = async function(id) {
     return await this.findById(id);
   };
 
-  return EventDetail;
+  return DetailSnapshot;
 };

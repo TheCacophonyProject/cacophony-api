@@ -283,7 +283,7 @@ class TestUser:
     def can_add_track_to_recording(self, recording):
         track = Track.create(recording)
         track.id_ = self._userapi.add_track(
-            recording.id_, track.algorithm, track.data
+            recording.id_, track.data
         )
         return track
 
@@ -298,7 +298,6 @@ class TestUser:
             this_track = Track(
                 id_=t["id"],
                 recording=recording,
-                algorithm=t["algorithm"],
                 data=t["data"],
             )
             if this_track == expected_track:
@@ -324,7 +323,7 @@ class TestUser:
         tracks = self._userapi.get_tracks(target.recording.id_)
         for t in tracks:
             if (
-                Track(target.recording, t["algorithm"], t["data"], t["id"])
+                Track(target.recording, t["data"], t["id"])
                 == target
             ):
                 pytest.fail("track not deleted: {}".format(target))

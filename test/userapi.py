@@ -296,11 +296,11 @@ class UserAPI(APIBase):
         )
         return self._check_response(response).get("rows", [])
 
-    def add_track(self, recording_id, algorithm, data):
+    def add_track(self, recording_id, data, algorithm={"status": "Test added"}):
         response = requests.post(
             urljoin(self._baseurl, "/api/v1/recordings/{}/tracks".format(recording_id)),
             headers=self._auth_header,
-            data={"algorithm": algorithm, "data": json.dumps(data)},
+            data={"algorithm": json.dumps(algorithm), "data": json.dumps(data)},
         )
         return self._check_response(response)["trackId"]
 

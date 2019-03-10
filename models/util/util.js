@@ -112,7 +112,7 @@ function geometrySetter(val) {
   if (typeof val === 'string') {return;}
   this.setDataValue('location', { type: 'Point', coordinates: val });
 }
-
+``
 function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
   if (!opts) {
     opts = {};
@@ -162,8 +162,22 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
   });
 }
 
-function migrationRemoveBelongsTo(queryInterface, childTable, parentTable) {
+function renameTableAndIdSeq(queryInterface, oldName, newName) {
+  return Promise.all([
+    queryInterface.sequelize.query(
+      'ALTER TABLE "' + oldName +
+      '" RENAME TO "' + newName + '";'),
+      queryInterface.sequelize.query(
+        'ALTER TABLE "' + oldName + '_id_seq' +
+        '" RENAME TO "' + newName + '_id_seq' + '";'),
+  ]);
+}
+
+function migrationRemoveBelongsTo(queryInterface, childTable, parentTable, opts={}) {
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
+  if (opts.name) {
+    columnName = opts.name + 'Id';
+  }
   return queryInterface.sequelize.query(
     'ALTER TABLE "' + childTable +
     '" DROP COLUMN "' + columnName + '";'
@@ -360,3 +374,4 @@ exports.deleteModelInstance = deleteModelInstance;
 exports.userCanEdit = userCanEdit;
 exports.openS3 = openS3;
 exports.saveFile = saveFile;
+exports.renameTableAndIdSeq = renameTableAndIdSeq;

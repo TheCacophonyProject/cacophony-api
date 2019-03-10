@@ -194,8 +194,8 @@ function getDeviceByName(checkFunc) {
   return getModelByName(models.Device, 'devicename', checkFunc);
 }
 
-function getEventDetailById(checkFunc) {
-  return getModelById(models.EventDetail, 'eventDetailId', checkFunc);
+function getDetailSnapshotById(checkFunc, paramName) {
+  return getModelById(models.DetailSnapshot, paramName, checkFunc);
 }
 
 function getFileById(checkFunc) {
@@ -322,7 +322,7 @@ exports.getGroupByName     = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
 exports.getDeviceById      = getDeviceById;
 exports.getDeviceByName    = getDeviceByName;
-exports.getEventDetailById = getEventDetailById;
+exports.getDetailSnapshotById = getDetailSnapshotById;
 exports.getFileById        = getFileById;
 exports.getRecordingById   = getRecordingById;
 exports.checkNewName       = checkNewName;
