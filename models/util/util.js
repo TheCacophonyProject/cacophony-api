@@ -112,7 +112,7 @@ function geometrySetter(val) {
   if (typeof val === 'string') {return;}
   this.setDataValue('location', { type: 'Point', coordinates: val });
 }
-``
+
 function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
   if (!opts) {
     opts = {};
