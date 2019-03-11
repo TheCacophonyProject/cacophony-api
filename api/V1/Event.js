@@ -66,7 +66,7 @@ module.exports = function(app, baseUrl) {
       if (!detailsId) {
         var description = request.body.description;
         var detail = await models.DetailSnapshot.getOrCreateMatching(description.type, description.details);
-        detailsId = detail.id
+        detailsId = detail.id;
       }
 
       var eventList = [];

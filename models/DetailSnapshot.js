@@ -48,7 +48,7 @@ module.exports = function(sequelize, DataTypes) {
       };
     }
 
-    existing =  await this.findOne({ where: {
+    const existing =  await this.findOne({ where: {
       type: searchType,
       details: searchDetails,
     }});

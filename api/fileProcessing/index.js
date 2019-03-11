@@ -322,7 +322,7 @@ module.exports = function(app) {
     })
   );
 
-    /**
+  /**
   * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
   * @apiName Algorithm
   * @apiGroup FileProcessing

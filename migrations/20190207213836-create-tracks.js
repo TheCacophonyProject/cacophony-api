@@ -3,7 +3,7 @@ var util = require('../models/util/util');
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await util.renameTableAndIdSeq(queryInterface, 'EventDetails', 'DetailSnapshots')
+    await util.renameTableAndIdSeq(queryInterface, 'EventDetails', 'DetailSnapshots');
 
     await queryInterface.createTable('Tracks', {
       id: {
@@ -53,7 +53,7 @@ module.exports = {
   },
 
   down: async function(queryInterface) {
-    await util.renameTableAndIdSeq(queryInterface, 'DetailSnapshots', 'EventDetails')
+    await util.renameTableAndIdSeq(queryInterface, 'DetailSnapshots', 'EventDetails');
 
     await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Users');
     await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Tracks');

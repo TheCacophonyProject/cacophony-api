@@ -81,7 +81,7 @@ class TestEvent:
     def test_get_event_attributes_returned(self, helper):
         boombox = helper.given_new_device(self, "boombox")
         description = "E_" + helper.random_id()
-        detailId = boombox.record_event(
+        boombox.record_event(
             "audio-bait-played",
             {"lure_id": "possum_screams", "description": description},
         )

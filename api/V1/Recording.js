@@ -296,12 +296,12 @@ module.exports = (app, baseUrl) => {
         return;
       }
 
-      algorithm = (request.body.algorithm ? request.body.algorithm : "{'status': 'User added.'");
-      algorithmId = await models.DetailSnapshot.getOrCreateMatching("algorithm", algorithm);
+      const algorithm = (request.body.algorithm ? request.body.algorithm : "{'status': 'User added.'");
+      const algorithmDetail = await models.DetailSnapshot.getOrCreateMatching("algorithm", algorithm);
 
       const track = await recording.createTrack({
         data: request.body.data,
-        AlgorithmId: algorithmId.id,
+        AlgorithmId: algorithmDetail.id,
       });
       responseUtil.send(response, {
         statusCode: 200,

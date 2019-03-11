@@ -167,9 +167,9 @@ function renameTableAndIdSeq(queryInterface, oldName, newName) {
     queryInterface.sequelize.query(
       'ALTER TABLE "' + oldName +
       '" RENAME TO "' + newName + '";'),
-      queryInterface.sequelize.query(
-        'ALTER TABLE "' + oldName + '_id_seq' +
-        '" RENAME TO "' + newName + '_id_seq' + '";'),
+    queryInterface.sequelize.query(
+      'ALTER TABLE "' + oldName + '_id_seq' +
+      '" RENAME TO "' + newName + '_id_seq' + '";'),
   ]);
 }
 
