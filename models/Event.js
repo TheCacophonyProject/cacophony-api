@@ -64,10 +64,8 @@ module.exports = function(sequelize, DataTypes) {
         ],
       },
       order: ["dateTime"],
-      include: ['EventDetail'],
-      //   { model: models.DetailSnapshot, as: 'EventDetail', attributes: ['type', 'details'] },
-      // ],
-      attributes: { exclude : ['updatedAt'] },
+      include: { model: models.DetailSnapshot, as: 'EventDetail', attributes: ['type', 'details'] },
+      attributes: { exclude : ['updatedAt', 'EventDetailId'] },
       limit: limit,
       offset: offset,
     });
