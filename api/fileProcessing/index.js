@@ -340,7 +340,7 @@ module.exports = function(app) {
       middleware.parseJSON('algorithm', body),
     ],
     middleware.requestWrapper(async (request, response) => {
-      var algorithm = await models.DetailSnapshot.getOrCreateMatching("algorithm", request.body,algorithm);
+      var algorithm = await models.DetailSnapshot.getOrCreateMatching("algorithm", request.body.algorithm);
 
       responseUtil.send(response, {
         statusCode: 200,
