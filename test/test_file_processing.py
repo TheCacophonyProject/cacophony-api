@@ -82,7 +82,6 @@ class TestFileProcessing:
         assert algorithm1 != algorithm2
         assert algorithm2 == algorithm3
 
-
     def test_can_add_track_to_recording(self, helper, file_processing):
         user = helper.admin_user()
         helper.given_a_recording(self)
