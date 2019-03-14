@@ -195,7 +195,7 @@ module.exports = function(app) {
    *
    * @apiParam {JSON} data Data which defines the track (type specific).
    * @apiParam {Number} AlgorithmId Database Id of the Tracking algorithm details retrieved from
-   * <a href="#api-fileprocessing-algorithm">Algorithm</a> request
+   * (#FileProcessing:Algorithm) request
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {int} trackId Unique id of the newly created track.
@@ -344,7 +344,7 @@ module.exports = function(app) {
 
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Algorithm key retreived."],
+        messages: ["Algorithm key retrieved."],
         algorithmId: algorithm.id,
       });
     })
