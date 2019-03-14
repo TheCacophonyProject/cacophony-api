@@ -194,7 +194,8 @@ module.exports = function(app) {
    * @apiGroup FileProcessing
    *
    * @apiParam {JSON} data Data which defines the track (type specific).
-   * @apiParam {Number} algorithm Tracking algorithm version number.
+   * @apiParam {Number} AlgorithmId Database Id of the Tracking algorithm details retrieved from
+   * (#FileProcessing:Algorithm) request
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {int} trackId Unique id of the newly created track.
@@ -207,7 +208,7 @@ module.exports = function(app) {
     [
       param('id').isInt().toInt(),
       middleware.parseJSON('data', body),
-      body('algorithm').isInt().toInt(),
+      middleware.getDetailSnapshotById(body, 'algorithmId'),
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findById(request.params.id);
@@ -220,7 +221,7 @@ module.exports = function(app) {
       }
       const track = await recording.createTrack({
         data: request.body.data,
-        algorithm: request.body.algorithm,
+        AlgorithmId: request.body.algorithmId,
       });
       responseUtil.send(response, {
         statusCode: 200,
@@ -268,9 +269,7 @@ module.exports = function(app) {
   /**
   * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
   * @apiName PostTrackTag
-   * @apiGroup FileProcessing
-  *
-  * @apiUse V1UserAuthorizationHeader
+  * @apiGroup FileProcessing
   *
   * @apiParam {String} what Object/event to tag.
   * @apiParam {Number} confidence Tag confidence score.
@@ -323,4 +322,31 @@ module.exports = function(app) {
     })
   );
 
+  /**
+  * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
+  * @apiName Algorithm
+  * @apiGroup FileProcessing
+  *
+  * @apiParam {JSON} algorithm algorithm data in tag form.
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {int} algorithmId Id of the matching algorithm tag.
+  *
+  * @apiUse V1ResponseError
+  */
+  app.post(
+    apiUrl + '/algorithm',
+    [
+      middleware.parseJSON('algorithm', body),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      var algorithm = await models.DetailSnapshot.getOrCreateMatching("algorithm", request.body.algorithm);
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Algorithm key retrieved."],
+        algorithmId: algorithm.id,
+      });
+    })
+  );
 };

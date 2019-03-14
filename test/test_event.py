@@ -81,7 +81,7 @@ class TestEvent:
     def test_get_event_attributes_returned(self, helper):
         boombox = helper.given_new_device(self, "boombox")
         description = "E_" + helper.random_id()
-        detailId = boombox.record_event(
+        boombox.record_event(
             "audio-bait-played",
             {"lure_id": "possum_screams", "description": description},
         )
@@ -89,8 +89,6 @@ class TestEvent:
         print("Then get events returns an event")
         print("    with DeviceId = '{}'".format(boombox.get_id()))
         assert event["DeviceId"] == boombox.get_id()
-        print("    and EventDetailId = '{}'".format(detailId))
-        assert event["EventDetailId"] == detailId
         print("    and EventDetail.type = 'audio-bait-played'")
         assert event["EventDetail"]["type"] == "audio-bait-played"
         print("    and EventDetail.details.lure_id = 'possum_screems'")

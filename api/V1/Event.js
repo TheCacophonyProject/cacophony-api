@@ -53,7 +53,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.authenticateDevice,
-      middleware.getEventDetailById(body).optional(),
+      middleware.getDetailSnapshotById(body, 'eventDetailId').optional(),
       middleware.isDateArray("dateTimes", "List of times event occured is required."),
       oneOf([
         body("eventDetailId").exists(),
@@ -65,18 +65,8 @@ module.exports = function(app, baseUrl) {
       var detailsId = request.body.eventDetailId;
       if (!detailsId) {
         var description = request.body.description;
-
-        var existingMatchingDetail = await models.EventDetail.getMatching(description.type, description.details);
-        if (existingMatchingDetail) {
-          detailsId = existingMatchingDetail.id;
-        }
-        else {
-          var newDetails = await models.EventDetail.create({
-            type: description.type,
-            details: description.details,
-          });
-          detailsId = newDetails.id;
-        }
+        var detail = await models.DetailSnapshot.getOrCreateMatching(description.type, description.details);
+        detailsId = detail.id;
       }
 
       var eventList = [];

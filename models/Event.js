@@ -36,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
   var models = sequelize.models;
 
   Event.addAssociations = function(models) {
-    models.Event.belongsTo(models.EventDetail);
+    models.Event.belongsTo(models.DetailSnapshot, { as : 'EventDetail', foreignKey: 'EventDetailId'});
   };
 
   /**
@@ -64,10 +64,8 @@ module.exports = function(sequelize, DataTypes) {
         ],
       },
       order: ["dateTime"],
-      include: [
-        { model: models.EventDetail, attributes: ['type', 'details'] },
-      ],
-      attributes: { exclude : ['updatedAt'] },
+      include: { model: models.DetailSnapshot, as: 'EventDetail', attributes: ['type', 'details'] },
+      attributes: { exclude : ['updatedAt', 'EventDetailId'] },
       limit: limit,
       offset: offset,
     });

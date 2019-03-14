@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module.exports = function(sequelize, DataTypes) {
   var Track = sequelize.define('Track', {
-    algorithm: DataTypes.INTEGER,
     data: DataTypes.JSONB,
   });
 
@@ -27,6 +26,7 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   Track.addAssociations = function(models) {
     models.Track.belongsTo(models.Recording);
+    models.Track.belongsTo(models.DetailSnapshot, { as : 'Algorithm', foreignKey: 'AlgorithmId'});
     models.Track.hasMany(models.TrackTag);
   };
 

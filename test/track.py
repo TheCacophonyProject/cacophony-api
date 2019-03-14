@@ -7,13 +7,12 @@ import attr
 class Track:
     id_ = attr.ib()
     recording = attr.ib()
-    algorithm = attr.ib()
     data = attr.ib()
 
     @classmethod
     def create(cls, recording):
         "Make a TestTrack with some plausible data."
-        return cls(None, recording, algorithm=42, data={"foo": [[1, 2], [3, 4]]})
+        return cls(None, recording, data={"foo": [[1, 2], [3, 4]]})
 
 
 @attr.s
