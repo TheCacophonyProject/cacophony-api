@@ -345,7 +345,7 @@ module.exports = (app, baseUrl) => {
         return;
       }
 
-      const tracks = await recording.getTracksTagsAndTagger()
+      const tracks = await recording.getTracksTagsAndTagger();
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
