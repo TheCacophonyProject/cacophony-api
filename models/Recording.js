@@ -288,7 +288,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Recording.prototype.getFileBaseName = function() {
     return moment(new Date(this.recordingDateTime)).tz("Pacific/Auckland")
-      .format("YYYYMMDD-HHmmss");
+    .format("YYYYMMDD-HHmmss");
   };
 
   Recording.prototype.getRawFileName = function() {
@@ -308,14 +308,24 @@ module.exports = function(sequelize, DataTypes) {
       return '.' + ext;
     }
     switch (this.type) {
-    case 'thermalRaw':
+      case 'thermalRaw':
       return '.cptv';
-    case 'audio':
+      case 'audio':
       return '.mpga';
-    default:
+      default:
       return "";
     }
   };
+
+  Recording.prototype.getTracksTagsAndTagger = async function() {
+    return await this.getTracks(
+      { include: [{model: models.TrackTag,
+                  include: [{model: models.User,
+                              attributes: ['username']}],
+                  attributes: {exclude: ['UserId']},
+                  }]
+      });
+  }
 
   /**
    * Returns JSON describing what the user can do to the recording.

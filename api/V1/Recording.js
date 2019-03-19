@@ -345,7 +345,7 @@ module.exports = (app, baseUrl) => {
         return;
       }
 
-      const tracks = await recording.getTracks({ include: [{model: models.TrackTag}]});
+      const tracks = await recording.getTracksTagsAndTagger()
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
@@ -426,6 +426,7 @@ module.exports = (app, baseUrl) => {
         confidence: request.body.confidence,
         automatic: request.body.automatic,
         data: request.body.data,
+        UserId: request.user.id,
       });
       responseUtil.send(response, {
         statusCode: 200,
