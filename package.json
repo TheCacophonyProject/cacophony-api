@@ -7,7 +7,7 @@
   },
   "version": "0.0.1",
   "dependencies": {
-    "apidoc": "^0.17.6",
+    "apidoc": "^0.17.7",
     "aws-sdk": "^2.265.1",
     "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
@@ -41,7 +41,7 @@
     "winston": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.0.1"
+    "eslint": "^5.15.3"
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",
