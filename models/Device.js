@@ -130,7 +130,7 @@ module.exports = function(sequelize, DataTypes) {
   Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if user has global write/read permission.
     if (user.hasGlobalRead()) {
-      return this.findAndCount({
+      return this.findAndCountAll({
         where: conditions,
         attributes: ["devicename", "id"],
         include: includeData,
@@ -146,7 +146,7 @@ module.exports = function(sequelize, DataTypes) {
       {id: {[Op.in]: deviceIds}},
     ]};
 
-    return this.findAndCount({
+    return this.findAndCountAll({
       where: { [Op.and]: [usersDevice, conditions] },
       attributes: ["devicename", "id"],
       order: ['devicename'],

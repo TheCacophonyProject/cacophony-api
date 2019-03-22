@@ -60,7 +60,7 @@ module.exports = function(sequelize, DataTypes) {
       limit: limit,
       offset: offset,
     };
-    return this.findAndCount(q);
+    return this.findAndCountAll(q);
   };
 
   File.deleteIfAllowed = async function(user, file) {

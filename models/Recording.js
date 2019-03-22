@@ -139,7 +139,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: this.userGetAttributes,
     };
 
-    var queryResponse = await this.findAndCount(q);
+    var queryResponse = await this.findAndCountAll(q);
     filterOptions = makeFilterOptions(user, filterOptions);
     queryResponse.rows.map(rec => rec.filterData(filterOptions));
     return queryResponse;
