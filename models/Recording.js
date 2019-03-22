@@ -404,7 +404,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // Return a specific track for the recording.
   Recording.prototype.getTrack = async function(trackId) {
-    const track = await models.Track.findById(trackId);
+    const track = await models.Track.findByPk(trackId);
     if (!track) {
       return null;
     }
