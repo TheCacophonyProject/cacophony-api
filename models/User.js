@@ -103,7 +103,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.getFromId = async function(id) {
-    return await this.findById(id);
+    return await this.findByPk(id);
   };
 
   User.getFromName = async function(name) {

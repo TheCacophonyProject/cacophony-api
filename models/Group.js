@@ -162,7 +162,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Group.getFromId = async function(id) {
-    return await this.findById(id);
+    return await this.findByPk(id);
   };
 
   Group.getFromName = async function(name) {

@@ -211,7 +211,7 @@ module.exports = function(app) {
       middleware.getDetailSnapshotById(body, 'algorithmId'),
     ],
     middleware.requestWrapper(async (request, response) => {
-      const recording = await models.Recording.findById(request.params.id);
+      const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
@@ -247,7 +247,7 @@ module.exports = function(app) {
       param('id').isInt().toInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      const recording = await models.Recording.findById(request.params.id);
+      const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
@@ -290,7 +290,7 @@ module.exports = function(app) {
       middleware.parseJSON('data', body).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      const recording = await models.Recording.findById(request.params.id);
+      const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,

@@ -50,10 +50,10 @@ const authenticate = function(type) {
     var result;
     switch(jwtDecoded._type) {
     case 'user':
-      result = await models.User.findById(jwtDecoded.id);
+      result = await models.User.findByPk(jwtDecoded.id);
       break;
     case 'device':
-      result = await models.Device.findById(jwtDecoded.id);
+      result = await models.Device.findByPk(jwtDecoded.id);
       break;
     case 'fileDownload':
       result = jwtDecoded;
@@ -76,7 +76,7 @@ const authenticateAdmin = header('Authorization').custom(async (value, {req}) =>
   if (jwtDecoded._type != 'user') {
     throw new Error('Admin has to be a user');
   }
-  const user = await models.User.findById(jwtDecoded.id);
+  const user = await models.User.findByPk(jwtDecoded.id);
   if (!user) {
     throw new Error('Could not find user from JWT.');
   }
@@ -104,7 +104,7 @@ const signedUrl = query('jwt').custom((value, {req}) => {
 
 const getModelById = function(modelType, fieldName, checkFunc) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
-    const model = await modelType.findById(val);
+    const model = await modelType.findByPk(val);
     if (model === null) {
       throw new Error(format('Could not find a %s with an id of %s.', modelType.name, val));
     }
