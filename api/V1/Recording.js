@@ -345,7 +345,14 @@ module.exports = (app, baseUrl) => {
         return;
       }
 
-      const tracks = await recording.getTracks({ include: [{model: models.TrackTag}]});
+      const tracks = await recording.getTracks({
+        where:{
+          archivedAt:null
+        },
+        include: [{
+          model: models.TrackTag
+        }]
+      });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
