@@ -74,7 +74,7 @@ class TestDeviceUsers:
         carrie = helper.given_new_user(self, "Carrie")
         carrie_group = helper.make_unique_group_name(self, "carrie_group")
         carrie.create_group(carrie_group)
-        carrie_device = helper.given_new_device(self, "Carrie",carrie_group)
+        carrie_device = helper.given_new_device(self, "Carrie", carrie_group)
         carrie.device_has_group_users(carrie_device, carrie)
         carrie.device_has_device_users(carrie_device)
 
