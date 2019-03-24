@@ -204,7 +204,7 @@ module.exports = function(sequelize, DataTypes) {
       return Device.newUserPermissions(true);
     }
 
-    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.GroupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
     return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
@@ -238,8 +238,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     const device_users = await this.getUsers({ attributes: attrs });
-
-    const group = await models.Group.findOne(this.groupId);
+    const group = await models.Group.getFromId(this.GroupId);
     const group_users = await group.getUsers({ attributes: attrs });
 
     return device_users.concat(group_users);
