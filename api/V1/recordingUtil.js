@@ -253,7 +253,6 @@ exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
 exports.get = get;
 exports.delete_ = delete_;
+exports.addTag = addTag;
 exports.reprocess = reprocess;
 exports.reprocessAll = reprocessAll;
-
-exports.addTag = addTag;
