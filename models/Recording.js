@@ -317,6 +317,18 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
+  /* eslint-disable indent */
+  Recording.prototype.getTracksTagsAndTagger = async function() {
+    return await this.getTracks(
+      { include: [{model: models.TrackTag,
+                  include: [{model: models.User,
+                              attributes: ['username']}],
+                  attributes: {exclude: ['UserId']},
+                  }]
+      });
+  };
+  /* eslint-enable indent */
+
   /**
    * Returns JSON describing what the user can do to the recording.
    * Permission types: DELETE, TAG, VIEW, UPDATE
