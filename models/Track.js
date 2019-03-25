@@ -49,7 +49,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // Return a specific track tag for the track.
   Track.prototype.getTrackTag = async function(trackTagId) {
-    const trackTag = await models.TrackTag.findById(trackTagId);
+    const trackTag = await models.TrackTag.findByPk(trackTagId);
     if (!trackTag) {
       return null;
     }

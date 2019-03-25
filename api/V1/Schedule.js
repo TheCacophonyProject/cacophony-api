@@ -119,7 +119,7 @@ async function getSchedule(device, response, user = null) {
   var schedule = {schedule: {}};
 
   if (device.ScheduleId) {
-    schedule = await models.Schedule.findById(device.ScheduleId);
+    schedule = await models.Schedule.findByPk(device.ScheduleId);
     if (!schedule) {
       return responseUtil.send(response, {
         statusCode: 400,

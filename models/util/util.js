@@ -36,7 +36,7 @@ function findAllWithUser(model, user, queryParams) {
     // Find what devices the user can see.
     if (!user) {
       // Not logged in, can onnly see public recordings.
-      model.findAndCount({
+      model.findAndCountAll({
         where: { [Op.and]: [queryParams.where, { public: true }] },
         include: [models.Group],
         limit: queryParams.limit,
@@ -60,7 +60,7 @@ function findAllWithUser(model, user, queryParams) {
             { model: models.Group },
             { model: models.Tag },
           ];
-          return model.findAndCount(queryParams);
+          return model.findAndCountAll(queryParams);
         }).then(function(result) {
           result.limit = queryParams.limit;
           result.offset = queryParams.offset;

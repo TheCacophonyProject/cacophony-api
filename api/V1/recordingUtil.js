@@ -150,7 +150,7 @@ function guessRawMimeType(type, filename) {
 }
 
 async function addTag(request, response) {
-  const recording = await models.Recording.findById(request.body.recordingId);
+  const recording = await models.Recording.findByPk(request.body.recordingId);
   if (!recording) {
     responseUtil.send(response, {
       statusCode: 400,
