@@ -7,7 +7,7 @@
   },
   "version": "0.0.1",
   "dependencies": {
-    "apidoc": "^0.17.6",
+    "apidoc": "^0.17.7",
     "aws-sdk": "^2.265.1",
     "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
@@ -35,13 +35,13 @@
     "pg-hstore": "^2.3.2",
     "pg-native": "^2.x",
     "pg-types": "^1.x",
-    "sequelize": "^4.38.1",
-    "sequelize-cli": "^4.1.1",
+    "sequelize": "^5.0.0",
+    "sequelize-cli": "^5.0.0",
     "uuid": "^3.2.1",
     "winston": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.0.1"
+    "eslint": "^5.15.3"
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",

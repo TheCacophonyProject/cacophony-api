@@ -130,7 +130,7 @@ module.exports = function(sequelize, DataTypes) {
   Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
     // Return all devices if user has global write/read permission.
     if (user.hasGlobalRead()) {
-      return this.findAndCount({
+      return this.findAndCountAll({
         where: conditions,
         attributes: ["devicename", "id"],
         include: includeData,
@@ -146,7 +146,7 @@ module.exports = function(sequelize, DataTypes) {
       {id: {[Op.in]: deviceIds}},
     ]};
 
-    return this.findAndCount({
+    return this.findAndCountAll({
       where: { [Op.and]: [usersDevice, conditions] },
       attributes: ["devicename", "id"],
       order: ['devicename'],
@@ -204,7 +204,7 @@ module.exports = function(sequelize, DataTypes) {
       return Device.newUserPermissions(true);
     }
 
-    const isGroupAdmin = await models.GroupUsers.isAdmin(this.groupId, user.id);
+    const isGroupAdmin = await models.GroupUsers.isAdmin(this.GroupId, user.id);
     const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
     return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
@@ -238,8 +238,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     const device_users = await this.getUsers({ attributes: attrs });
-
-    const group = await models.Group.findOne(this.groupId);
+    const group = await models.Group.getFromId(this.GroupId);
     const group_users = await group.getUsers({ attributes: attrs });
 
     return device_users.concat(group_users);

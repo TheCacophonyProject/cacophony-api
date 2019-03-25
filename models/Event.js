@@ -56,7 +56,7 @@ module.exports = function(sequelize, DataTypes) {
       where.DeviceId = deviceId;
     }
 
-    return this.findAndCount({
+    return this.findAndCountAll({
       where: {
         [Op.and]: [
           where, // User query
