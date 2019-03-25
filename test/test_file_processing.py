@@ -163,7 +163,7 @@ class TestFileProcessing:
         return recording
 
     def add_tracks_and_tag(self, file_processing, recording):
-         #insert tracks
+        # insert tracks
         track = Track.create(recording)
         track.id_ = file_processing.add_track(recording, track)
 
@@ -173,9 +173,8 @@ class TestFileProcessing:
 
     def test_reprocess_recording(self, helper, file_processing):
         user = helper.admin_user()
-       
         recording = self.create_processed_recording(helper, file_processing, user)
-        track,tag = self.add_tracks_and_tag(file_processing, recording)
+        track, tag = self.add_tracks_and_tag(file_processing, recording)
         user.can_see_track(track, [tag])
 
         user.reprocess(recording)
@@ -193,8 +192,9 @@ class TestFileProcessing:
         )
         check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
 
-        track,tag = self.add_tracks_and_tag(file_processing, recording)
+        track, tag = self.add_tracks_and_tag(file_processing, recording)
         user.can_see_track(track, [tag])
+
 
 def check_recording(user, recording, **expected):
     r = user.get_recording(recording)

@@ -15,10 +15,10 @@ class TestUser:
         self._group = None
 
     def reprocess_recordings(self, recordings, params=None):
-       return self._userapi.reprocess_recordings(recordings, params)
+        return self._userapi.reprocess_recordings(recordings, params)
 
     def reprocess(self, recording, params=None):
-       return self._userapi.reprocess(recording.id_, params)
+        return self._userapi.reprocess(recording.id_, params)
 
     def when_searching_with(self, queryParams):
         return RecordingQueryPromise(self, queryParams)
