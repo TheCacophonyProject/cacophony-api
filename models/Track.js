@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 module.exports = function(sequelize, DataTypes) {
   var Track = sequelize.define('Track', {
     data: DataTypes.JSONB,
+    archivedAt: DataTypes.DATE,
   });
 
   //---------------
@@ -34,7 +35,8 @@ module.exports = function(sequelize, DataTypes) {
 
   Track.apiSettableFields = Object.freeze([
     'algorithm',
-    'data'
+    'data',
+    'archivedAt'
   ]);
 
   Track.userGetAttributes = Object.freeze(Track.apiSettableFields.concat([

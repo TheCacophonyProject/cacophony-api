@@ -345,14 +345,8 @@ module.exports = (app, baseUrl) => {
         return;
       }
 
-      const tracks = await recording.getTracks({
-        where:{
-          archivedAt:null
-        },
-        include: [{
-          model: models.TrackTag
-        }]
-      });
+      const tracks = await recording.getActiveTracks();
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
@@ -481,6 +475,54 @@ module.exports = (app, baseUrl) => {
         statusCode: 200,
         messages: ["Track tag deleted."],
       });
+    })
+  );
+
+  /**
+  * @api {get} /api/v1/recordings/reprocess/:id
+  * @apiName Reprocess
+  * @apiGroup Recordings
+  * @apiParam {Number} id of recording to reprocess
+  * @apiDescription Marks a recording for reprocessing and archives existing tracks
+  *
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {JSON} statusCode and messages
+  */
+  app.get(
+    apiUrl + '/reprocess/:id',
+    [
+      middleware.authenticateUser,
+      param('id').isInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      return await recordingUtil.reprocess(request,response)
+    })
+  );
+
+  /**
+  * @api {post} /api/v1/recordings/reprocess/multiple marks recordings for reprocessing and archives tracks
+  * @apiName ReprocessMultiple
+  * @apiGroup Recordings
+  * @apiParam {JSON} recordings an array of recording ids to reprocess
+
+  * @apiDescription Marks multiple recordings for reprocessing and archives existing tracks
+
+  * @apiUse V1UserAuthorizationHeader
+  *
+  * @apiUse V1ResponseSuccess
+  * @apiSuccess {JSON} statusCode and messages
+  */
+  app.post(
+    apiUrl + '/reprocess/multiple',
+    [
+      middleware.authenticateUser,
+      middleware.parseJSON('recordings', body),
+
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      return await recordingUtil.reprocessAll(request,response)
     })
   );
 

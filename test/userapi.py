@@ -72,6 +72,16 @@ class UserAPI(APIBase):
         )
         return self._check_response(r)
 
+    def reprocess(self, recording_id, params=None):
+            reprocessURL = urljoin(self._baseurl, "/api/v1/recordings/reprocess/{}".format(recording_id))
+            r = requests.get(reprocessURL, headers=self._auth_header, params=params)
+            return self._check_response(r)
+        
+    def reprocess_recordings(self, recordings, params=None):
+        reprocessURL = urljoin(self._baseurl, "/api/v1/recordings/reprocess/multiple")
+        r = requests.post(reprocessURL, headers=self._auth_header, data={"recordings":json.dumps(recordings)})
+        return self._check_response(r)
+
     def download_cptv(self, recording_id):
         return self._download_recording(recording_id, "downloadRawJWT")
 

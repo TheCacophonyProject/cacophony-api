@@ -126,6 +126,75 @@ class TestFileProcessing:
 
         user.can_see_track(track, [tag])
 
+    def test_reprocess_multiple_recordings(self, helper, file_processing):
+        user = helper.admin_user()
+
+        recordings = []
+        recording_first = self.create_processed_recording(helper, file_processing, user)
+        recordings.append(recording_first.id_)
+        self.add_tracks_and_tag(file_processing, recording_first)
+
+        recording_second = self.create_processed_recording(helper, file_processing, user)
+        recordings.append(recording_second.id_)
+        self.add_tracks_and_tag(file_processing, recording_second)
+
+        user.reprocess_recordings(recordings)
+        user.has_no_tracks(recording_first)
+        user.has_no_tracks(recording_second)
+
+    def create_processed_recording(self, helper, file_processing, user):
+        # Ensure there's a recording to work with (the file processing
+        # API may return a different one though).
+        helper.given_a_recording(self)
+
+        # Get a recording to process.
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        assert recording["processingState"] == "getMetadata"
+
+        # Move job to next stage.
+        file_processing.put(recording, success=True, complete=False)
+        check_recording(user, recording, processingState="toMp4")
+
+        # Now finalise processing.
+        file_processing.put(
+            recording, success=True, complete=True, new_object_key="some_key"
+        )
+        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        return recording
+
+    def add_tracks_and_tag(self, file_processing, recording):
+         #insert tracks
+        track = Track.create(recording)
+        track.id_ = file_processing.add_track(recording, track)
+
+        tag = TrackTag.create(track, automatic=True)
+        tag.id_ = file_processing.add_track_tag(track, tag)
+        return track, tag
+
+    def test_reprocess_recording(self, helper, file_processing):
+        user = helper.admin_user()
+       
+        recording = self.create_processed_recording(helper, file_processing, user)
+        track,tag = self.add_tracks_and_tag(file_processing, recording)
+        user.can_see_track(track, [tag])
+
+        user.reprocess(recording)
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        assert recording["processingState"] == "getMetadata"
+        user.has_no_tracks(recording)
+
+        # Move job to next stage.
+        file_processing.put(recording, success=True, complete=False)
+        check_recording(user, recording, processingState="toMp4")
+
+        # Now finalise processing.
+        file_processing.put(
+            recording, success=True, complete=True, new_object_key="some_key"
+        )
+        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+
+        track,tag = self.add_tracks_and_tag(file_processing, recording)
+        user.can_see_track(track, [tag])
 
 def check_recording(user, recording, **expected):
     r = user.get_recording(recording)
