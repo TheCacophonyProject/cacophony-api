@@ -1,4 +1,12 @@
 /**
+ * @apiDefine V1RecordingReprocessResponse
+ * @apiSuccess {Number[]} reprocessed - list of recording ids marked for reprocessing
+ * @apiSuccess {Number[]} fail - list of recording ids that failed to be marked for reprocessing
+ * @apiSuccess {String[]} messages Messages about the request.
+ */
+
+
+/**
  * @apiDefine V1ResponseSuccess
  * @apiSuccess {Boolean} success `true` - Request was successful.
  * @apiSuccess {String[]} messages Messages about the request.

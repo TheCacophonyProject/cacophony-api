@@ -489,7 +489,7 @@ module.exports = (app, baseUrl) => {
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiUse V1ResponseSuccess
-  * @apiSuccess {JSON} statusCode and messages
+  * @apiSuccess {Number} id - recording_id reprocessed
   */
   app.get(
     apiUrl + '/reprocess/:id',
@@ -512,8 +512,7 @@ module.exports = (app, baseUrl) => {
 
   * @apiUse V1UserAuthorizationHeader
   *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {JSON} statusCode, reprocessed[], fail[] and messages
+  * @apiUse V1RecordingReprocessResponse
   */
   app.post(
     apiUrl + '/reprocess/multiple',
