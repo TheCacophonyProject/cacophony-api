@@ -513,7 +513,7 @@ module.exports = (app, baseUrl) => {
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiUse V1ResponseSuccess
-  * @apiSuccess {JSON} statusCode and messages
+  * @apiSuccess {JSON} statusCode, reprocessed[], fail[] and messages
   */
   app.post(
     apiUrl + '/reprocess/multiple',

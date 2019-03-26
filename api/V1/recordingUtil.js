@@ -187,6 +187,13 @@ async function addTag(request, response) {
   });
 }
 
+const statusCode = {
+  Success: 1,
+  Fail: 2,
+  Both: 3,
+};
+
+
 // reprocessAll expects request.body.recordings to be a list of recording_ids
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
@@ -195,24 +202,43 @@ async function reprocessAll(request, response) {
     statusCode: 200,
     messages: [],
     reprocessed: [],
+    fail: [],
   };
 
+  var status = 0;
   for (var i = 0; i < recordings.length; i++){
     var resp = await reprocessRecording(request.user, recordings[i]);
     if(resp.statusCode != 200){
-      responseMessage.statusCode = resp.statusCode;
+      status = status | statusCode.Fail;
       responseMessage.messages.push(resp.messages[0]);
+      responseMessage.statusCode = resp.statusCode;
+      responseMessage.fail.push(resp.id);
     }else{
       responseMessage.reprocessed.push(resp.id);
+      status = status | statusCode.Success;
     }
   }
 
+  responseMessage.messages.splice(0,0,getReprocessMessage(status));
   responseUtil.send(response, responseMessage);
   return;
 }
 
+function getReprocessMessage(status){
+  switch(status){
+  case statusCode.Success:
+    return "All recordings scheduled for reprocessing" ;
+  case statusCode.Fail:
+    return "Recordings could not be scheduled for reprocessing";
+  case statusCode.Both:
+    return "Some recordings could not be scheduled for reprocessing";
+  default:
+    return "";
+  }
+}
+
 // reprocessRecording marks supplied recording_id for reprocessing, 
-// under supplied user privilages
+// under supplied user privileges
 async function reprocessRecording(user,recording_id){
   const recording = await models.Recording.get(
     user,
@@ -224,19 +250,20 @@ async function reprocessRecording(user,recording_id){
     return {
       statusCode: 400,
       messages: ["No such recording or access denied " + recording_id],
+      id: recording_id
     };
   }
-  
+
   await recording.reprocess(user);
 
   return {
     statusCode: 200,
-    messages: ['Reprocessed recording.'],
+    messages: ['Recording scheduled for reprocessing'],
     id : recording_id,
   };
 }
 
-// reporcess a recording defined by request.user and request.params.id
+// reprocess a recording defined by request.user and request.params.id
 async function reprocess(request, response) {
   var responseInfo = await reprocessRecording(request.user, request.params.id);
   responseUtil.send(response, responseInfo);

@@ -138,9 +138,18 @@ class TestFileProcessing:
         recordings.append(recording_second.id_)
         self.add_tracks_and_tag(file_processing, recording_second)
 
-        user.reprocess_recordings(recordings)
+        status, json = user.reprocess_recordings(recordings)
+        assert status == 200
+        assert json["reprocessed"] == recordings
+
         user.has_no_tracks(recording_first)
         user.has_no_tracks(recording_second)
+
+        recordings.append(-1)
+        status, json = user.reprocess_recordings(recordings)
+        assert status != 200
+        assert json["reprocessed"] == [recording_first.id_, recording_second.id_]
+        assert json["fail"] == [-1]
 
     def create_processed_recording(self, helper, file_processing, user):
         # Ensure there's a recording to work with (the file processing
