@@ -405,15 +405,15 @@ module.exports = function(sequelize, DataTypes) {
 
   // Returns all active tracks for the recording which are not archived.
   Recording.prototype.getActiveTracks = async function() {
-     const tracks = await this.getTracks({
-        where:{
-          archivedAt:null
-        },
-        include: [{
-          model: models.TrackTag
-        }]
-      });
-     return tracks
+    const tracks = await this.getTracks({
+      where:{
+        archivedAt:null
+      },
+      include: [{
+        model: models.TrackTag
+      }]
+    });
+    return tracks;
   };
 
   // Return a specific track for the recording.

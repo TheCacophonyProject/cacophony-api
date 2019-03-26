@@ -404,6 +404,7 @@ module.exports = (app, baseUrl) => {
   * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
   *
   * @apiUse V1ResponseError
+  *
   */
   app.post(
     apiUrl + '/:id/tracks/:trackId/tags',

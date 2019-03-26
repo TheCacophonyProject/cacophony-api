@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  up: (queryInterface) => {
+  up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('Tracks', 'archivedAt', Sequelize.DATE, {allowNull: true});
   },
   down: (queryInterface) => {
