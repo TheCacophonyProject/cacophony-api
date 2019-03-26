@@ -190,21 +190,22 @@ async function addTag(request, response) {
 // reprocessAll expects request.body.recordings to be a list of recording_ids
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
-  recordings =  request.body.recordings
+  var recordings =  request.body.recordings;
   var responseMessage = {
     statusCode: 200,
     messages: [],
-  }
+  };
+
   for (var i = 0; i < recordings.length; i++){
-    resp = await reprocessRecording(request.user, recordings[i])
+    var resp = await reprocessRecording(request.user, recordings[i]);
     if(resp.statusCode != 200){
-      responseMessage.statusCode = resp.statusCode
-      responseMessage.push(resp.messages[0])
+      responseMessage.statusCode = resp.statusCode;
+      responseMessage.push(resp.messages[0]);
     }
   }
 
   responseUtil.send(response, responseMessage);
-  return
+  return;
 }
 
 // reprocessRecording marks supplied recording_id for reprocessing, 
@@ -220,15 +221,12 @@ async function reprocessRecording(user,recording_id){
     return {
       statusCode: 400,
       messages: ["No such recording or access denied " + recording_id],
-    }
+    };
   }
 
-  await models.Track.update({
-      archivedAt:Date.now()
-    },
-    {
-      where: { RecordingId:recording.id,archivedAt:null } 
-    }
+  await models.Track.update(
+    {archivedAt:Date.now()},
+    {where: { RecordingId:recording.id,archivedAt:null }}
   );
 
   await recording.update({
@@ -237,15 +235,15 @@ async function reprocessRecording(user,recording_id){
   });
 
   return {
-      statusCode: 200,
-      messages: ['Reprocessed recording.'],
-  }
+    statusCode: 200,
+    messages: ['Reprocessed recording.'],
+  };
 }
 
 // reporcess a recording defined by request.user and request.params.id
 async function reprocess(request, response) {
-  responseInfo = await reprocessRecording(request.user, request.params.id)
-  responseUtil.send(response, responseInfo)
+  var responseInfo = await reprocessRecording(request.user, request.params.id);
+  responseUtil.send(response, responseInfo);
 }
 
 

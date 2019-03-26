@@ -497,7 +497,7 @@ module.exports = (app, baseUrl) => {
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocess(request,response)
+      return await recordingUtil.reprocess(request,response);
     })
   );
 
@@ -522,7 +522,7 @@ module.exports = (app, baseUrl) => {
 
     ],
     middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocessAll(request,response)
+      return await recordingUtil.reprocessAll(request,response);
     })
   );
 
