@@ -250,7 +250,7 @@ async function reprocessRecording(user,recording_id){
     return {
       statusCode: 400,
       messages: ["No such recording or access denied " + recording_id],
-      id: recording_id
+      recordingId: recording_id
     };
   }
 

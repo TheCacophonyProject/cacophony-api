@@ -489,7 +489,7 @@ module.exports = (app, baseUrl) => {
   * @apiUse V1UserAuthorizationHeader
   *
   * @apiUse V1ResponseSuccess
-  * @apiSuccess {Number} id - recording_id reprocessed
+  * @apiSuccess {Number} recordingId - recording_id reprocessed
   */
   app.get(
     apiUrl + '/reprocess/:id',
