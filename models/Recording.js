@@ -416,6 +416,19 @@ module.exports = function(sequelize, DataTypes) {
     return tracks;
   };
 
+  // reprocess a recording and set all active tracks to archived
+  Recording.prototype.reprocess = async function() {   
+    models.Track.update(
+      {archivedAt:Date.now()},
+      {where: { RecordingId:this.id, archivedAt:null }}
+    );
+
+    this.update({
+      processingStartTime: null,
+      processingState: Recording.processingStates["thermalRaw"][0]
+    });
+  };
+
   // Return a specific track for the recording.
   Recording.prototype.getTrack = async function(trackId) {
     const track = await models.Track.findByPk(trackId);

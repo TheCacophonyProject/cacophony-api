@@ -190,17 +190,20 @@ async function addTag(request, response) {
 // reprocessAll expects request.body.recordings to be a list of recording_ids
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
-  var recordings =  request.body.recordings;
+  const recordings =  request.body.recordings;
   var responseMessage = {
     statusCode: 200,
     messages: [],
+    reprocessed: [],
   };
 
   for (var i = 0; i < recordings.length; i++){
     var resp = await reprocessRecording(request.user, recordings[i]);
     if(resp.statusCode != 200){
       responseMessage.statusCode = resp.statusCode;
-      responseMessage.push(resp.messages[0]);
+      responseMessage.messages.push(resp.messages[0]);
+    }else{
+      responseMessage.reprocessed.push(resp.id);
     }
   }
 
@@ -223,20 +226,13 @@ async function reprocessRecording(user,recording_id){
       messages: ["No such recording or access denied " + recording_id],
     };
   }
-
-  await models.Track.update(
-    {archivedAt:Date.now()},
-    {where: { RecordingId:recording.id,archivedAt:null }}
-  );
-
-  await recording.update({
-    processingStartTime: null,
-    processingState: models.Recording.processingStates["thermalRaw"][0]
-  });
+  
+  await recording.reprocess(user);
 
   return {
     statusCode: 200,
     messages: ['Reprocessed recording.'],
+    id : recording_id,
   };
 }
 
