@@ -212,13 +212,13 @@ async function reprocessAll(request, response) {
       status = status | statusCode.Fail;
       responseMessage.messages.push(resp.messages[0]);
       responseMessage.statusCode = resp.statusCode;
-      responseMessage.fail.push(resp.id);
+      responseMessage.fail.push(resp.recordingId);
+
     }else{
-      responseMessage.reprocessed.push(resp.id);
+      responseMessage.reprocessed.push(resp.recordingId);
       status = status | statusCode.Success;
     }
   }
-
   responseMessage.messages.splice(0,0,getReprocessMessage(status));
   responseUtil.send(response, responseMessage);
   return;
@@ -259,7 +259,7 @@ async function reprocessRecording(user,recording_id){
   return {
     statusCode: 200,
     messages: ['Recording scheduled for reprocessing'],
-    id : recording_id,
+    recordingId : recording_id,
   };
 }
 

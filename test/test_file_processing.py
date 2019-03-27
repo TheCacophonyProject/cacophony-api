@@ -149,6 +149,7 @@ class TestFileProcessing:
         status, json = user.reprocess_recordings(recordings)
         assert status != 200
         assert json["reprocessed"] == [recording_first.id_, recording_second.id_]
+        print(json)
         assert json["fail"] == [-1]
 
     def create_processed_recording(self, helper, file_processing, user):
