@@ -14,6 +14,12 @@ class TestUser:
         self.email = email
         self._group = None
 
+    def reprocess_recordings(self, recordings, params=None):
+        return self._userapi.reprocess_recordings(recordings, params)
+
+    def reprocess(self, recording, params=None):
+        return self._userapi.reprocess(recording.id_, params)
+
     def when_searching_with(self, queryParams):
         return RecordingQueryPromise(self, queryParams)
 
@@ -290,6 +296,10 @@ class TestUser:
     def cannot_add_track_to_recording(self, recording):
         with pytest.raises(IOError):
             self.can_add_track_to_recording(recording)
+
+    def has_no_tracks(self, recording):
+        tracks = self._userapi.get_tracks(recording.id_)
+        assert len(tracks) == 0
 
     def can_see_track(self, expected_track, expected_tags=None):
         recording = expected_track.recording

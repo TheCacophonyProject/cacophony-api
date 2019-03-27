@@ -187,8 +187,93 @@ async function addTag(request, response) {
   });
 }
 
+const statusCode = {
+  Success: 1,
+  Fail: 2,
+  Both: 3,
+};
+
+
+// reprocessAll expects request.body.recordings to be a list of recording_ids
+// will mark each recording to be reprocessed
+async function reprocessAll(request, response) {
+  const recordings =  request.body.recordings;
+  var responseMessage = {
+    statusCode: 200,
+    messages: [],
+    reprocessed: [],
+    fail: [],
+  };
+
+  var status = 0;
+  for (var i = 0; i < recordings.length; i++){
+    var resp = await reprocessRecording(request.user, recordings[i]);
+    if(resp.statusCode != 200){
+      status = status | statusCode.Fail;
+      responseMessage.messages.push(resp.messages[0]);
+      responseMessage.statusCode = resp.statusCode;
+      responseMessage.fail.push(resp.recordingId);
+
+    }else{
+      responseMessage.reprocessed.push(resp.recordingId);
+      status = status | statusCode.Success;
+    }
+  }
+  responseMessage.messages.splice(0,0,getReprocessMessage(status));
+  responseUtil.send(response, responseMessage);
+  return;
+}
+
+function getReprocessMessage(status){
+  switch(status){
+  case statusCode.Success:
+    return "All recordings scheduled for reprocessing" ;
+  case statusCode.Fail:
+    return "Recordings could not be scheduled for reprocessing";
+  case statusCode.Both:
+    return "Some recordings could not be scheduled for reprocessing";
+  default:
+    return "";
+  }
+}
+
+// reprocessRecording marks supplied recording_id for reprocessing, 
+// under supplied user privileges
+async function reprocessRecording(user,recording_id){
+  const recording = await models.Recording.get(
+    user,
+    recording_id,
+    models.Recording.Perms.UPDATE,
+  );
+
+  if (!recording) {
+    return {
+      statusCode: 400,
+      messages: ["No such recording or access denied " + recording_id],
+      recordingId: recording_id
+    };
+  }
+
+  await recording.reprocess(user);
+
+  return {
+    statusCode: 200,
+    messages: ['Recording scheduled for reprocessing'],
+    recordingId : recording_id,
+  };
+}
+
+// reprocess a recording defined by request.user and request.params.id
+async function reprocess(request, response) {
+  var responseInfo = await reprocessRecording(request.user, request.params.id);
+  responseUtil.send(response, responseInfo);
+}
+
+
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
 exports.get = get;
 exports.delete_ = delete_;
 exports.addTag = addTag;
+exports.reprocess = reprocess;
+exports.reprocessAll = reprocessAll;

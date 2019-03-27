@@ -318,9 +318,12 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getTracksTagsAndTagger = async function() {
-    return await this.getTracks(
-      { include: [{model: models.TrackTag,
+  Recording.prototype.getActiveTracksTagsAndTagger = async function() {
+    return await this.getTracks({ 
+      where:{
+        archivedAt:null
+      },
+      include: [{model: models.TrackTag,
                   include: [{model: models.User,
                               attributes: ['username']}],
                   attributes: {exclude: ['UserId']},
@@ -413,6 +416,32 @@ module.exports = function(sequelize, DataTypes) {
       return val;
     });
   }
+
+  // Returns all active tracks for the recording which are not archived.
+  Recording.prototype.getActiveTracks = async function() {
+    const tracks = await this.getTracks({
+      where:{
+        archivedAt:null
+      },
+      include: [{
+        model: models.TrackTag
+      }]
+    });
+    return tracks;
+  };
+
+  // reprocess a recording and set all active tracks to archived
+  Recording.prototype.reprocess = async function() {   
+    models.Track.update(
+      {archivedAt:Date.now()},
+      {where: { RecordingId:this.id, archivedAt:null }}
+    );
+
+    this.update({
+      processingStartTime: null,
+      processingState: Recording.processingStates["thermalRaw"][0]
+    });
+  };
 
   // Return a specific track for the recording.
   Recording.prototype.getTrack = async function(trackId) {
