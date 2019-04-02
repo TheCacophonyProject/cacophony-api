@@ -1,8 +1,8 @@
 class Recording:
-    def __init__(self, id_, props, contentFilename):
+    def __init__(self, id_, props, content_filename):
         self.id_ = id_
         self.props = props
-        self.content = slurp(contentFilename)
+        self.content = slurp(content_filename)
 
     def __repr__(self):
         return "<Recording: {}>".format(self.id_)
