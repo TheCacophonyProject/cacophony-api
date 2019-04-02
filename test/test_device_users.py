@@ -3,22 +3,26 @@ import pytest
 
 class TestDeviceUsers:
     def test_can_assign_a_device_to_a_user_and_remove_them(self, helper):
+        admin_user = helper.admin_user()
+
         description = "If a new device 'Sharer' has an CPTV file"
         sharer = helper.given_new_device(self, "Sharer", description=description)
-        sharer.upload_recording()
+        recording = sharer.has_recording()
 
         print("   and a new user 'Sylvia' is added as a device user")
         sylvia = helper.given_new_user(self, "Sylvia")
-        helper.admin_user().add_to_device(sylvia, sharer)
+        admin_user.add_to_device(sylvia, sharer)
 
         print("Then Sylvia should see the recording from 'Sharer'")
         sylvia.can_see_recording_from(sharer)
+        sylvia.can_download_correct_recording(recording)
 
         print("When 'Sylvia' is removed from the device")
-        helper.admin_user().remove_from_device(sylvia, sharer)
+        admin_user.remove_from_device(sylvia, sharer)
 
         print("Then Sylvia should no longer see any recordings")
         sylvia.cannot_see_recordings()
+        sylvia.cannot_download_recording(recording)
 
     def test_user_cant_add_self_to_device(self, helper):
         description = "If a new device 'Shaper' has an CPTV file"
