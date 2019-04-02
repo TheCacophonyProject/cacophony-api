@@ -206,25 +206,26 @@ module.exports = function(sequelize, DataTypes) {
 
   // Returns the groups that are associated with this user (via
   // GroupUsers).
-  User.prototype.getGroupsIds = function() {
-    return this.getGroups()
-      .then(function(groups) {
-        return groups.map(g => g.id);
-      });
+  User.prototype.getGroupsIds = async function() {
+    const groups = await this.getGroups();
+    return groups.map(g => g.id);
   };
 
   User.prototype.isInGroup = async function(groupId) {
-    var groupIds = await this.getGroupsIds();
+    const groupIds = await this.getGroupsIds();
     return groupIds.includes(groupId);
   };
 
   // Returns the devices that are directly associated with this user
   // (via DeviceUsers).
-  User.prototype.getDeviceIds = function() {
-    return this.getDevices()
-      .then(function(devices) {
-        return devices.map(d => d.id);
-      });
+  User.prototype.getDeviceIds = async function() {
+    const devices = await this.getDevices();
+    return devices.map(d => d.id);
+  };
+
+  User.prototype.canAccessDevice = async function(deviceId) {
+    const deviceIds = await this.getDeviceIds();
+    return deviceIds.includes(deviceId);
   };
 
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
@@ -240,9 +241,8 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.getAllDeviceIds = async function() {
-    var directDeviceIds = await this.getDeviceIds();
-    var groupedDeviceIds = await this.getGroupDeviceIds();
-
+    const directDeviceIds = await this.getDeviceIds();
+    const groupedDeviceIds = await this.getGroupDeviceIds();
     return directDeviceIds.concat(groupedDeviceIds);
   };
 
