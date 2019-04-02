@@ -37,10 +37,10 @@ class TestUser:
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 
-    def can_see_recordings(self, *expectedTestRecordings):
-        self._can_see_recordings_with_query({}, *expectedTestRecordings)
+    def can_see_recordings(self, *expected_recordings):
+        self._can_see_recordings_with_query({}, *expected_recordings)
 
-    def _can_see_recordings_with_query(self, queryParams, *expectedTestRecordings):
+    def _can_see_recordings_with_query(self, queryParams, *expected_recordings):
         recordings = self._userapi.query(**queryParams)
         if not recordings:
             raise TestException(
@@ -48,7 +48,7 @@ class TestUser:
             )
 
         _errors = []
-        for testRecording in expectedTestRecordings:
+        for testRecording in expected_recordings:
             if not self._recording_in_list(recordings, testRecording):
                 _errors.append(
                     "User '{}' cannot see recording with id {}.".format(
@@ -59,14 +59,14 @@ class TestUser:
         if _errors:
             raise TestException(_errors)
 
-    def cannot_see_recordings(self, *expectedTestRecordings):
-        self._cannot_see_recordings_with_query({}, *expectedTestRecordings)
+    def cannot_see_recordings(self, *expected_recordings):
+        self._cannot_see_recordings_with_query({}, *expected_recordings)
 
-    def _cannot_see_recordings_with_query(self, queryParams, *expectedTestRecordings):
+    def _cannot_see_recordings_with_query(self, queryParams, *expected_recordings):
         recordings = self._userapi.query(**queryParams)
 
         _errors = []
-        for testRecording in expectedTestRecordings:
+        for testRecording in expected_recordings:
             if self._recording_in_list(recordings, testRecording):
                 _errors.append(
                     "User '{}' can see recording with id {}, but shouldn't be able to..".format(
@@ -377,44 +377,44 @@ class RecordingQueryPromise:
     def __init__(self, testUser, queryParams):
         self._testUser = testUser
         self._queryParams = queryParams
-        self._expectedTestRecordings = None
+        self._expected_recordings = None
 
-    def can_see_recordings(self, *expectedTestRecordings):
+    def can_see_recordings(self, *expected_recordings):
         self._testUser._can_see_recordings_with_query(
-            self._queryParams, *expectedTestRecordings
+            self._queryParams, *expected_recordings
         )
 
-    def cannot_see_recordings(self, *expectedTestRecordings):
+    def cannot_see_recordings(self, *expected_recordings):
         self._testUser._cannot_see_recordings_with_query(
-            self._queryParams, *expectedTestRecordings
+            self._queryParams, *expected_recordings
         )
 
     def can_see_all_recordings_from_(self, allRecordings):
         self.can_see_recordings(*allRecordings)
 
-    def can_only_see_recordings(self, *expectedTestRecordings):
-        self._expectedTestRecordings = expectedTestRecordings
+    def can_only_see_recordings(self, *expected_recordings):
+        self._expected_recordings = expected_recordings
         return self
 
     def from_(self, allRecordings):
-        if not self._expectedTestRecordings:
+        if not self._expected_recordings:
             raise TestException(
                 "You must call 'can_only_see_recordings' before calling function 'from_list'."
             )
 
         ids = [
-            testRecording.id_ for testRecording in self._expectedTestRecordings
+            testRecording.id_ for testRecording in self._expected_recordings
         ]
         print(
             "Then searching with {} should give only {}.".format(self._queryParams, ids)
         )
 
         # test what should be there, is there
-        self.can_see_recordings(*self._expectedTestRecordings)
+        self.can_see_recordings(*self._expected_recordings)
 
         # test what shouldn't be there, isn't there
         expectedMissingRecordings = [
-            x for x in allRecordings if x not in self._expectedTestRecordings
+            x for x in allRecordings if x not in self._expected_recordings
         ]
         self.cannot_see_recordings(*expectedMissingRecordings)
 
