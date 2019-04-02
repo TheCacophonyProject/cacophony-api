@@ -150,6 +150,10 @@ class TestUser:
         # Compare the remaining properties.
         assert recv_props == props
 
+    def cannot_download_recording(self, recording):
+        with pytest.raises(IOError):
+            self._userapi.get_recording(recording.id_)
+
     def delete_recording(self, recording):
         self._userapi.delete_recording(recording.id_)
 

@@ -319,7 +319,7 @@ module.exports = function(sequelize, DataTypes) {
 
   /* eslint-disable indent */
   Recording.prototype.getActiveTracksTagsAndTagger = async function() {
-    return await this.getTracks({ 
+    return await this.getTracks({
       where:{
         archivedAt:null
       },
@@ -338,7 +338,7 @@ module.exports = function(sequelize, DataTypes) {
    * //TODO This will be edited in the future when recordings can be public.
    */
   Recording.prototype.getUserPermissions = async function(user) {
-    if (user.hasGlobalWrite() || await user.isInGroup(this.GroupId)) {
+    if (user.hasGlobalWrite() || await user.isInGroup(this.GroupId) || await user.canAccessDevice(this.Device.id)) {
       return [
         Recording.Perms.DELETE,
         Recording.Perms.TAG,
@@ -431,7 +431,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // reprocess a recording and set all active tracks to archived
-  Recording.prototype.reprocess = async function() {   
+  Recording.prototype.reprocess = async function() {
     models.Track.update(
       {archivedAt:Date.now()},
       {where: { RecordingId:this.id, archivedAt:null }}
