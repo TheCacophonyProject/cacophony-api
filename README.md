@@ -6,6 +6,11 @@ cacophony-api is a Node server that provides an REST API server for
 uploading, processing and retrieving media collected for the Cacophony
 Project. This server used to be known as "Full_Noise".
 
+## License
+
+This project is licensed under the Affero General Public License
+(https://www.gnu.org/licenses/agpl-3.0.en.html).
+
 ## Running the server
 
 For development and testing purposes it is easiest to run
@@ -70,7 +75,13 @@ To run any pending database migrations: `npm run db-migrate`
 
 To create a new database migration file: `npm run new-migration <name>`
 
-## License
+## Releases
 
-This project is licensed under the Affero General Public License
-(https://www.gnu.org/licenses/agpl-3.0.en.html).
+# Releases
+
+* Ensure all required changes have been merged into the master branch on Github.
+* Ensure your local repository has the required release revision checked out.
+* Tag the release (starting with a "v"), e.g.: `git tag -a v1.2.3 -m "1.2.3 release"`
+* Push the tag to Github, e.g.: `git push origin v1.2.3`
+* TravisCI will run the tests, create a release package and create a
+  [Github Release](https://github.com/TheCacophonyProject/cacophony-api/releases)

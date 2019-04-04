@@ -1,0 +1,15 @@
+name: "cacophony-api"
+arch: "amd64"
+platform: "linux"
+version: "0.0.0"
+maintainer: "Cacophony Developers <dev@cacophony.org.nz>"
+description: |
+  The Cacophony Project API Server
+vendor: "The Cacophony Project"
+homepage: https://github.com/TheCacophonyProject
+license: "GPLv3"
+files:
+  "*/**": "/srv/cacophony/api/"
+
+scripts:
+  postinstall: "./_release/postinstall.sh"
