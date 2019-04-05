@@ -77,8 +77,6 @@ To create a new database migration file: `npm run new-migration <name>`
 
 ## Releases
 
-# Releases
-
 * Ensure all required changes have been merged into the master branch on Github.
 * Ensure your local repository has the required release revision checked out.
 * Tag the release (starting with a "v"), e.g.: `git tag -a v1.2.3 -m "1.2.3 release"`
