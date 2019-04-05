@@ -20,7 +20,9 @@ script:
  - npm run lint
  - test/check-style
  - ./wait-for-api || { docker ps; docker logs cacophony-api; exit 1; }
- - cd test && pytest
+ - cd test
+ - pytest
+ - cd ..
 # Apply migration undo and redo to test undo migration
  - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate:undo --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
  - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate:undo --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
@@ -34,7 +36,7 @@ before_deploy:
 # Install json tool needed by build script
 - npm install -g json
 # Build release .deb
-- _release/build.sh ${version}
+- "_release/build.sh ${version}"
 
 deploy:
   provider: releases
