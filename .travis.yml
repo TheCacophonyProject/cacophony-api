@@ -28,7 +28,9 @@ script:
 before_deploy:
 - version=${TRAVIS_TAG/v/}
 # Install nfpm tool (for building debs)
-- "curl -sL https://github.com/goreleaser/nfpm/releases/download/v0.9.5/nfpm_0.9.5_Linux_x86_64.tar.gz | tar -C /usr/bin -xzf -"
+- mkdir /tmp/nfpm
+- "curl -sL https://github.com/goreleaser/nfpm/releases/download/v0.9.5/nfpm_0.9.5_Linux_x86_64.tar.gz | tar -C /tmp/nfpm -xzf -"
+- export PATH=/tmp/nfpm:$PATH
 # Install json tool needed by build script
 - npm install -g json
 # Build release .deb
