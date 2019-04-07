@@ -9,7 +9,11 @@ vendor: "The Cacophony Project"
 homepage: https://github.com/TheCacophonyProject
 license: "GPLv3"
 files:
-  "*/**": "/srv/cacophony/api/"
+  "**/*": "/srv/cacophony/api/"
+  "_release/cacophony-api.service": "/etc/systemd/system/cacophony-api.service"
+
+config_files:
+  "config/app_TEMPLATE.js": "/etc/cacophony/api.js"
 
 scripts:
-  postinstall: "./_release/postinstall.sh"
+  postinstall: "_release/postinstall.sh"
