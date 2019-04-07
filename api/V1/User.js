@@ -47,7 +47,7 @@ module.exports = function(app, baseUrl) {
     [
       middleware.checkNewName('username')
         .custom(value => { return models.User.freeUsername(value); }),
-      body('email').isEmail()
+      body('email').isEmail().withMessage("Invalid email")
         .custom(value => { return models.User.freeEmail(value); }),
       middleware.checkNewPassword('password'),
     ],
