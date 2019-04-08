@@ -34,10 +34,4 @@ perl -pi -e "s/^version:.+/version: \"${version}\"/" _release/nfpm.yaml
 json -I -f package.json -e "this.version=\"${version}\""
 json -I -f package-lock.json -e "this.version=\"${version}\""
 
-echo "Installing dependencies..."
-npm install
-
-echo "Creating API docs..."
-npm run apidoc
-
 nfpm -f _release/nfpm.yaml pkg -t ../cacophony-api_${version}.deb

@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/srv/cacophony/api
-ExecStart=/usr/local/bin/node Server.js --config=/etc/cacophony/api.js
+ExecStart=/usr/bin/node Server.js --config=/etc/cacophony/api.js
 Restart=on-failure
 RestartSec=20s
 User=fullnoise
