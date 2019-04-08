@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 WorkingDirectory=/srv/cacophony/api
-ExecStart=/usr/local/bin/node Server.js
+ExecStart=/usr/bin/node Server.js --config=/etc/cacophony/api.js
 Restart=on-failure
-RestartSec=5s
+RestartSec=20s
 User=fullnoise
 Group=fullnoise
 Environment=NODE_ENV=production
