@@ -8,6 +8,10 @@ description: |
 vendor: "The Cacophony Project"
 homepage: https://github.com/TheCacophonyProject
 license: "GPLv3"
+depends:
+  - libpq-dev
+  - gyp
+
 files:
   "**/*": "/srv/cacophony/api/"
   "_release/cacophony-api.service": "/etc/systemd/system/cacophony-api.service"
