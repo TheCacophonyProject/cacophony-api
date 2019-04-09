@@ -38,10 +38,12 @@ class TestUser:
                     "DuplicateBob"
                 )
             except OSError as error:
-                errorString = str(error)
-                assert "request failed (422)" in errorString
-                json_object = errorString[(errorString.find(":")+1):]
-                parsedJson = json.loads(json_object)
-                assert parsedJson['errorType'] == "validation"
-                assert "'Username in use" in parsedJson['message'] or "Email in use" in parsedJson['message']
-                print("Duplicate bob already exists")
+                print("DuplicateBob should not get created multiple times and returns a 422 error message")
+                error_string = str(error)
+                assert "request failed (422)" in error_string
+                print("There should be a JSON object in the error message that can be parsed")
+                json_object = error_string[(error_string.find(":")+1):]
+                parsed_json = json.loads(json_object)
+                assert parsed_json['errorType'] == "validation"
+                assert "'Username in use" in parsed_json['message'] or "Email in use" in parsed_json['message']
+                print("DuplicateBob already exists")
