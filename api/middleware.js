@@ -207,7 +207,7 @@ function getRecordingById(checkFunc) {
 }
 
 const checkNewName = function(field) {
-  return body(field, 'Invalid username')
+  return body(field, 'Invalid '+field)
     .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
