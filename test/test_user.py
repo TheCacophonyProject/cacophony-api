@@ -1,5 +1,6 @@
 import json
 
+
 class TestUser:
     def test_can_create_new_user(self, helper):
         print("If a new user Bob signs up", end="")
@@ -45,5 +46,8 @@ class TestUser:
                 json_object = error_string[(error_string.find(":")+1):]
                 parsed_json = json.loads(json_object)
                 assert parsed_json['errorType'] == "validation"
-                assert "'Username in use" in parsed_json['message'] or "Email in use" in parsed_json['message']
+                assert (
+                        "'Username in use" in parsed_json['message']
+                        or "Email in use" in parsed_json['message']
+                )
                 print("DuplicateBob already exists")
