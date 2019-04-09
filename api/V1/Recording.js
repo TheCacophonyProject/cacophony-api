@@ -146,7 +146,7 @@ module.exports = (app, baseUrl) => {
         messages: ["Completed query."],
         limit: request.query.limit,
         offset: request.query.offset,
-        count: result.count,
+        count: result.rows.length,
         rows: result.rows,
       });
     })
