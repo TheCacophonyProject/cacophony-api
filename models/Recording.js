@@ -130,13 +130,21 @@ module.exports = function(sequelize, DataTypes) {
       },
       order: order,
       include: [
-        { model: models.Group },
-        { model: models.Tag, where: makeTagsWhere(tags), include: [{association: 'tagger', attributes: ['username']}] },
-        { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+        { model: models.Group, attributes: ["groupname"] },
+        { model: models.Tag,where: makeTagsWhere(tags), attributes: ["animal", "automatic", "event", "taggerId"] },
+        { model: models.Track,
+          where:{
+            archivedAt: null
+          },
+          attributes: ['id'],
+          include: [{model: models.TrackTag, attributes: ["what", "automatic", "UserId"]}],
+          required: false
+        },
+        { model: models.Device, where: {}, attributes: ["devicename"] },
       ],
       limit: limit,
       offset: offset,
-      attributes: this.userGetAttributes,
+      attributes: ['id', 'type', 'processingState', 'recordingDateTime', 'batteryLevel', 'location', 'GroupId', 'DeviceId'],
     };
 
     var queryResponse = await this.findAndCountAll(q);
