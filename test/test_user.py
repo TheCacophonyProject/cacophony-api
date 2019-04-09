@@ -1,3 +1,5 @@
+import json
+
 class TestUser:
     def test_can_create_new_user(self, helper):
         print("If a new user Bob signs up", end="")
@@ -27,3 +29,19 @@ class TestUser:
         bobUserDetails = bob.get_user_details(helper.admin_user())
 
         print("Bob's user id is {}".format(bobUserDetails))
+
+    def test_create_duplicate_user(self, helper):
+        for num in range(2):
+            print("If a user DuplicateBob signs up")
+            try:
+                helper.given_new_fixed_user(
+                    "DuplicateBob"
+                )
+            except OSError as error:
+                errorString = str(error)
+                assert "request failed (422)" in errorString
+                json_object = errorString[(errorString.find(":")+1):]
+                parsedJson = json.loads(json_object)
+                assert parsedJson['errorType'] == "validation"
+                assert "'Username in use" in parsedJson['message'] or "Email in use" in parsedJson['message']
+                print("Duplicate bob already exists")
