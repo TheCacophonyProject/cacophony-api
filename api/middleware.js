@@ -264,7 +264,7 @@ function ifUsersDeviceRequestWrapper(fn) {
     }
 
     if (!("user" in request)) {
-      throw new customErrors("No user specified.", 422);
+      throw new customErrors.ClientError("No user specified.", 422);
     }
 
     try {
