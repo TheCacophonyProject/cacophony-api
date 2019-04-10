@@ -1,4 +1,5 @@
 import json
+import pytest
 
 
 class TestUser:
@@ -32,22 +33,24 @@ class TestUser:
         print("Bob's user id is {}".format(bobUserDetails))
 
     def test_create_duplicate_user(self, helper):
-        for num in range(2):
+        # Ensure the user exists
+        try:
             print("If a user DuplicateBob signs up")
-            try:
-                helper.given_new_fixed_user(
-                    "DuplicateBob"
-                )
-            except OSError as error:
-                print("DuplicateBob should not get created multiple times and returns a 422 error message")
-                error_string = str(error)
-                assert "request failed (422)" in error_string
-                print("There should be a JSON object in the error message that can be parsed")
-                json_object = error_string[(error_string.find(":")+1):]
-                parsed_json = json.loads(json_object)
-                assert parsed_json['errorType'] == "validation"
-                assert (
-                        "'Username in use" in parsed_json['message']
-                        or "Email in use" in parsed_json['message']
-                )
-                print("DuplicateBob already exists")
+            helper.given_new_fixed_user("DuplicateBob")
+        except OSError:
+            pass  # expected
+
+        # Now try to create the same user again
+        with pytest.raises(OSError) as excinfo:
+            print("DuplicateBob should not get created multiple times and returns a 422 error message")
+            helper.given_new_fixed_user("DuplicateBob")
+        error_string = str(excinfo.value)
+        assert "request failed (422)" in error_string
+        print("There should be a JSON object in the error message that can be parsed")
+        json_object = error_string.split(":", 1)[1:][0]
+        parsed_json = json.loads(json_object)
+        assert parsed_json['errorType'] == "validation"
+        assert (
+                "'Username in use" in parsed_json['message']
+                or "Email in use" in parsed_json['message']
+        )
