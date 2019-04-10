@@ -73,6 +73,18 @@ class Helper:
 
         raise TestException("Could not create username like '{}'".format(basename))
 
+    def given_new_fixed_user(self, username, email=None):
+        if not email:
+            email = username + "@email.com"
+        api = UserAPI(
+            self.config.api_url,
+            username,
+            email,
+            self._make_password(username),
+        ).register_as_new()
+        self._print_actual_name(username)
+        return TestUser(username, api, email)
+
     def _make_unique_name(self, testClass, name, usednames):
         if testClass is not None:
             basename = self._make_long_name(testClass, name)
