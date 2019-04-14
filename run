@@ -40,7 +40,7 @@ if not args.sudo:
     current_user = getpass.getuser()
     user_in_docker_group = current_user in grp.getgrnam("docker").gr_mem
     if user_in_docker_group:
-        print(f"{current_user} is in docker group")
+        print("{} is in docker group".format(current_user))
     #Run docker ps without sudo to check if it can be used without
     if not user_in_docker_group:
         return_code = subprocess.call(
@@ -49,11 +49,11 @@ if not args.sudo:
             stderr=subprocess.DEVNULL,
             timeout=30
         )
-        print(f"docker ps returned: {return_code}")
+        print("docker ps returned: {}".format(return_code))
         if return_code != 0:
             use_sudo = True
 
-print(f"Running commands with sudo {use_sudo}")
+print("Running commands with sudo {}".format(use_sudo))
 
 def add_sudo(cmd_list):
     if use_sudo:
