@@ -3,6 +3,10 @@
 import argparse
 import os
 import subprocess
+import getpass
+
+if os.name == "posix": # Assume linux/MacOs variants
+    import grp # pylint: disable=import-error
 
 IMAGE_NAME = "cacophony-api"
 CONTAINER_NAME = "cacophony-api"
@@ -24,36 +28,56 @@ parser.add_argument(
 )
 # Set to false if your current user is already in the docker user group
 parser.add_argument(
-    "--no-sudo",
+    "--sudo",
     default=False,
     action="store_true",
-    help="Run commands without sudo",
+    help="Run commands with sudo",
 )
 args = parser.parse_args()
+
+use_sudo = args.sudo
+if not args.sudo:
+    current_user = getpass.getuser()
+    user_in_docker_group = current_user in grp.getgrnam("docker").gr_mem
+    if user_in_docker_group:
+        print(f"{current_user} is in docker group")
+    #Run docker ps without sudo to check if it can be used without
+    if not user_in_docker_group:
+        return_code = subprocess.call(
+            ["docker", "ps"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=30
+        )
+        print(f"docker ps returned: {return_code}")
+        if return_code != 0:
+            use_sudo = True
+
+print(f"Running commands with sudo {use_sudo}")
+
+def add_sudo(cmd_list):
+    if use_sudo:
+        cmd_list.insert(0, "sudo")
+    return cmd_list
+
 if not os.path.exists("node_modules"):
     print("Node modules have not been installed yet, doing so now")
     subprocess.call(["npm", "install"])
 
 print("Stopping {} container (if running)".format(CONTAINER_NAME))
-remove_container_cmd = ["sudo", "docker", "rm", "--force", CONTAINER_NAME]
-if args.no_sudo:
-    remove_container_cmd.remove("sudo")
-
+remove_container_cmd = ["docker", "rm", "--force", CONTAINER_NAME]
 subprocess.call(
-    remove_container_cmd,
+    add_sudo(remove_container_cmd),
     stdout=subprocess.DEVNULL,
     stderr=subprocess.STDOUT,
 )
 
 print("Building container")
-build_container_cmd = ["sudo", "docker", "build", ".", "-t", IMAGE_NAME]
-if args.no_sudo:
-    build_container_cmd.remove("sudo")
-subprocess.check_call(build_container_cmd)
+build_container_cmd = ["docker", "build", ".", "-t", IMAGE_NAME]
+subprocess.check_call(add_sudo(build_container_cmd))
 
 print("Starting container")
 run_cmd = [
-    "sudo",
     "docker",
     "run",
     "-td",
@@ -71,9 +95,6 @@ run_cmd = [
     "--volume",
     os.getcwd() + ":/app",
 ]
-
-if args.no_sudo:
-    run_cmd.remove("sudo")
 
 if args.isolate:
     run_cmd.extend(
@@ -94,14 +115,12 @@ else:
         ]
     )
 run_cmd.append(IMAGE_NAME)
-subprocess.check_call(run_cmd)
+subprocess.check_call(add_sudo(run_cmd))
 
 if not args.background:
     print("\nShowing container logs")
     try:
-        docker_logs_cmd = ["sudo", "docker", "logs", "--follow", CONTAINER_NAME]
-        if args.no_sudo:
-            docker_logs_cmd.remove("sudo")
-        subprocess.call(docker_logs_cmd)
+        docker_logs_cmd = ["docker", "logs", "--follow", CONTAINER_NAME]
+        subprocess.call(add_sudo(docker_logs_cmd))
     except (KeyboardInterrupt, PermissionError):
         pass
