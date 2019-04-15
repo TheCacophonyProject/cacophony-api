@@ -4,9 +4,7 @@ import argparse
 import os
 import subprocess
 import getpass
-
-if os.name == "posix": # Assume linux/MacOs variants
-    import grp # pylint: disable=import-error
+import grp
 
 IMAGE_NAME = "cacophony-api"
 CONTAINER_NAME = "cacophony-api"
@@ -35,22 +33,23 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+#Run docker ps without sudo to check if it can be used without
+def check_docker_can_run():
+    return subprocess.call(
+    ["docker", "ps"],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+    timeout=30
+    )
+
+def current_user_in_group(group_name):
+    current_user = getpass.getuser()
+    return current_user in grp.getgrnam(group_name).gr_mem
+
 use_sudo = args.sudo
 if not args.sudo:
-    current_user = getpass.getuser()
-    user_in_docker_group = current_user in grp.getgrnam("docker").gr_mem
-    if user_in_docker_group:
-        print("{} is in docker group".format(current_user))
-    #Run docker ps without sudo to check if it can be used without
-    if not user_in_docker_group:
-        return_code = subprocess.call(
-            ["docker", "ps"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=30
-        )
-        print("docker ps returned: {}".format(return_code))
-        if return_code != 0:
+    if not current_user_in_group("docker"):
+        if check_docker_can_run() != 0:
             use_sudo = True
 
 print("Running commands with sudo {}".format(use_sudo))
