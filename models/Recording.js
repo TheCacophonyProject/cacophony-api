@@ -181,6 +181,8 @@ module.exports = function(sequelize, DataTypes) {
       return '(' + tagOfType(tagWhats, AISQL) + ') AND (' + notTagOfType(tagWhats, humanSQL) + ')';
     case 'human-only':
       return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + notTagOfType(tagWhats, AISQL) + ')';
+    case 'automatic+human':
+    return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
@@ -228,7 +230,7 @@ module.exports = function(sequelize, DataTypes) {
     for (var i = 0; i < tags.length; i++) {
       var tag = tags[i];
       if (tag == "interesting") {
-        parts.push('NOT ("Tags".' + whatName + ' = \'bird\' OR ("Tags".' + eventName + '=\'false-positive\')');
+        parts.push('(NOT "Tags".' + whatName + ' = \'bird\' OR NOT "Tags".' + eventName + '=\'false-positive\')');
       }
       else {
         parts.push('"Tags".' + whatName + ' = \'' + tag + '\'');
