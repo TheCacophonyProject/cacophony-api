@@ -125,20 +125,23 @@ module.exports = function(sequelize, DataTypes) {
         [Op.and]: [
           where, // User query
           await recordingsFor(user),
-          sequelize.literal(handleTagMode(tagMode)),
+          sequelize.literal(handleTagMode(tagMode, tags)),
         ],
       },
       order: order,
       include: [
-        { model: models.Group, attributes: ["groupname"] },
-        { model: models.Tag,where: makeTagsWhere(tags), attributes: ["animal", "automatic", "event", "taggerId"] },
+        { model: models.Group, where: {}, attributes: ["groupname"] },
+        { model: models.Tag, where: {}, attributes: ["animal", "automatic", "event", "taggerId"], required: false },
         { model: models.Track,
           where:{
             archivedAt: null
           },
           attributes: ['id'],
-          include: [{model: models.TrackTag, attributes: ["what", "automatic", "UserId"]}],
-          required: false
+          required: false,
+          include: [{model: models.TrackTag,
+                    attributes: ["what", "automatic", "UserId"],
+                    where: {},
+                    required: false}],
         },
         { model: models.Device, where: {}, attributes: ["devicename"] },
       ],
@@ -148,63 +151,90 @@ module.exports = function(sequelize, DataTypes) {
     };
 
     var queryResponse = await this.findAndCountAll(q);
+
     filterOptions = makeFilterOptions(user, filterOptions);
     queryResponse.rows.map(rec => rec.filterData(filterOptions));
     return queryResponse;
   };
 
+
   // local
-  var handleTagMode = (tagMode) => {
+  var handleTagMode = (tagMode, tagWhats) => {
+    const humanSQL = 'NOT "Tags".automatic';
+    const AISQL = '"Tags".automatic';
     switch (tagMode) {
     case 'any':
       return '';
     case 'untagged':
-      return 'NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+      return notTagOfType(tagWhats, null);
     case 'tagged':
-      return 'EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id)';
+      return tagOfType(tagWhats, null);
+    case 'human-tagged':
+      return tagOfType(tagWhats, humanSQL);
+    case 'automatic-tagged':
+      return tagOfType(tagWhats, AISQL);
+    case 'both-tagged':
+      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
     case 'no-human':
-      return `NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      return notTagOfType(tagWhats, humanSQL);
     case 'automatic-only':
-      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
-              AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      return '(' + tagOfType(tagWhats, AISQL) + ') AND (' + notTagOfType(tagWhats, humanSQL) + ')';
     case 'human-only':
-      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)
-              AND NOT EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)`;
-    case 'automatic+human':
-      return `EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND automatic)
-              AND EXISTS (SELECT * FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id AND NOT automatic)`;
+      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + notTagOfType(tagWhats, AISQL) + ')';
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
   };
 
+  var tagOfType = (tagWhats, tagTypeSql) => {
+    return 'EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
+  }
+
+  var notTagOfType = (tagWhats, tagTypeSql) => {
+    return 'NOT EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') AND NOT EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
+  }
+
+  var recordingTaggedWith = (tags, tagTypeSql) => {
+    let sql =  'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
+    if (tags) {
+      sql += ' AND (' + selectByTagWhat(tags, 'animal', 'event') + ')';
+    }
+    if (tagTypeSql) {
+      sql += ' AND (' + tagTypeSql + ')';
+    }
+    return sql;
+  }
+
+
+  var trackTaggedWith = (tags, tagTypeSql) => {
+    let sql = 'SELECT "Recording"."id" FROM "Tracks" INNER JOIN "TrackTags" AS "Tags" ON "Tracks"."id" = "Tags"."TrackId" ' +
+    'WHERE "Tracks"."RecordingId" = "Recording".id AND "Tracks"."archivedAt" IS NULL';
+    if (tags) {
+      sql += ' AND (' + selectByTagWhat(tags, 'what', 'what') + ')';
+    }
+    if (tagTypeSql) {
+      sql += ' AND (' + tagTypeSql + ')';
+    }
+    return sql;
+  }
+
   // local
-  var makeTagsWhere = (tags) => {
+  var selectByTagWhat = (tags, whatName, eventName) => {
     if (!tags || tags.length === 0) {
       return null;
     }
 
-    var parts = [];
+   var parts = [];
     for (var i = 0; i < tags.length; i++) {
       var tag = tags[i];
-      switch (tag) {
-      case "interesting":
-        parts.push({
-          [Op.not]: {
-            [Op.or]: [
-              {animal: null, event: "false positive"},
-              {animal: "bird"},
-            ]},
-        });
-        break;
-      default:
-        parts.push({animal: tag});
+      if (tag == "interesting") {
+        parts.push('NOT ("Tags".' + whatName + ' = \'bird\' OR ("Tags".' + eventName + '=\'false-positive\')');
+      }
+      else {
+        parts.push('"Tags".' + whatName + ' = \'' + tag + '\'');
       }
     }
-    if (parts.length == 1) {
-      return parts[0];
-    }
-    return {[Op.or]: parts};
+    return parts.join(' OR ');
   };
 
   /**
@@ -534,6 +564,9 @@ module.exports = function(sequelize, DataTypes) {
     'any',
     'untagged',
     'tagged',
+    'human-tagged',
+    'automatic-tagged',
+    'both-tagged',
     'no-human',  // untagged or automatic only
     'automatic-only',
     'human-only',
