@@ -38,6 +38,8 @@ Note that the source code is mounted on to the docker image, so any changes
 causes the server to reload. However, running `./run --isolate` will run the server
 independently of the source code, include the node_modules.
 
+If you would like to run without sudo (for example your user is already in the docker user group) you can use `./run --no-sudo`
+
 ## Running the tests
 
 The Cacophony API server has a comprehensive function test suite. This
