@@ -8,7 +8,7 @@ class TestRecordingsGetByTags:
         group = lucy.create_group(helper.make_unique_group_name(self, "lucys_group"))
         device = helper.given_new_device(self, "Rec", group, description='')
 
-        untagged = device.has_recording('untagged')
+        untagged = device.has_recording()
         ai_possum = makeTaggedRecording(device, helper, ["possum"], lucy, [])
         human_possum = makeTaggedRecording(device, helper, [], lucy, ["possum"])
         ai_human_possum = makeTaggedRecording(device, helper, ["possum"], lucy, ["possum"])
@@ -107,7 +107,7 @@ def makeTaggedRecording(device, helper, ai_tags, tagger, human_tags):
     return recording
 
 def makeTrackTaggedRecording(device, helper, tagger, trackTags):
-    recording = device.has_recording('')
+    recording = device.has_recording()
     for combo in trackTags:
         recording.name += "tags: " + str(combo)
         track = helper.admin_user().can_add_track_to_recording(recording)
