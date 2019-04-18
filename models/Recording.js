@@ -131,7 +131,10 @@ module.exports = function(sequelize, DataTypes) {
       order: order,
       include: [
         { model: models.Group, where: {}, attributes: ["groupname"] },
-        { model: models.Tag, where: {}, attributes: ["animal", "automatic", "event", "taggerId"], required: false },
+        { model: models.Tag,
+          where: {},
+          attributes: ["animal", "automatic", "event", "taggerId"],
+          required: false },
         { model: models.Track,
           where:{
             archivedAt: null
@@ -139,9 +142,9 @@ module.exports = function(sequelize, DataTypes) {
           attributes: ['id'],
           required: false,
           include: [{model: models.TrackTag,
-                    attributes: ["what", "automatic", "UserId"],
-                    where: {},
-                    required: false}],
+            attributes: ["what", "automatic", "UserId"],
+            where: {},
+            required: false}],
         },
         { model: models.Device, where: {}, attributes: ["devicename"] },
       ],
@@ -160,6 +163,11 @@ module.exports = function(sequelize, DataTypes) {
 
   // local
   var handleTagMode = (tagMode, tagWhats) => {
+    if (!tagMode) {
+      const hasWhatTags = (tagWhats && (tagWhats.length > 0));
+      tagMode = (hasWhatTags) ? 'tagged' : 'any';
+    }
+
     const humanSQL = 'NOT "Tags".automatic';
     const AISQL = '"Tags".automatic';
     switch (tagMode) {
@@ -182,7 +190,7 @@ module.exports = function(sequelize, DataTypes) {
     case 'human-only':
       return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + notTagOfType(tagWhats, AISQL) + ')';
     case 'automatic+human':
-    return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
+      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
@@ -190,50 +198,60 @@ module.exports = function(sequelize, DataTypes) {
 
   var tagOfType = (tagWhats, tagTypeSql) => {
     return 'EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
-  }
+  };
 
   var notTagOfType = (tagWhats, tagTypeSql) => {
     return 'NOT EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') AND NOT EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
-  }
+  };
 
   var recordingTaggedWith = (tags, tagTypeSql) => {
     let sql =  'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
     if (tags) {
-      sql += ' AND (' + selectByTagWhat(tags, 'animal', 'event') + ')';
+      sql += ' AND (' + selectByTagWhat(tags, 'animal', true) + ')';
     }
     if (tagTypeSql) {
       sql += ' AND (' + tagTypeSql + ')';
     }
     return sql;
-  }
+  };
 
 
   var trackTaggedWith = (tags, tagTypeSql) => {
     let sql = 'SELECT "Recording"."id" FROM "Tracks" INNER JOIN "TrackTags" AS "Tags" ON "Tracks"."id" = "Tags"."TrackId" ' +
     'WHERE "Tracks"."RecordingId" = "Recording".id AND "Tracks"."archivedAt" IS NULL';
     if (tags) {
-      sql += ' AND (' + selectByTagWhat(tags, 'what', 'what') + ')';
+      sql += ' AND (' + selectByTagWhat(tags, 'what', false) + ')';
     }
     if (tagTypeSql) {
       sql += ' AND (' + tagTypeSql + ')';
     }
     return sql;
-  }
+  };
 
   // local
-  var selectByTagWhat = (tags, whatName, eventName) => {
+  var selectByTagWhat = (tags, whatName, usesEvents) => {
     if (!tags || tags.length === 0) {
       return null;
     }
 
-   var parts = [];
+    var parts = [];
     for (var i = 0; i < tags.length; i++) {
       var tag = tags[i];
       if (tag == "interesting") {
-        parts.push('(NOT "Tags".' + whatName + ' = \'bird\' OR NOT "Tags".' + eventName + '=\'false-positive\')');
+        if (usesEvents) {
+          parts.push('(("Tags"."' + whatName + '" IS NULL OR "Tags"."' + whatName + '"!=\'bird\') ' +
+           'AND ("Tags"."event" IS NULL OR "Tags"."event"!=\'false positive\'))');
+        }
+        else {
+          parts.push('("Tags"."' + whatName + '"!=\'bird\' AND "Tags"."' + whatName + '"!=\'false positive\')');
+        }
       }
       else {
-        parts.push('"Tags".' + whatName + ' = \'' + tag + '\'');
+        parts.push('"Tags"."' + whatName + '" = \'' + tag + '\'');
+        if (usesEvents) {
+          // the label could also be the event label not the animal label
+          parts.push('"Tags"."event" = \'' + tag + '\'');
+        }
       }
     }
     return parts.join(' OR ');
