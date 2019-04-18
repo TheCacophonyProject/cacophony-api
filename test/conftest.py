@@ -45,5 +45,5 @@ def pytest_runtest_makereport(item, call):
             )
         except FileNotFoundError:
             return
-        if proc.returncode == 0:
-            rep.sections.append(("Recent API server logs", proc.stdout))
+        # if proc.returncode == 0:
+        #     rep.sections.append(("Recent API server logs", proc.stdout))
