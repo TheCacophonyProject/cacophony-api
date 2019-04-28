@@ -374,7 +374,6 @@ class TestUser:
             data={},
         )
 
-
     def can_tag_track(self, track):
         tag = TrackTag.create(track)
         tag.id_ = self._userapi.add_track_tag(
@@ -421,7 +420,6 @@ class RecordingQueryPromise:
 
     def can_see_all_recordings_from_(self, allRecordings):
         self.can_see_recordings(*allRecordings)
-
 
     # Expects the function 'from_' to be called to do the evaluating.
     def can_only_see_recordings(self, *expected_recordings):
