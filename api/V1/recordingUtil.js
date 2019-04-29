@@ -50,9 +50,6 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 function query(request, type) {
-  if (!request.query.tagMode) {
-    request.query.tagMode = 'any';
-  }
   if (!request.query.where) {
     request.query.where = {};
   }
@@ -237,7 +234,7 @@ function getReprocessMessage(status){
   }
 }
 
-// reprocessRecording marks supplied recording_id for reprocessing, 
+// reprocessRecording marks supplied recording_id for reprocessing,
 // under supplied user privileges
 async function reprocessRecording(user,recording_id){
   const recording = await models.Recording.get(

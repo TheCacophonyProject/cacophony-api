@@ -23,6 +23,10 @@ class TestUser:
     def when_searching_with(self, queryParams):
         return RecordingQueryPromise(self, queryParams)
 
+    def when_searching_for_tagmode_and_tags(self, tagmode, tags):
+        queryParams = {"tagmode": tagmode, "tags": tags}
+        return RecordingQueryPromise(self, queryParams)
+
     def when_searching_with_tagmode(self, tagmode):
         queryParams = {"tagmode": tagmode}
         return RecordingQueryPromise(self, queryParams)
@@ -51,12 +55,17 @@ class TestUser:
         for testRecording in expected_recordings:
             if not self._recording_in_list(recordings, testRecording):
                 _errors.append(
-                    "User '{}' cannot see recording with id {}.".format(
-                        self.username, testRecording.id_
+                    "User '{}' cannot see recording with id {}, name {}.".format(
+                        self.username, testRecording.id_, testRecording.name
                     )
                 )
 
         if _errors:
+            recordingIds = "Recording ids seen are: "
+            for recording in recordings:
+                recordingIds += str(recording["id"])
+                recordingIds += ','
+            _errors.append(recordingIds)
             raise TestException(_errors)
 
     def cannot_see_recordings(self, *expected_recordings):
@@ -69,8 +78,8 @@ class TestUser:
         for testRecording in expected_recordings:
             if self._recording_in_list(recordings, testRecording):
                 _errors.append(
-                    "User '{}' can see recording with id {}, but shouldn't be able to..".format(
-                        self.username, testRecording.id_
+                    "User '{}' can see recording with id {}, name {}, but shouldn't be able to..".format(
+                        self.username, testRecording.id_, testRecording.name
                     )
                 )
 
@@ -349,6 +358,22 @@ class TestUser:
         with pytest.raises(IOError):
             self._userapi.delete_track(track.recording.id_, track.id_)
 
+    def tag_track(self, track, what):
+        self._tag_track_as(track, what, False)
+
+    def tag_track_as_AI(self, track, what):
+        self._tag_track_as(track, what, True)
+
+    def _tag_track_as(self, track, what, automatic):
+        self._userapi.add_track_tag(
+            recording_id=track.recording.id_,
+            track_id=track.id_,
+            what=what,
+            confidence=0.7,
+            automatic=automatic,
+            data={},
+        )
+
     def can_tag_track(self, track):
         tag = TrackTag.create(track)
         tag.id_ = self._userapi.add_track_tag(
@@ -396,6 +421,7 @@ class RecordingQueryPromise:
     def can_see_all_recordings_from_(self, allRecordings):
         self.can_see_recordings(*allRecordings)
 
+    # Expects the function 'from_' to be called to do the evaluating.
     def can_only_see_recordings(self, *expected_recordings):
         self._expected_recordings = expected_recordings
         return self
