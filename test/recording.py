@@ -3,7 +3,8 @@ class Recording:
         self.id_ = id_
         self.props = props
         self.content = slurp(content_filename)
-        # this name is just for test purposes
+        # A name that describes the recording.
+        # This will be printed out if a recordings query gives unexpected results.
         self.name = recording_name
 
     def __repr__(self):
