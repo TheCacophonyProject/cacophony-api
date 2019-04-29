@@ -43,8 +43,11 @@ def check_docker_can_run():
     )
 
 def current_user_in_group(group_name):
-    current_user = getpass.getuser()
-    return current_user in grp.getgrnam(group_name).gr_mem
+    try:
+        current_user = getpass.getuser()
+        return current_user in grp.getgrnam(group_name).gr_mem
+    except KeyError:
+        return False
 
 use_sudo = args.sudo
 if not args.sudo:
