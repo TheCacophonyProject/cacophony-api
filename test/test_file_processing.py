@@ -3,9 +3,33 @@ from datetime import datetime, timezone
 from .recording import Recording
 from .track import Track
 from .track import TrackTag
+from multiprocessing import Pool
 
 
 class TestFileProcessing:
+
+    def get_recording(file_processing):
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        if recording is not None:
+            assert recording["processingState"] == "getMetadata"
+            assert recording["processingStartTime"] is not None
+
+        return recording
+
+    # tests that the same recording id isn't returned twice for processing
+    def test_multi_thread_processing(self, helper, file_processing):
+        num_recordings = 10
+        threads = num_recordings * 2
+        user = helper.admin_user()
+        for _ in range(num_recordings):
+            helper.given_a_recording(self)
+
+        thread_params = [file_processing for i in range(threads)]
+        p = Pool(threads)
+        results = (p.map(TestFileProcessing.get_recording, thread_params))
+        recordings = [record for record in results if record]
+        assert len(set(recordings)) == len(recordings)
+
     def test_thermal_video(self, helper, file_processing):
         user = helper.admin_user()
 

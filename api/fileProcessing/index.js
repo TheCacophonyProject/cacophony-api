@@ -5,8 +5,6 @@ const middleware = require('../middleware');
 const models = require('../../models');
 const recordingUtil = require('../V1/recordingUtil');
 const responseUtil = require('../V1/responseUtil');
-const uuidv4 = require('uuid/v4');
-
 
 module.exports = function(app) {
   var apiUrl = '/api/fileProcessing';
@@ -17,38 +15,21 @@ module.exports = function(app) {
    * @apiGroup FileProcessing
    *
    * @apiParam {String} type Type of recording.
-   * @apiParam {String} state Processing state.
+   * @apiParam {String} state Processing state. 
    */
   app.get(apiUrl, async (request, response) => {
     log.info(request.method + " Request: " + request.url);
-
     var type = request.query.type;
     var state = request.query.state;
-
-    var recording = await models.Recording.findOne({
-      where: {
-        'type': type,
-        'processingState': state,
-        'processingStartTime': null,
-      },
-      attributes: models.Recording.processingAttributes,
-      // Process the most recent footage first. This helps when we're
-      // re-processing a backlog of old recordings but still want to
-      // have new recordings processed as they come in.
-      order: [['recordingDateTime', 'DESC']],
-    });
+    var recording = await models.Recording.getOneForProcessing(type,state);
     if (recording == null) {
       log.debug('No file to be processed.');
       return response.status(204).json();
+    }else{
+      return response.status(200).json({
+        recording: recording.dataValues,
+      });
     }
-
-    await recording.set('jobKey', uuidv4());
-    var date = new Date();
-    await recording.set('processingStartTime', date.toISOString());
-    await recording.save();
-    return response.status(200).json({
-      recording: recording.dataValues,
-    });
   });
 
   /**
