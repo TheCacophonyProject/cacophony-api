@@ -21,6 +21,7 @@ var moment = require('moment-timezone');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const assert = require('assert');
+const uuidv4 = require('uuid/v4');
 
 var util = require('./util/util');
 var validation = require('./util/validation');
@@ -100,6 +101,35 @@ module.exports = function(sequelize, DataTypes) {
     return validTagModes.includes(mode);
   };
 
+  /**
+    * Return a recording for processing under a transaction
+    * and sets the processingStartTime and jobKey for recording
+    * arguments given.
+    */
+  Recording.getOneForProcessing = async function(type, state){
+    return sequelize.transaction(function (t) {
+      return Recording.findOne({
+        where: {
+          'type': type,
+          'processingState': state,
+          'processingStartTime': null,
+        },
+        attributes: models.Recording.processingAttributes,
+        order: [['recordingDateTime', 'DESC']],
+        skipLocked: true,
+        lock: t.LOCK.UPDATE, transaction: t
+      }).then(async function(recording){
+        var date = new Date();
+        recording.set({'jobKey':uuidv4(),'processingStartTime':date.toISOString()}, {transaction: t});
+        recording.save({transaction:t});
+        return recording;
+      });
+    }).then(function (result) {
+      return result;
+    }).catch(() => {
+      return null;
+    });
+  };
   /**
     * Return one or more recordings for a user matching the query
     * arguments given.
