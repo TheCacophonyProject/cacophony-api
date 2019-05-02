@@ -21,6 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const auth         = require('../auth');
 const { query, body }     = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
@@ -76,7 +77,7 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    [ middleware.authenticateUser ],
+    [ auth.authenticateUser ],
     middleware.requestWrapper(async (request, response) => {
       var devices = await models.Device.allForUser(request.user);
       return responseUtil.send(response, {
@@ -107,7 +108,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl + '/users',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getDeviceById(query),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -159,7 +160,7 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl + '/users',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getUserByNameOrId(body),
       middleware.getDeviceById(body),
       body('admin').isIn([true, false]),
@@ -205,7 +206,7 @@ module.exports = function(app, baseUrl) {
   app.delete(
     apiUrl + '/users',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getDeviceById(body),
       middleware.getUserByNameOrId(body),
     ],

@@ -1,5 +1,7 @@
 import pytest
 
+from test.testexception import AuthorizationError
+
 
 class TestDeviceUsers:
     def test_can_assign_a_device_to_a_user_and_remove_them(self, helper):
@@ -33,11 +35,8 @@ class TestDeviceUsers:
         jocelyn = helper.given_new_user(self, "Jocelyn")
 
         print("Then Jocelyn shouldn't be able to add herself to the device")
-        try:
+        with pytest.raises(AuthorizationError):
             jocelyn.add_to_device(jocelyn, shaper)
-            pytest.fail("User was able to add herself to device")
-        except OSError:
-            pass
 
     def test_user_cant_remove_person_from_device_unless_they_are_an_admin(self, helper):
         description = "If a new device 'Shaker' has an CPTV file"
@@ -50,11 +49,8 @@ class TestDeviceUsers:
         violet = helper.given_new_user(self, "Violet")
 
         print("Then Violet shouldn't be able to remove admin from the device")
-        try:
+        with pytest.raises(AuthorizationError):
             violet.remove_from_device(helper.admin_user(), shaker)
-            pytest.fail("User was able to remove admin from the device")
-        except OSError:
-            pass
 
     def test_can_list_device_users(self, helper):
         admin_user = helper.admin_user()

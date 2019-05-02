@@ -22,6 +22,7 @@ const responseUtil      = require('./responseUtil');
 const config            = require('../../config');
 const jsonwebtoken      = require('jsonwebtoken');
 const middleware        = require('../middleware');
+const auth              = require('../auth');
 const { query, param }  = require('express-validator/check');
 
 
@@ -47,7 +48,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
     ],
     middleware.requestWrapper(
       util.multipartUpload((request, data, key) => {
@@ -75,7 +76,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('where', query),
       query('offset').isInt().optional(),
       query('limit').isInt().optional(),
@@ -126,7 +127,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/:id',
     [
-      middleware.authenticateAny,
+      auth.authenticateAny,
       middleware.getFileById(param),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -168,23 +169,15 @@ module.exports = (app, baseUrl) => {
   app.delete(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getFileById(param),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      var deleted = await models.File.deleteIfAllowed(request.user, request.body.file);
-      if (deleted) {
-        responseUtil.send(response, {
-          statusCode: 200,
-          messages: ["Deleted file."],
-        });
-      } else {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["Failed to delete file. Files can only be deleted by the admins and the person who uploaded the file."],
-        });
-      }
+      await models.File.deleteIfAllowedElseThrow(request.user, request.body.file);
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Deleted file."],
+      });
     })
   );
 };

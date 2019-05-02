@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 
 import requests
 
+from .testexception import raise_specific_exception
 from .recording import Recording
 
 
@@ -18,8 +19,7 @@ class FileProcessingAPI:
             data = r.json()["recording"]
             id_ = data.pop("id")
             return Recording(id_, data, None)
-
-        raise IOError(r.text)
+        raise_specific_exception(r)
 
     def put(self, recording, success, complete, updates=None, new_object_key=None):
         post_data = {
@@ -36,7 +36,7 @@ class FileProcessingAPI:
         r = requests.put(self._url, data=post_data)
         if r.status_code == 200:
             return
-        raise IOError(r.text)
+        raise_specific_exception(r)
 
     def get_algorithm_id(self, algorithm):
         url = self._url + "/algorithm"
@@ -44,7 +44,7 @@ class FileProcessingAPI:
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
             return r.json()["algorithmId"]
-        raise IOError(r.text)
+        raise_specific_exception(r)
 
     def add_track(self, recording, track, algorithm={"tracking-format": 42}):
         algorithm_id = self.get_algorithm_id(algorithm)
@@ -53,11 +53,11 @@ class FileProcessingAPI:
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
             return r.json()["trackId"]
-        raise IOError(r.text)
+        raise_specific_exception(r)
 
     def clear_tracks(self, recording):
         r = requests.delete(self._url + "/{}/tracks".format(recording.id_))
-        r.raise_for_status()
+        raise_specific_exception(r)
 
     def add_track_tag(self, track, tag):
         url = self._url + "/{}/tracks/{}/tags".format(track.recording.id_, track.id_)
@@ -69,4 +69,4 @@ class FileProcessingAPI:
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
             return r.json()["trackTagId"]
-        raise IOError(r.text)
+        raise_specific_exception(r)

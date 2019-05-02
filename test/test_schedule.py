@@ -2,6 +2,8 @@ import pytest
 import time
 import json
 
+from test.testexception import AuthorizationError
+
 
 class TestSchedule:
     def test_only_device_owners_can_set_schedule(self, helper):
@@ -13,11 +15,11 @@ class TestSchedule:
         infilmator = helper.given_new_device(self, "in-film-ator")
 
         print("Then Louie cannot set the schedule this device.")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             louie.set_audio_schedule().for_device(infilmator)
 
         print("    or set schedules on both devices together.")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             louie.set_audio_schedule().for_devices(louies_device, infilmator)
 
         print("Administrators should be able to set the schedule on Louie's device.")
@@ -60,7 +62,7 @@ class TestSchedule:
         )
 
         print("Then Max should not be able to get audio schedule for the hollerer.")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             print(max.get_audio_schedule(hollerer)["schedule"])
 
         print("But an admin user should be able to.")

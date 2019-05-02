@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+const {AuthorizationError} = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
   var name = 'Group';
 
@@ -46,7 +47,7 @@ module.exports = function(sequelize, DataTypes) {
    */
   Group.addUserToGroup = async function(authUser, group, userToAdd, admin) {
     if (!(await group.userPermissions(authUser)).canAddUsers) {
-      return false;
+      throw new AuthorizationError("User is not a group admin so cannot add users");
     }
 
     // Get association if already there and update it.
@@ -59,11 +60,9 @@ module.exports = function(sequelize, DataTypes) {
     if (groupUser != null) {
       groupUser.admin = admin; // Update admin value.
       await groupUser.save();
-      return true;
     }
 
     await group.addUser(userToAdd, {through: {admin: admin}});
-    return true;
   };
 
   /**
@@ -72,20 +71,19 @@ module.exports = function(sequelize, DataTypes) {
    */
   Group.removeUserFromGroup = async function(authUser, group, userToRemove) {
     if (!(await group.userPermissions(authUser)).canRemoveUsers) {
-      return false;
+      throw new AuthorizationError("User is not a group admin so cannot remove users");
     }
 
     // Get association if already there and update it.
-    var groupUsers = await models.GroupUsers.findAll({
+    const groupUsers = await models.GroupUsers.findAll({
       where: {
         GroupId: group.id,
         UserId: userToRemove.id,
       }
     });
-    for (var i in groupUsers) {
+    for (const i in groupUsers) {
       await groupUsers[i].destroy();
     }
-    return true;
   };
 
   /**

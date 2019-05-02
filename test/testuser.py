@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from .testexception import TestException
+from .testexception import TestException, AuthorizationError
 from .recording import Recording
 from .track import Track, TrackTag
 
@@ -160,7 +160,7 @@ class TestUser:
         assert recv_props == props
 
     def cannot_download_recording(self, recording):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self._userapi.get_recording(recording.id_)
 
     def delete_recording(self, recording):
@@ -231,7 +231,7 @@ class TestUser:
         return self._userapi.get_device_id(devicename)
 
     def cannot_download_audio(self, recording):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self._userapi.download_audio(recording.id_)
 
     def upload_audio_bait(self, details={"animal": "possum"}):
@@ -250,7 +250,8 @@ class TestUser:
         self._userapi.delete_file(file_id)
 
     def cannot_delete_audio_bait_file(self, file_id):
-        self._userapi.delete_file(file_id)
+        with pytest.raises(AuthorizationError):
+            self._userapi.delete_file(file_id)
 
     def set_audio_schedule_for(self, deviceIds, schedule):
         self._userapi.upload_schedule(deviceIds, schedule)
@@ -307,7 +308,7 @@ class TestUser:
         return track
 
     def cannot_add_track_to_recording(self, recording):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self.can_add_track_to_recording(recording)
 
     def has_no_tracks(self, recording):
@@ -355,7 +356,7 @@ class TestUser:
         self._userapi.delete_track(track.recording.id_, track.id_)
 
     def cannot_delete_track(self, track):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self._userapi.delete_track(track.recording.id_, track.id_)
 
     def tag_track(self, track, what):
@@ -387,7 +388,7 @@ class TestUser:
         return tag
 
     def cannot_tag_track(self, track):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self.can_tag_track(track)
 
     def can_delete_track_tag(self, tag):
@@ -398,7 +399,7 @@ class TestUser:
         )
 
     def cannot_delete_track_tag(self, tag):
-        with pytest.raises(IOError):
+        with pytest.raises(AuthorizationError):
             self.can_delete_track_tag(tag)
 
 
@@ -428,24 +429,16 @@ class RecordingQueryPromise:
 
     def from_(self, allRecordings):
         if not self._expected_recordings:
-            raise TestException(
-                "You must call 'can_only_see_recordings' before calling function 'from_list'."
-            )
+            raise TestException("You must call 'can_only_see_recordings' before calling function 'from_list'.")
 
-        ids = [
-            testRecording.id_ for testRecording in self._expected_recordings
-        ]
-        print(
-            "Then searching with {} should give only {}.".format(self._queryParams, ids)
-        )
+        ids = [testRecording.id_ for testRecording in self._expected_recordings]
+        print("Then searching with {} should give only {}.".format(self._queryParams, ids))
 
         # test what should be there, is there
         self.can_see_recordings(*self._expected_recordings)
 
         # test what shouldn't be there, isn't there
-        expectedMissingRecordings = [
-            x for x in allRecordings if x not in self._expected_recordings
-        ]
+        expectedMissingRecordings = [x for x in allRecordings if x not in self._expected_recordings]
         self.cannot_see_recordings(*expectedMissingRecordings)
 
 

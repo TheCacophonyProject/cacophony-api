@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const auth         = require('../auth');
 const { body, query, oneOf } = require('express-validator/check');
 
 
@@ -52,7 +53,7 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
-      middleware.authenticateDevice,
+      auth.authenticateDevice,
       middleware.getDetailSnapshotById(body, 'eventDetailId').optional(),
       middleware.isDateArray("dateTimes", "List of times event occured is required."),
       oneOf([
@@ -117,7 +118,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       query('startTime').isISO8601({ strict: true }).optional(),
       query('endTime').isISO8601({ strict: true }).optional(),
       query('deviceId').isInt().optional().toInt(),

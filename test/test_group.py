@@ -1,5 +1,7 @@
 import pytest
 
+from test.testexception import AuthorizationError
+
 
 class TestGroup:
     def test_group_can_be_created_and_users_added_to_it_and_removed_from_it(
@@ -44,10 +46,8 @@ class TestGroup:
         print("Given a Robert is a new user", end="")
         robert = helper.given_new_user(self, "robert")
 
-        print(
-            "Then Robert shouldn't be able to add himself to default group belonged to the admin"
-        )
-        with pytest.raises(OSError, match=r"Failed to add user to group."):
+        print("Then Robert shouldn't be able to add himself to default group belonged to the admin")
+        with pytest.raises(AuthorizationError):
             robert.add_to_group(robert, helper.config.default_group)
 
     def test_user_cant_remove_person_from_group_unless_they_are_an_admin(self, helper):
@@ -55,8 +55,6 @@ class TestGroup:
         print("Given a Steve is a new user", end="")
         steve = helper.given_new_user(self, "steve")
 
-        print(
-            "Then Steve shouldn't be able to remove the admin from a group he is not an admin for"
-        )
-        with pytest.raises(OSError, match=r"Failed to remove user from the group."):
+        print("Then Steve shouldn't be able to remove the admin from a group he is not an admin for")
+        with pytest.raises(AuthorizationError):
             steve.remove_from_group(helper.admin_user(), helper.config.default_group)

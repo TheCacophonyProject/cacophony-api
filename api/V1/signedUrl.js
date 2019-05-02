@@ -21,6 +21,7 @@ const stream          = require('stream');
 const config          = require('../../config');
 const log             = require('../../logging');
 const middleware      = require('../middleware');
+const auth            = require('../auth');
 const modelsUtil      = require('../../models/util/util');
 const responseUtil    = require('./responseUtil');
 const { ClientError } = require('../customErrors');
@@ -45,7 +46,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     baseUrl + '/signedUrl',
     [
-      middleware.signedUrl,
+      auth.signedUrl,
     ],
     middleware.requestWrapper(async (request, response) => {
 

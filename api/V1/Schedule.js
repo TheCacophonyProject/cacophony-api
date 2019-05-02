@@ -20,6 +20,7 @@ const { body, param } = require('express-validator/check');
 const models = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const auth         = require('../auth');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/schedules';
@@ -43,11 +44,12 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseArray('devices', body),
       middleware.parseJSON('schedule', body),
+      auth.userCanAccessDevices,
     ],
-    middleware.ifUsersDeviceRequestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function(request, response) {
       var deviceIds = request.body.devices;
 
       var instance = models.Schedule.build(request.body, ["schedule"]);
@@ -83,7 +85,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl,
     [
-      middleware.authenticateDevice,
+      auth.authenticateDevice,
     ],
     middleware.requestWrapper(async (request, response) => {
       return getSchedule(request.device, response);
@@ -106,10 +108,11 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + "/:devicename",
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getDeviceByName(param),
+      auth.userCanAccessDevices,
     ],
-    middleware.ifUsersDeviceRequestWrapper(async (request, response) => {
+    middleware.requestWrapper(async (request, response) => {
       getSchedule(request.device, response, request.user);
     })
   );

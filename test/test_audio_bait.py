@@ -1,5 +1,7 @@
 import pytest
 
+from test.testexception import AuthorizationError
+
 
 class TestBait:
     def test_anyone_or_device_can_download_audio_bait(self, helper):
@@ -54,11 +56,8 @@ class TestBait:
         james.delete_audio_bait_file(file1)
 
         print("But his friend Karl should not.")
-        try:
+        with pytest.raises(AuthorizationError):
             helper.given_new_user(self, "karl").delete_audio_bait_file(file2)
-            pytest.fail("Karl should not have permissions to delete the file")
-        except OSError:
-            pass
 
         print("And the admin should also be able to delete a file")
         helper.admin_user().delete_audio_bait_file(file2)

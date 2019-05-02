@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
+const { AuthorizationError } = require('../api/customErrors');
+const log = require('../logging');
 const Op = Sequelize.Op;
 
 const PERMISSION_WRITE = 'write';
@@ -137,11 +139,10 @@ module.exports = function(sequelize, DataTypes) {
 
   User.changeGlobalPermission = async function(admin, user, permission) {
     if (!user || !admin || !admin.hasGlobalWrite()) {
-      return false;
+      throw new AuthorizationError("User must be an admin with global write permissions");
     }
     user.globalPermission = permission;
     await user.save();
-    return true;
   };
 
   //------------------
@@ -234,7 +235,8 @@ module.exports = function(sequelize, DataTypes) {
 
       deviceIds.forEach(deviceId => {
         if (!usersDevices.includes(deviceId)) {
-          throw new UnauthorizedDeviceException(this.username, deviceId);
+          log.info("Attempted unauthorized use of device " + deviceId + " by " + this.username);
+          throw new AuthorizationError("User is not authorized for one (or more) of specified devices.");
         }
       });
     }
@@ -261,18 +263,6 @@ module.exports = function(sequelize, DataTypes) {
 
   return User;
 };
-
-//-----------------
-// LOCAL FUNCTIONS
-//-----------------
-
-function UnauthorizedDeviceException(username, deviceId) {
-  this.name = "UnauthorizedDeviceException";
-  this.message = ("Unauthorized use of device " + deviceId + " by " + username);
-}
-
-UnauthorizedDeviceException.prototype = new Error();
-UnauthorizedDeviceException.prototype.constructor = UnauthorizedDeviceException;
 
 //----------------------
 // VALIDATION FUNCTIONS

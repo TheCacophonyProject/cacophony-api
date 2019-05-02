@@ -21,6 +21,7 @@ const moment = require('moment');
 const { format } = require('util');
 
 const middleware = require('../middleware');
+const auth       = require('../auth');
 const models = require('../../models');
 const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');
@@ -68,7 +69,7 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
-      middleware.authenticateDevice,
+      auth.authenticateDevice,
     ],
     middleware.requestWrapper(
       recordingUtil.makeUploadHandler(mungeAudioData)
@@ -95,7 +96,7 @@ module.exports = function(app, baseUrl) {
   app.put(
     apiUrl + "/:id",
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
       middleware.parseJSON('data', body),
     ],
@@ -125,7 +126,7 @@ module.exports = function(app, baseUrl) {
   app.delete(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -156,7 +157,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('where', header).optional(),
       header('offset').isInt().optional(),
       header('limit').isInt().optional(),
@@ -224,7 +225,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl + "/:id",
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {

@@ -35,7 +35,7 @@ function errorHandler(err, request, response, next) { // eslint-disable-line
 function CustomError() {
   this.statusCode = 500;
 }
-CustomError.prototype = new Error();
+CustomError.prototype = new Error;
 
 function ValidationError(errors) {
   this.name = "Validation";
@@ -63,8 +63,44 @@ function ValidationError(errors) {
     };
   };
 }
-ValidationError.prototype = new CustomError();
+ValidationError.prototype = new CustomError;
 ValidationError.prototype.constructor = ClientError;
+
+function AuthenticationError(message) {
+  this.name = "Authentication";
+  this.message = message;
+  this.statusCode = 401;
+  this.toString = () => {
+    return format("%s error[%d]: %s.", this.name, this.statusCode, this.message);
+  };
+  this.toJson = () => {
+    return {
+      message: this.message,
+      errorType: this.name.toLowerCase(),
+    };
+  };
+}
+
+AuthenticationError.prototype = new CustomError;
+AuthenticationError.prototype.constructor = AuthenticationError;
+
+function AuthorizationError(message) {
+  this.name = "AuthorizationError";
+  this.message = message;
+  this.statusCode = 403;
+  this.toString = () => {
+    return format("%s error[%d]: %s.", this.name, this.statusCode, this.message);
+  };
+  this.toJson = () => {
+    return {
+      message: this.message,
+      errorType: this.name.toLowerCase(),
+    };
+  };
+}
+
+AuthorizationError.prototype = new CustomError;
+AuthorizationError.prototype.constructor = AuthorizationError;
 
 function ClientError(message, statusCode) {
   if (statusCode == undefined) {
@@ -83,9 +119,11 @@ function ClientError(message, statusCode) {
     };
   };
 }
-ClientError.prototype = new CustomError();
+ClientError.prototype = new CustomError;
 ClientError.prototype.constructor = ClientError;
 
 exports.ValidationError = ValidationError;
+exports.AuthenticationError = AuthenticationError;
+exports.AuthorizationError = AuthorizationError;
 exports.ClientError     = ClientError;
 exports.errorHandler    = errorHandler;
