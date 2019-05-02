@@ -7,7 +7,7 @@ from .deviceapi import DeviceAPI
 from .testuser import TestUser
 from .testdevice import TestDevice
 from .testconfig import TestConfig
-from .testexception import TestException
+from .testexception import TestException, UnprocessableError
 
 
 class Helper:
@@ -66,8 +66,8 @@ class Helper:
                 ).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api, testemail)
-            except OSError:
-                pass
+            except UnprocessableError:
+                pass  # expected
             testname = "{}{}".format(basename, num)
             testemail = "{}{}".format(num, baseemail)
 

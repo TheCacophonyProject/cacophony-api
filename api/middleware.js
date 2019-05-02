@@ -17,89 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require('../models');
-const config       = require('../config');
-const jwt          = require('jsonwebtoken');
 const format       = require('util').format;
-const ExtractJwt   = require('passport-jwt').ExtractJwt;
 const log          = require('../logging');
 const customErrors = require('./customErrors');
-const { body, header, validationResult, query, oneOf } = require('express-validator/check');
+const {AuthorizationError, AuthenticationError} = require("./customErrors");
+const { body, validationResult, oneOf } = require('express-validator/check');
 
-const getVerifiedJWT = (req) => {
-  const token = ExtractJwt.fromAuthHeaderWithScheme('jwt')(req);
-  if (!token) {
-    throw new Error('Could not find JWT token.');
-  }
-  try {
-    var jwtDecoded = jwt.verify(token, config.server.passportSecret);
-    return jwtDecoded;
-  } catch(e) {
-    throw new Error('Failed to verify JWT.');
-  }
-};
-
-/*
- * Authenticate a JWT in the 'Authorization' header of the given type
- */
-const authenticate = function(type) {
-  return header('Authorization').custom(async (value, {req}) => {
-    var jwtDecoded = getVerifiedJWT(req);
-    if (type && type != jwtDecoded._type) {
-      throw new Error(format('Invalid type of JWT. Need one of %s for this request, but had %s.', type, jwtDecoded._type));
-    }
-    var result;
-    switch(jwtDecoded._type) {
-    case 'user':
-      result = await models.User.findByPk(jwtDecoded.id);
-      break;
-    case 'device':
-      result = await models.Device.findByPk(jwtDecoded.id);
-      break;
-    case 'fileDownload':
-      result = jwtDecoded;
-      break;
-    }
-    if (result == null) {
-      throw new Error(format('Could not find a %s from the JWT.', type));
-    }
-    req[type] = result;
-    return true;
-  });
-};
-
-const authenticateUser   = authenticate('user');
-const authenticateDevice = authenticate('device');
-const authenticateAny    = authenticate(null);
-
-const authenticateAdmin = header('Authorization').custom(async (value, {req}) => {
-  const jwtDecoded = getVerifiedJWT(req);
-  if (jwtDecoded._type != 'user') {
-    throw new Error('Admin has to be a user');
-  }
-  const user = await models.User.findByPk(jwtDecoded.id);
-  if (!user) {
-    throw new Error('Could not find user from JWT.');
-  }
-  if (!user.hasGlobalWrite()) {
-    throw new Error('User is not an admin.');
-  }
-  req.admin = user;
-  return true;
-});
-
-const signedUrl = query('jwt').custom((value, {req}) => {
-  if (value == null) {
-    throw new Error('Could not find JWT token.');
-  }
-  var jwtDecoded;
-  try {
-    jwtDecoded = jwt.verify(value, config.server.passportSecret);
-  } catch(e) {
-    throw new Error('Failed to verify JWT.');
-  }
-  req.jwtDecoded = jwtDecoded;
-  return true;
-});
 
 
 const getModelById = function(modelType, fieldName, checkFunc) {
@@ -248,43 +171,7 @@ const parseArray = function(field, checkFunc) {
   });
 };
 
-// A request wrapper that also checks if user should be playing around with the
-// the named device before continuing.
-function ifUsersDeviceRequestWrapper(fn) {
-  var ifPermissionWrapper = async (request, response) => {
-    let devices = [];
-    if ("device" in request.body && request.body.device) {
-      request["device"] = request.body.device;
-      devices = [request.body.device.id];
-    }
-    else if ("devices" in request.body) {
-      devices = request.body.devices;
-    } else {
-      throw new customErrors.ClientError("No devices specified.", 422);
-    }
 
-    if (!("user" in request)) {
-      throw new customErrors.ClientError("No user specified.", 422);
-    }
-
-    try {
-      await request.user.checkUserControlsDevices(devices);
-    }
-    catch (error) {
-      if (error.name == 'UnauthorizedDeviceException') {
-        log.info(error.message);
-        const cError = new customErrors.ClientError("User is not authorized for one (or more) of specified devices.", 422);
-        cError.name = "authorisation";
-        throw cError;
-      } else {
-        throw error;
-      }
-    }
-
-    await fn(request, response);
-  };
-  return requestWrapper(ifPermissionWrapper);
-}
 
 const requestWrapper = fn => (request, response, next) => {
   var logMessage = format('%s %s', request.method, request.url);
@@ -305,15 +192,20 @@ const requestWrapper = fn => (request, response, next) => {
     throw new customErrors.ValidationError(validationErrors);
   } else {
     Promise.resolve(fn(request, response, next))
-      .catch(next);
+      .catch(e => {
+        if (e instanceof AuthenticationError) {
+          return response.status(401).json({messages: [e.message]});
+        }
+        if (e instanceof AuthorizationError) {
+          return response.status(403).json({messages: [e.message]});
+        }
+        throw e;
+      })
+      .catch((err) => { log.error("Unknown error: " + err + "\n" + err.stack); next();});
   }
 };
 
-exports.authenticateUser   = authenticateUser;
-exports.authenticateDevice = authenticateDevice;
-exports.authenticateAny    = authenticateAny;
-exports.authenticateAdmin  = authenticateAdmin;
-exports.signedUrl          = signedUrl;
+
 exports.getUserById        = getUserById;
 exports.getUserByName      = getUserByName;
 exports.getUserByNameOrId  = getUserByNameOrId;
@@ -330,6 +222,5 @@ exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
 exports.parseArray         = parseArray;
 exports.requestWrapper     = requestWrapper;
-exports.ifUsersDeviceRequestWrapper = ifUsersDeviceRequestWrapper;
 exports.isDateArray        = isDateArray;
 exports.getUserByEmail     = getUserByEmail;

@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const models       = require('../../models');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const auth         = require('../auth');
 const { query, body } = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
@@ -42,7 +43,7 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.checkNewName('groupname')
         .custom(value => { return models.Group.freeGroupname(value); }),
     ],
@@ -73,7 +74,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('where', query),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -107,30 +108,23 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl + '/users',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getGroupByNameOrId(body),
       middleware.getUserByNameOrId(body),
       body('admin').isBoolean(),
     ],
     middleware.requestWrapper(async (request, response) => {
 
-      var added = await models.Group.addUserToGroup(
+      await models.Group.addUserToGroup(
         request.user,
         request.body.group,
         request.body.user,
         request.body.admin,
       );
-      if (added) {
-        return responseUtil.send(response, {
-          statusCode: 200,
-          messages: ['Added user to group.'],
-        });
-      } else {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          messages: ['Failed to add user to group.'],
-        });
-      }
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ['Added user to group.'],
+      });
     })
   );
 
@@ -152,28 +146,20 @@ module.exports = function(app, baseUrl) {
   app.delete(
     apiUrl + '/users',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getUserByNameOrId(body),
       middleware.getGroupByNameOrId(body),
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      var removed = await models.Group.removeUserFromGroup(
+      await models.Group.removeUserFromGroup(
         request.user,
         request.body.group,
         request.body.user,
       );
-      if (removed) {
-        return responseUtil.send(response, {
-          statusCode: 200,
-          messages: ['Removed user from the group.'],
-        });
-      } else {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          messages: ['Failed to remove user from the group.'],
-        });
-      }
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ['Removed user from the group.'],
+      });
     })
   );
 };

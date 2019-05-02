@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
+const {AuthorizationError} = require("../api/customErrors");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
@@ -82,7 +83,7 @@ module.exports = function(sequelize, DataTypes) {
       return false;
     }
     if (!(await device.userPermissions(authUser)).canAddUsers) {
-      return false;
+      throw new AuthorizationError("User is not a group, device, or global admin so cannot add users to this device");
     }
 
     // Get association if already there and update it.
@@ -111,7 +112,7 @@ module.exports = function(sequelize, DataTypes) {
       return false;
     }
     if (!(await device.userPermissions(authUser)).canRemoveUsers) {
-      return false;
+      throw new AuthorizationError("User is not a group, device, or global admin so cannot remove users from this device");
     }
 
     // Check that association is there to delete.

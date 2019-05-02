@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from .testexception import raise_specific_exception
+
 
 class APIBase:
     def __init__(self, logintype, baseurl, loginname, password="password"):
@@ -22,20 +24,10 @@ class APIBase:
     def check_login_response(self, response):
         if response.status_code == 200:
             self._set_jwt_token(response)
-        elif response.status_code == 422:
-            raise ValueError(
-                "Could not log on as '{}'.  Please check {} name.".format(
-                    self._loginname, self._logintype
-                )
-            )
-        elif response.status_code == 401:
-            raise ValueError(
-                "Could not log on as '{}'.  Please check password.".format(
-                    self._loginname
-                )
-            )
-        else:
-            response.raise_for_status()
+            return
+        if response.status_code == 422:
+            raise ValueError("Could not log on as '{}'.  Please check {} name.".format(self._loginname, self._logintype))
+        raise_specific_exception(response)
 
     def register_as_new(self, group=None, email=None):
         url = urljoin(self._baseurl, "/api/v1/{}s".format(self._logintype))
@@ -65,11 +57,9 @@ class APIBase:
         self._auth_header = {"Authorization": self._token}
 
     def _check_response(self, response):
-        if not response.status_code == 200:
-            raise IOError(
-                "request failed ({}): {}".format(response.status_code, response.text)
-            )
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        raise_specific_exception(response)
 
     def get_login_name(self):
         return self._loginname
@@ -80,7 +70,7 @@ class APIBase:
             params={"jwt": token},
             stream=True,
         )
-        response.raise_for_status()
+        raise_specific_exception(response)
         yield from response.iter_content(chunk_size=4096)
 
     def download_file(self, file_id):

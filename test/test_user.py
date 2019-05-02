@@ -1,6 +1,8 @@
 import json
 import pytest
 
+from .testexception import UnprocessableError
+
 
 class TestUser:
     def test_can_create_new_user(self, helper):
@@ -37,18 +39,16 @@ class TestUser:
         try:
             print("If a user DuplicateBob signs up")
             helper.given_new_fixed_user("DuplicateBob")
-        except OSError:
+        except UnprocessableError:
             pass  # expected
 
         # Now try to create the same user again
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(UnprocessableError) as excinfo:
             print("DuplicateBob should not get created multiple times and returns a 422 error message")
             helper.given_new_fixed_user("DuplicateBob")
         error_string = str(excinfo.value)
-        assert "request failed (422)" in error_string
         print("There should be a JSON object in the error message that can be parsed")
-        json_object = error_string.split(":", 1)[1:][0]
-        parsed_json = json.loads(json_object)
+        parsed_json = json.loads(error_string)
         assert parsed_json['errorType'] == "validation"
         assert (
                 "'Username in use" in parsed_json['message']

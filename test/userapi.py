@@ -6,6 +6,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urljoin
 from datetime import datetime
 
+from .testexception import raise_specific_exception
 from .apibase import APIBase
 
 
@@ -117,10 +118,7 @@ class UserAPI(APIBase):
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             return r.json()["result"]["rows"]
-        if r.status_code == 400:
-            messages = r.json()["messages"]
-            raise IOError("request failed ({}): {}".format(r.status_code, messages))
-        r.raise_for_status()
+        raise_specific_exception(r)
 
     def get_audio(self, recording_id):
         url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
@@ -152,8 +150,9 @@ class UserAPI(APIBase):
             params={"where": "{}"},
             headers=self._auth_header,
         )
-        r.raise_for_status()
-        return r.json()
+        if r.status_code == 200:
+            return r.json()
+        raise_specific_exception(r)
 
     def get_devices_as_string(self):
         return json.dumps(self._get_all("/api/v1/devices"))
@@ -184,7 +183,7 @@ class UserAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/tags/")
         tagData = {"tag": json.dumps(tagDictionary), "recordingId": recording_id}
         response = requests.post(url, headers=self._auth_header, data=tagData)
-        response.raise_for_status()
+        raise_specific_exception(response)
 
     def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
         return self._query(
@@ -223,12 +222,7 @@ class UserAPI(APIBase):
         response = requests.get(url, params=req_params, headers=self._auth_header)
         if response.status_code == 200:
             return response.json()["rows"]
-        if response.status_code in (400, 422):
-            message = response.json()["message"]
-            raise IOError(
-                "request failed ({}): {}".format(response.status_code, message)
-            )
-        response.raise_for_status()
+        raise_specific_exception(response)
 
     def upload_file(self, filename, props):
         url = urljoin(self._baseurl, "api/v1/files")

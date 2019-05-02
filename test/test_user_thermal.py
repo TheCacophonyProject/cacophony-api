@@ -1,5 +1,7 @@
 import pytest
 
+from .testexception import AuthorizationError
+
 
 class TestUserThermal:
     def test_can_download_recording(self, helper):
@@ -53,22 +55,17 @@ class TestUserThermal:
         trouble = helper.given_new_user(self, "trouble")
 
         print("Then 'trouble' should not be able to upload a recording on the behalf of the device.")
-        try:
+        with pytest.raises(AuthorizationError):
             trouble.uploads_recording_for(device)
-            pytest.fail("On no 'trouble' could upload a recording on behalf of the device!")
-        except OSError:
-            pass
 
     def test_cant_download_recording_via_audio_api(self, helper):
         device = helper.given_new_device(self, "user-thermal-download")
         recording = device.has_recording()
 
-        user = helper.admin_user()
+        user = helper.given_new_user(self, "trouble")
 
-        print(
-            "\nA user should not be able to download the recording using the audio API"
-        )
-        user.cannot_download_audio(recording)
+        print("\nA user should not be able to download the recording using the audio API")
+        user.cannot_download_recording(recording)
 
         print("\nNor be able to see the recording through the audio query API")
         user.cannot_see_audio_recording(recording)

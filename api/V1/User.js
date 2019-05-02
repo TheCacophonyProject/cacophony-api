@@ -21,6 +21,7 @@ const jwt          = require('jsonwebtoken');
 const config       = require('../../config');
 const responseUtil = require('./responseUtil');
 const middleware   = require('../middleware');
+const auth         = require('../auth');
 const { body, param } = require('express-validator/check');
 const { ClientError } = require('../customErrors');
 
@@ -86,7 +87,7 @@ module.exports = function(app, baseUrl) {
   app.patch(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('data', body),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -122,7 +123,7 @@ module.exports = function(app, baseUrl) {
   app.get(
     apiUrl + "/:username",
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getUserByName(param),
     ],
     middleware.requestWrapper(async (request, response) => {

@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const { query, param, body } = require('express-validator/check');
 
 const middleware        = require('../middleware');
+const auth              = require('../auth');
 const models            = require('../../models');
 const recordingUtil     = require('./recordingUtil');
 const responseUtil      = require('./responseUtil');
@@ -65,7 +66,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl,
     [
-      middleware.authenticateDevice,
+      auth.authenticateDevice,
     ],
     middleware.requestWrapper(
       recordingUtil.makeUploadHandler()
@@ -92,10 +93,11 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl + "/:devicename",
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.getDeviceByName(param),
+      auth.userCanAccessDevices,
     ],
-    middleware.ifUsersDeviceRequestWrapper(
+    middleware.requestWrapper(
       recordingUtil.makeUploadHandler()
     )
   );
@@ -128,7 +130,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('where', query).optional(),
       query('offset').isInt().optional(),
       query('limit').isInt().optional(),
@@ -173,7 +175,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
       middleware.parseJSON('filterOptions', query).optional(),
     ],
@@ -202,7 +204,7 @@ module.exports = (app, baseUrl) => {
   app.delete(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -235,7 +237,7 @@ module.exports = (app, baseUrl) => {
   app.patch(
     apiUrl + '/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
       middleware.parseJSON('updates', body),
     ],
@@ -277,7 +279,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl + '/:id/tracks',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt().toInt(),
       middleware.parseJSON('data', body),
       middleware.parseJSON('algorithm', body).optional(),
@@ -291,7 +293,7 @@ module.exports = (app, baseUrl) => {
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording or access denied."],
+          messages: ["No such recording."],
         });
         return;
       }
@@ -328,7 +330,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/:id/tracks',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -340,7 +342,7 @@ module.exports = (app, baseUrl) => {
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording or access denied."],
+          messages: ["No such recording."],
         });
         return;
       }
@@ -370,7 +372,7 @@ module.exports = (app, baseUrl) => {
   app.delete(
     apiUrl + '/:id/tracks/:trackId',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt().toInt(),
       param('trackId').isInt().toInt(),
     ],
@@ -408,7 +410,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl + '/:id/tracks/:trackId/tags',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt().toInt(),
       param('trackId').isInt().toInt(),
       body('what'),
@@ -450,7 +452,7 @@ module.exports = (app, baseUrl) => {
   app.delete(
     apiUrl + '/:id/tracks/:trackId/tags/:trackTagId',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt().toInt(),
       param('trackId').isInt().toInt(),
       param('trackTagId').isInt().toInt(),
@@ -494,7 +496,7 @@ module.exports = (app, baseUrl) => {
   app.get(
     apiUrl + '/reprocess/:id',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       param('id').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -517,7 +519,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl + '/reprocess/multiple',
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('recordings', body),
 
     ],
@@ -536,7 +538,7 @@ module.exports = (app, baseUrl) => {
     if (!recording) {
       responseUtil.send(response, {
         statusCode: 400,
-        messages: ["No such recording or access denied."],
+        messages: ["No such recording."],
       });
       return;
     }

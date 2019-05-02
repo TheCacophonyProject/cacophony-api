@@ -19,11 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const jsonwebtoken      = require('jsonwebtoken');
 const mime             = require('mime');
 
-const { ClientError }   = require('../customErrors');
+const { ClientError, AuthorizationError }   = require('../customErrors');
 const config            = require('../../config');
 const models            = require('../../models');
 const responseUtil      = require('./responseUtil');
 const util              = require('./util');
+const log               = require('../../logging');
 
 
 function makeUploadHandler(mungeData) {
@@ -147,7 +148,11 @@ function guessRawMimeType(type, filename) {
 }
 
 async function addTag(request, response) {
-  const recording = await models.Recording.findByPk(request.body.recordingId);
+  const options = {include: [
+    { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+  ]};
+  const recording = await models.Recording.findByPk(request.body.recordingId, options);
+  log.info(recording.type);
   if (!recording) {
     responseUtil.send(response, {
       statusCode: 400,
@@ -159,11 +164,7 @@ async function addTag(request, response) {
   if (request.user) {
     const permissions = await recording.getUserPermissions(request.user);
     if (!permissions.includes(models.Recording.Perms.TAG)) {
-      responseUtil.send(response, {
-        statusCode: 400,
-        messages: ['User does not have permission to tag recording.']
-      });
-      return;
+      throw new AuthorizationError("The user does not have permission to add tags to this");
     }
   }
 
@@ -246,7 +247,7 @@ async function reprocessRecording(user,recording_id){
   if (!recording) {
     return {
       statusCode: 400,
-      messages: ["No such recording or access denied " + recording_id],
+      messages: ["No such recording: " + recording_id],
       recordingId: recording_id
     };
   }

@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 'use strict';
+const {AuthorizationError} = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
   var name = 'File';
 
@@ -63,14 +64,11 @@ module.exports = function(sequelize, DataTypes) {
     return this.findAndCountAll(q);
   };
 
-  File.deleteIfAllowed = async function(user, file) {
-    if (user.hasGlobalWrite() || user.id == file.UserId) {
-      await file.destroy();
-      return true;
+  File.deleteIfAllowedElseThrow = async function(user, file) {
+    if (!user.hasGlobalWrite() && user.id != file.UserId) {
+      throw new AuthorizationError("The user does not own that file and is not a global admin!");
     }
-    else {
-      return false;
-    }
+    await file.destroy();
   };
 
   return File;

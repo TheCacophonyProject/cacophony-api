@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const { body } = require('express-validator/check');
 
 const middleware = require('../middleware');
+const auth       = require('../auth');
 const models = require('../../models');
 const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');
@@ -62,7 +63,7 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       middleware.parseJSON('tag', body),
       body('recordingId').isInt(),
     ],
@@ -75,7 +76,7 @@ module.exports = function(app, baseUrl) {
   app.delete(
     apiUrl,
     [
-      middleware.authenticateUser,
+      auth.authenticateUser,
       body('tagId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {

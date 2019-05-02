@@ -25,6 +25,7 @@ const uuidv4 = require('uuid/v4');
 
 var util = require('./util/util');
 var validation = require('./util/validation');
+const { AuthorizationError } = require("../api/customErrors");
 
 
 module.exports = function(sequelize, DataTypes) {
@@ -299,7 +300,6 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         [Op.and]: [
           { id: id },
-          await recordingsFor(user),
         ],
       },
       include: [
@@ -319,7 +319,7 @@ module.exports = function(sequelize, DataTypes) {
     }
     const userPermissions = await recording.getUserPermissions(user);
     if (!userPermissions.includes(permission)) {
-      return null;
+      throw new AuthorizationError("The user does not have permission to view this file");
     }
 
     recording.filterData(makeFilterOptions(user, options.filterOptions));

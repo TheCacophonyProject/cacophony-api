@@ -1,5 +1,7 @@
 import pytest
 
+from test.testexception import AuthorizationError
+
 
 class TestGlobalPermission:
     def test_setting_global_permissions(self, helper):
@@ -8,23 +10,23 @@ class TestGlobalPermission:
         bob = helper.given_new_user(self, "bob")
 
         print("  Tom shoud not be able to change global permissions for himself")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             tom.set_global_permission(tom.username, "write")
 
         print("  Or other users (bob)")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             tom.set_global_permission(bob.username, "write")
 
         print("When Tom is given global read permission")
         admin = helper.admin_user()
         admin.set_global_permission(tom.username, "read")
 
-        print(" he shoud still not be able to change global permissions for himself")
-        with pytest.raises(OSError):
+        print(" he should still not be able to change global permissions for himself")
+        with pytest.raises(AuthorizationError):
             tom.set_global_permission(tom.username, "write")
 
         print("  Or other users (bob)")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             tom.set_global_permission(bob.username, "write")
 
         print("When Tom is given global write permission")
@@ -69,15 +71,15 @@ class TestGlobalPermission:
         fred.can_see_recordings(recording)
 
         print("  But not delete the recording")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             fred.delete_recording(recording)
 
         print("  Or update the recording")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             fred.update_recording(recording, comment="testing")
 
         print("  Or tag the recording")
-        with pytest.raises(OSError):
+        with pytest.raises(AuthorizationError):
             fred.tag_recording(recording, {})
 
         print("When Fred is given global write permission")
