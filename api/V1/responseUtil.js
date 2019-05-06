@@ -40,7 +40,7 @@ function send(response, data) {
     return serverError(response, data);
   }
   var statusCode = data.statusCode;
-  data.success = (200 <= statusCode <= 299);
+  data.success = (200 <= statusCode && statusCode <= 299);
   delete data.statusCode;
   return response.status(statusCode).json(data);
 }
