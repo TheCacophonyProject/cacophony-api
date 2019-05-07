@@ -51,15 +51,15 @@ const authenticate = function(type) {
     }
     let result;
     switch(jwtDecoded._type) {
-      case 'user':
-        result = await models.User.findByPk(jwtDecoded.id);
-        break;
-      case 'device':
-        result = await models.Device.findByPk(jwtDecoded.id);
-        break;
-      case 'fileDownload':
-        result = jwtDecoded;
-        break;
+    case 'user':
+      result = await models.User.findByPk(jwtDecoded.id);
+      break;
+    case 'device':
+      result = await models.Device.findByPk(jwtDecoded.id);
+      break;
+    case 'fileDownload':
+      result = jwtDecoded;
+      break;
     }
     if (result == null) {
       return res.status(401).json({"messages": [format('Could not find a %s from the JWT.', type)]});
