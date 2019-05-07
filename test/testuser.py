@@ -429,7 +429,8 @@ class RecordingQueryPromise:
 
     def from_(self, allRecordings):
         if not self._expected_recordings:
-            raise TestException("You must call 'can_only_see_recordings' before calling function 'from_list'.")
+            raise TestException(
+                "You must call 'can_only_see_recordings' before calling function 'from_list'.")
 
         ids = [testRecording.id_ for testRecording in self._expected_recordings]
         print("Then searching with {} should give only {}.".format(self._queryParams, ids))

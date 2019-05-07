@@ -26,7 +26,8 @@ class APIBase:
             self._set_jwt_token(response)
             return
         if response.status_code == 422:
-            raise ValueError("Could not log on as '{}'.  Please check {} name.".format(self._loginname, self._logintype))
+            raise ValueError("Could not log on as '{}'.  Please check {} name."
+                             .format(self._loginname, self._logintype))
         raise_specific_exception(response)
 
     def register_as_new(self, group=None, email=None):
