@@ -184,7 +184,14 @@ class TestUser:
         self._userapi.get_user_details(user.username)
 
     def tag_recording(self, recording, tagDictionary):
-        self._userapi.tag_recording(recording.id_, tagDictionary)
+        return self._userapi.tag_recording(recording.id_, tagDictionary)
+
+    def cannot_delete_recording_tag(self, tag_id):
+        with pytest.raises(AuthorizationError):
+            self._userapi.delete_recording_tag(tag_id)
+
+    def delete_recording_tag(self, tag_id):
+        return self._userapi.delete_recording_tag(tag_id)
 
     def can_see_audio_recording(self, recording):
         self._userapi.get_audio(recording.id_)

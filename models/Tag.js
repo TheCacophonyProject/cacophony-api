@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var util = require('./util/util');
+const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
@@ -62,6 +63,7 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   // CLASS METHODS
   //---------------
+  const Recording = sequelize.models.Recording;
 
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, {as: 'tagger'});
@@ -75,17 +77,22 @@ module.exports = function(sequelize, DataTypes) {
   Tag.deleteModelInstance = function(id, user) {
     util.deleteModelInstance(id, user);
   };
-  
+
   Tag.deleteFromId = async function(id, user) {
     var tag = await this.findOne({where: {id: id}});
     if (tag == null) {
       return false;
     }
-    if (tag.taggerId === user.id) {
-      await tag.destroy();
-      return true;
+    const recording = await Recording.get(
+      user,
+      tag.RecordingId,
+      Recording.Perms.TAG,
+    );
+
+    if(recording == null){
+      return false
     }
-    else {return false;}
+    return tag.destroy();
   };
   
   Tag.prototype.getFrontendFields = function() {

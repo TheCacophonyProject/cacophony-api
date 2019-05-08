@@ -23,6 +23,7 @@ const auth       = require('../auth');
 const models = require('../../models');
 const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');
+const log = require('../../logging');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';
@@ -80,22 +81,6 @@ module.exports = function(app, baseUrl) {
       body('tagId').isInt(),
     ],
     middleware.requestWrapper(async function(request, response) {
-
-      // Check that user has permission to delete the tag.
-      //TODO
-      /*
-      var userCanDeleteTag = await models.Tag.userCanDelete(req.body.tagId,
-        req.user);
-      if (!userCanDeleteTag)
-        return responseUtil.send(res, {
-          statusCode: 400,
-          messages: [
-            "Given user does not have permission to delete the tag."
-          ]
-        })
-      */
-
-      // Delete the tag
       var tagDeleteResult = await models.Tag.deleteFromId(request.body.tagId, request.user);
       if (tagDeleteResult) {
         return responseUtil.send(response, {
