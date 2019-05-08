@@ -23,7 +23,6 @@ const auth       = require('../auth');
 const models = require('../../models');
 const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');
-const log = require('../../logging');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/tags';

@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var util = require('./util/util');
-const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
@@ -90,7 +89,7 @@ module.exports = function(sequelize, DataTypes) {
     );
 
     if(recording == null){
-      return false
+      return false;
     }
     return tag.destroy();
   };
