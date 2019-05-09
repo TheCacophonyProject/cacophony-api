@@ -80,7 +80,7 @@ module.exports = function(sequelize, DataTypes) {
   Tag.deleteFromId = async function(id, user) {
     var tag = await this.findOne({where: {id: id}});
     if (tag == null) {
-      return false;
+      return true;
     }
     const recording = await Recording.get(
       user,
