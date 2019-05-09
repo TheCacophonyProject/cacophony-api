@@ -91,7 +91,8 @@ module.exports = function(sequelize, DataTypes) {
     if(recording == null){
       return false;
     }
-    return tag.destroy();
+    result = await tag.destroy();
+    return result > 0
   };
   
   Tag.prototype.getFrontendFields = function() {
