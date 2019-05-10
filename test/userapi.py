@@ -183,7 +183,18 @@ class UserAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/tags/")
         tagData = {"tag": json.dumps(tagDictionary), "recordingId": recording_id}
         response = requests.post(url, headers=self._auth_header, data=tagData)
-        raise_specific_exception(response)
+        return self._check_response(response)
+
+    def delete_recording_tag(self, tag_id):
+        tagData = {"tagId": tag_id}
+        response = requests.delete(
+            urljoin(
+                self._baseurl,
+                "/api/v1/tags".format(tag_id),
+            ),
+            headers=self._auth_header, data=tagData
+        )
+        return self._check_response(response)["messages"]
 
     def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
         return self._query(

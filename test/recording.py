@@ -31,15 +31,12 @@ class TagPromise:
 
     def by(self, user):
         print(" by {}".format(user.username))
-        user.tag_recording(self._recording, self._tag_data)
-        return self._recording
+        return user.tag_recording(self._recording, self._tag_data)
 
     def byAI(self, user):
         print(" by {}".format("by AI"))
         self._tag_data["automatic"] = True
-
-        user.tag_recording(self._recording, self._tag_data)
-        return self._recording
+        return user.tag_recording(self._recording, self._tag_data)
 
 
 def slurp(filename):

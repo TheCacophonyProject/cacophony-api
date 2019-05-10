@@ -1,15 +1,37 @@
 class TestTagging:
+    def test_tag_deletion(self, helper):
+        lucy = helper.given_new_user(self, "lucy")
+        admin = helper.admin_user()
+        sophie = helper.given_new_user(self, "sophie")
+
+        group = lucy.create_group(helper.make_unique_group_name(self, "lucys_group"))
+        device = helper.given_new_device(self, "Rec", group, description='')
+        untagged = device.has_recording()
+
+        tag = untagged.is_tagged_as("possum").by(lucy)
+        lucy.delete_recording_tag(tag["tagId"])
+
+        tag = untagged.is_tagged_as("cat").by(lucy)
+        admin.delete_recording_tag(tag["tagId"])
+
+        tag = untagged.is_tagged_as("cat").by(lucy)
+        sophie.cannot_delete_recording_tag(tag["tagId"])
+
     def test_recording_can_be_retrieved_by_tagmode_types(self, helper):
         admin = helper.admin_user()
 
         destroyer = helper.given_new_device(self, "The Destroyer")
 
-        possum_human = destroyer.has_recording().is_tagged_as("possum").by(admin)
+        possum_human = destroyer.has_recording()
+        possum_human.is_tagged_as("possum").by(admin)
 
-        bird_both = destroyer.has_recording().is_tagged_as("bird").by(admin)
+        bird_both = destroyer.has_recording()
+        bird_both.is_tagged_as("bird").by(admin)
         bird_both.is_tagged_as("bird").byAI(admin)
-        stoat_ai = destroyer.has_recording().is_tagged_as("stoat").byAI(admin)
-        rat_both_diff = destroyer.has_recording().is_tagged_as("rat").by(admin)
+        stoat_ai = destroyer.has_recording()
+        stoat_ai.is_tagged_as("stoat").byAI(admin)
+        rat_both_diff = destroyer.has_recording()
+        rat_both_diff.is_tagged_as("rat").by(admin)
         rat_both_diff.is_tagged_as("hedgehog").byAI(admin)
         no_tag = destroyer.has_recording()
 
