@@ -20,107 +20,100 @@ const log = require('../logging');
 const format = require('util').format;
 
 function errorHandler(err, request, response, next) { // eslint-disable-line
+  if (err instanceof SyntaxError && err.type === 'entity.parse.failed') {
+    err = new ClientError(err.message, 422); // Convert invalid JSON body error to UnprocessableEntity
+  }
   if (err instanceof CustomError) {
     log.warn(err.toString());
-    response.status(err.statusCode).json(err.toJson());
-    return;
+    return response.status(err.statusCode).json(err.toJson());
   }
   log.error(err);
   response.status(500).json({
-    message: "Server error.",
+    message: "Internal server error: " + err.name + ".",
     errorType: "server"
   });
 }
 
-function CustomError() {
-  this.statusCode = 500;
-}
-CustomError.prototype = new Error;
+class CustomError extends Error {
+  constructor() {
+    super();
+    this.name = this.constructor.name;
 
-function ValidationError(errors) {
-  this.name = "Validation";
-  this.statusCode = 422;
-  this.errors = errors;
-  this.flatten = () => {
+    this.statusCode = 500;
+    this.message = "Internal server error.";
+  }
+
+  getErrorType() {
+    if (this.name.endsWith("Error")) {
+      return this.name.toLowerCase().slice(0, -"Error".length);
+    }
+    return this.name.toLowerCase();
+  }
+
+  toString() {
+    return format("%s [%d]: %s.", this.name, this.statusCode, this.message);
+  }
+
+  toJson() {
+    return {
+      message: this.message,
+      errorType: this.getErrorType(),
+    };
+  }
+}
+
+class ValidationError extends CustomError {
+  constructor(errors) {
+    super();
+    this.statusCode = 422;
+    this.errors = errors;
+
     const mappedErrors = this.errors.mapped();
-    var errors = [];
+    const errorStrings = [];
     for (const name in mappedErrors) {
       const error = mappedErrors[name];
       if (typeof error.msg == "string") {
-        errors.push(error.msg);
+        errorStrings.push(error.msg);
       }
     }
-    return errors.join('; ');
-  };
-  this.toString = () => {
-    return format("%s error[%d]: %s.", this.name, this.statusCode, this.flatten());
-  };
-  this.toJson = () => {
+    this.message = errorStrings.join('; ');
+  }
+
+  toJson() {
     return {
-      errorType: this.name.toLowerCase(),
-      message: this.flatten(),
+      errorType: this.getErrorType(),
+      message: this.message,
       errors: this.errors.mapped(),
     };
-  };
-}
-ValidationError.prototype = new CustomError;
-ValidationError.prototype.constructor = ClientError;
-
-function AuthenticationError(message) {
-  this.name = "Authentication";
-  this.message = message;
-  this.statusCode = 401;
-  this.toString = () => {
-    return format("%s error[%d]: %s.", this.name, this.statusCode, this.message);
-  };
-  this.toJson = () => {
-    return {
-      message: this.message,
-      errorType: this.name.toLowerCase(),
-    };
-  };
-}
-
-AuthenticationError.prototype = new CustomError;
-AuthenticationError.prototype.constructor = AuthenticationError;
-
-function AuthorizationError(message) {
-  this.name = "AuthorizationError";
-  this.message = message;
-  this.statusCode = 403;
-  this.toString = () => {
-    return format("%s error[%d]: %s.", this.name, this.statusCode, this.message);
-  };
-  this.toJson = () => {
-    return {
-      message: this.message,
-      errorType: this.name.toLowerCase(),
-    };
-  };
-}
-
-AuthorizationError.prototype = new CustomError;
-AuthorizationError.prototype.constructor = AuthorizationError;
-
-function ClientError(message, statusCode) {
-  if (statusCode == undefined) {
-    statusCode = 400;
   }
-  this.name = "Client";
-  this.message = message;
-  this.statusCode = statusCode;
-  this.toString = () => {
-    return format("%s error[%d]: %s.", this.name, statusCode, message);
-  };
-  this.toJson = () => {
-    return {
-      message: message,
-      errorType: this.name.toLowerCase(),
-    };
-  };
 }
-ClientError.prototype = new CustomError;
-ClientError.prototype.constructor = ClientError;
+
+class AuthenticationError extends CustomError {
+  constructor(message) {
+    super();
+    this.message = message;
+    this.statusCode = 401;
+  }
+}
+
+class AuthorizationError extends CustomError {
+  constructor(message) {
+    super();
+    this.message = message;
+    this.statusCode = 403;
+  }
+}
+
+class ClientError extends CustomError {
+  constructor(message, statusCode) {
+    super();
+    if (typeof statusCode === 'undefined') {
+      statusCode = 400;
+    }
+    this.message = message;
+    this.statusCode = statusCode;
+  }
+}
 
 exports.ValidationError = ValidationError;
 exports.AuthenticationError = AuthenticationError;

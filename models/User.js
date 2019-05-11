@@ -64,7 +64,9 @@ module.exports = function(sequelize, DataTypes) {
   var options = {
     hooks: {
       beforeValidate: beforeValidate,
-      afterValidate: afterValidate,
+      beforeCreate: beforeModify,
+      beforeUpdate: beforeModify,
+      beforeUpsert: beforeModify,
     }
   };
 
@@ -268,18 +270,10 @@ module.exports = function(sequelize, DataTypes) {
 // VALIDATION FUNCTIONS
 //----------------------
 
-function afterValidate(user) {
-  // TODO see if this can be done elsewhere, or when just validating the password.
-  return new Promise(function(resolve, reject) {
-    bcrypt.hash(user.password, 10, function(err, hash) {
-      if (err) {
-        reject(err);
-      } else {
-        user.password = hash;
-        resolve();
-      }
-    });
-  });
+async function beforeModify(user) {
+  if (user.changed('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
 }
 
 function beforeValidate(user) {

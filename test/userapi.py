@@ -56,6 +56,11 @@ class UserAPI(APIBase):
             filterOptions=filterOptions,
         )
 
+    def update_user(self, body):
+        url = urljoin(self._baseurl, "/api/v1/users")
+        response = requests.patch(url, data=body, headers=self._auth_header)
+        self._check_response(response)
+
     def get_recording(self, recording_id, params=None):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
         r = requests.get(url, headers=self._auth_header, params=params)
