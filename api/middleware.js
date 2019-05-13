@@ -20,7 +20,6 @@ const models = require('../models');
 const format       = require('util').format;
 const log          = require('../logging');
 const customErrors = require('./customErrors');
-const {AuthorizationError, AuthenticationError} = require("./customErrors");
 const { body, validationResult, oneOf } = require('express-validator/check');
 
 
@@ -192,16 +191,7 @@ const requestWrapper = fn => (request, response, next) => {
     throw new customErrors.ValidationError(validationErrors);
   } else {
     Promise.resolve(fn(request, response, next))
-      .catch(e => {
-        if (e instanceof AuthenticationError) {
-          return response.status(401).json({messages: [e.message]});
-        }
-        if (e instanceof AuthorizationError) {
-          return response.status(403).json({messages: [e.message]});
-        }
-        throw e;
-      })
-      .catch((err) => { log.error("Unknown error: " + err + "\n" + err.stack); next();});
+      .catch(next);
   }
 };
 

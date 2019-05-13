@@ -21,6 +21,10 @@ class Helper:
         api = UserAPI(self.config.api_url, username, None, password).login()
         return TestUser(username, api)
 
+    def login_with_username_password(self, username, password):
+        api = UserAPI(self.config.api_url, username, None, password).login()
+        return TestUser(username, api)
+
     def login_with_email(self, username, email):
         password = self._make_password(username)
         api = UserAPI(self.config.api_url, username, email, password).login()
@@ -73,14 +77,16 @@ class Helper:
 
         raise TestException("Could not create username like '{}'".format(basename))
 
-    def given_new_fixed_user(self, username, email=None):
+    def given_new_fixed_user(self, username, email=None, password=None):
         if not email:
             email = username + "@email.com"
+        if not password:
+            password = self._make_password(username)
         api = UserAPI(
             self.config.api_url,
             username,
             email,
-            self._make_password(username),
+            password,
         ).register_as_new()
         self._print_actual_name(username)
         return TestUser(username, api, email)

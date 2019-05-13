@@ -18,7 +18,14 @@ class UnprocessableError(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 
+class BadRequestError(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+
 def raise_specific_exception(response):
+    if response.status_code == 400:
+        raise BadRequestError(response.text)
     if response.status_code == 401:
         raise AuthenticationError(response.text)
     if response.status_code == 403:

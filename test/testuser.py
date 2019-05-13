@@ -14,6 +14,16 @@ class TestUser:
         self.email = email
         self._group = None
 
+    def update(self, username=None, email=None, password=None):
+        data = {}
+        if username:
+            data["username"] = username
+        if email:
+            data["email"] = email
+        if password:
+            data["password"] = password
+        self._userapi.update_user(data)
+
     def reprocess_recordings(self, recordings, params=None):
         return self._userapi.reprocess_recordings(recordings, params)
 
@@ -181,7 +191,7 @@ class TestUser:
         return groupname
 
     def get_user_details(self, user):
-        self._userapi.get_user_details(user.username)
+        return self._userapi.get_user_details(user.username)
 
     def tag_recording(self, recording, tagDictionary):
         return self._userapi.tag_recording(recording.id_, tagDictionary)

@@ -10,9 +10,9 @@ from .testexception import raise_specific_exception
 
 class APIBase:
     def __init__(self, logintype, baseurl, loginname, password="password"):
+        self._logintype = logintype
         self._baseurl = baseurl
         self._loginname = loginname
-        self._logintype = logintype
         self._password = password
 
     def login(self, email=None):
