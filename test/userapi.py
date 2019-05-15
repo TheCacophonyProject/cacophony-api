@@ -38,6 +38,7 @@ class UserAPI(APIBase):
         tagmode=None,
         tags=None,
         filterOptions=None,
+        return_json=False,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -54,6 +55,7 @@ class UserAPI(APIBase):
             tagMode=tagmode,
             tags=tags,
             filterOptions=filterOptions,
+            return_json=return_json,
         )
 
     def update_user(self, body):
@@ -226,6 +228,8 @@ class UserAPI(APIBase):
         params.setdefault("limit", 100)
         params.setdefault("offset", 0)
 
+        return_json = params.get("return_json", False)
+        params.pop("return_json", None)
         req_params = {}
         for name, value in params.items():
             if value is not None:
@@ -237,7 +241,10 @@ class UserAPI(APIBase):
 
         response = requests.get(url, params=req_params, headers=self._auth_header)
         if response.status_code == 200:
-            return response.json()["rows"]
+            if return_json:
+                return response.json()
+            else:
+                return response.json()["rows"]
         raise_specific_exception(response)
 
     def upload_file(self, filename, props):
