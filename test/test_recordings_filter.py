@@ -3,6 +3,18 @@ import json
 
 
 class TestRecordingsFilter:
+    def test_limit_count(self, helper):
+        bob = helper.given_new_user(self, "bob_limit")
+        bobsGroup = helper.make_unique_group_name(self, "bobs_group")
+        bob.create_group(bobsGroup)
+        bobsDevice = helper.given_new_device(self, "bobs_device", bobsGroup)
+        for _ in range(10):
+            bobsDevice.upload_recording()
+
+        response = bob.query_recordings(limit=5, return_json=True)
+        assert len(response["rows"]) == 5
+        assert response["count"] == 10
+
     def test_latitude_longitude_filter(self, helper):
         print("If a new user Bob has a device upload a recording")
         bob = helper.given_new_user(self, "bob")
