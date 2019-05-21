@@ -194,7 +194,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // local
   var handleTagMode = (tagMode, tagWhatsIn) => {
-    const tagWhats = (tagWhatsIn && (tagWhatsIn.length > 0)) ? tagWhatsIn : null;
+    const tagWhats = tagWhatsIn && (tagWhatsIn.length > 0) ? tagWhatsIn : null;
     if (!tagMode) {
       tagMode = (tagWhats) ? 'tagged' : 'any';
     }
@@ -213,15 +213,15 @@ module.exports = function(sequelize, DataTypes) {
     case 'automatic-tagged':
       return tagOfType(tagWhats, AISQL);
     case 'both-tagged':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
     case 'no-human':
       return notTagOfType(tagWhats, humanSQL);
     case 'automatic-only':
-      return '(' + tagOfType(tagWhats, AISQL) + ') AND (' + notTagOfType(tagWhats, humanSQL) + ')';
+      return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
     case 'human-only':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + notTagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
     case 'automatic+human':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
