@@ -45,29 +45,29 @@ class TestRecordingsGetByTags:
 
         # Other animals
         expected_rat_cat = [ai_possum2, human_possum2]
-        lucy.when_searching_for_tagmode_and_tags('tagged', ["rat", "cat"]) \
+        lucy.when_searching_for().tagmode('tagged').tags(["rat", "cat"]) \
             .can_only_see_recordings(*expected_rat_cat).from_(all)
 
         expected_rat_cat_possum = all.copy()
         expected_rat_cat_possum.remove(untagged)
-        lucy.when_searching_for_tagmode_and_tags('tagged', ["rat", "cat", "possum"]) \
+        lucy.when_searching_for().tagmode('tagged').tags(["rat", "cat", "possum"]) \
             .can_only_see_recordings(*expected_rat_cat_possum).from_(all)
 
         # no animal tags
         expected = [untagged]
-        lucy.when_searching_with_tagmode('untagged').can_only_see_recordings(*expected).from_(all)
+        lucy.when_searching_for_tagmode('untagged').can_only_see_recordings(*expected).from_(all)
 
         expected = [untagged, ai_possum, ai_possum2]
-        lucy.when_searching_with_tagmode('no-human').can_only_see_recordings(*expected).from_(all)
+        lucy.when_searching_for_tagmode('no-human').can_only_see_recordings(*expected).from_(all)
 
         expected = [ai_possum, ai_possum2]
-        lucy.when_searching_with_tagmode('automatic-only').can_only_see_recordings(*expected).from_(all)
+        lucy.when_searching_for_tagmode('automatic-only').can_only_see_recordings(*expected).from_(all)
 
         expected = [human_possum]
-        lucy.when_searching_with_tagmode('human-only').can_only_see_recordings(*expected).from_(all)
+        lucy.when_searching_for_tagmode('human-only').can_only_see_recordings(*expected).from_(all)
 
         expected = [ai_human_possum, ai_human_possum2, ai_human_possum3, human_possum2]
-        lucy.when_searching_with_tagmode('automatic+human').can_only_see_recordings(*expected).from_(all)
+        lucy.when_searching_for_tagmode('automatic+human').can_only_see_recordings(*expected).from_(all)
 
     def testInterestingRecordingTags(self, helper):
         julie = helper.given_new_user(self, "julie")
@@ -82,9 +82,9 @@ class TestRecordingsGetByTags:
 
         julie.when_searching_for_tagmode_and_tags('tagged', ["interesting"]) \
             .can_only_see_recordings(animal).from_(all)
-        julie.when_searching_for_tagmode_and_tags('tagged', ["interesting", "bird"]) \
+        julie.when_searching_for().tagmode('tagged').tags(["interesting", "bird"]) \
             .can_only_see_recordings(animal, bird).from_(all)
-        julie.when_searching_for_tagmode_and_tags('tagged', ["interesting", "false positive"]) \
+        julie.when_searching_for().tagmode('tagged').tags(["interesting", "false positive"]) \
             .can_only_see_recordings(animal, false_positive).from_(all)
 
     def testInterestingRecordingTrackTags(self, helper):
@@ -100,9 +100,9 @@ class TestRecordingsGetByTags:
 
         julie.when_searching_for_tagmode_and_tags('tagged', ["interesting"]) \
             .can_only_see_recordings(animal).from_(all)
-        julie.when_searching_for_tagmode_and_tags('tagged', ["interesting", "bird"]) \
+        julie.when_searching_for().tagmode('tagged').tags(["interesting", "bird"]) \
             .can_only_see_recordings(animal, bird).from_(all)
-        julie.when_searching_for_tagmode_and_tags('tagged', ["interesting", "false positive"]) \
+        julie.when_searching_for().tagmode('tagged').tags(["interesting", "false positive"]) \
             .can_only_see_recordings(animal, false_positive).from_(all)
 
 

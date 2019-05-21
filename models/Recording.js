@@ -193,10 +193,10 @@ module.exports = function(sequelize, DataTypes) {
 
 
   // local
-  var handleTagMode = (tagMode, tagWhats) => {
+  var handleTagMode = (tagMode, tagWhatsIn) => {
+    const tagWhats = tagWhatsIn && (tagWhatsIn.length > 0) ? tagWhatsIn : null;
     if (!tagMode) {
-      const hasWhatTags = (tagWhats && (tagWhats.length > 0));
-      tagMode = (hasWhatTags) ? 'tagged' : 'any';
+      tagMode = (tagWhats) ? 'tagged' : 'any';
     }
 
     const humanSQL = 'NOT "Tags".automatic';
@@ -213,22 +213,22 @@ module.exports = function(sequelize, DataTypes) {
     case 'automatic-tagged':
       return tagOfType(tagWhats, AISQL);
     case 'both-tagged':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
     case 'no-human':
       return notTagOfType(tagWhats, humanSQL);
     case 'automatic-only':
-      return '(' + tagOfType(tagWhats, AISQL) + ') AND (' + notTagOfType(tagWhats, humanSQL) + ')';
+      return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
     case 'human-only':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + notTagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
     case 'automatic+human':
-      return '(' + tagOfType(tagWhats, humanSQL) + ') AND (' + tagOfType(tagWhats, AISQL) + ')';
+      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
   };
 
   var tagOfType = (tagWhats, tagTypeSql) => {
-    return 'EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
+    return '(EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + '))';
   };
 
   var notTagOfType = (tagWhats, tagTypeSql) => {

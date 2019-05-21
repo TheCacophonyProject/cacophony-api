@@ -38,6 +38,7 @@ class UserAPI(APIBase):
         tagmode=None,
         tags=None,
         filterOptions=None,
+        deviceIds=None,
         return_json=False,
     ):
         where = defaultdict(dict)
@@ -46,6 +47,8 @@ class UserAPI(APIBase):
             where["recordingDateTime"]["$gte"] = startDate.isoformat()
         if endDate is not None:
             where["recordingDateTime"]["$lte"] = endDate.isoformat()
+        if deviceIds is not None:
+            where["DeviceId"] = deviceIds
 
         return self._query(
             "recordings",
