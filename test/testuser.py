@@ -30,20 +30,17 @@ class TestUser:
     def reprocess(self, recording, params=None):
         return self._userapi.reprocess(recording.id_, params)
 
-    def when_searching_with(self, queryParams):
+    def when_searching_for(self, queryParams={}):
         return RecordingQueryPromise(self, queryParams)
 
     def when_searching_for_tagmode_and_tags(self, tagmode, tags):
-        queryParams = {"tagmode": tagmode, "tags": tags}
-        return RecordingQueryPromise(self, queryParams)
+        return self.when_searching_for().tagmode(tagmode).tags(tags)
 
-    def when_searching_with_tagmode(self, tagmode):
-        queryParams = {"tagmode": tagmode}
-        return RecordingQueryPromise(self, queryParams)
+    def when_searching_for_tagmode(self, tagmode):
+        return self.when_searching_for().tagmode(tagmode)
 
     def when_searching_for_tags(self, *tags):
-        queryParams = {"tags": tags}
-        return RecordingQueryPromise(self, queryParams)
+        return self.when_searching_for().tags(tags)
 
     def get_recording(self, recording, params=None):
         return self._userapi.get_recording(recording.id_, params)
@@ -425,6 +422,18 @@ class RecordingQueryPromise:
         self._testUser = testUser
         self._queryParams = queryParams
         self._expected_recordings = None
+
+    def tagmode(self, tagmode):
+        self._queryParams["tagmode"] = tagmode
+        return self
+
+    def tags(self, tags):
+        self._queryParams["tags"] = tags
+        return self
+
+    def devices(self, devices):
+        self._queryParams["deviceIds"] = list(map(lambda device: device.get_id(), devices))
+        return self
 
     def can_see_recordings(self, *expected_recordings):
         self._testUser._can_see_recordings_with_query(

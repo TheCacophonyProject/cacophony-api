@@ -193,10 +193,10 @@ module.exports = function(sequelize, DataTypes) {
 
 
   // local
-  var handleTagMode = (tagMode, tagWhats) => {
+  var handleTagMode = (tagMode, tagWhatsIn) => {
+    const tagWhats = (tagWhatsIn && (tagWhatsIn.length > 0)) ? tagWhatsIn : null;
     if (!tagMode) {
-      const hasWhatTags = (tagWhats && (tagWhats.length > 0));
-      tagMode = (hasWhatTags) ? 'tagged' : 'any';
+      tagMode = (tagWhats) ? 'tagged' : 'any';
     }
 
     const humanSQL = 'NOT "Tags".automatic';
@@ -228,7 +228,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var tagOfType = (tagWhats, tagTypeSql) => {
-    return 'EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + ')';
+    return '(EXISTS (' + recordingTaggedWith(tagWhats, tagTypeSql) + ') OR EXISTS(' + trackTaggedWith(tagWhats, tagTypeSql) + '))';
   };
 
   var notTagOfType = (tagWhats, tagTypeSql) => {
