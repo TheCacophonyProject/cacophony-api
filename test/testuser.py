@@ -30,8 +30,8 @@ class TestUser:
     def reprocess(self, recording, params=None):
         return self._userapi.reprocess(recording.id_, params)
 
-    def when_searching_for(self, queryParams={}):
-        return RecordingQueryPromise(self, queryParams)
+    def when_searching_for(self):
+        return RecordingQueryPromise(self)
 
     def when_searching_for_tagmode_and_tags(self, tagmode, tags):
         return self.when_searching_for().tagmode(tagmode).tags(tags)
@@ -418,9 +418,9 @@ class TestUser:
 
 
 class RecordingQueryPromise:
-    def __init__(self, testUser, queryParams):
+    def __init__(self, testUser):
         self._testUser = testUser
-        self._queryParams = queryParams
+        self._queryParams = {}
         self._expected_recordings = None
 
     def tagmode(self, tagmode):
