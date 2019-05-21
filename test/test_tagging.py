@@ -16,4 +16,3 @@ class TestTagging:
 
         tag = untagged.is_tagged_as("cat").by(lucy)
         sophie.cannot_delete_recording_tag(tag["tagId"])
-
