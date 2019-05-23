@@ -36,7 +36,7 @@ module.exports = function(app, baseUrl) {
    *
    * @apiDescription Gets a file using a JWT as a method of authentication.
    *
-   * @apiHeader {String} Authorization JWT for the content to retrieve. Must start with "JWT ".
+   * @apiParam {String} jwt the value of the downloadFileJWT field from a successful [GetRecording](#api-Recordings-GetRecording) request
    *
    * @apiSuccess {file} file Raw data stream of the file.
    *
