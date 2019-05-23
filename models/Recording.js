@@ -181,7 +181,7 @@ module.exports = function(sequelize, DataTypes) {
       ],
       limit: limit,
       offset: offset,
-      attributes: ['id', 'type', 'processingState', 'recordingDateTime', 'batteryLevel', 'location', 'GroupId', 'DeviceId'],
+      attributes: ['id', 'type', 'processingState', 'recordingDateTime', 'batteryLevel', 'duration', 'location', 'GroupId', 'DeviceId'],
     };
 
     var queryResponse = await this.findAndCountAll(q);
