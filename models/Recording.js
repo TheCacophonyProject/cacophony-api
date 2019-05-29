@@ -181,7 +181,7 @@ module.exports = function(sequelize, DataTypes) {
       ],
       limit: limit,
       offset: offset,
-      attributes: ['id', 'type', 'processingState', 'recordingDateTime', 'batteryLevel', 'duration', 'location', 'GroupId', 'DeviceId'],
+      attributes: Recording.queryGetAttributes
     };
 
     var queryResponse = await this.findAndCountAll(q);
@@ -546,6 +546,24 @@ module.exports = function(sequelize, DataTypes) {
     return track;
   };
 
+  // Attributes returned in recording query results.
+  Recording.queryGetAttributes = [
+    'id',
+    'type',
+    'recordingDateTime',
+    'rawFileSize',
+    'rawMimeType',
+    'fileSize',
+    'fileMimeType',
+    'processingState',
+    'duration',
+    'location',
+    'batteryLevel',
+    'DeviceId',
+    'GroupId',
+  ];
+
+  // Attributes returned when looking up a single recording.
   Recording.userGetAttributes = [
     'id',
     'rawFileSize',
@@ -569,6 +587,7 @@ module.exports = function(sequelize, DataTypes) {
     'comment',
   ];
 
+  // Fields that can be provided when uploading new recordings.
   Recording.apiSettableFields = [
     'type',
     'duration',

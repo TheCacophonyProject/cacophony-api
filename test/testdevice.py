@@ -66,6 +66,8 @@ class TestDevice:
         }
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
+
+        props["rawMimeType"] = "audio/mpeg"
         return Recording(recording_id, props, filename)
 
     def _print_description(self, description):

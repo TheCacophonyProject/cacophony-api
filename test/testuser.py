@@ -58,6 +58,22 @@ class TestUser:
                 "User '{}' could not see any recordings.".format(self.username)
             )
 
+        # Check presence of various fields
+        r0 = recordings[0]
+        assert r0['id']
+        assert r0['type']
+        assert r0['recordingDateTime']
+        assert 'rawFileSize' in r0
+        assert r0['rawMimeType']
+        assert 'fileSize' in r0
+        assert 'fileMimeType' in r0
+        assert r0['processingState']
+        assert r0['duration'] > 0
+        assert 'location' in r0
+        assert 'batteryLevel' in r0
+        assert r0['DeviceId']
+        assert r0['GroupId']
+
         _errors = []
         for testRecording in expected_recordings:
             if not self._recording_in_list(recordings, testRecording):
