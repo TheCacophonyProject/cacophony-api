@@ -22,14 +22,13 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
 
   var attributes = {
-
     animal: { // Name of animal for the Tag
       type: DataTypes.STRING,
     },
     event: {
       type: DataTypes.STRING,
     },
-    confidence: { // 0-Not sure at all, 1-100% positive.
+    confidence: { // 0: Not sure at all; 1: 100% positive
       type: DataTypes.FLOAT,
     },
     startTime: { // Start time of the tag in the linked recording in seconds
@@ -37,18 +36,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     duration: { // duration of the tag
       type: DataTypes.FLOAT,
-    },
-    number: { // Number of animals in tag
-      type: DataTypes.INTEGER,
-    },
-    trapType: {
-      type: DataTypes.STRING,
-    },
-    sex: { // What sex is the animal, null if don't know.
-      type: DataTypes.ENUM('F', 'M'),
-    },
-    age: { // Guessed age in weeks of animal
-      type: DataTypes.INTEGER,
     },
     automatic: { // True if the tag was automatically generated.
       type: DataTypes.BOOLEAN,

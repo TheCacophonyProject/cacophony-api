@@ -39,15 +39,6 @@ module.exports = function(app, baseUrl) {
    * - confidence
    * - startTime
    * - duration
-   * - number
-   * - trapType
-   * - trapInteractionTime
-   * - trapInteractionDuration
-   * - trappedTime
-   * - killedTime
-   * - poisionedTime
-   * - sex
-   * - age
    *
    * @apiUse V1UserAuthorizationHeader
    *
