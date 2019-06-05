@@ -44,8 +44,8 @@ model.
     .---------------------.
     |         Tag         |
     | - id                |
-    | - animal            |
-    | - event             |
+    | - what              |
+    | - detail            |
     | - confidence        |
     | - startTime         |
     | - duration          |

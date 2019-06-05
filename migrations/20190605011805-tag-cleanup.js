@@ -9,9 +9,15 @@ module.exports = {
     await queryInterface.removeColumn('Tags', 'age');
 
     await queryInterface.addColumn('Tags', 'version', { type: Sequelize.INTEGER, defaultValue: 0x0100 });
+
+    await queryInterface.renameColumn('Tags', 'animal', 'what');
+    await queryInterface.renameColumn('Tags', 'event', 'detail');
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.renameColumn('Tags', 'what', 'animal');
+    await queryInterface.renameColumn('Tags', 'detail', 'event');
+
     await queryInterface.removeColumn('Tags', 'version');
 
     await queryInterface.addColumn('Tags', 'number', Sequelize.INTEGER);

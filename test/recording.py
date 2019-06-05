@@ -16,19 +16,19 @@ class Recording:
     def __setitem__(self, name, value):
         self.props[name] = value
 
-    def is_tagged_as(self, animal, **data):
-        return TagPromise(self, animal, data)
+    def is_tagged_as(self, what, **data):
+        return TagPromise(self, what, data)
 
 
 class TagPromise:
-    def __init__(self, recording, animal, data=None):
+    def __init__(self, recording, what, data=None):
         self._recording = recording
-        if animal == 'false positive':
-            self._tag_data = {"event": 'false positive'}
+        if what == 'false positive':
+            self._tag_data = {"detail": 'false positive'}
         else:
-            self._tag_data = {"animal": animal}
+            self._tag_data = {"what": what}
         self._tag_data.update(data)
-        print("  which is tagged as a {}".format(animal), end="")
+        print("  which is tagged as a {}".format(what), end="")
 
     def by(self, user):
         print(" by {}".format(user.username))

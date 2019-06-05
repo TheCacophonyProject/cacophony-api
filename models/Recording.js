@@ -164,7 +164,7 @@ module.exports = function(sequelize, DataTypes) {
         { model: models.Group, where: {}, attributes: ["groupname"] },
         { model: models.Tag,
           where: {},
-          attributes: ["animal", "automatic", "event", "taggerId"],
+          attributes: ["what", "detail", "automatic", "taggerId"],
           required: false },
         { model: models.Track,
           where:{
@@ -238,7 +238,7 @@ module.exports = function(sequelize, DataTypes) {
   var recordingTaggedWith = (tags, tagTypeSql) => {
     let sql =  'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
     if (tags) {
-      sql += ' AND (' + selectByTagWhat(tags, 'animal', true) + ')';
+      sql += ' AND (' + selectByTagWhat(tags, 'what', true) + ')';
     }
     if (tagTypeSql) {
       sql += ' AND (' + tagTypeSql + ')';
@@ -260,7 +260,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // local
-  var selectByTagWhat = (tags, whatName, usesEvents) => {
+  var selectByTagWhat = (tags, whatName, usesDetail) => {
     if (!tags || tags.length === 0) {
       return null;
     }
@@ -269,9 +269,9 @@ module.exports = function(sequelize, DataTypes) {
     for (var i = 0; i < tags.length; i++) {
       var tag = tags[i];
       if (tag == "interesting") {
-        if (usesEvents) {
+        if (usesDetail) {
           parts.push('(("Tags"."' + whatName + '" IS NULL OR "Tags"."' + whatName + '"!=\'bird\') ' +
-           'AND ("Tags"."event" IS NULL OR "Tags"."event"!=\'false positive\'))');
+           'AND ("Tags"."detail" IS NULL OR "Tags"."detail"!=\'false positive\'))');
         }
         else {
           parts.push('("Tags"."' + whatName + '"!=\'bird\' AND "Tags"."' + whatName + '"!=\'false positive\')');
@@ -279,9 +279,9 @@ module.exports = function(sequelize, DataTypes) {
       }
       else {
         parts.push('"Tags"."' + whatName + '" = \'' + tag + '\'');
-        if (usesEvents) {
-          // the label could also be the event label not the animal label
-          parts.push('"Tags"."event" = \'' + tag + '\'');
+        if (usesDetail) {
+          // the label could also be the detail field not the what field
+          parts.push('"Tags"."detail" = \'' + tag + '\'');
         }
       }
     }

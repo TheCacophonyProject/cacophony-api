@@ -22,10 +22,10 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
 
   var attributes = {
-    animal: { // Name of animal for the Tag
+    what: {
       type: DataTypes.STRING,
     },
-    event: {
+    detail: {
       type: DataTypes.STRING,
     },
     confidence: { // 0: Not sure at all; 1: 100% positive
@@ -89,34 +89,33 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Tag.prototype.getFrontendFields = function() {
-    var model = this;
     return {
-      id: model.getDataValue('id'),
-      animal: model.getDataValue('animal'),
-      confidence: model.getDataValue('confidence'),
-      startTime: model.getDataValue('startTime'),
-      duration: model.getDataValue('duration'),
-      event: model.getDataValue('event'),
+      id: this.id,
+      what: this.what,
+      detail: this.event,
+      confidence: this.confidence,
+      startTime: this.startTime,
+      duration: this.duration,
     };
   };
 
   Tag.userGetAttributes = Object.freeze([
     'id',
-    'animal',
+    'what',
+    'detail',
     'confidence',
     'startTime',
     'duration',
-    'event',
     'automatic',
     'version',
   ]);
 
   Tag.apiSettableFields = Object.freeze([
-    'animal',
+    'what',
+    'detail',
     'confidence',
     'startTime',
     'duration',
-    'event',
     'automatic',
     'version',
   ]);
