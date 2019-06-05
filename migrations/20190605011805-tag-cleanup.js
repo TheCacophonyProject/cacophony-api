@@ -7,12 +7,17 @@ module.exports = {
     await queryInterface.removeColumn('Tags', 'sex');
     await queryInterface.sequelize.query('DROP TYPE "enum_Tags_sex"');
     await queryInterface.removeColumn('Tags', 'age');
+
+    await queryInterface.addColumn('Tags', 'version', { type: Sequelize.INTEGER, defaultValue: 0x0100 });
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('Tags', 'version');
+
     await queryInterface.addColumn('Tags', 'number', Sequelize.INTEGER);
     await queryInterface.addColumn('Tags', 'trapType', Sequelize.STRING);
     await queryInterface.addColumn('Tags', 'sex', Sequelize.ENUM('M', 'F'));
     await queryInterface.addColumn('Tags', 'age', Sequelize.INTEGER);
+
   }
 };

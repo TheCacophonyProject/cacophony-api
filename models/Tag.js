@@ -42,6 +42,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: false,
     },
+    version: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0x0100,
+    },
   };
 
   var Tag = sequelize.define(name, attributes);
@@ -55,11 +60,11 @@ module.exports = function(sequelize, DataTypes) {
     models.Tag.belongsTo(models.User, {as: 'tagger'});
     models.Tag.belongsTo(models.Recording);
   };
-  
+
   Tag.getFromId = function(id, user, attributes) {
     util.GetFromId(id, user, attributes);
   };
-  
+
   Tag.deleteModelInstance = function(id, user) {
     util.deleteModelInstance(id, user);
   };
@@ -78,11 +83,11 @@ module.exports = function(sequelize, DataTypes) {
     if(recording == null){
       return false;
     }
-    
+
     await tag.destroy();
     return true;
   };
-  
+
   Tag.prototype.getFrontendFields = function() {
     var model = this;
     return {
@@ -91,28 +96,30 @@ module.exports = function(sequelize, DataTypes) {
       confidence: model.getDataValue('confidence'),
       startTime: model.getDataValue('startTime'),
       duration: model.getDataValue('duration'),
-      number: model.getDataValue('number'),
-      trapType: model.getDataValue('trapType'),
       event: model.getDataValue('event'),
-      sex: model.getDataValue('sex'),
-      age: model.getDataValue('age'),
     };
   };
-  
-  Tag.apiUpdateableFields = [];
-  
-  Tag.apiSettableFields = [
+
+  Tag.userGetAttributes = Object.freeze([
+    'id',
     'animal',
     'confidence',
     'startTime',
     'duration',
-    'number',
-    'trapType',
     'event',
-    'sex',
-    'age',
     'automatic',
-  ];
-  
+    'version',
+  ]);
+
+  Tag.apiSettableFields = Object.freeze([
+    'animal',
+    'confidence',
+    'startTime',
+    'duration',
+    'event',
+    'automatic',
+    'version',
+  ]);
+
   return Tag;
 };

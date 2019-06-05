@@ -39,6 +39,7 @@ module.exports = function(app, baseUrl) {
    * - confidence
    * - startTime
    * - duration
+   * - version (hex coded, e.g. 0x0110 would be v1.10)
    *
    * @apiUse V1UserAuthorizationHeader
    *

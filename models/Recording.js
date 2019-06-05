@@ -303,7 +303,11 @@ module.exports = function(sequelize, DataTypes) {
         ],
       },
       include: [
-        { model: models.Tag, include: [{association: 'tagger', attributes: ['username']}] },
+        {
+          model: models.Tag,
+          attributes: models.Tag.userGetAttributes,
+          include: [{association: 'tagger', attributes: ['username']}]
+        },
         { model: models.Device, where: {}, attributes: ["devicename", "id"] },
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),

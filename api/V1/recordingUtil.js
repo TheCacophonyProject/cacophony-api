@@ -16,8 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jsonwebtoken      = require('jsonwebtoken');
-const mime             = require('mime');
+const jsonwebtoken = require('jsonwebtoken');
+const mime = require('mime');
+const _ = require('lodash');
 
 const { ClientError, AuthorizationError }   = require('../customErrors');
 const config            = require('../../config');
@@ -169,9 +170,7 @@ async function addTag(request, response) {
   }
 
   // Build tag instance
-  const tagInstance = models.Tag.build(request.body.tag, {
-    fields: models.Tag.apiSettableFields,
-  });
+  const tagInstance = models.Tag.build(_.pick(request.body.tag, models.Tag.apiSettableFields));
   tagInstance.set('RecordingId', request.body.recordingId);
   if (request.user !== undefined) {
     tagInstance.set('taggerId', request.user.id);
