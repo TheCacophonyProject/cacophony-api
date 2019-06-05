@@ -88,17 +88,6 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  Tag.prototype.getFrontendFields = function() {
-    return {
-      id: this.id,
-      what: this.what,
-      detail: this.event,
-      confidence: this.confidence,
-      startTime: this.startTime,
-      duration: this.duration,
-    };
-  };
-
   Tag.userGetAttributes = Object.freeze([
     'id',
     'what',

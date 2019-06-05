@@ -19,7 +19,7 @@ class TestRecordingsGetByTags:
 
         # ai and human tags different - one track, on recording.
         ai_human_possum3 = makeTrackTaggedRecording(device, helper, lucy, [[None, "possum"]])
-        ai_human_possum3.is_tagged_as("possum").byAI(helper.admin_user())
+        ai_human_possum3.is_tagged_as(what="possum").byAI(helper.admin_user())
 
         all = [untagged, ai_possum, ai_possum2, human_possum, human_possum2, ai_human_possum,
                ai_human_possum2, ai_human_possum3]
@@ -110,10 +110,10 @@ def makeTaggedRecording(device, helper, ai_tags, tagger, human_tags):
     recording = device.has_recording()
     recording.name = "ai:" + str(ai_tags) + " human: " + str(human_tags)
     for tag in ai_tags:
-        recording.is_tagged_as(tag).byAI(helper.admin_user())
+        recording.is_tagged_as(what=tag).byAI(helper.admin_user())
 
     for tag in human_tags:
-        recording.is_tagged_as(tag).by(tagger)
+        recording.is_tagged_as(what=tag).by(tagger)
     return recording
 
 

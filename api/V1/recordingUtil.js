@@ -51,7 +51,7 @@ function makeUploadHandler(mungeData) {
 
 // Returns a promise for the recordings query specified in the
 // request.
-function query(request, type) {
+async function query(request, type) {
   if (!request.query.where) {
     request.query.where = {};
   }
@@ -62,7 +62,7 @@ function query(request, type) {
   // remove legacy tag mode selector (if included)
   delete request.query.where._tagged;
 
-  return models.Recording.query(
+  const result = await models.Recording.query(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -72,10 +72,12 @@ function query(request, type) {
     request.query.order,
     request.query.filterOptions,
   );
+  result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
+  return result;
 }
 
 async function get(request, type) {
-  const recording = await models.Recording.get(
+  let recording = await models.Recording.get(
     request.user,
     request.params.id,
     models.Recording.Perms.VIEW,
@@ -104,7 +106,7 @@ async function get(request, type) {
   delete recording.rawFileKey;
 
   return {
-    recording: recording,
+    recording: handleLegacyTagFieldsForGetOnRecording(recording),
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
@@ -149,28 +151,19 @@ function guessRawMimeType(type, filename) {
 }
 
 async function addTag(request, response) {
-  const options = {include: [
-    { model: models.Device, where: {}, attributes: ["devicename", "id"] },
-  ]};
-  const recording = await models.Recording.findByPk(request.body.recordingId, options);
-  log.info(recording.type);
+  const recording = await models.Recording.get(
+    request.user,
+    request.body.recordingId,
+    models.Recording.Perms.TAG
+  );
   if (!recording) {
-    responseUtil.send(response, {
-      statusCode: 400,
-      messages: ['No such recording.']
-    });
-    return;
+    throw new ClientError("No such recording.")
   }
 
-  if (request.user) {
-    const permissions = await recording.getUserPermissions(request.user);
-    if (!permissions.includes(models.Recording.Perms.TAG)) {
-      throw new AuthorizationError("The user does not have permission to add tags to this");
-    }
-  }
+  // If old tag fields are used, convert to new field names.
+  tag = handleLegacyTagFieldsForCreate(request.body.tag);
 
-  // Build tag instance
-  const tagInstance = models.Tag.build(_.pick(request.body.tag, models.Tag.apiSettableFields));
+  const tagInstance = models.Tag.build(_.pick(tag, models.Tag.apiSettableFields));
   tagInstance.set('RecordingId', request.body.recordingId);
   if (request.user !== undefined) {
     tagInstance.set('taggerId', request.user.id);
@@ -182,6 +175,35 @@ async function addTag(request, response) {
     messages: ['Added new tag.'],
     tagId: tagInstance.id,
   });
+}
+
+function handleLegacyTagFieldsForCreate(tag) {
+  tag = moveLegacyField(tag, 'animal', 'what');
+  tag = moveLegacyField(tag, 'event', 'detail');
+  return tag;
+}
+
+function moveLegacyField(o, oldName, newName) {
+  if (o[oldName]) {
+    if (o[newName]) {
+      throw new Client(`can't specify both '${oldName}' and '${newName}' fields at the same time`);
+    }
+    o[newName] = o[oldName];
+    delete o[oldName]
+  }
+  return o;
+}
+
+function handleLegacyTagFieldsForGet(tag) {
+  tag.animal = tag.what;
+  tag.event = tag.detail;
+  return tag;
+}
+
+function handleLegacyTagFieldsForGetOnRecording(recording) {
+  recording = recording.get({ plain: true });
+  recording.Tags = recording.Tags.map(handleLegacyTagFieldsForGet);
+  return recording;
 }
 
 const statusCode = {
