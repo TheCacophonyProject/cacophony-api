@@ -20,12 +20,11 @@ const jsonwebtoken = require('jsonwebtoken');
 const mime = require('mime');
 const _ = require('lodash');
 
-const { ClientError, AuthorizationError }   = require('../customErrors');
+const { ClientError }   = require('../customErrors');
 const config            = require('../../config');
 const models            = require('../../models');
 const responseUtil      = require('./responseUtil');
 const util              = require('./util');
-const log               = require('../../logging');
 
 
 function makeUploadHandler(mungeData) {
@@ -77,7 +76,7 @@ async function query(request, type) {
 }
 
 async function get(request, type) {
-  let recording = await models.Recording.get(
+  const recording = await models.Recording.get(
     request.user,
     request.params.id,
     models.Recording.Perms.VIEW,
@@ -157,11 +156,11 @@ async function addTag(request, response) {
     models.Recording.Perms.TAG
   );
   if (!recording) {
-    throw new ClientError("No such recording.")
+    throw new ClientError("No such recording.");
   }
 
   // If old tag fields are used, convert to new field names.
-  tag = handleLegacyTagFieldsForCreate(request.body.tag);
+  const tag = handleLegacyTagFieldsForCreate(request.body.tag);
 
   const tagInstance = models.Tag.build(_.pick(tag, models.Tag.apiSettableFields));
   tagInstance.set('RecordingId', request.body.recordingId);
@@ -186,10 +185,10 @@ function handleLegacyTagFieldsForCreate(tag) {
 function moveLegacyField(o, oldName, newName) {
   if (o[oldName]) {
     if (o[newName]) {
-      throw new Client(`can't specify both '${oldName}' and '${newName}' fields at the same time`);
+      throw new ClientError(`can't specify both '${oldName}' and '${newName}' fields at the same time`);
     }
     o[newName] = o[oldName];
-    delete o[oldName]
+    delete o[oldName];
   }
   return o;
 }
