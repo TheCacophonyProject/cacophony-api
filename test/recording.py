@@ -16,27 +16,24 @@ class Recording:
     def __setitem__(self, name, value):
         self.props[name] = value
 
-    def is_tagged_as(self, animal):
-        return TagPromise(self, animal)
+    def is_tagged_as(self, **data):
+        return TagPromise(self, data)
 
 
 class TagPromise:
-    def __init__(self, recording, animal):
+    def __init__(self, recording, tag):
         self._recording = recording
-        if animal == 'false positive':
-            self._tag_data = {"event": 'false positive'}
-        else:
-            self._tag_data = {"animal": animal}
-        print("  which is tagged as a {}".format(animal), end="")
+        if tag.get('what') == 'false positive':
+            tag['detail'] = 'false positive'
+            del tag['what']
+        self._tag = tag
 
     def by(self, user):
-        print(" by {}".format(user.username))
-        return user.tag_recording(self._recording, self._tag_data)
+        return user.tag_recording(self._recording, self._tag)
 
     def byAI(self, user):
-        print(" by {}".format("by AI"))
-        self._tag_data["automatic"] = True
-        return user.tag_recording(self._recording, self._tag_data)
+        self._tag["automatic"] = True
+        return user.tag_recording(self._recording, self._tag)
 
 
 def slurp(filename):

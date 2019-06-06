@@ -16,15 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jsonwebtoken      = require('jsonwebtoken');
-const mime             = require('mime');
+const jsonwebtoken = require('jsonwebtoken');
+const mime = require('mime');
+const _ = require('lodash');
 
-const { ClientError, AuthorizationError }   = require('../customErrors');
+const { ClientError }   = require('../customErrors');
 const config            = require('../../config');
 const models            = require('../../models');
 const responseUtil      = require('./responseUtil');
 const util              = require('./util');
-const log               = require('../../logging');
 
 
 function makeUploadHandler(mungeData) {
@@ -50,7 +50,7 @@ function makeUploadHandler(mungeData) {
 
 // Returns a promise for the recordings query specified in the
 // request.
-function query(request, type) {
+async function query(request, type) {
   if (!request.query.where) {
     request.query.where = {};
   }
@@ -61,7 +61,7 @@ function query(request, type) {
   // remove legacy tag mode selector (if included)
   delete request.query.where._tagged;
 
-  return models.Recording.query(
+  const result = await models.Recording.query(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -71,6 +71,8 @@ function query(request, type) {
     request.query.order,
     request.query.filterOptions,
   );
+  result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
+  return result;
 }
 
 async function get(request, type) {
@@ -103,7 +105,7 @@ async function get(request, type) {
   delete recording.rawFileKey;
 
   return {
-    recording: recording,
+    recording: handleLegacyTagFieldsForGetOnRecording(recording),
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
@@ -148,30 +150,19 @@ function guessRawMimeType(type, filename) {
 }
 
 async function addTag(request, response) {
-  const options = {include: [
-    { model: models.Device, where: {}, attributes: ["devicename", "id"] },
-  ]};
-  const recording = await models.Recording.findByPk(request.body.recordingId, options);
-  log.info(recording.type);
+  const recording = await models.Recording.get(
+    request.user,
+    request.body.recordingId,
+    models.Recording.Perms.TAG
+  );
   if (!recording) {
-    responseUtil.send(response, {
-      statusCode: 400,
-      messages: ['No such recording.']
-    });
-    return;
+    throw new ClientError("No such recording.");
   }
 
-  if (request.user) {
-    const permissions = await recording.getUserPermissions(request.user);
-    if (!permissions.includes(models.Recording.Perms.TAG)) {
-      throw new AuthorizationError("The user does not have permission to add tags to this");
-    }
-  }
+  // If old tag fields are used, convert to new field names.
+  const tag = handleLegacyTagFieldsForCreate(request.body.tag);
 
-  // Build tag instance
-  const tagInstance = models.Tag.build(request.body.tag, {
-    fields: models.Tag.apiSettableFields,
-  });
+  const tagInstance = models.Tag.build(_.pick(tag, models.Tag.apiSettableFields));
   tagInstance.set('RecordingId', request.body.recordingId);
   if (request.user !== undefined) {
     tagInstance.set('taggerId', request.user.id);
@@ -183,6 +174,35 @@ async function addTag(request, response) {
     messages: ['Added new tag.'],
     tagId: tagInstance.id,
   });
+}
+
+function handleLegacyTagFieldsForCreate(tag) {
+  tag = moveLegacyField(tag, 'animal', 'what');
+  tag = moveLegacyField(tag, 'event', 'detail');
+  return tag;
+}
+
+function moveLegacyField(o, oldName, newName) {
+  if (o[oldName]) {
+    if (o[newName]) {
+      throw new ClientError(`can't specify both '${oldName}' and '${newName}' fields at the same time`);
+    }
+    o[newName] = o[oldName];
+    delete o[oldName];
+  }
+  return o;
+}
+
+function handleLegacyTagFieldsForGet(tag) {
+  tag.animal = tag.what;
+  tag.event = tag.detail;
+  return tag;
+}
+
+function handleLegacyTagFieldsForGetOnRecording(recording) {
+  recording = recording.get({ plain: true });
+  recording.Tags = recording.Tags.map(handleLegacyTagFieldsForGet);
+  return recording;
 }
 
 const statusCode = {

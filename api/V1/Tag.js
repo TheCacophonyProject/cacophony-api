@@ -35,19 +35,12 @@ module.exports = function(app, baseUrl) {
    * @apiDescription This call is used to tag a recording. Only users that can
    * view a recording can tag it. It takes a `tag` field which contains a JSON
    * object string that may contain any of the following fields:
-   * - animal
+   * - what (legacy name "animal" is also supported)
+   * - detail (legacy name "event" is also supported)
    * - confidence
    * - startTime
    * - duration
-   * - number
-   * - trapType
-   * - trapInteractionTime
-   * - trapInteractionDuration
-   * - trappedTime
-   * - killedTime
-   * - poisionedTime
-   * - sex
-   * - age
+   * - version (hex coded, e.g. 0x0110 would be v1.10)
    *
    * @apiUse V1UserAuthorizationHeader
    *
