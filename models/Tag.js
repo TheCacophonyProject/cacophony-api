@@ -97,6 +97,7 @@ module.exports = function(sequelize, DataTypes) {
     'duration',
     'automatic',
     'version',
+    'createdAt',
   ]);
 
   Tag.apiSettableFields = Object.freeze([
