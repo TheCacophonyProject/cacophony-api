@@ -19,7 +19,16 @@ module.exports = {
     await queryInterface.sequelize.query(`UPDATE "TrackTags" set "what"='rodent' where "what"='rat' or "what"='mouse'`);
   },
 
-  down: async function () {
-    // no reversing....
-  }
+  down: async function (queryInterface) {
+    // mustelid
+    await queryInterface.sequelize.query(`UPDATE "Tags" set "what"='stoat' where "what"='mustelid'`);
+    await queryInterface.sequelize.query(`UPDATE "TrackTags" set "what"='stoat' where "what"='mustelid'`);
+
+    // leporidae
+    await queryInterface.sequelize.query(`UPDATE "Tags" set "what"='rabbit' where "what"='leporidae'`);
+    await queryInterface.sequelize.query(`UPDATE "TrackTags" set "what"='rabbit' where "what"='hare'`);
+
+    // rodent
+    await queryInterface.sequelize.query(`UPDATE "Tags" set "what"='rat' where "what"='rodent'`);
+    await queryInterface.sequelize.query(`UPDATE "TrackTags" set "what"='rat' where"what"='rodent'`);  }
 };
