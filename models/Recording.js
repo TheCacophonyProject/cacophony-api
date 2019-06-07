@@ -220,7 +220,7 @@ module.exports = function(sequelize, DataTypes) {
       return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
     case 'human-only':
       return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
-    case 'automatic-only+human':
+    case 'automatic+human':
       return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
     case 'cool':
     case  'missed track':
