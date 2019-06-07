@@ -22,14 +22,13 @@ module.exports = function(sequelize, DataTypes) {
   var name = 'Tag';
 
   var attributes = {
-
-    animal: { // Name of animal for the Tag
+    what: {
       type: DataTypes.STRING,
     },
-    event: {
+    detail: {
       type: DataTypes.STRING,
     },
-    confidence: { // 0-Not sure at all, 1-100% positive.
+    confidence: { // 0: Not sure at all; 1: 100% positive
       type: DataTypes.FLOAT,
     },
     startTime: { // Start time of the tag in the linked recording in seconds
@@ -38,22 +37,15 @@ module.exports = function(sequelize, DataTypes) {
     duration: { // duration of the tag
       type: DataTypes.FLOAT,
     },
-    number: { // Number of animals in tag
-      type: DataTypes.INTEGER,
-    },
-    trapType: {
-      type: DataTypes.STRING,
-    },
-    sex: { // What sex is the animal, null if don't know.
-      type: DataTypes.ENUM('F', 'M'),
-    },
-    age: { // Guessed age in weeks of animal
-      type: DataTypes.INTEGER,
-    },
     automatic: { // True if the tag was automatically generated.
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    version: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0x0100,
     },
   };
 
@@ -68,11 +60,11 @@ module.exports = function(sequelize, DataTypes) {
     models.Tag.belongsTo(models.User, {as: 'tagger'});
     models.Tag.belongsTo(models.Recording);
   };
-  
+
   Tag.getFromId = function(id, user, attributes) {
     util.GetFromId(id, user, attributes);
   };
-  
+
   Tag.deleteModelInstance = function(id, user) {
     util.deleteModelInstance(id, user);
   };
@@ -91,41 +83,32 @@ module.exports = function(sequelize, DataTypes) {
     if(recording == null){
       return false;
     }
-    
+
     await tag.destroy();
     return true;
   };
-  
-  Tag.prototype.getFrontendFields = function() {
-    var model = this;
-    return {
-      id: model.getDataValue('id'),
-      animal: model.getDataValue('animal'),
-      confidence: model.getDataValue('confidence'),
-      startTime: model.getDataValue('startTime'),
-      duration: model.getDataValue('duration'),
-      number: model.getDataValue('number'),
-      trapType: model.getDataValue('trapType'),
-      event: model.getDataValue('event'),
-      sex: model.getDataValue('sex'),
-      age: model.getDataValue('age'),
-    };
-  };
-  
-  Tag.apiUpdateableFields = [];
-  
-  Tag.apiSettableFields = [
-    'animal',
+
+  Tag.userGetAttributes = Object.freeze([
+    'id',
+    'what',
+    'detail',
     'confidence',
     'startTime',
     'duration',
-    'number',
-    'trapType',
-    'event',
-    'sex',
-    'age',
     'automatic',
-  ];
-  
+    'version',
+    'createdAt',
+  ]);
+
+  Tag.apiSettableFields = Object.freeze([
+    'what',
+    'detail',
+    'confidence',
+    'startTime',
+    'duration',
+    'automatic',
+    'version',
+  ]);
+
   return Tag;
 };

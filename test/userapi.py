@@ -231,8 +231,7 @@ class UserAPI(APIBase):
         params.setdefault("limit", 100)
         params.setdefault("offset", 0)
 
-        return_json = params.get("return_json", False)
-        params.pop("return_json", None)
+        return_json = params.pop("return_json", False)
         req_params = {}
         for name, value in params.items():
             if value is not None:
