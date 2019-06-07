@@ -220,8 +220,17 @@ module.exports = function(sequelize, DataTypes) {
       return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
     case 'human-only':
       return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
-    case 'automatic+human':
+    case 'automatic-only+human':
       return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
+    case 'cool':
+    case  'missed track':
+    case 'multiple animals':
+    case 'trapped in trap':
+      var sqlQuery =  '(EXISTS ('+recordingTaggedWith([tagMode], null) + '))';
+      if( tagWhats){
+        sqlQuery = sqlQuery +' AND ' + tagOfType(tagWhats, null);
+      }
+      return sqlQuery;
     default:
       throw `invalid tag mode: ${tagMode}`;
     }
@@ -627,7 +636,6 @@ module.exports = function(sequelize, DataTypes) {
     'processingState',
     'processingMeta',
   ];
-
   // local
   const validTagModes = Object.freeze([
     'any',
@@ -640,6 +648,10 @@ module.exports = function(sequelize, DataTypes) {
     'automatic-only',
     'human-only',
     'automatic+human',
+    'missed track',
+    'multiple animals',
+    'trapped in trap',
+    'cool'
   ]);
 
   return Recording;
