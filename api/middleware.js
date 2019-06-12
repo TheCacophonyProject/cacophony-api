@@ -170,7 +170,9 @@ const parseArray = function(field, checkFunc) {
   });
 };
 
-
+const parseBool = function(value) {
+  return (value == "true") || (value == "True");
+};
 
 const requestWrapper = fn => (request, response, next) => {
   var logMessage = format('%s %s', request.method, request.url);
@@ -211,6 +213,7 @@ exports.checkNewName       = checkNewName;
 exports.checkNewPassword   = checkNewPassword;
 exports.parseJSON          = parseJSON;
 exports.parseArray         = parseArray;
+exports.parseBool          = parseBool;
 exports.requestWrapper     = requestWrapper;
 exports.isDateArray        = isDateArray;
 exports.getUserByEmail     = getUserByEmail;

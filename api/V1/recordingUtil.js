@@ -149,23 +149,19 @@ function guessRawMimeType(type, filename) {
   }
 }
 
-async function addTag(request, response) {
-  const recording = await models.Recording.get(
-    request.user,
-    request.body.recordingId,
-    models.Recording.Perms.TAG
-  );
+async function addTag(user, recording, tag, response) {
+
   if (!recording) {
     throw new ClientError("No such recording.");
   }
 
   // If old tag fields are used, convert to new field names.
-  const tag = handleLegacyTagFieldsForCreate(request.body.tag);
+  tag = handleLegacyTagFieldsForCreate(tag);
 
   const tagInstance = models.Tag.build(_.pick(tag, models.Tag.apiSettableFields));
-  tagInstance.set('RecordingId', request.body.recordingId);
-  if (request.user !== undefined) {
-    tagInstance.set('taggerId', request.user.id);
+  tagInstance.set('RecordingId', recording.id);
+  if (user) {
+    tagInstance.set('taggerId', user.id);
   }
   await tagInstance.save();
 
