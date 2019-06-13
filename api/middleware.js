@@ -171,7 +171,10 @@ const parseArray = function(field, checkFunc) {
 };
 
 const parseBool = function(value) {
-  return (value == "true") || (value == "True");
+  if (!value){
+    return false;
+  }
+  return value.toString().toLowerCase() == "true";
 };
 
 const requestWrapper = fn => (request, response, next) => {
