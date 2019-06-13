@@ -16,13 +16,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models       = require('../../models');
-const jwt          = require('jsonwebtoken');
-const config       = require('../../config');
+const models = require('../../models');
+const jwt = require('jsonwebtoken');
+const config = require('../../config');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const auth         = require('../auth');
-const { query, body }     = require('express-validator/check');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const {
+  query,
+  body
+} = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/devices';
@@ -45,7 +48,9 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.checkNewName('devicename')
-        .custom(value => { return models.Device.freeDevicename(value); }),
+      .custom(value => {
+        return models.Device.freeDevicename(value);
+      }),
       middleware.checkNewPassword('password'),
       middleware.getGroupByName(body),
     ],
@@ -77,7 +82,7 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    [ auth.authenticateUser ],
+    [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
       var devices = await models.Device.allForUser(request.user);
       return responseUtil.send(response, {
@@ -89,22 +94,22 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-  * @api {get} /api/v1/devices/users Get all users who can access a device.
-  * @apiName GetDeviceUsers
-  * @apiGroup Device
-  * @apiDescription Returns all users that have access to the device
-  * through both group membership and direct assignment.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiParam {Number} deviceId ID of the device.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {JSON} rows Array of users who have access to the
-  * device. Each element includes `id` (user id), `username`, `email`,
-  * `relation` (either `group` or `device`) and `admin` (boolean).
-  * @apiUse V1ResponseError
-  */
+   * @api {get} /api/v1/devices/users Get all users who can access a device.
+   * @apiName GetDeviceUsers
+   * @apiGroup Device
+   * @apiDescription Returns all users that have access to the device
+   * through both group membership and direct assignment.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number} deviceId ID of the device.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} rows Array of users who have access to the
+   * device. Each element includes `id` (user id), `username`, `email`,
+   * `relation` (either `group` or `device`) and `admin` (boolean).
+   * @apiUse V1ResponseError
+   */
   app.get(
     apiUrl + '/users',
     [
@@ -115,7 +120,9 @@ module.exports = function(app, baseUrl) {
       let users = await request.body.device.users(request.user);
 
       users = users.map(u => {
-        u = u.get({ plain: true });
+        u = u.get({
+          plain: true
+        });
 
         // Extract the useful parts from DeviceUsers/GroupUsers.
         if (u.DeviceUsers) {
@@ -141,22 +148,22 @@ module.exports = function(app, baseUrl) {
 
 
   /**
-  * @api {post} /api/v1/devices/users Add a user to a device.
-  * @apiName AddUserToDevice
-  * @apiGroup Device
-  * @apiDescription This call adds a user to a device. This allows individual
-  * user accounts to monitor a devices without being part of the group that the
-  * device belongs to.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiParam {Number} deviceId ID of the device.
-  * @apiParam {Number} username Name of the user to add to the device.
-  * @apiParam {Boolean} admin If true, the user should have administrator access to the device..
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /api/v1/devices/users Add a user to a device.
+   * @apiName AddUserToDevice
+   * @apiGroup Device
+   * @apiDescription This call adds a user to a device. This allows individual
+   * user accounts to monitor a devices without being part of the group that the
+   * device belongs to.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number} deviceId ID of the device.
+   * @apiParam {Number} username Name of the user to add to the device.
+   * @apiParam {Boolean} admin If true, the user should have administrator access to the device..
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.post(
     apiUrl + '/users',
     [
@@ -188,21 +195,21 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-  * @api {delete} /api/v1/devices/users Removes a user from a device.
-  * @apiName RemoveUserFromDevice
-  * @apiGroup Device
-  * @apiDescription This call can remove a user from a device. Has to be
-  * authenticated by an admin from the group that the device belongs to or a
-  * user that has control of device.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiParam {Number} username name of the user to delete from the device.
-  * @apiParam {Number} deviceId ID of the device.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiUse V1ResponseError
-  */
+   * @api {delete} /api/v1/devices/users Removes a user from a device.
+   * @apiName RemoveUserFromDevice
+   * @apiGroup Device
+   * @apiDescription This call can remove a user from a device. Has to be
+   * authenticated by an admin from the group that the device belongs to or a
+   * user that has control of device.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number} username name of the user to delete from the device.
+   * @apiParam {Number} deviceId ID of the device.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.delete(
     apiUrl + '/users',
     [

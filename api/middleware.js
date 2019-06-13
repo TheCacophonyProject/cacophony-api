@@ -17,15 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require('../models');
-const format       = require('util').format;
-const log          = require('../logging');
+const format = require('util').format;
+const log = require('../logging');
 const customErrors = require('./customErrors');
-const { body, validationResult, oneOf } = require('express-validator/check');
+const {
+  body,
+  validationResult,
+  oneOf
+} = require('express-validator/check');
 
 
 
 const getModelById = function(modelType, fieldName, checkFunc) {
-  return checkFunc(fieldName).custom(async (val, { req }) => {
+  return checkFunc(fieldName).custom(async (val, {
+    req
+  }) => {
     const model = await modelType.findByPk(val);
     if (model === null) {
       throw new Error(format('Could not find a %s with an id of %s.', modelType.name, val));
@@ -36,7 +42,9 @@ const getModelById = function(modelType, fieldName, checkFunc) {
 };
 
 const getModelByName = function(modelType, fieldName, checkFunc) {
-  return checkFunc(fieldName).custom(async (val, { req }) => {
+  return checkFunc(fieldName).custom(async (val, {
+    req
+  }) => {
     const model = await modelType.getFromName(val);
     if (model === null) {
       throw new Error(format('Could not find %s of %s.', fieldName, val));
@@ -47,7 +55,9 @@ const getModelByName = function(modelType, fieldName, checkFunc) {
 };
 
 const getUserByEmail = function(checkFunc, fieldName = 'email') {
-  return checkFunc(fieldName).isEmail().custom(async (email, { req }) => {
+  return checkFunc(fieldName).isEmail().custom(async (email, {
+    req
+  }) => {
     email = email.toLowerCase();
     const user = await models.User.getFromEmail(email);
     if (user === null) {
@@ -71,8 +81,7 @@ const isDateArray = function(fieldName, customError) {
         }
       });
       return true;
-    }
-    else {
+    } else {
       throw new Error("Value should be an array.");
     }
   });
@@ -129,33 +138,45 @@ function getRecordingById(checkFunc) {
 }
 
 const checkNewName = function(field) {
-  return body(field, 'Invalid '+field)
-    .isLength({ min: 3 })
+  return body(field, 'Invalid ' + field)
+    .isLength({
+      min: 3
+    })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
   return body(field, 'Password must be at least 8 characters long')
-    .isLength({ min: 8 });
+    .isLength({
+      min: 8
+    });
 };
 
 const parseJSON = function(field, checkFunc) {
-  return checkFunc(field).custom((value, {req, location, path}) => {
+  return checkFunc(field).custom((value, {
+    req,
+    location,
+    path
+  }) => {
     try {
       req[location][path] = JSON.parse(value);
       return true;
-    } catch(e) {
+    } catch (e) {
       throw new Error(format('Could not parse JSON field %s.', path));
     }
   });
 };
 
 const parseArray = function(field, checkFunc) {
-  return checkFunc(field).custom((value, {req, location, path}) => {
+  return checkFunc(field).custom((value, {
+    req,
+    location,
+    path
+  }) => {
     var arr;
     try {
       arr = JSON.parse(value);
-    } catch(e) {
+    } catch (e) {
       throw new Error(format('Could not parse JSON field %s.', path));
     }
     if (Array.isArray(arr)) {
@@ -171,7 +192,7 @@ const parseArray = function(field, checkFunc) {
 };
 
 const parseBool = function(value) {
-  if (!value){
+  if (!value) {
     return false;
   }
   return value.toString().toLowerCase() == "true";
@@ -201,22 +222,22 @@ const requestWrapper = fn => (request, response, next) => {
 };
 
 
-exports.getUserById        = getUserById;
-exports.getUserByName      = getUserByName;
-exports.getUserByNameOrId  = getUserByNameOrId;
-exports.getGroupById       = getGroupById;
-exports.getGroupByName     = getGroupByName;
+exports.getUserById = getUserById;
+exports.getUserByName = getUserByName;
+exports.getUserByNameOrId = getUserByNameOrId;
+exports.getGroupById = getGroupById;
+exports.getGroupByName = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
-exports.getDeviceById      = getDeviceById;
-exports.getDeviceByName    = getDeviceByName;
+exports.getDeviceById = getDeviceById;
+exports.getDeviceByName = getDeviceByName;
 exports.getDetailSnapshotById = getDetailSnapshotById;
-exports.getFileById        = getFileById;
-exports.getRecordingById   = getRecordingById;
-exports.checkNewName       = checkNewName;
-exports.checkNewPassword   = checkNewPassword;
-exports.parseJSON          = parseJSON;
-exports.parseArray         = parseArray;
-exports.parseBool          = parseBool;
-exports.requestWrapper     = requestWrapper;
-exports.isDateArray        = isDateArray;
-exports.getUserByEmail     = getUserByEmail;
+exports.getFileById = getFileById;
+exports.getRecordingById = getRecordingById;
+exports.checkNewName = checkNewName;
+exports.checkNewPassword = checkNewPassword;
+exports.parseJSON = parseJSON;
+exports.parseArray = parseArray;
+exports.parseBool = parseBool;
+exports.requestWrapper = requestWrapper;
+exports.isDateArray = isDateArray;
+exports.getUserByEmail = getUserByEmail;

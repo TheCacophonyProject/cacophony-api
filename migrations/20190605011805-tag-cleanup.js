@@ -8,7 +8,10 @@ module.exports = {
     await queryInterface.sequelize.query('DROP TYPE "enum_Tags_sex"');
     await queryInterface.removeColumn('Tags', 'age');
 
-    await queryInterface.addColumn('Tags', 'version', { type: Sequelize.INTEGER, defaultValue: 0x0100 });
+    await queryInterface.addColumn('Tags', 'version', {
+      type: Sequelize.INTEGER,
+      defaultValue: 0x0100
+    });
 
     await queryInterface.renameColumn('Tags', 'animal', 'what');
     await queryInterface.renameColumn('Tags', 'event', 'detail');

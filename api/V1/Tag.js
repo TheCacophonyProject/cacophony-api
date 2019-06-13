@@ -16,10 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { body } = require('express-validator/check');
+const {
+  body
+} = require('express-validator/check');
 
 const middleware = require('../middleware');
-const auth       = require('../auth');
+const auth = require('../auth');
 const models = require('../../models');
 const recordingUtil = require('./recordingUtil');
 const responseUtil = require('./responseUtil');

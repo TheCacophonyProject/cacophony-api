@@ -22,36 +22,78 @@ module.exports = {
             batteryCharging: Sequelize.STRING,
             airplaneModeOn: Sequelize.BOOLEAN,
             // Fields from filter functions.
-            filtered: { type: Sequelize.BOOLEAN, defaultValue: false },
+            filtered: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             filterMetadata: Sequelize.JSONB,
             passedFilter: Sequelize.BOOLEAN,
             // Other fields
-            public: { type: Sequelize.BOOLEAN, defaultValue: false },
+            public: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             additionalMetadata: Sequelize.JSONB,
             tags: Sequelize.JSONB,
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('Devices', {
-            devicename: { type: Sequelize.STRING, unique: true },
-            password: { type: Sequelize.STRING, allowNull: false },
+            devicename: {
+              type: Sequelize.STRING,
+              unique: true
+            },
+            password: {
+              type: Sequelize.STRING,
+              allowNull: false
+            },
             location: Sequelize.STRING,
             lastConnectionTime: Sequelize.STRING,
-            public: { type: Sequelize.BOOLEAN, defaultValue: false },
+            public: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             currentConfig: Sequelize.JSONB,
             newConfig: Sequelize.JSONB,
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('Groups', {
             groupname: Sequelize.STRING,
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('GroupUsers', {
-            admin: { type: Sequelize.BOOLEAN, defaultValue: false },
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            admin: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('IrVideoRecordings', {
             // Fields for a file.
@@ -69,15 +111,27 @@ module.exports = {
             batteryCharging: Sequelize.STRING,
             airplaneModeOn: Sequelize.BOOLEAN,
             // Fields from filter functions.
-            filtered: { type: Sequelize.BOOLEAN, defaultValue: false },
+            filtered: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             filterMetadata: Sequelize.JSONB,
             passedFilter: Sequelize.BOOLEAN,
             // Other fields
-            public: { type: Sequelize.BOOLEAN, defaultValue: false },
+            public: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             additionalMetadata: Sequelize.JSONB,
             tags: Sequelize.JSONB,
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('ThermalVideoRecordings', {
             // Fields for a file.
@@ -95,24 +149,48 @@ module.exports = {
             batteryCharging: Sequelize.STRING,
             airplaneModeOn: Sequelize.BOOLEAN,
             // Fields from filter functions.
-            filtered: { type: Sequelize.BOOLEAN, defaultValue: false },
+            filtered: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             filterMetadata: Sequelize.JSONB,
             passedFilter: Sequelize.BOOLEAN,
             // Other fields
-            public: { type: Sequelize.BOOLEAN, defaultValue: false },
+            public: {
+              type: Sequelize.BOOLEAN,
+              defaultValue: false
+            },
             additionalMetadata: Sequelize.JSONB,
             tags: Sequelize.JSONB,
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
           queryInterface.createTable('Users', {
-            username: { type: Sequelize.STRING, unique: true },
+            username: {
+              type: Sequelize.STRING,
+              unique: true
+            },
             firstName: Sequelize.STRING,
             lastName: Sequelize.STRING,
             email: Sequelize.STRING,
-            password: { type: Sequelize.STRING, allowNull: false },
-            createdAt: { type: Sequelize.DATE, allowNull: false },
-            updatedAt: { type: Sequelize.DATE, allowNull: false },
+            password: {
+              type: Sequelize.STRING,
+              allowNull: false
+            },
+            createdAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
+            updatedAt: {
+              type: Sequelize.DATE,
+              allowNull: false
+            },
           }),
         ])
         .then(() => {

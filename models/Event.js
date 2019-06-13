@@ -36,20 +36,27 @@ module.exports = function(sequelize, DataTypes) {
   var models = sequelize.models;
 
   Event.addAssociations = function(models) {
-    models.Event.belongsTo(models.DetailSnapshot, { as : 'EventDetail', foreignKey: 'EventDetailId'});
+    models.Event.belongsTo(models.DetailSnapshot, {
+      as: 'EventDetail',
+      foreignKey: 'EventDetailId'
+    });
   };
 
   /**
-  * Return one or more recordings for a user matching the query
-  * arguments given.
-  */
+   * Return one or more recordings for a user matching the query
+   * arguments given.
+   */
   Event.query = async function(user, startTime, endTime, deviceId, offset, limit) {
     const where = {};
 
     if (startTime || endTime) {
       const dateTime = where.dateTime = {};
-      if (startTime) { dateTime[Op.gte] = startTime; }
-      if (endTime) { dateTime[Op.lt] = endTime; }
+      if (startTime) {
+        dateTime[Op.gte] = startTime;
+      }
+      if (endTime) {
+        dateTime[Op.lt] = endTime;
+      }
     }
 
     if (deviceId) {
@@ -64,8 +71,14 @@ module.exports = function(sequelize, DataTypes) {
         ],
       },
       order: ["dateTime"],
-      include: { model: models.DetailSnapshot, as: 'EventDetail', attributes: ['type', 'details'] },
-      attributes: { exclude : ['updatedAt', 'EventDetailId'] },
+      include: {
+        model: models.DetailSnapshot,
+        as: 'EventDetail',
+        attributes: ['type', 'details']
+      },
+      attributes: {
+        exclude: ['updatedAt', 'EventDetailId']
+      },
       limit: limit,
       offset: offset,
     });

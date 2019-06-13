@@ -62,8 +62,14 @@ module.exports = {
           age: { // Guessed age in weeks of animal
             type: Sequelize.INTEGER
           },
-          createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
+            allowNull: false
+          },
         })
         .then(() => {
           return util.addSerial(queryInterface, 'Tags');
@@ -77,7 +83,9 @@ module.exports = {
             util.migrationAddBelongsTo(queryInterface, 'Tags',
               'ThermalVideoRecordings'),
             util.migrationAddBelongsTo(queryInterface, 'Tags',
-              'Users', {'name': 'tagger'})
+              'Users', {
+                'name': 'tagger'
+              })
           ]);
         })
         .then(() => {

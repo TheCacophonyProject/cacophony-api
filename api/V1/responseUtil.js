@@ -55,7 +55,10 @@ function invalidDatapointUpdate(response, message) {
 }
 
 function badRequest(response, messages) {
-  send(response, { statusCode: 400, messages: messages });
+  send(response, {
+    statusCode: 400,
+    messages: messages
+  });
 }
 
 //======VALID REQUESTS=========
@@ -86,7 +89,9 @@ function validFileRequest(response, data) {
   send(response, {
     statusCode: 200,
     messages: [VALID_FILE_REQUEST],
-    jwt: jwt.sign(data, config.server.passportSecret, { expiresIn: 60 * 10 }),
+    jwt: jwt.sign(data, config.server.passportSecret, {
+      expiresIn: 60 * 10
+    }),
   });
 }
 

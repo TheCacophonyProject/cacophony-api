@@ -9,8 +9,7 @@ process.argv.forEach((val, index) => {
   if (index > 1) {
     if (val.toLowerCase().startsWith('--config=')) {
       configPath = val.split('=')[1];
-    }
-    else {
+    } else {
       var error = "Cannot parse '" + val + "'.  The only accepted parameter is --config=<path-to-config-file> ";
       throw error;
     }
@@ -26,7 +25,9 @@ var models = require('./models');
 
 log.info('Starting Full Noise.');
 var app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 app.use(passport.initialize());
 log.addExpressApp(app);
@@ -49,7 +50,9 @@ app.use(require('./api/customErrors').errorHandler);
 
 // Add file processing API.
 var fileProcessingApp = express();
-fileProcessingApp.use(bodyParser.urlencoded({ extended: false }));
+fileProcessingApp.use(bodyParser.urlencoded({
+  extended: false
+}));
 require('./api/fileProcessing')(fileProcessingApp);
 http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
 log.info('Starting file processing on', config.fileProcessing.port);
@@ -68,8 +71,9 @@ models.sequelize
 
 function openHttpServer(app) {
   return new Promise(function(resolve, reject) {
-    if (!config.server.http.active)
-    {return resolve();}
+    if (!config.server.http.active) {
+      return resolve();
+    }
     try {
       log.info('Starting http server on ', config.server.http.port);
       http.createServer(app).listen(config.server.http.port);
@@ -85,7 +89,9 @@ function openHttpServer(app) {
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
     var s3 = modelsUtil.openS3();
-    var params = { Bucket: config.s3.bucket };
+    var params = {
+      Bucket: config.s3.bucket
+    };
     log.info("Connecting to S3.....");
     s3.headBucket(params, function(err) {
       if (err) {

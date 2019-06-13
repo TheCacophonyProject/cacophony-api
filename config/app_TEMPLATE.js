@@ -21,10 +21,10 @@ var database = {
   dialect: "postgres"
 };
 
-var s3 = {  // Used for storing audio & video recordings.
-  publicKey: "",  // REQUIRED, String:
+var s3 = { // Used for storing audio & video recordings.
+  publicKey: "", // REQUIRED, String:
   privateKey: "", // REQUIRED, String
-  bucket: "cacophony",   // REQUIRED, String
+  bucket: "cacophony", // REQUIRED, String
   endpoint: "http://localhost:9000", // REQUIRED, URL
 };
 

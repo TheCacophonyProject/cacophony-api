@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
-const {AuthorizationError} = require("../api/customErrors");
+const {
+  AuthorizationError
+} = require("../api/customErrors");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
@@ -34,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
     },
     location: {
-      type:DataTypes.STRING,
+      type: DataTypes.STRING,
     },
     lastConnectionTime: {
       type: DataTypes.DATE,
@@ -69,15 +71,17 @@ module.exports = function(sequelize, DataTypes) {
   Device.addAssociations = function(models) {
     models.Device.hasMany(models.Recording);
     models.Device.hasMany(models.Event);
-    models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
+    models.Device.belongsToMany(models.User, {
+      through: models.DeviceUsers
+    });
     models.Device.belongsTo(models.Schedule);
   };
 
   /**
-  * Adds/update a user to a Device, if the given user has permission to do so.
-  * The authenticated user must either be admin of the group that the device
-  * belongs to, an admin of that device, or have global write permission.
-  */
+   * Adds/update a user to a Device, if the given user has permission to do so.
+   * The authenticated user must either be admin of the group that the device
+   * belongs to, an admin of that device, or have global write permission.
+   */
   Device.addUserToDevice = async function(authUser, device, userToAdd, admin) {
     if (device == null || userToAdd == null) {
       return false;
@@ -99,7 +103,11 @@ module.exports = function(sequelize, DataTypes) {
       return true;
     }
 
-    await device.addUser(userToAdd.id, {through: {admin: admin}});
+    await device.addUser(userToAdd.id, {
+      through: {
+        admin: admin
+      }
+    });
     return true;
   };
 
@@ -128,7 +136,7 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  Device.onlyUsersDevicesMatching = async function (user, conditions = null, includeData = null) {
+  Device.onlyUsersDevicesMatching = async function(user, conditions = null, includeData = null) {
     // Return all devices if user has global write/read permission.
     if (user.hasGlobalRead()) {
       return this.findAndCountAll({
@@ -142,13 +150,24 @@ module.exports = function(sequelize, DataTypes) {
     var deviceIds = await user.getDeviceIds();
     var userGroupIds = await user.getGroupsIds();
 
-    const usersDevice = { [Op.or]: [
-      {GroupId: {[Op.in]: userGroupIds}},
-      {id: {[Op.in]: deviceIds}},
-    ]};
+    const usersDevice = {
+      [Op.or]: [{
+          GroupId: {
+            [Op.in]: userGroupIds
+          }
+        },
+        {
+          id: {
+            [Op.in]: deviceIds
+          }
+        },
+      ]
+    };
 
     return this.findAndCountAll({
-      where: { [Op.and]: [usersDevice, conditions] },
+      where: {
+        [Op.and]: [usersDevice, conditions]
+      },
       attributes: ["devicename", "id"],
       order: ['devicename'],
       include: includeData,
@@ -156,12 +175,10 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.allForUser = async function(user) {
-    const includeData = [
-      {
-        model: models.User,
-        attributes: ['id', 'username'],
-      },
-    ];
+    const includeData = [{
+      model: models.User,
+      attributes: ['id', 'username'],
+    }, ];
 
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
@@ -175,7 +192,11 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.freeDevicename = async function(devicename) {
-    var device = await this.findOne({where: { devicename:devicename }});
+    var device = await this.findOne({
+      where: {
+        devicename: devicename
+      }
+    });
     if (device != null) {
       throw new Error('device name in use');
     }
@@ -187,7 +208,11 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.getFromName = async function(name) {
-    return await this.findOne({ where: { devicename: name }});
+    return await this.findOne({
+      where: {
+        devicename: name
+      }
+    });
   };
 
   // Fields that are directly settable by the API.
@@ -238,9 +263,13 @@ module.exports = function(sequelize, DataTypes) {
       return [];
     }
 
-    const device_users = await this.getUsers({ attributes: attrs });
+    const device_users = await this.getUsers({
+      attributes: attrs
+    });
     const group = await models.Group.getFromId(this.GroupId);
-    const group_users = await group.getUsers({ attributes: attrs });
+    const group_users = await group.getUsers({
+      attributes: attrs
+    });
 
     return device_users.concat(group_users);
   };
@@ -255,13 +284,13 @@ module.exports = function(sequelize, DataTypes) {
 function afterValidate(device) {
 
   if (device.password !== undefined) {
-  // TODO Make the password be hashed when the device password is set not in the validation.
-  // TODO or make a custome validation for the password.
+    // TODO Make the password be hashed when the device password is set not in the validation.
+    // TODO or make a custome validation for the password.
     return new Promise(function(resolve, reject) {
       bcrypt.hash(device.password, 10, function(err, hash) {
-        if (err)
-        {reject(err);}
-        else {
+        if (err) {
+          reject(err);
+        } else {
           device.password = hash;
           resolve();
         }

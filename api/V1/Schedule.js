@@ -16,11 +16,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { body, param } = require('express-validator/check');
+const {
+  body,
+  param
+} = require('express-validator/check');
 const models = require('../../models');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const auth         = require('../auth');
+const middleware = require('../middleware');
+const auth = require('../auth');
 
 module.exports = (app, baseUrl) => {
   var apiUrl = baseUrl + '/schedules';
@@ -57,10 +60,13 @@ module.exports = (app, baseUrl) => {
       // TODO make the device and schedule changes apply in a single transaction
       await instance.save();
 
-      await models.Device.update(
-        {ScheduleId: instance.id},
-        {where: {id: deviceIds}}
-      );
+      await models.Device.update({
+        ScheduleId: instance.id
+      }, {
+        where: {
+          id: deviceIds
+        }
+      });
 
       return responseUtil.send(response, {
         statusCode: 200,
@@ -119,7 +125,9 @@ module.exports = (app, baseUrl) => {
 };
 
 async function getSchedule(device, response, user = null) {
-  var schedule = {schedule: {}};
+  var schedule = {
+    schedule: {}
+  };
 
   if (device.ScheduleId) {
     schedule = await models.Schedule.findByPk(device.ScheduleId);
@@ -135,9 +143,10 @@ async function getSchedule(device, response, user = null) {
   // get all the users devices that are also associated with this same schedule
   var devices = [];
   if (user && device.ScheduleId) {
-    devices = await models.Device.onlyUsersDevicesMatching(user, { ScheduleId : device.ScheduleId });
-  }
-  else {
+    devices = await models.Device.onlyUsersDevicesMatching(user, {
+      ScheduleId: device.ScheduleId
+    });
+  } else {
     devices = {
       count: 1,
       rows: [device]

@@ -57,7 +57,9 @@ module.exports = function(sequelize, DataTypes) {
   const Recording = sequelize.models.Recording;
 
   Tag.addAssociations = function(models) {
-    models.Tag.belongsTo(models.User, {as: 'tagger'});
+    models.Tag.belongsTo(models.User, {
+      as: 'tagger'
+    });
     models.Tag.belongsTo(models.Recording);
   };
 
@@ -70,7 +72,11 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Tag.deleteFromId = async function(id, user) {
-    var tag = await this.findOne({where: {id: id}});
+    var tag = await this.findOne({
+      where: {
+        id: id
+      }
+    });
     if (tag == null) {
       return true;
     }
@@ -80,7 +86,7 @@ module.exports = function(sequelize, DataTypes) {
       Recording.Perms.TAG,
     );
 
-    if(recording == null){
+    if (recording == null) {
       return false;
     }
 

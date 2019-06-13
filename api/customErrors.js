@@ -118,5 +118,5 @@ class ClientError extends CustomError {
 exports.ValidationError = ValidationError;
 exports.AuthenticationError = AuthenticationError;
 exports.AuthorizationError = AuthorizationError;
-exports.ClientError     = ClientError;
-exports.errorHandler    = errorHandler;
+exports.ClientError = ClientError;
+exports.errorHandler = errorHandler;

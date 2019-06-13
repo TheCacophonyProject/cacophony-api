@@ -16,11 +16,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const middleware   = require('../middleware');
-const auth         = require('../auth');
-const models       = require('../../models');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const models = require('../../models');
 const responseUtil = require('./responseUtil');
-const { param, body } = require('express-validator/check');
+const {
+  param,
+  body
+} = require('express-validator/check');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/admin';
@@ -36,7 +39,7 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.patch(
-    apiUrl+'/global_permission/:username',
+    apiUrl + '/global_permission/:username',
     [
       auth.authenticateAdmin,
       middleware.getUserByName(param),

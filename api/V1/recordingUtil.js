@@ -20,11 +20,13 @@ const jsonwebtoken = require('jsonwebtoken');
 const mime = require('mime');
 const _ = require('lodash');
 
-const { ClientError }   = require('../customErrors');
-const config            = require('../../config');
-const models            = require('../../models');
-const responseUtil      = require('./responseUtil');
-const util              = require('./util');
+const {
+  ClientError
+} = require('../customErrors');
+const config = require('../../config');
+const models = require('../../models');
+const responseUtil = require('./responseUtil');
+const util = require('./util');
 
 
 function makeUploadHandler(mungeData) {
@@ -79,8 +81,7 @@ async function get(request, type) {
   const recording = await models.Recording.get(
     request.user,
     request.params.id,
-    models.Recording.Perms.VIEW,
-    {
+    models.Recording.Perms.VIEW, {
       type: type,
       filterOptions: request.query.filterOptions,
     }
@@ -108,13 +109,15 @@ async function get(request, type) {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
-      config.server.passportSecret,
-      { expiresIn: 60 * 10 }
+      config.server.passportSecret, {
+        expiresIn: 60 * 10
+      }
     ),
     rawJWT: jsonwebtoken.sign(
       downloadRawData,
-      config.server.passportSecret,
-      { expiresIn: 60 * 10 }
+      config.server.passportSecret, {
+        expiresIn: 60 * 10
+      }
     ),
   };
 }
@@ -140,12 +143,12 @@ function guessRawMimeType(type, filename) {
     return mimeType;
   }
   switch (type) {
-  case "thermalRaw":
-    return "application/x-cptv";
-  case "audio":
-    return "audio/mpeg";
-  default:
-    return "application/octet-stream";
+    case "thermalRaw":
+      return "application/x-cptv";
+    case "audio":
+      return "audio/mpeg";
+    default:
+      return "application/octet-stream";
   }
 }
 
@@ -196,7 +199,9 @@ function handleLegacyTagFieldsForGet(tag) {
 }
 
 function handleLegacyTagFieldsForGetOnRecording(recording) {
-  recording = recording.get({ plain: true });
+  recording = recording.get({
+    plain: true
+  });
   recording.Tags = recording.Tags.map(handleLegacyTagFieldsForGet);
   return recording;
 }
@@ -211,7 +216,7 @@ const statusCode = {
 // reprocessAll expects request.body.recordings to be a list of recording_ids
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
-  const recordings =  request.body.recordings;
+  const recordings = request.body.recordings;
   var responseMessage = {
     statusCode: 200,
     messages: [],
@@ -220,40 +225,40 @@ async function reprocessAll(request, response) {
   };
 
   var status = 0;
-  for (var i = 0; i < recordings.length; i++){
+  for (var i = 0; i < recordings.length; i++) {
     var resp = await reprocessRecording(request.user, recordings[i]);
-    if(resp.statusCode != 200){
+    if (resp.statusCode != 200) {
       status = status | statusCode.Fail;
       responseMessage.messages.push(resp.messages[0]);
       responseMessage.statusCode = resp.statusCode;
       responseMessage.fail.push(resp.recordingId);
 
-    }else{
+    } else {
       responseMessage.reprocessed.push(resp.recordingId);
       status = status | statusCode.Success;
     }
   }
-  responseMessage.messages.splice(0,0,getReprocessMessage(status));
+  responseMessage.messages.splice(0, 0, getReprocessMessage(status));
   responseUtil.send(response, responseMessage);
   return;
 }
 
-function getReprocessMessage(status){
-  switch(status){
-  case statusCode.Success:
-    return "All recordings scheduled for reprocessing" ;
-  case statusCode.Fail:
-    return "Recordings could not be scheduled for reprocessing";
-  case statusCode.Both:
-    return "Some recordings could not be scheduled for reprocessing";
-  default:
-    return "";
+function getReprocessMessage(status) {
+  switch (status) {
+    case statusCode.Success:
+      return "All recordings scheduled for reprocessing";
+    case statusCode.Fail:
+      return "Recordings could not be scheduled for reprocessing";
+    case statusCode.Both:
+      return "Some recordings could not be scheduled for reprocessing";
+    default:
+      return "";
   }
 }
 
 // reprocessRecording marks supplied recording_id for reprocessing,
 // under supplied user privileges
-async function reprocessRecording(user,recording_id){
+async function reprocessRecording(user, recording_id) {
   const recording = await models.Recording.get(
     user,
     recording_id,
@@ -273,7 +278,7 @@ async function reprocessRecording(user,recording_id){
   return {
     statusCode: 200,
     messages: ['Recording scheduled for reprocessing'],
-    recordingId : recording_id,
+    recordingId: recording_id,
   };
 }
 

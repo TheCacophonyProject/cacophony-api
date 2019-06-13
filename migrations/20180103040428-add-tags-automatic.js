@@ -1,10 +1,9 @@
 'use strict';
 
 module.exports = {
-  up: async function (queryInterface, Sequelize) {
+  up: async function(queryInterface, Sequelize) {
     return await queryInterface.addColumn(
-      'Tags', 'automatic',
-      {
+      'Tags', 'automatic', {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
         allowNull: false,
@@ -12,7 +11,7 @@ module.exports = {
     );
   },
 
-  down: async function (queryInterface) {
+  down: async function(queryInterface) {
     return await queryInterface.removeColumn('Tags', 'automatic');
   }
 };

@@ -16,7 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const {AuthorizationError} = require("../api/customErrors");
+const {
+  AuthorizationError
+} = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
   var name = 'Group';
 
@@ -37,7 +39,9 @@ module.exports = function(sequelize, DataTypes) {
 
   Group.addAssociations = function(models) {
     models.Group.hasMany(models.Device);
-    models.Group.belongsToMany(models.User, { through: models.GroupUsers });
+    models.Group.belongsToMany(models.User, {
+      through: models.GroupUsers
+    });
     models.Group.hasMany(models.Recording);
   };
 
@@ -62,7 +66,11 @@ module.exports = function(sequelize, DataTypes) {
       await groupUser.save();
     }
 
-    await group.addUser(userToAdd, {through: {admin: admin}});
+    await group.addUser(userToAdd, {
+      through: {
+        admin: admin
+      }
+    });
   };
 
   /**
@@ -92,15 +100,16 @@ module.exports = function(sequelize, DataTypes) {
    */
   Group.query = async function(where, user) {
 
-    var userWhere = { id: user.id };
+    var userWhere = {
+      id: user.id
+    };
     if (user.hasGlobalRead()) {
       userWhere = null;
     }
 
     return await models.Group.findAll({
       where: where,
-      include: [
-        {
+      include: [{
           model: models.User,
           attributes: ['id', 'username'],
           where: userWhere,
@@ -113,21 +122,19 @@ module.exports = function(sequelize, DataTypes) {
     }).then(groups => {
 
       // TODO: Review the following with a mind to combining with the groups.findAll query to improve efficiency
-      const augmentGroupData = new Promise((resolve,reject) => {
+      const augmentGroupData = new Promise((resolve, reject) => {
         try {
           const groupsPromises = groups.map(group => {
 
             return models.User.findAll({
-              attributes:['username','id'],
-              include:[
-                {
-                  model:models.Group,
-                  where:{
-                    id:group.id
-                  },
-                  attributes:[]
-                }
-              ]
+              attributes: ['username', 'id'],
+              include: [{
+                model: models.Group,
+                where: {
+                  id: group.id
+                },
+                attributes: []
+              }]
             }).then(async groupUsers => {
 
               const setAdminPromises = groupUsers.map(groupUser => {
@@ -138,7 +145,7 @@ module.exports = function(sequelize, DataTypes) {
 
               await Promise.all(setAdminPromises);
 
-              group.setDataValue('GroupUsers',groupUsers);
+              group.setDataValue('GroupUsers', groupUsers);
               return group;
             });
           });
@@ -164,11 +171,19 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Group.getFromName = async function(name) {
-    return await this.findOne({ where: { groupname: name }});
+    return await this.findOne({
+      where: {
+        groupname: name
+      }
+    });
   };
 
   Group.freeGroupname = async function(name) {
-    var group = await this.findOne({where: { groupname: name }});
+    var group = await this.findOne({
+      where: {
+        groupname: name
+      }
+    });
     if (group != null) {
       throw new Error('groupname in use');
     }
@@ -178,7 +193,11 @@ module.exports = function(sequelize, DataTypes) {
   Group.getIdFromName = function(name) {
     var Group = this;
     return new Promise(function(resolve) {
-      Group.findOne({ where: { groupname: name } })
+      Group.findOne({
+          where: {
+            groupname: name
+          }
+        })
         .then(function(group) {
           if (!group) {
             resolve(false);

@@ -17,14 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require('../../models');
-const jwt          = require('jsonwebtoken');
-const config       = require('../../config');
+const jwt = require('jsonwebtoken');
+const config = require('../../config');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const auth         = require('../auth');
-const { body, param } = require('express-validator/check');
-const { matchedData } = require('express-validator/filter');
-const { ClientError } = require('../customErrors');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const {
+  body,
+  param
+} = require('express-validator/check');
+const {
+  matchedData
+} = require('express-validator/filter');
+const {
+  ClientError
+} = require('../customErrors');
 
 module.exports = function(app, baseUrl) {
   var apiUrl = baseUrl + '/users';
@@ -48,9 +55,13 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       middleware.checkNewName('username')
-        .custom(value => { return models.User.freeUsername(value); }),
+      .custom(value => {
+        return models.User.freeUsername(value);
+      }),
       body('email').isEmail()
-        .custom(value => { return models.User.freeEmail(value); }),
+      .custom(value => {
+        return models.User.freeEmail(value);
+      }),
       middleware.checkNewPassword('password'),
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -106,13 +117,17 @@ module.exports = function(app, baseUrl) {
         next();
       },
       middleware.checkNewName('username')
-        .custom(value => { return models.User.freeUsername(value); })
-        .optional(),
+      .custom(value => {
+        return models.User.freeUsername(value);
+      })
+      .optional(),
       body('email').isEmail()
-        .custom(value => { return models.User.freeEmail(value); })
-        .optional(),
+      .custom(value => {
+        return models.User.freeEmail(value);
+      })
+      .optional(),
       middleware.checkNewPassword('password')
-        .optional(),
+      .optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const validData = matchedData(request);
@@ -120,7 +135,9 @@ module.exports = function(app, baseUrl) {
         throw new ClientError("Must provide at least one of: username; email; password.");
       }
       const user = request.user;
-      await user.update(validData, { fields: user.apiSettableFields });
+      await user.update(validData, {
+        fields: user.apiSettableFields
+      });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ['Updated user.'],

@@ -1,6 +1,8 @@
 const process = require("process");
 const args = require('commander');
-const { Client } = require('pg');
+const {
+  Client
+} = require('pg');
 const config = require('./config');
 const modelsUtil = require('./models/util/util');
 
@@ -104,5 +106,9 @@ async function allDBKeys(client) {
 
 
 main()
-  .catch ((err) => { console.log(err); })
-  .then(() => { process.exit(0); });
+  .catch((err) => {
+    console.log(err);
+  })
+  .then(() => {
+    process.exit(0);
+  });

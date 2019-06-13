@@ -11,8 +11,8 @@ const server = {
 };
 
 const s3 = {
-  publicKey: "minio",  
-  privateKey: "miniostorage", 
+  publicKey: "minio",
+  privateKey: "miniostorage",
   bucket: "cacophony",
   endpoint: "http://127.0.0.1:9001",
 };

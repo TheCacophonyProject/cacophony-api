@@ -10,8 +10,8 @@ const server = {
   },
 };
 
-const s3 = {  // Used for storing audio & video recordings.
-  publicKey: "REQUIRED",  // obtain from S3 server.
+const s3 = { // Used for storing audio & video recordings.
+  publicKey: "REQUIRED", // obtain from S3 server.
   privateKey: "REQUIRED", // obtain from S3 server
   bucket: "cacophony",
   endpoint: "http://localhost:9001",

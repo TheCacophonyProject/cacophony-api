@@ -178,35 +178,35 @@ module.exports = function(sequelize, DataTypes) {
       },
       order: order,
       include: [{
-        model: models.Group,
-        where: {},
-        attributes: ["groupname"]
-      },
-      {
-        model: models.Tag,
-        where: {},
-        attributes: ["what", "detail", "automatic", "taggerId"],
-        required: false
-      },
-      {
-        model: models.Track,
-        where: {
-          archivedAt: null
-        },
-        attributes: ['id'],
-        required: false,
-        include: [{
-          model: models.TrackTag,
-          attributes: ["what", "automatic", "UserId"],
+          model: models.Group,
           where: {},
+          attributes: ["groupname"]
+        },
+        {
+          model: models.Tag,
+          where: {},
+          attributes: ["what", "detail", "automatic", "taggerId"],
           required: false
-        }],
-      },
-      {
-        model: models.Device,
-        where: {},
-        attributes: ["devicename"]
-      },
+        },
+        {
+          model: models.Track,
+          where: {
+            archivedAt: null
+          },
+          attributes: ['id'],
+          required: false,
+          include: [{
+            model: models.TrackTag,
+            attributes: ["what", "automatic", "UserId"],
+            where: {},
+            required: false
+          }],
+        },
+        {
+          model: models.Device,
+          where: {},
+          attributes: ["devicename"]
+        },
       ],
       limit: limit,
       offset: offset,
@@ -231,37 +231,37 @@ module.exports = function(sequelize, DataTypes) {
     const humanSQL = 'NOT "Tags".automatic';
     const AISQL = '"Tags".automatic';
     switch (tagMode) {
-    case 'any':
-      return '';
-    case 'untagged':
-      return notTagOfType(tagWhats, null);
-    case 'tagged':
-      return tagOfType(tagWhats, null);
-    case 'human-tagged':
-      return tagOfType(tagWhats, humanSQL);
-    case 'automatic-tagged':
-      return tagOfType(tagWhats, AISQL);
-    case 'both-tagged':
-      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
-    case 'no-human':
-      return notTagOfType(tagWhats, humanSQL);
-    case 'automatic-only':
-      return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
-    case 'human-only':
-      return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
-    case 'automatic+human':
-      return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
-    case 'cool':
-    case 'missed track':
-    case 'multiple animals':
-    case 'trapped in trap':
-      var sqlQuery = '(EXISTS (' + recordingTaggedWith([tagMode], null) + '))';
-      if (tagWhats) {
-        sqlQuery = sqlQuery + ' AND ' + tagOfType(tagWhats, null);
-      }
-      return sqlQuery;
-    default:
-      throw `invalid tag mode: ${tagMode}`;
+      case 'any':
+        return '';
+      case 'untagged':
+        return notTagOfType(tagWhats, null);
+      case 'tagged':
+        return tagOfType(tagWhats, null);
+      case 'human-tagged':
+        return tagOfType(tagWhats, humanSQL);
+      case 'automatic-tagged':
+        return tagOfType(tagWhats, AISQL);
+      case 'both-tagged':
+        return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
+      case 'no-human':
+        return notTagOfType(tagWhats, humanSQL);
+      case 'automatic-only':
+        return tagOfType(tagWhats, AISQL) + ' AND ' + notTagOfType(tagWhats, humanSQL);
+      case 'human-only':
+        return tagOfType(tagWhats, humanSQL) + ' AND ' + notTagOfType(tagWhats, AISQL);
+      case 'automatic+human':
+        return tagOfType(tagWhats, humanSQL) + ' AND ' + tagOfType(tagWhats, AISQL);
+      case 'cool':
+      case 'missed track':
+      case 'multiple animals':
+      case 'trapped in trap':
+        var sqlQuery = '(EXISTS (' + recordingTaggedWith([tagMode], null) + '))';
+        if (tagWhats) {
+          sqlQuery = sqlQuery + ' AND ' + tagOfType(tagWhats, null);
+        }
+        return sqlQuery;
+      default:
+        throw `invalid tag mode: ${tagMode}`;
     }
   };
 
@@ -339,18 +339,18 @@ module.exports = function(sequelize, DataTypes) {
         }, ],
       },
       include: [{
-        model: models.Tag,
-        attributes: models.Tag.userGetAttributes,
-        include: [{
-          association: 'tagger',
-          attributes: ['username']
-        }]
-      },
-      {
-        model: models.Device,
-        where: {},
-        attributes: ["devicename", "id"]
-      },
+          model: models.Tag,
+          attributes: models.Tag.userGetAttributes,
+          include: [{
+            association: 'tagger',
+            attributes: ['username']
+          }]
+        },
+        {
+          model: models.Device,
+          where: {},
+          attributes: ["devicename", "id"]
+        },
       ],
       attributes: this.userGetAttributes.concat(['rawFileKey']),
     };
@@ -413,18 +413,18 @@ module.exports = function(sequelize, DataTypes) {
     var groupIds = await user.getGroupsIds();
     return {
       [Op.or]: [{
-        public: true
-      },
-      {
-        GroupId: {
-          [Op.in]: groupIds
-        }
-      },
-      {
-        DeviceId: {
-          [Op.in]: deviceIds
-        }
-      },
+          public: true
+        },
+        {
+          GroupId: {
+            [Op.in]: groupIds
+          }
+        },
+        {
+          DeviceId: {
+            [Op.in]: deviceIds
+          }
+        },
       ]
     };
   };
@@ -455,12 +455,12 @@ module.exports = function(sequelize, DataTypes) {
       return '.' + ext;
     }
     switch (this.type) {
-    case 'thermalRaw':
-      return '.cptv';
-    case 'audio':
-      return '.mpga';
-    default:
-      return "";
+      case 'thermalRaw':
+        return '.cptv';
+      case 'audio':
+        return '.mpga';
+      default:
+        return "";
     }
   };
 

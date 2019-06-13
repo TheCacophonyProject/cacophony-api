@@ -29,7 +29,7 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   // CLASS METHODS
   //---------------
-  
+
   Schedule.addAssociations = function(models) {
     models.Schedule.belongsTo(models.User);
     models.Schedule.hasMany(models.Device);
@@ -37,4 +37,3 @@ module.exports = function(sequelize, DataTypes) {
 
   return Schedule;
 };
-

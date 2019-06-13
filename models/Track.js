@@ -27,7 +27,10 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   Track.addAssociations = function(models) {
     models.Track.belongsTo(models.Recording);
-    models.Track.belongsTo(models.DetailSnapshot, { as : 'Algorithm', foreignKey: 'AlgorithmId'});
+    models.Track.belongsTo(models.DetailSnapshot, {
+      as: 'Algorithm',
+      foreignKey: 'AlgorithmId'
+    });
     models.Track.hasMany(models.TrackTag);
   };
 

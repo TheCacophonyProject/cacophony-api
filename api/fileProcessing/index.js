@@ -1,4 +1,7 @@
-const { body, param } = require('express-validator/check');
+const {
+  body,
+  param
+} = require('express-validator/check');
 
 const log = require('../../logging');
 const middleware = require('../middleware');
@@ -21,11 +24,11 @@ module.exports = function(app) {
     log.info(request.method + " Request: " + request.url);
     var type = request.query.type;
     var state = request.query.state;
-    var recording = await models.Recording.getOneForProcessing(type,state);
+    var recording = await models.Recording.getOneForProcessing(type, state);
     if (recording == null) {
       log.debug('No file to be processed.');
       return response.status(204).json();
-    }else{
+    } else {
       return response.status(200).json({
         recording: recording.dataValues,
       });
@@ -47,7 +50,7 @@ module.exports = function(app) {
   app.put(apiUrl, async (request, response) => {
     var id = parseInt(request.body.id);
     var jobKey = request.body.jobKey;
-    var success =  middleware.parseBool(request.body.success);
+    var success = middleware.parseBool(request.body.success);
     var result = request.body.result;
     var complete = middleware.parseBool(request.body.complete);
     var newProcessedFileKey = request.body.newProcessedFileKey;
@@ -77,7 +80,11 @@ module.exports = function(app) {
       });
     }
 
-    var recording = await models.Recording.findOne({ where: { id: id }});
+    var recording = await models.Recording.findOne({
+      where: {
+        id: id
+      }
+    });
 
     // Check that jobKey is correct.
     if (jobKey != recording.get('jobKey')) {
@@ -88,7 +95,7 @@ module.exports = function(app) {
 
     if (success) {
       var jobs = models.Recording.processingStates[recording.type];
-      var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
+      var nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
       recording.set('processingState', nextJob);
       recording.set('fileKey', newProcessedFileKey);
       log.info("Complete is " + complete);
@@ -103,7 +110,9 @@ module.exports = function(app) {
       }
 
       await recording.save();
-      return response.status(200).json({messages: ["Processing finished."]});
+      return response.status(200).json({
+        messages: ["Processing finished."]
+      });
     } else {
       recording.set('processingStartTime', null);
       recording.set('jobKey', null);
@@ -139,7 +148,13 @@ module.exports = function(app) {
       body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      const options = {include: [{ model: models.Device, where: {}, attributes: ["devicename", "id"] },]};
+      const options = {
+        include: [{
+          model: models.Device,
+          where: {},
+          attributes: ["devicename", "id"]
+        }, ]
+      };
       const recording = await models.Recording.findByPk(request.body.recordingId, options);
       recordingUtil.addTag(null, recording, request.body.tag, response);
     })
@@ -250,19 +265,19 @@ module.exports = function(app) {
   );
 
   /**
-  * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
-  * @apiName PostTrackTag
-  * @apiGroup FileProcessing
-  *
-  * @apiParam {String} what Object/event to tag.
-  * @apiParam {Number} confidence Tag confidence score.
-  * @apiParam {JSON} data Data Additional tag data.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
-  *
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
+   * @apiName PostTrackTag
+   * @apiGroup FileProcessing
+   *
+   * @apiParam {String} what Object/event to tag.
+   * @apiParam {Number} confidence Tag confidence score.
+   * @apiParam {JSON} data Data Additional tag data.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(
     apiUrl + '/:id/tracks/:trackId/tags',
     [
@@ -306,17 +321,17 @@ module.exports = function(app) {
   );
 
   /**
-  * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
-  * @apiName Algorithm
-  * @apiGroup FileProcessing
-  *
-  * @apiParam {JSON} algorithm algorithm data in tag form.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {int} algorithmId Id of the matching algorithm tag.
-  *
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
+   * @apiName Algorithm
+   * @apiGroup FileProcessing
+   *
+   * @apiParam {JSON} algorithm algorithm data in tag form.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} algorithmId Id of the matching algorithm tag.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(
     apiUrl + '/algorithm',
     [

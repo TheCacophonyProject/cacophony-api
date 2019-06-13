@@ -3,8 +3,14 @@
 module.exports = {
   up: (queryInterface) => {
     return Promise.all([
-      queryInterface.addIndex('Tags', {fields:['RecordingId'], unique:false}),
-      queryInterface.addIndex('Tags', {fields:['animal'], unique:false}),
+      queryInterface.addIndex('Tags', {
+        fields: ['RecordingId'],
+        unique: false
+      }),
+      queryInterface.addIndex('Tags', {
+        fields: ['animal'],
+        unique: false
+      }),
     ]);
   },
 

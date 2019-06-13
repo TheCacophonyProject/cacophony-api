@@ -16,15 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const stream          = require('stream');
+const stream = require('stream');
 
-const config          = require('../../config');
-const log             = require('../../logging');
-const middleware      = require('../middleware');
-const auth            = require('../auth');
-const modelsUtil      = require('../../models/util/util');
-const responseUtil    = require('./responseUtil');
-const { ClientError } = require('../customErrors');
+const config = require('../../config');
+const log = require('../../logging');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const modelsUtil = require('../../models/util/util');
+const responseUtil = require('./responseUtil');
+const {
+  ClientError
+} = require('../customErrors');
 
 
 module.exports = function(app, baseUrl) {

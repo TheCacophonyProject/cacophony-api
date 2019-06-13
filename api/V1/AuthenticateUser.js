@@ -16,39 +16,42 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jwt          = require('jsonwebtoken');
-const config       = require('../../config');
+const jwt = require('jsonwebtoken');
+const config = require('../../config');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const { body, oneOf }     = require('express-validator/check');
+const middleware = require('../middleware');
+const {
+  body,
+  oneOf
+} = require('express-validator/check');
 
 
 module.exports = function(app) {
   /**
-  * @api {post} /authenticate_user/ Authenticate a user
-  * @apiName AuthenticateUser
-  * @apiGroup Authentication
-  * @apiDescription Checks the username corresponds to an existing user account
-  * and the password matches the account.
-  * One of 'username', 'email', or 'nameOrEmail' is required.
-  *
-  * @apiParam {String} username Username identifying a valid user account
-  * @apiParam {String} email Email identifying a valid user account
-  * @apiParam {String} nameOrEmail Username or email of a valid user account.
-  * @apiParam {String} password Password for the user account
-  *
-  * @apiSuccess {String} token JWT string to provide to further API requests
-  */
+   * @api {post} /authenticate_user/ Authenticate a user
+   * @apiName AuthenticateUser
+   * @apiGroup Authentication
+   * @apiDescription Checks the username corresponds to an existing user account
+   * and the password matches the account.
+   * One of 'username', 'email', or 'nameOrEmail' is required.
+   *
+   * @apiParam {String} username Username identifying a valid user account
+   * @apiParam {String} email Email identifying a valid user account
+   * @apiParam {String} nameOrEmail Username or email of a valid user account.
+   * @apiParam {String} password Password for the user account
+   *
+   * @apiSuccess {String} token JWT string to provide to further API requests
+   */
   app.post(
     '/authenticate_user',
     [
       oneOf([
-        middleware.getUserByName(body),
-        middleware.getUserByName(body, 'nameOrEmail'),
-        middleware.getUserByEmail(body),
-        middleware.getUserByEmail(body, 'nameOrEmail'),
-      ],
-      "could not find a user with the given username or email"),
+          middleware.getUserByName(body),
+          middleware.getUserByName(body, 'nameOrEmail'),
+          middleware.getUserByEmail(body),
+          middleware.getUserByEmail(body, 'nameOrEmail'),
+        ],
+        "could not find a user with the given username or email"),
       body('password').exists(),
     ],
     middleware.requestWrapper(async (request, response) => {

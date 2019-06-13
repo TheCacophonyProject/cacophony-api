@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var bcrypt = require('bcrypt');
 var Sequelize = require('sequelize');
-const { AuthorizationError } = require('../api/customErrors');
+const {
+  AuthorizationError
+} = require('../api/customErrors');
 const log = require('../logging');
 const Op = Sequelize.Op;
 
@@ -47,7 +49,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     email: {
       type: DataTypes.STRING,
-      validate: { isEmail: true },
+      validate: {
+        isEmail: true
+      },
       unique: true,
     },
     password: {
@@ -95,8 +99,12 @@ module.exports = function(sequelize, DataTypes) {
   const models = sequelize.models;
 
   User.addAssociations = function(models) {
-    models.User.belongsToMany(models.Group, { through: models.GroupUsers });
-    models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
+    models.User.belongsToMany(models.Group, {
+      through: models.GroupUsers
+    });
+    models.User.belongsToMany(models.Device, {
+      through: models.DeviceUsers
+    });
   };
 
   User.getAll = async function(where) {
@@ -111,11 +119,19 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.getFromName = async function(name) {
-    return await this.findOne({ where: { username: name }});
+    return await this.findOne({
+      where: {
+        username: name
+      }
+    });
   };
 
   User.freeUsername = async function(username) {
-    var user = await this.findOne({where: {username: username }});
+    var user = await this.findOne({
+      where: {
+        username: username
+      }
+    });
     if (user != null) {
       throw new Error('Username in use');
     }
@@ -123,16 +139,26 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.getFromEmail = async function(email) {
-    return await this.findOne({where: {email: email}});
+    return await this.findOne({
+      where: {
+        email: email
+      }
+    });
   };
 
   User.freeEmail = async function(email, userId) {
     email = email.toLowerCase();
-    const where = {email: email};
+    const where = {
+      email: email
+    };
     if (userId) { //Ignore email from this user
-      where.id = {[Op.not]: userId};
+      where.id = {
+        [Op.not]: userId
+      };
     }
-    var user = await this.findOne({where: where});
+    var user = await this.findOne({
+      where: where
+    });
     if (user) {
       throw new Error('Email in use');
     }
@@ -163,23 +189,30 @@ module.exports = function(sequelize, DataTypes) {
     var groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
       var devices = await models.Device.findAll({
-        where: { GroupId: { [Op.in]: groupIds }},
+        where: {
+          GroupId: {
+            [Op.in]: groupIds
+          }
+        },
         attributes: ['id'],
       });
       return devices.map(d => d.id);
-    }
-    else {
+    } else {
       return [];
     }
   };
 
-  User.prototype.getWhereDeviceVisible = async function () {
+  User.prototype.getWhereDeviceVisible = async function() {
     if (this.hasGlobalRead()) {
       return null;
     }
 
     var allDeviceIds = await this.getAllDeviceIds();
-    return { DeviceId: {[Op.in]: allDeviceIds}};
+    return {
+      DeviceId: {
+        [Op.in]: allDeviceIds
+      }
+    };
   };
 
   User.prototype.getJwtDataValues = function() {

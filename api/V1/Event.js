@@ -16,11 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models       = require('../../models');
+const models = require('../../models');
 const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const auth         = require('../auth');
-const { body, query, oneOf } = require('express-validator/check');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const {
+  body,
+  query,
+  oneOf
+} = require('express-validator/check');
 
 
 module.exports = function(app, baseUrl) {
@@ -119,8 +123,12 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       auth.authenticateUser,
-      query('startTime').isISO8601({ strict: true }).optional(),
-      query('endTime').isISO8601({ strict: true }).optional(),
+      query('startTime').isISO8601({
+        strict: true
+      }).optional(),
+      query('endTime').isISO8601({
+        strict: true
+      }).optional(),
       query('deviceId').isInt().optional().toInt(),
       query('offset').isInt().optional().toInt(),
       query('limit').isInt().optional().toInt(),

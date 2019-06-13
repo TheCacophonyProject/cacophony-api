@@ -28,8 +28,12 @@ const Op = Sequelize.Op;
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve) {
     var models = require('../');
-    if (typeof queryParams.limit == 'undefined') {queryParams.limit = 20;}
-    if (typeof queryParams.offset == 'undefined') {queryParams.offset = 0;}
+    if (typeof queryParams.limit == 'undefined') {
+      queryParams.limit = 20;
+    }
+    if (typeof queryParams.offset == 'undefined') {
+      queryParams.offset = 0;
+    }
     queryParams.order = [
       ['recordingDateTime', 'DESC'],
     ];
@@ -37,7 +41,11 @@ function findAllWithUser(model, user, queryParams) {
     if (!user) {
       // Not logged in, can onnly see public recordings.
       model.findAndCountAll({
-        where: { [Op.and]: [queryParams.where, { public: true }] },
+        where: {
+          [Op.and]: [queryParams.where, {
+            public: true
+          }]
+        },
         include: [models.Group],
         limit: queryParams.limit,
         offset: queryParams.offset
@@ -53,12 +61,23 @@ function findAllWithUser(model, user, queryParams) {
           queryParams.where = {
             [Op.and]: [
               queryParams.where,
-              { [Op.or]: [{ public: true }, { GroupId: { [Op.in]: ids } }] }
+              {
+                [Op.or]: [{
+                  public: true
+                }, {
+                  GroupId: {
+                    [Op.in]: ids
+                  }
+                }]
+              }
             ]
           };
-          queryParams.include = [
-            { model: models.Group },
-            { model: models.Tag },
+          queryParams.include = [{
+              model: models.Group
+            },
+            {
+              model: models.Tag
+            },
           ];
           return model.findAndCountAll(queryParams);
         }).then(function(result) {
@@ -72,7 +91,11 @@ function findAllWithUser(model, user, queryParams) {
 
 function getFileData(model, id, user) {
   return new Promise(function(resolve, reject) {
-    findAllWithUser(model, user, { where: { id } })
+    findAllWithUser(model, user, {
+        where: {
+          id
+        }
+      })
       .then(function(result) {
         if (result.rows !== null && result.rows.length >= 1) {
           var model = result.rows[0];
@@ -82,8 +105,9 @@ function getFileData(model, id, user) {
             mimeType: model.getDataValue('mimeType'),
           };
           return resolve(fileData);
-        } else
-        {return resolve(null);}
+        } else {
+          return resolve(null);
+        }
       })
       .catch(function(err) {
         log.error("Error at models/util.js getFileKey:");
@@ -95,22 +119,30 @@ function getFileData(model, id, user) {
 function getFileName(model) {
   var fileName;
   var dateStr = model.getDataValue('recordingDateTime');
-  if (dateStr)
-  {fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g,
-    '');}
-  else
-  {fileName = 'file';}
+  if (dateStr) {
+    fileName = new Date(dateStr).toISOString().replace(/\..+/, '').replace(/:/g,
+      '');
+  } else {
+    fileName = 'file';
+  }
 
   var ext = mime.getExtension(model.getDataValue('mimeType') || '');
-  if (ext) {fileName = fileName + '.' + ext;}
+  if (ext) {
+    fileName = fileName + '.' + ext;
+  }
   return fileName;
 }
 
 function geometrySetter(val) {
   // Put here so old apps that send location in a string still work.
   // TODO remove this when nobody is using the old app that sends a string.
-  if (typeof val === 'string') {return;}
-  this.setDataValue('location', { type: 'Point', coordinates: val });
+  if (typeof val === 'string') {
+    return;
+  }
+  this.setDataValue('location', {
+    type: 'Point',
+    coordinates: val
+  });
 }
 
 function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
@@ -142,10 +174,10 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
 
   return new Promise(function(resolve, reject) {
     queryInterface.sequelize.query(
-      'ALTER TABLE "' + childTable +
+        'ALTER TABLE "' + childTable +
         '" ADD COLUMN "' + columnName +
         '" INTEGER ' + columnNull + ';'
-    )
+      )
       .then(() => {
         return queryInterface.sequelize.query(
           'ALTER TABLE "' + childTable +
@@ -173,7 +205,7 @@ function renameTableAndIdSeq(queryInterface, oldName, newName) {
   ]);
 }
 
-function migrationRemoveBelongsTo(queryInterface, childTable, parentTable, opts={}) {
+function migrationRemoveBelongsTo(queryInterface, childTable, parentTable, opts = {}) {
   var columnName = parentTable.substring(0, parentTable.length - 1) + 'Id';
   if (opts.name) {
     columnName = opts.name + 'Id';
@@ -192,33 +224,33 @@ function belongsToMany(queryInterface, viaTable, table1, table2) {
   console.log('Adding belongs to many columns.');
   return new Promise(function(resolve, reject) {
     Promise.all([
-      queryInterface.sequelize.query(
-        'ALTER TABLE "' + viaTable +
-          '" ADD COLUMN "' + columnName1 +
-          '" INTEGER;'
-      ),
-      queryInterface.sequelize.query(
-        'ALTER TABLE "' + viaTable +
-          '" ADD COLUMN "' + columnName2 +
-          '" INTEGER;'
-      ),
-    ]).then(() => {
-      console.log('Adding belongs to many constraint.');
-      return Promise.all([
         queryInterface.sequelize.query(
           'ALTER TABLE "' + viaTable +
+          '" ADD COLUMN "' + columnName1 +
+          '" INTEGER;'
+        ),
+        queryInterface.sequelize.query(
+          'ALTER TABLE "' + viaTable +
+          '" ADD COLUMN "' + columnName2 +
+          '" INTEGER;'
+        ),
+      ]).then(() => {
+        console.log('Adding belongs to many constraint.');
+        return Promise.all([
+          queryInterface.sequelize.query(
+            'ALTER TABLE "' + viaTable +
             '" ADD CONSTRAINT "' + constraintName1 +
             '" FOREIGN KEY ("' + columnName1 +
             '") REFERENCES "' + table1 +
             '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
-        queryInterface.sequelize.query(
-          'ALTER TABLE "' + viaTable +
+          queryInterface.sequelize.query(
+            'ALTER TABLE "' + viaTable +
             '" ADD CONSTRAINT "' + constraintName2 +
             '" FOREIGN KEY ("' + columnName2 +
             '") REFERENCES "' + table2 +
             '" (id) ON DELETE CASCADE ON UPDATE CASCADE;'),
-      ]);
-    })
+        ]);
+      })
       .then(() => resolve())
       .catch((err) => reject(err));
   });
@@ -235,10 +267,16 @@ function getFromId(id, user, attributes) {
   var modelClass = this;
   return new Promise((resolve) => {
     // Get just public models if no user was given
-    if (!user)
-    {return modelClass
-      .findOne({ where: { id: id, public: true } })
-      .then(resolve);}
+    if (!user) {
+      return modelClass
+        .findOne({
+          where: {
+            id: id,
+            public: true
+          }
+        })
+        .then(resolve);
+    }
 
     user
       .getGroupsIds()
@@ -248,7 +286,13 @@ function getFromId(id, user, attributes) {
         var condition = {
           where: {
             id: id,
-            [Op.or]: [{ GroupId: { [Op.in]: ids } }, { public: true }],
+            [Op.or]: [{
+              GroupId: {
+                [Op.in]: ids
+              }
+            }, {
+              public: true
+            }],
           },
           attributes: attributes,
         };
@@ -272,8 +316,11 @@ function deleteModelInstance(id, user) {
       .getFromId(id, user, ['fileKey', 'id'])
       .then(mi => {
         modelInstance = mi;
-        if (modelInstance === null)
-        {throw {badRequest: 'No file found'};}
+        if (modelInstance === null) {
+          throw {
+            badRequest: 'No file found'
+          };
+        }
         return modelInstance.fileKey;
       })
       .then(fileKey => deleteFile(fileKey))
@@ -290,10 +337,11 @@ function userCanEdit(id, user) {
     modelClass
       .getFromId(id, user, ['id'])
       .then(result => {
-        if (result === null)
-        {return resolve(false);}
-        else
-        {return resolve(true);}
+        if (result === null) {
+          return resolve(false);
+        } else {
+          return resolve(true);
+        }
       });
   });
 }
@@ -356,8 +404,11 @@ function deleteFile(fileKey) {
       Key: fileKey,
     };
     s3.deleteObject(params, function(err, data) {
-      if (err) {return reject(err);}
-      else {return resolve(data);}
+      if (err) {
+        return reject(err);
+      } else {
+        return resolve(data);
+      }
     });
   });
 }

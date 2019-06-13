@@ -16,14 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models            = require('../../models');
-const util              = require('./util');
-const responseUtil      = require('./responseUtil');
-const config            = require('../../config');
-const jsonwebtoken      = require('jsonwebtoken');
-const middleware        = require('../middleware');
-const auth              = require('../auth');
-const { query, param }  = require('express-validator/check');
+const models = require('../../models');
+const util = require('./util');
+const responseUtil = require('./responseUtil');
+const config = require('../../config');
+const jsonwebtoken = require('jsonwebtoken');
+const middleware = require('../middleware');
+const auth = require('../auth');
+const {
+  query,
+  param
+} = require('express-validator/check');
 
 
 module.exports = (app, baseUrl) => {
@@ -145,27 +148,28 @@ module.exports = (app, baseUrl) => {
         file: file,
         jwt: jsonwebtoken.sign(
           downloadFileData,
-          config.server.passportSecret,
-          { expiresIn: 60 * 10 }
+          config.server.passportSecret, {
+            expiresIn: 60 * 10
+          }
         ),
       });
     })
   );
 
   /**
-  * @api {delete} /api/v1/files/:id Delete an existing files
-  * @apiName DeleteFile
-  * @apiGroup Files
-  * @apiDescription This call deletes a file.  The user making the
-  * call must have uploaded the file or be an administrator.
-  *
-  * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiUse V1ResponseError
-  */
+   * @api {delete} /api/v1/files/:id Delete an existing files
+   * @apiName DeleteFile
+   * @apiGroup Files
+   * @apiDescription This call deletes a file.  The user making the
+   * call must have uploaded the file or be an administrator.
+   *
+   * [/api/v1/signedUrl API](#api-SignedUrl-GetFile).
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.delete(
     apiUrl + '/:id',
     [

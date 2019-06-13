@@ -27,8 +27,7 @@ module.exports = function(sequelize, DataTypes) {
     details: DataTypes.JSONB
   };
 
-  var options = {
-  };
+  var options = {};
 
   var DetailSnapshot = sequelize.define(name, attributes, options);
 
@@ -37,8 +36,12 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
 
   DetailSnapshot.addAssociations = function(models) {
-    models.DetailSnapshot.hasMany(models.Event, { foreignKey: 'EventDetailId' } );
-    models.DetailSnapshot.hasMany(models.Track, { foreignKey: 'AlgorithmId'});
+    models.DetailSnapshot.hasMany(models.Event, {
+      foreignKey: 'EventDetailId'
+    });
+    models.DetailSnapshot.hasMany(models.Track, {
+      foreignKey: 'AlgorithmId'
+    });
   };
 
   DetailSnapshot.getOrCreateMatching = async function(searchType, searchDetails) {
@@ -48,15 +51,16 @@ module.exports = function(sequelize, DataTypes) {
       };
     }
 
-    const existing =  await this.findOne({ where: {
-      type: searchType,
-      details: searchDetails,
-    }});
+    const existing = await this.findOne({
+      where: {
+        type: searchType,
+        details: searchDetails,
+      }
+    });
 
     if (existing) {
       return existing;
-    }
-    else {
+    } else {
       return await this.create({
         type: searchType,
         details: searchDetails,

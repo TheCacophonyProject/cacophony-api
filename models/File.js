@@ -17,7 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 'use strict';
-const {AuthorizationError} = require("../api/customErrors");
+const {
+  AuthorizationError
+} = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
   var name = 'File';
 
@@ -44,9 +46,9 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   /**
-  * Return one or more files for a user matching the query
-  * arguments given.
-  */
+   * Return one or more files for a user matching the query
+   * arguments given.
+   */
   File.query = async function(where, offset, limit, order) {
     if (order == null) {
       order = [
@@ -57,7 +59,9 @@ module.exports = function(sequelize, DataTypes) {
     var q = {
       where: where,
       order: order,
-      attributes: { exclude : ['updatedAt', 'fileKey'] },
+      attributes: {
+        exclude: ['updatedAt', 'fileKey']
+      },
       limit: limit,
       offset: offset,
     };
