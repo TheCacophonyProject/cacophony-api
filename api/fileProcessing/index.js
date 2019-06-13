@@ -47,9 +47,9 @@ module.exports = function(app) {
   app.put(apiUrl, async (request, response) => {
     var id = parseInt(request.body.id);
     var jobKey = request.body.jobKey;
-    var success = request.body.success;
+    var success =  middleware.parseBool(request.body.success);
     var result = request.body.result;
-    var complete = (request.body.complete == "true") || (request.body.complete == "True");
+    var complete = middleware.parseBool(request.body.complete);
     var newProcessedFileKey = request.body.newProcessedFileKey;
 
     // Validate request.
@@ -139,7 +139,9 @@ module.exports = function(app) {
       body('recordingId').isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
-      recordingUtil.addTag(request, response);
+      const options = {include: [{ model: models.Device, where: {}, attributes: ["devicename", "id"] },]};
+      const recording = await models.Recording.findByPk(request.body.recordingId, options);
+      recordingUtil.addTag(null, recording, request.body.tag, response);
     })
   );
 
