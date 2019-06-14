@@ -43,10 +43,3 @@ class TestDeviceGroupNames:
         assert devices == [p_terminator.get_id()]
         devices = clare.get_devices_as_ids()
         assert devices == [c_terminator.get_id()]
-
-        admin = helper.admin_user()
-        devices = admin.get_devices_as_ids()
-        print(devices)
-
-        print("Then 'Listener' should able to log in")
-        helper.login_as_device(c_terminator.devicename, clares_group)
