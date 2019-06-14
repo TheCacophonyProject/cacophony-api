@@ -71,6 +71,8 @@ module.exports = function(sequelize, DataTypes) {
     models.Device.hasMany(models.Event);
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
+    models.Device.belongsTo(models.Group);
+
   };
 
   /**
@@ -133,7 +135,7 @@ module.exports = function(sequelize, DataTypes) {
     if (user.hasGlobalRead()) {
       return this.findAndCountAll({
         where: conditions,
-        attributes: ["devicename", "id"],
+        attributes: ["devicename", "id","GroupId"],
         include: includeData,
         order: ['devicename'],
       });
@@ -174,10 +176,10 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
-  Device.freeDevicename = async function(devicename) {
-    var device = await this.findOne({where: { devicename:devicename }});
+  Device.freeDevicename = async function(groupID, devicename) {
+    var device = await this.findOne({where: { GroupId:groupID, devicename:devicename }});
     if (device != null) {
-      throw new Error('device name in use');
+      return false;
     }
     return true;
   };
@@ -186,8 +188,13 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findById(id);
   };
 
-  Device.getFromName = async function(name) {
-    return await this.findOne({ where: { devicename: name }});
+  Device.getFromNameAndGroup = async function(name, groupName) {
+    return await this.findOne({ 
+      where: { devicename: name},
+      include: [{
+        model: models.Group,
+        where: { groupname: groupName}
+      }]});
   };
 
   // Fields that are directly settable by the API.

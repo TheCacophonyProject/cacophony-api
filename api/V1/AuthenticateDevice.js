@@ -31,6 +31,8 @@ module.exports = function(app) {
   * and the password matches the account.
   *
   * @apiParam {String} devicename The name identifying a valid device account
+  * @apiParam {String} groupname The name identifying a valid device account
+
   * @apiParam {String} password Password for the device account
   *
   * @apiSuccess {String} token JWT string to provide to further API requests
@@ -38,11 +40,11 @@ module.exports = function(app) {
   app.post(
     '/authenticate_device',
     [
-      middleware.getDeviceByName(body),
+      middleware.setGroupName(body),
+      middleware.getDeviceByNameAndGroup(body),
       body('password').exists(),
     ],
     middleware.requestWrapper(async (request, response) => {
-
       const passwordMatch = await request.body.device.comparePassword(request.body.password);
       if (passwordMatch) {
         var data = request.body.device.getJwtDataValues();

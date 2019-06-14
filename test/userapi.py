@@ -13,6 +13,7 @@ from .apibase import APIBase
 class UserAPI(APIBase):
     def __init__(self, baseurl, username, email, password="password"):
         super().__init__("user", baseurl, username, password)
+        self.postdata["email"] = email
         self.email = email
 
     def register_as_new(self):
@@ -84,14 +85,19 @@ class UserAPI(APIBase):
         return self._check_response(r)
 
     def reprocess(self, recording_id, params=None):
-        reprocessURL = urljoin(self._baseurl, "/api/v1/recordings/reprocess/{}".format(recording_id))
+        reprocessURL = urljoin(
+            self._baseurl, "/api/v1/reprocess/{}".format(recording_id)
+        )
         r = requests.get(reprocessURL, headers=self._auth_header, params=params)
         return self._check_response(r)
 
     def reprocess_recordings(self, recordings, params=None):
-        reprocessURL = urljoin(self._baseurl, "/api/v1/recordings/reprocess/multiple")
+        reprocessURL = urljoin(self._baseurl, "/api/v1/reprocess")
         r = requests.post(
-            reprocessURL, headers=self._auth_header, data={"recordings": json.dumps(recordings)})
+            reprocessURL,
+            headers=self._auth_header,
+            data={"recordings": json.dumps(recordings)},
+        )
         return r.status_code, r.json()
 
     def download_cptv(self, recording_id):
@@ -164,16 +170,19 @@ class UserAPI(APIBase):
             return r.json()
         raise_specific_exception(r)
 
+    def get_devices_as_json(self):
+        return self._get_all("/api/v1/devices")["devices"]["rows"]
+
     def get_devices_as_string(self):
-        return json.dumps(self._get_all("/api/v1/devices"))
+        return json.dumps(self.get_devices_as_json())
 
     def get_groups_as_string(self):
         return json.dumps(self._get_all("/api/v1/groups"))
 
-    def get_device_id(self, devicename):
+    def get_device_id(self, devicename, groupId):
         all_devices = self._get_all("/api/v1/devices")["devices"]["rows"]
         for device in all_devices:
-            if device["devicename"] == devicename:
+            if device["GroupId"] == groupId and device["devicename"] == devicename:
                 return device["id"]
         return None
 
@@ -198,11 +207,9 @@ class UserAPI(APIBase):
     def delete_recording_tag(self, tag_id):
         tagData = {"tagId": tag_id}
         response = requests.delete(
-            urljoin(
-                self._baseurl,
-                "/api/v1/tags".format(tag_id),
-            ),
-            headers=self._auth_header, data=tagData
+            urljoin(self._baseurl, "/api/v1/tags".format(tag_id)),
+            headers=self._auth_header,
+            data=tagData,
         )
         return self._check_response(response)["messages"]
 
@@ -277,16 +284,22 @@ class UserAPI(APIBase):
         response = requests.post(url, data=props, headers=self._auth_header)
         self._check_response(response)
 
-    def get_audio_schedule(self, devicename):
-        url = urljoin(self._baseurl, "/api/v1/schedules/{}".format(devicename))
+    def get_audio_schedule(self, devicename, groupname):
+        url = urljoin(
+            self._baseurl, "/api/v1/schedules/{}/{}".format(groupname, devicename)
+        )
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
         return response.json()
 
-    def upload_recording_for(self, devicename, filename, props=None):
+    def upload_recording_for(self, groupname, devicename, filename, props=None):
         if not props:
             props = {"type": "thermalRaw"}
-        return self._upload("/api/v1/recordings/{}".format(devicename), filename, props)
+        return self._upload(
+            "/api/v1/recordings/group/{}/device/{}".format(groupname, devicename),
+            filename,
+            props,
+        )
 
     def set_global_permission(self, user, permission):
         url = urljoin(self._baseurl, "/api/v1/admin/global_permission/" + user)

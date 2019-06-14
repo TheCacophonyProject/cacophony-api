@@ -7,7 +7,6 @@ from multiprocessing import Pool
 
 
 class TestFileProcessing:
-
     def get_recording(file_processing):
         recording = file_processing.get("thermalRaw", "getMetadata")
         if recording is not None:
@@ -26,7 +25,7 @@ class TestFileProcessing:
 
         thread_params = [file_processing for i in range(threads)]
         p = Pool(threads)
-        results = (p.map(TestFileProcessing.get_recording, thread_params))
+        results = p.map(TestFileProcessing.get_recording, thread_params)
         recordings = [record for record in results if record]
         assert len(set(recordings)) == len(recordings)
 
@@ -98,10 +97,12 @@ class TestFileProcessing:
 
     def test_can_upload_and_find_algorithm_keys(self, helper, file_processing):
         # Should be created
-        algorithm1 = file_processing.get_algorithm_id({'timestamp': datetime.now(timezone.utc).isoformat()})
-        algorithm2 = file_processing.get_algorithm_id({'speed': 'quick'})
+        algorithm1 = file_processing.get_algorithm_id(
+            {"timestamp": datetime.now(timezone.utc).isoformat()}
+        )
+        algorithm2 = file_processing.get_algorithm_id({"speed": "quick"})
         # Should be found in already in the database
-        algorithm3 = file_processing.get_algorithm_id({'speed': 'quick'})
+        algorithm3 = file_processing.get_algorithm_id({"speed": "quick"})
 
         assert algorithm1 != algorithm2
         assert algorithm2 == algorithm3
@@ -158,7 +159,9 @@ class TestFileProcessing:
         recordings.append(recording_first.id_)
         self.add_tracks_and_tag(file_processing, recording_first)
 
-        recording_second = self.create_processed_recording(helper, file_processing, user)
+        recording_second = self.create_processed_recording(
+            helper, file_processing, user
+        )
         recordings.append(recording_second.id_)
         self.add_tracks_and_tag(file_processing, recording_second)
 

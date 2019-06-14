@@ -14,6 +14,8 @@ class APIBase:
         self._baseurl = baseurl
         self._loginname = loginname
         self._password = password
+        self._response = None
+        self.postdata = {}
 
     def login(self, email=None):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
@@ -26,8 +28,11 @@ class APIBase:
             self._set_jwt_token(response)
             return
         if response.status_code == 422:
-            raise ValueError("Could not log on as '{}'.  Please check {} name."
-                             .format(self._loginname, self._logintype))
+            raise ValueError(
+                "Could not log on as '{}'.  Please check {} name.".format(
+                    self._loginname, self._logintype
+                )
+            )
         raise_specific_exception(response)
 
     def register_as_new(self, group=None, email=None):
@@ -39,8 +44,8 @@ class APIBase:
         if email:
             data["email"] = email
         response = requests.post(url, data=data)
-
         if response.status_code == 200:
+            self._response = response.json()
             self._set_jwt_token(response)
         else:
             self._check_response(response)
@@ -50,8 +55,11 @@ class APIBase:
     def _create_login_and_password_map(self, email=None):
         if email:
             return {"email": email, "password": self._password}
+
         nameProp = self._logintype + "name"
-        return {nameProp: self._loginname, "password": self._password}
+        data = {nameProp: self._loginname, "password": self._password}
+        data.update(self.postdata)
+        return data
 
     def _set_jwt_token(self, response):
         self._token = response.json().get("token")

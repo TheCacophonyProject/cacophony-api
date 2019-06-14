@@ -44,12 +44,18 @@ module.exports = function(app, baseUrl) {
   app.post(
     apiUrl,
     [
-      middleware.checkNewName('devicename')
-        .custom(value => { return models.Device.freeDevicename(value); }),
-      middleware.checkNewPassword('password'),
       middleware.getGroupByName(body),
+      middleware.checkNewName('devicename'),
+      middleware.checkNewPassword('password'),
     ],
     middleware.requestWrapper(async (request, response) => {
+      if(!await models.Device.freeDevicename(request.body.group.id, request.body.devicename)){
+        return responseUtil.send(response, {
+          statusCode: 422,
+          messages: ["Device name in use."],
+        });
+      }
+
       const device = await models.Device.create({
         devicename: request.body.devicename,
         password: request.body.password,
@@ -59,6 +65,7 @@ module.exports = function(app, baseUrl) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
+        id: device.id,
         token: 'JWT ' + jwt.sign(data, config.server.passportSecret)
       });
     })

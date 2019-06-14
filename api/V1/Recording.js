@@ -74,7 +74,7 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/:devicename Add a new recording on behalf of device
+   * @api {post} /api/v1/recordings/group/:groupname/device/:devicename Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
@@ -90,11 +90,13 @@ module.exports = (app, baseUrl) => {
    * @apiSuccess {Number} recordingId ID of the recording.
    * @apiuse V1ResponseError
    */
+   
   app.post(
-    apiUrl + "/:devicename",
+    apiUrl + "/group/:groupname/device/:devicename",
     [
       auth.authenticateUser,
-      middleware.getDeviceByName(param),
+      middleware.setGroupName(param),
+      middleware.getDeviceByNameAndGroup(param),
       auth.userCanAccessDevices,
     ],
     middleware.requestWrapper(
@@ -481,52 +483,6 @@ module.exports = (app, baseUrl) => {
     })
   );
 
-  /**
-  * @api {get} /api/v1/recordings/reprocess/:id
-  * @apiName Reprocess
-  * @apiGroup Recordings
-  * @apiParam {Number} id of recording to reprocess
-  * @apiDescription Marks a recording for reprocessing and archives existing tracks
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {Number} recordingId - recording_id reprocessed
-  */
-  app.get(
-    apiUrl + '/reprocess/:id',
-    [
-      auth.authenticateUser,
-      param('id').isInt(),
-    ],
-    middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocess(request,response);
-    })
-  );
-
-  /**
-  * @api {post} /api/v1/recordings/reprocess/multiple marks recordings for reprocessing and archives tracks
-  * @apiName ReprocessMultiple
-  * @apiGroup Recordings
-  * @apiParam {JSON} recordings an array of recording ids to reprocess
-
-  * @apiDescription Marks multiple recordings for reprocessing and archives existing tracks
-
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiUse V1RecordingReprocessResponse
-  */
-  app.post(
-    apiUrl + '/reprocess/multiple',
-    [
-      auth.authenticateUser,
-      middleware.parseJSON('recordings', body),
-
-    ],
-    middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocessAll(request,response);
-    })
-  );
 
 
   async function loadTrack(request, response) {

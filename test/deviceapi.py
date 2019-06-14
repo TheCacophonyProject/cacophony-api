@@ -7,8 +7,16 @@ from .apibase import APIBase
 
 
 class DeviceAPI(APIBase):
-    def __init__(self, baseurl, devicename, password="password"):
+    def __init__(self, baseurl, devicename, password="password", groupname=None):
         super().__init__("device", baseurl, devicename, password)
+        self.postdata["groupname"] = groupname
+        self.id = None
+
+    def register_as_new(self, group=None):
+        super().register_as_new(group=group)
+        if self._response:
+            self.id = self._response.get("id")
+        return self
 
     def upload_recording(self, filename, props=None):
         if not props:

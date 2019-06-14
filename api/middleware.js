@@ -112,8 +112,26 @@ function getDeviceById(checkFunc) {
   return getModelById(models.Device, 'deviceId', checkFunc);
 }
 
-function getDeviceByName(checkFunc) {
-  return getModelByName(models.Device, 'devicename', checkFunc);
+function setGroupName(checkFunc){
+  return checkFunc("groupname").custom(async (value, { req }) => {
+    req.body["groupname"]= value;
+    return true;
+  });
+}
+
+function getDeviceByNameAndGroup(checkFunc) {
+  return checkFunc("devicename","groupname").custom(async (deviceName, { req }) => {
+    var groupName = req.body["groupname"];
+    if(!groupName){
+      throw new Error(format('Group is missing from request body.'));      
+    }
+    const model = await models.Device.getFromNameAndGroup(deviceName, groupName);
+    if (model === null) {
+      throw new Error(format('Could not find device %s in group %s.', deviceName, groupName));
+    }
+    req.body["device"] = model;
+    return true;
+  });
 }
 
 function getDetailSnapshotById(checkFunc, paramName) {
@@ -208,7 +226,7 @@ exports.getGroupById       = getGroupById;
 exports.getGroupByName     = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
 exports.getDeviceById      = getDeviceById;
-exports.getDeviceByName    = getDeviceByName;
+exports.getDeviceByNameAndGroup    = getDeviceByNameAndGroup;
 exports.getDetailSnapshotById = getDetailSnapshotById;
 exports.getFileById        = getFileById;
 exports.getRecordingById   = getRecordingById;
@@ -220,3 +238,4 @@ exports.parseBool          = parseBool;
 exports.requestWrapper     = requestWrapper;
 exports.isDateArray        = isDateArray;
 exports.getUserByEmail     = getUserByEmail;
+exports.setGroupName       = setGroupName;

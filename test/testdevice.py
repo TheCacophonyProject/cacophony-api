@@ -4,15 +4,14 @@ from .recording import Recording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi, helper):
+    def __init__(self, devicename, deviceapi, helper, group=None):
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
-        self._id = None
+        self._id = deviceapi.id
+        self.group = group
 
     def get_id(self):
-        if self._id is None:
-            self._id = self._helper.admin_user().get_device_id(self.devicename)
         return self._id
 
     def has_recording(self):

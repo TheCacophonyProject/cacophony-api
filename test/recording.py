@@ -1,5 +1,5 @@
 class Recording:
-    def __init__(self, id_, props, content_filename, recording_name=''):
+    def __init__(self, id_, props, content_filename, recording_name=""):
         self.id_ = id_
         self.props = props
         self.content = slurp(content_filename)
@@ -23,9 +23,9 @@ class Recording:
 class TagPromise:
     def __init__(self, recording, tag):
         self._recording = recording
-        if tag.get('what') == 'false positive':
-            tag['detail'] = 'false positive'
-            del tag['what']
+        if tag.get("what") == "false positive":
+            tag["detail"] = "false positive"
+            del tag["what"]
         self._tag = tag
 
     def by(self, user):

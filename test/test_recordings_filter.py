@@ -17,9 +17,11 @@ class TestRecordingsFilter:
 
     def test_filter_by(self, helper):
         george = helper.given_new_user(self, "george")
-        group = george.create_group(helper.make_unique_group_name(self, "georges_group"))
-        device1 = helper.given_new_device(self, "device1", group, description='')
-        device2 = helper.given_new_device(self, "device2", group, description='')
+        group = george.create_group(
+            helper.make_unique_group_name(self, "georges_group")
+        )
+        device1 = helper.given_new_device(self, "device1", group, description="")
+        device2 = helper.given_new_device(self, "device2", group, description="")
 
         d2_first = device2.has_recording()
         d1_first = device1.has_recording()
@@ -27,7 +29,9 @@ class TestRecordingsFilter:
 
         all = [d2_first, d1_first, d2_second]
         expected = [d2_first, d2_second]
-        george.when_searching_for().devices([device2]).can_only_see_recordings(*expected).from_(all)
+        george.when_searching_for().devices([device2]).can_only_see_recordings(
+            *expected
+        ).from_(all)
 
     def test_latitude_longitude_filter(self, helper):
         print("If a new user Bob has a device upload a recording")

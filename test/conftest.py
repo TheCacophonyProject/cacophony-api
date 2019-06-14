@@ -33,14 +33,14 @@ def pytest_addoption(parser):
         "--log-api-on-fail",
         action="store_true",
         default=False,
-        help="show the log of the api server on faile"
+        help="show the log of the api server on faile",
     )
 
 
 @pytest.hookimpl
 def pytest_configure(config):
     if config.getoption("log_api_on_fail"):
-        os.environ['LOG_API'] = 'True'
+        os.environ["LOG_API"] = "True"
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -50,7 +50,7 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
 
-    if rep.when == "call" and rep.failed and 'LOG_API' in os.environ:
+    if rep.when == "call" and rep.failed and "LOG_API" in os.environ:
         try:
             proc = subprocess.run(
                 ["docker", "logs", "--tail", "50", "cacophony-api"],

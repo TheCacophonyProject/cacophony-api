@@ -54,7 +54,9 @@ class TestUserThermal:
         print("    and an unrelated user 'trouble'", end="")
         trouble = helper.given_new_user(self, "trouble")
 
-        print("Then 'trouble' should not be able to upload a recording on the behalf of the device.")
+        print(
+            "Then 'trouble' should not be able to upload a recording on the behalf of the device."
+        )
         with pytest.raises(AuthorizationError):
             trouble.uploads_recording_for(device)
 
@@ -64,7 +66,9 @@ class TestUserThermal:
 
         user = helper.given_new_user(self, "trouble")
 
-        print("\nA user should not be able to download the recording using the audio API")
+        print(
+            "\nA user should not be able to download the recording using the audio API"
+        )
         user.cannot_download_recording(recording)
 
         print("\nNor be able to see the recording through the audio query API")
