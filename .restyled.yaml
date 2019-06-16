@@ -1,5 +1,6 @@
-enabled: true
 restylers:
+  - stylish-haskell
+  - brittany
   - prettier:
-  		include:
-  			- "**/*.js"
+      include:
+        - "**/*.js"
