@@ -16,37 +16,41 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var util = require('./util/util');
+var util = require("./util/util");
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'Tag';
+  var name = "Tag";
 
   var attributes = {
     what: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     detail: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
-    confidence: { // 0: Not sure at all; 1: 100% positive
-      type: DataTypes.FLOAT,
+    confidence: {
+      // 0: Not sure at all; 1: 100% positive
+      type: DataTypes.FLOAT
     },
-    startTime: { // Start time of the tag in the linked recording in seconds
-      type: DataTypes.FLOAT,
+    startTime: {
+      // Start time of the tag in the linked recording in seconds
+      type: DataTypes.FLOAT
     },
-    duration: { // duration of the tag
-      type: DataTypes.FLOAT,
+    duration: {
+      // duration of the tag
+      type: DataTypes.FLOAT
     },
-    automatic: { // True if the tag was automatically generated.
+    automatic: {
+      // True if the tag was automatically generated.
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
+      defaultValue: false
     },
     version: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0x0100,
-    },
+      defaultValue: 0x0100
+    }
   };
 
   var Tag = sequelize.define(name, attributes);
@@ -58,7 +62,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, {
-      as: 'tagger'
+      as: "tagger"
     });
     models.Tag.belongsTo(models.Recording);
   };
@@ -83,7 +87,7 @@ module.exports = function(sequelize, DataTypes) {
     const recording = await Recording.get(
       user,
       tag.RecordingId,
-      Recording.Perms.TAG,
+      Recording.Perms.TAG
     );
 
     if (recording == null) {
@@ -95,25 +99,25 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Tag.userGetAttributes = Object.freeze([
-    'id',
-    'what',
-    'detail',
-    'confidence',
-    'startTime',
-    'duration',
-    'automatic',
-    'version',
-    'createdAt',
+    "id",
+    "what",
+    "detail",
+    "confidence",
+    "startTime",
+    "duration",
+    "automatic",
+    "version",
+    "createdAt"
   ]);
 
   Tag.apiSettableFields = Object.freeze([
-    'what',
-    'detail',
-    'confidence',
-    'startTime',
-    'duration',
-    'automatic',
-    'version',
+    "what",
+    "detail",
+    "confidence",
+    "startTime",
+    "duration",
+    "automatic",
+    "version"
   ]);
 
   return Tag;

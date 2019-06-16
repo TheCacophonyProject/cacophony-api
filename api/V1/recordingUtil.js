@@ -16,18 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jsonwebtoken = require('jsonwebtoken');
-const mime = require('mime');
-const _ = require('lodash');
+const jsonwebtoken = require("jsonwebtoken");
+const mime = require("mime");
+const _ = require("lodash");
 
-const {
-  ClientError
-} = require('../customErrors');
-const config = require('../../config');
-const models = require('../../models');
-const responseUtil = require('./responseUtil');
-const util = require('./util');
-
+const { ClientError } = require("../customErrors");
+const config = require("../../config");
+const models = require("../../models");
+const responseUtil = require("./responseUtil");
+const util = require("./util");
 
 function makeUploadHandler(mungeData) {
   return util.multipartUpload((request, data, key) => {
@@ -36,15 +33,18 @@ function makeUploadHandler(mungeData) {
     }
 
     const recording = models.Recording.build(data, {
-      fields: models.Recording.apiSettableFields,
+      fields: models.Recording.apiSettableFields
     });
-    recording.set('rawFileKey', key);
-    recording.set('rawMimeType', guessRawMimeType(data.type, data.filename));
-    recording.set('DeviceId', request.device.id);
-    recording.set('GroupId', request.device.GroupId);
-    recording.set('processingState', models.Recording.processingStates[data.type][0]);
-    if (typeof request.device.public === 'boolean') {
-      recording.set('public', request.device.public);
+    recording.set("rawFileKey", key);
+    recording.set("rawMimeType", guessRawMimeType(data.type, data.filename));
+    recording.set("DeviceId", request.device.id);
+    recording.set("GroupId", request.device.GroupId);
+    recording.set(
+      "processingState",
+      models.Recording.processingStates[data.type][0]
+    );
+    if (typeof request.device.public === "boolean") {
+      recording.set("public", request.device.public);
     }
     return recording;
   });
@@ -71,7 +71,7 @@ async function query(request, type) {
     request.query.offset,
     request.query.limit,
     request.query.order,
-    request.query.filterOptions,
+    request.query.filterOptions
   );
   result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
   return result;
@@ -81,9 +81,10 @@ async function get(request, type) {
   const recording = await models.Recording.get(
     request.user,
     request.params.id,
-    models.Recording.Perms.VIEW, {
+    models.Recording.Perms.VIEW,
+    {
       type: type,
-      filterOptions: request.query.filterOptions,
+      filterOptions: request.query.filterOptions
     }
   );
   if (!recording) {
@@ -91,17 +92,17 @@ async function get(request, type) {
   }
 
   const downloadFileData = {
-    _type: 'fileDownload',
+    _type: "fileDownload",
     key: recording.fileKey,
     filename: recording.getFileName(),
-    mimeType: recording.fileMimeType,
+    mimeType: recording.fileMimeType
   };
 
   const downloadRawData = {
-    _type: 'fileDownload',
+    _type: "fileDownload",
     key: recording.rawFileKey,
     filename: recording.getRawFileName(),
-    mimeType: recording.rawMimeType,
+    mimeType: recording.rawMimeType
   };
   delete recording.rawFileKey;
 
@@ -109,30 +110,31 @@ async function get(request, type) {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
-      config.server.passportSecret, {
+      config.server.passportSecret,
+      {
         expiresIn: 60 * 10
       }
     ),
-    rawJWT: jsonwebtoken.sign(
-      downloadRawData,
-      config.server.passportSecret, {
-        expiresIn: 60 * 10
-      }
-    ),
+    rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
+      expiresIn: 60 * 10
+    })
   };
 }
 
 async function delete_(request, response) {
-  var deleted = await models.Recording.deleteOne(request.user, request.params.id);
+  var deleted = await models.Recording.deleteOne(
+    request.user,
+    request.params.id
+  );
   if (deleted) {
     responseUtil.send(response, {
       statusCode: 200,
-      messages: ["Deleted recording."],
+      messages: ["Deleted recording."]
     });
   } else {
     responseUtil.send(response, {
       statusCode: 400,
-      messages: ["Failed to delete recording."],
+      messages: ["Failed to delete recording."]
     });
   }
 }
@@ -153,7 +155,6 @@ function guessRawMimeType(type, filename) {
 }
 
 async function addTag(user, recording, tag, response) {
-
   if (!recording) {
     throw new ClientError("No such recording.");
   }
@@ -161,30 +162,34 @@ async function addTag(user, recording, tag, response) {
   // If old tag fields are used, convert to new field names.
   tag = handleLegacyTagFieldsForCreate(tag);
 
-  const tagInstance = models.Tag.build(_.pick(tag, models.Tag.apiSettableFields));
-  tagInstance.set('RecordingId', recording.id);
+  const tagInstance = models.Tag.build(
+    _.pick(tag, models.Tag.apiSettableFields)
+  );
+  tagInstance.set("RecordingId", recording.id);
   if (user) {
-    tagInstance.set('taggerId', user.id);
+    tagInstance.set("taggerId", user.id);
   }
   await tagInstance.save();
 
   responseUtil.send(response, {
     statusCode: 200,
-    messages: ['Added new tag.'],
-    tagId: tagInstance.id,
+    messages: ["Added new tag."],
+    tagId: tagInstance.id
   });
 }
 
 function handleLegacyTagFieldsForCreate(tag) {
-  tag = moveLegacyField(tag, 'animal', 'what');
-  tag = moveLegacyField(tag, 'event', 'detail');
+  tag = moveLegacyField(tag, "animal", "what");
+  tag = moveLegacyField(tag, "event", "detail");
   return tag;
 }
 
 function moveLegacyField(o, oldName, newName) {
   if (o[oldName]) {
     if (o[newName]) {
-      throw new ClientError(`can't specify both '${oldName}' and '${newName}' fields at the same time`);
+      throw new ClientError(
+        `can't specify both '${oldName}' and '${newName}' fields at the same time`
+      );
     }
     o[newName] = o[oldName];
     delete o[oldName];
@@ -209,9 +214,8 @@ function handleLegacyTagFieldsForGetOnRecording(recording) {
 const statusCode = {
   Success: 1,
   Fail: 2,
-  Both: 3,
+  Both: 3
 };
-
 
 // reprocessAll expects request.body.recordings to be a list of recording_ids
 // will mark each recording to be reprocessed
@@ -221,7 +225,7 @@ async function reprocessAll(request, response) {
     statusCode: 200,
     messages: [],
     reprocessed: [],
-    fail: [],
+    fail: []
   };
 
   var status = 0;
@@ -232,7 +236,6 @@ async function reprocessAll(request, response) {
       responseMessage.messages.push(resp.messages[0]);
       responseMessage.statusCode = resp.statusCode;
       responseMessage.fail.push(resp.recordingId);
-
     } else {
       responseMessage.reprocessed.push(resp.recordingId);
       status = status | statusCode.Success;
@@ -262,7 +265,7 @@ async function reprocessRecording(user, recording_id) {
   const recording = await models.Recording.get(
     user,
     recording_id,
-    models.Recording.Perms.UPDATE,
+    models.Recording.Perms.UPDATE
   );
 
   if (!recording) {
@@ -277,8 +280,8 @@ async function reprocessRecording(user, recording_id) {
 
   return {
     statusCode: 200,
-    messages: ['Recording scheduled for reprocessing'],
-    recordingId: recording_id,
+    messages: ["Recording scheduled for reprocessing"],
+    recordingId: recording_id
   };
 }
 
@@ -287,7 +290,6 @@ async function reprocess(request, response) {
   var responseInfo = await reprocessRecording(request.user, request.params.id);
   responseUtil.send(response, responseInfo);
 }
-
 
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;

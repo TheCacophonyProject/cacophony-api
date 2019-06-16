@@ -16,25 +16,23 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var bcrypt = require('bcrypt');
-var Sequelize = require('sequelize');
-const {
-  AuthorizationError
-} = require('../api/customErrors');
-const log = require('../logging');
+var bcrypt = require("bcrypt");
+var Sequelize = require("sequelize");
+const { AuthorizationError } = require("../api/customErrors");
+const log = require("../logging");
 const Op = Sequelize.Op;
 
-const PERMISSION_WRITE = 'write';
-const PERMISSION_READ = 'read';
-const PERMISSION_OFF = 'off';
+const PERMISSION_WRITE = "write";
+const PERMISSION_READ = "read";
+const PERMISSION_OFF = "off";
 const PERMISSIONS = Object.freeze([
   PERMISSION_WRITE,
   PERMISSION_READ,
-  PERMISSION_OFF,
+  PERMISSION_OFF
 ]);
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'User';
+  var name = "User";
 
   var attributes = {
     username: {
@@ -42,27 +40,27 @@ module.exports = function(sequelize, DataTypes) {
       unique: true
     },
     firstName: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     lastName: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     email: {
       type: DataTypes.STRING,
       validate: {
         isEmail: true
       },
-      unique: true,
+      unique: true
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
     globalPermission: {
       type: DataTypes.ENUM,
       values: PERMISSIONS,
-      defaultValue: PERMISSION_OFF,
-    },
+      defaultValue: PERMISSION_OFF
+    }
   };
 
   var options = {
@@ -70,27 +68,20 @@ module.exports = function(sequelize, DataTypes) {
       beforeValidate: beforeValidate,
       beforeCreate: beforeModify,
       beforeUpdate: beforeModify,
-      beforeUpsert: beforeModify,
+      beforeUpsert: beforeModify
     }
   };
 
   // Define table
   var User = sequelize.define(name, attributes, options);
 
-  User.publicFields = Object.freeze([
-    'id',
-    'username',
-  ]);
+  User.publicFields = Object.freeze(["id", "username"]);
 
-  User.apiSettableFields = Object.freeze([
-    'firstName',
-    'lastName',
-    'email'
-  ]);
+  User.apiSettableFields = Object.freeze(["firstName", "lastName", "email"]);
 
-  Object.defineProperty(User, 'GLOBAL_PERMISSIONS', {
+  Object.defineProperty(User, "GLOBAL_PERMISSIONS", {
     value: PERMISSIONS,
-    writable: false,
+    writable: false
   });
 
   //---------------
@@ -110,7 +101,7 @@ module.exports = function(sequelize, DataTypes) {
   User.getAll = async function(where) {
     return await this.findAll({
       where: where,
-      attributes: this.publicFields,
+      attributes: this.publicFields
     });
   };
 
@@ -133,7 +124,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     });
     if (user != null) {
-      throw new Error('Username in use');
+      throw new Error("Username in use");
     }
     return true;
   };
@@ -151,7 +142,8 @@ module.exports = function(sequelize, DataTypes) {
     const where = {
       email: email
     };
-    if (userId) { //Ignore email from this user
+    if (userId) {
+      //Ignore email from this user
       where.id = {
         [Op.not]: userId
       };
@@ -160,14 +152,16 @@ module.exports = function(sequelize, DataTypes) {
       where: where
     });
     if (user) {
-      throw new Error('Email in use');
+      throw new Error("Email in use");
     }
     return true;
   };
 
   User.changeGlobalPermission = async function(admin, user, permission) {
     if (!user || !admin || !admin.hasGlobalWrite()) {
-      throw new AuthorizationError("User must be an admin with global write permissions");
+      throw new AuthorizationError(
+        "User must be an admin with global write permissions"
+      );
     }
     user.globalPermission = permission;
     await user.save();
@@ -194,7 +188,7 @@ module.exports = function(sequelize, DataTypes) {
             [Op.in]: groupIds
           }
         },
-        attributes: ['id'],
+        attributes: ["id"]
       });
       return devices.map(d => d.id);
     } else {
@@ -217,26 +211,25 @@ module.exports = function(sequelize, DataTypes) {
 
   User.prototype.getJwtDataValues = function() {
     return {
-      id: this.getDataValue('id'),
-      _type: 'user'
+      id: this.getDataValue("id"),
+      _type: "user"
     };
   };
 
   User.prototype.getDataValues = function() {
     var user = this;
     return new Promise(function(resolve) {
-      user.getGroups()
-        .then(function(groups) {
-          resolve({
-            id: user.getDataValue('id'),
-            username: user.getDataValue('username'),
-            firstName: user.getDataValue('firstName'),
-            lastName: user.getDataValue('lastName'),
-            email: user.getDataValue('email'),
-            groups: groups,
-            globalPermission: user.getDataValue('globalPermission'),
-          });
+      user.getGroups().then(function(groups) {
+        resolve({
+          id: user.getDataValue("id"),
+          username: user.getDataValue("username"),
+          firstName: user.getDataValue("firstName"),
+          lastName: user.getDataValue("lastName"),
+          email: user.getDataValue("email"),
+          groups: groups,
+          globalPermission: user.getDataValue("globalPermission")
         });
+      });
     });
   };
 
@@ -270,8 +263,15 @@ module.exports = function(sequelize, DataTypes) {
 
       deviceIds.forEach(deviceId => {
         if (!usersDevices.includes(deviceId)) {
-          log.info("Attempted unauthorized use of device " + deviceId + " by " + this.username);
-          throw new AuthorizationError("User is not authorized for one (or more) of specified devices.");
+          log.info(
+            "Attempted unauthorized use of device " +
+              deviceId +
+              " by " +
+              this.username
+          );
+          throw new AuthorizationError(
+            "User is not authorized for one (or more) of specified devices."
+          );
         }
       });
     }
@@ -304,14 +304,14 @@ module.exports = function(sequelize, DataTypes) {
 //----------------------
 
 async function beforeModify(user) {
-  if (user.changed('password')) {
+  if (user.changed("password")) {
     user.password = await bcrypt.hash(user.password, 10);
   }
 }
 
 function beforeValidate(user) {
-  return new Promise((resolve) => {
-    user.setDataValue('email', user.getDataValue('email').toLowerCase());
+  return new Promise(resolve => {
+    user.setDataValue("email", user.getDataValue("email").toLowerCase());
     resolve();
   });
 }

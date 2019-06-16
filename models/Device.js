@@ -16,41 +16,39 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var bcrypt = require('bcrypt');
-var Sequelize = require('sequelize');
-const {
-  AuthorizationError
-} = require("../api/customErrors");
+var bcrypt = require("bcrypt");
+var Sequelize = require("sequelize");
+const { AuthorizationError } = require("../api/customErrors");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'Device';
+  var name = "Device";
 
   var attributes = {
     devicename: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: true
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
     location: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     lastConnectionTime: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATE
     },
     public: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      defaultValue: false
     },
     currentConfig: {
-      type: DataTypes.JSONB,
+      type: DataTypes.JSONB
     },
     newConfig: {
-      type: DataTypes.JSONB,
-    },
+      type: DataTypes.JSONB
+    }
   };
 
   var options = {
@@ -60,8 +58,6 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   var Device = sequelize.define(name, attributes, options);
-
-
 
   //---------------
   // CLASS METHODS
@@ -87,14 +83,16 @@ module.exports = function(sequelize, DataTypes) {
       return false;
     }
     if (!(await device.userPermissions(authUser)).canAddUsers) {
-      throw new AuthorizationError("User is not a group, device, or global admin so cannot add users to this device");
+      throw new AuthorizationError(
+        "User is not a group, device, or global admin so cannot add users to this device"
+      );
     }
 
     // Get association if already there and update it.
     var deviceUser = await models.DeviceUsers.findOne({
       where: {
         DeviceId: device.id,
-        UserId: userToAdd.id,
+        UserId: userToAdd.id
       }
     });
     if (deviceUser != null) {
@@ -120,14 +118,16 @@ module.exports = function(sequelize, DataTypes) {
       return false;
     }
     if (!(await device.userPermissions(authUser)).canRemoveUsers) {
-      throw new AuthorizationError("User is not a group, device, or global admin so cannot remove users from this device");
+      throw new AuthorizationError(
+        "User is not a group, device, or global admin so cannot remove users from this device"
+      );
     }
 
     // Check that association is there to delete.
     const deviceUsers = await models.DeviceUsers.findAll({
       where: {
         DeviceId: device.id,
-        UserId: userToRemove.id,
+        UserId: userToRemove.id
       }
     });
     for (var i in deviceUsers) {
@@ -136,14 +136,18 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
-  Device.onlyUsersDevicesMatching = async function(user, conditions = null, includeData = null) {
+  Device.onlyUsersDevicesMatching = async function(
+    user,
+    conditions = null,
+    includeData = null
+  ) {
     // Return all devices if user has global write/read permission.
     if (user.hasGlobalRead()) {
       return this.findAndCountAll({
         where: conditions,
         attributes: ["devicename", "id"],
         include: includeData,
-        order: ['devicename'],
+        order: ["devicename"]
       });
     }
 
@@ -151,7 +155,8 @@ module.exports = function(sequelize, DataTypes) {
     var userGroupIds = await user.getGroupsIds();
 
     const usersDevice = {
-      [Op.or]: [{
+      [Op.or]: [
+        {
           GroupId: {
             [Op.in]: userGroupIds
           }
@@ -160,7 +165,7 @@ module.exports = function(sequelize, DataTypes) {
           id: {
             [Op.in]: deviceIds
           }
-        },
+        }
       ]
     };
 
@@ -169,16 +174,18 @@ module.exports = function(sequelize, DataTypes) {
         [Op.and]: [usersDevice, conditions]
       },
       attributes: ["devicename", "id"],
-      order: ['devicename'],
-      include: includeData,
+      order: ["devicename"],
+      include: includeData
     });
   };
 
   Device.allForUser = async function(user) {
-    const includeData = [{
-      model: models.User,
-      attributes: ['id', 'username'],
-    }, ];
+    const includeData = [
+      {
+        model: models.User,
+        attributes: ["id", "username"]
+      }
+    ];
 
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
@@ -187,7 +194,7 @@ module.exports = function(sequelize, DataTypes) {
     return {
       canListUsers: enabled,
       canAddUsers: enabled,
-      canRemoveUsers: enabled,
+      canRemoveUsers: enabled
     };
   };
 
@@ -198,7 +205,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     });
     if (device != null) {
-      throw new Error('device name in use');
+      throw new Error("device name in use");
     }
     return true;
   };
@@ -216,10 +223,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // Fields that are directly settable by the API.
-  Device.apiSettableFields = [
-    'location',
-    'newConfig'
-  ];
+  Device.apiSettableFields = ["location", "newConfig"];
 
   //------------------
   // INSTANCE METHODS
@@ -237,8 +241,8 @@ module.exports = function(sequelize, DataTypes) {
 
   Device.prototype.getJwtDataValues = function() {
     return {
-      id: this.getDataValue('id'),
-      _type: 'device'
+      id: this.getDataValue("id"),
+      _type: "device"
     };
   };
 
@@ -258,7 +262,10 @@ module.exports = function(sequelize, DataTypes) {
   // Returns users that have access to this device either via group
   // membership or direct assignment. By default, only "safe" user
   // attributes are returned.
-  Device.prototype.users = async function(authUser, attrs = ['id', 'username', 'email']) {
+  Device.prototype.users = async function(
+    authUser,
+    attrs = ["id", "username", "email"]
+  ) {
     if (!(await this.userPermissions(authUser)).canListUsers) {
       return [];
     }
@@ -282,7 +289,6 @@ module.exports = function(sequelize, DataTypes) {
 /********************/
 
 function afterValidate(device) {
-
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
     // TODO or make a custome validation for the password.

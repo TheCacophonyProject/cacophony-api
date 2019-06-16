@@ -16,21 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const stream = require('stream');
+const stream = require("stream");
 
-const config = require('../../config');
-const log = require('../../logging');
-const middleware = require('../middleware');
-const auth = require('../auth');
-const modelsUtil = require('../../models/util/util');
-const responseUtil = require('./responseUtil');
-const {
-  ClientError
-} = require('../customErrors');
-
+const config = require("../../config");
+const log = require("../../logging");
+const middleware = require("../middleware");
+const auth = require("../auth");
+const modelsUtil = require("../../models/util/util");
+const responseUtil = require("./responseUtil");
+const { ClientError } = require("../customErrors");
 
 module.exports = function(app, baseUrl) {
-
   /**
    * @api {get} /api/v1/signedUrl Get a file using a JWT
    * @apiName GetFile
@@ -46,12 +42,9 @@ module.exports = function(app, baseUrl) {
    */
 
   app.get(
-    baseUrl + '/signedUrl',
-    [
-      auth.signedUrl,
-    ],
+    baseUrl + "/signedUrl",
+    [auth.signedUrl],
     middleware.requestWrapper(async (request, response) => {
-
       var mimeType = request.jwtDecoded.mimeType || "";
       var filename = request.jwtDecoded.filename || "file";
 
@@ -63,7 +56,7 @@ module.exports = function(app, baseUrl) {
       var s3 = modelsUtil.openS3();
       var params = {
         Bucket: config.s3.bucket,
-        Key: key,
+        Key: key
       };
 
       s3.getObject(params, function(err, data) {
@@ -74,27 +67,27 @@ module.exports = function(app, baseUrl) {
         }
 
         if (!request.headers.range) {
-          response.setHeader('Content-disposition',
-            'attachment; filename=' + filename);
-          response.setHeader('Content-type', mimeType);
-          response.write(data.Body, 'binary');
-          return response.end(null, 'binary');
+          response.setHeader(
+            "Content-disposition",
+            "attachment; filename=" + filename
+          );
+          response.setHeader("Content-type", mimeType);
+          response.write(data.Body, "binary");
+          return response.end(null, "binary");
         }
 
         var range = request.headers.range;
         var positions = range.replace(/bytes=/, "").split("-");
         var start = parseInt(positions[0], 10);
         var total = data.Body.length;
-        var end = positions[1] ?
-          parseInt(positions[1], 10) :
-          total - 1;
-        var chunksize = (end - start) + 1;
+        var end = positions[1] ? parseInt(positions[1], 10) : total - 1;
+        var chunksize = end - start + 1;
 
         var headers = {
-          'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
-          'Content-Length': chunksize,
-          'Accept-Ranges': 'bytes',
-          'Content-type': mimeType,
+          "Content-Range": "bytes " + start + "-" + end + "/" + total,
+          "Content-Length": chunksize,
+          "Accept-Ranges": "bytes",
+          "Content-type": mimeType
         };
 
         response.writeHead(206, headers);
@@ -104,7 +97,6 @@ module.exports = function(app, baseUrl) {
         bufStream.end(b2);
         bufStream.pipe(response);
       });
-
     })
   );
 };

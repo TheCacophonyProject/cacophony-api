@@ -1,9 +1,9 @@
-'use strict';
-var util = require('../models/util/util');
+"use strict";
+var util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await queryInterface.createTable('Files', {
+    await queryInterface.createTable("Files", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -32,10 +32,10 @@ module.exports = {
       }
     });
 
-    await util.migrationAddBelongsTo(queryInterface, 'Files', 'Users');
+    await util.migrationAddBelongsTo(queryInterface, "Files", "Users");
   },
 
   down: function(queryInterface) {
-    return queryInterface.dropTable('Files');
+    return queryInterface.dropTable("Files");
   }
 };

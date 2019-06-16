@@ -1,16 +1,18 @@
 // Config instructions: Fill out required fields and save as 'config.js'
 
-var server = { // General server settings
+var server = {
+  // General server settings
   passportSecret: "random string", // REQUIRED, String. Random string used for passport module for encrypting JWT.
   loggerLevel: "debug", // REQUIRED, one of ('debug', 'warning', 'info', 'error')
   http: {
     active: true,
-    port: 80,
-  },
+    port: 80
+  }
 };
 
-var fileProcessing = { // File processing API settings (runs on different port)
-  port: 2002,
+var fileProcessing = {
+  // File processing API settings (runs on different port)
+  port: 2002
 };
 
 var database = {
@@ -21,11 +23,12 @@ var database = {
   dialect: "postgres"
 };
 
-var s3 = { // Used for storing audio & video recordings.
+var s3 = {
+  // Used for storing audio & video recordings.
   publicKey: "", // REQUIRED, String:
   privateKey: "", // REQUIRED, String
   bucket: "cacophony", // REQUIRED, String
-  endpoint: "http://localhost:9000", // REQUIRED, URL
+  endpoint: "http://localhost:9000" // REQUIRED, URL
 };
 
 exports.server = server;

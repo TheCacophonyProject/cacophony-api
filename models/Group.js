@@ -16,16 +16,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const {
-  AuthorizationError
-} = require("../api/customErrors");
+const { AuthorizationError } = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
-  var name = 'Group';
+  var name = "Group";
 
   var attributes = {
     groupname: {
-      type: DataTypes.STRING,
-    },
+      type: DataTypes.STRING
+    }
   };
 
   var Group = sequelize.define(name, attributes);
@@ -51,14 +49,16 @@ module.exports = function(sequelize, DataTypes) {
    */
   Group.addUserToGroup = async function(authUser, group, userToAdd, admin) {
     if (!(await group.userPermissions(authUser)).canAddUsers) {
-      throw new AuthorizationError("User is not a group admin so cannot add users");
+      throw new AuthorizationError(
+        "User is not a group admin so cannot add users"
+      );
     }
 
     // Get association if already there and update it.
     var groupUser = await models.GroupUsers.findOne({
       where: {
         GroupId: group.id,
-        UserId: userToAdd.id,
+        UserId: userToAdd.id
       }
     });
     if (groupUser != null) {
@@ -79,14 +79,16 @@ module.exports = function(sequelize, DataTypes) {
    */
   Group.removeUserFromGroup = async function(authUser, group, userToRemove) {
     if (!(await group.userPermissions(authUser)).canRemoveUsers) {
-      throw new AuthorizationError("User is not a group admin so cannot remove users");
+      throw new AuthorizationError(
+        "User is not a group admin so cannot remove users"
+      );
     }
 
     // Get association if already there and update it.
     const groupUsers = await models.GroupUsers.findAll({
       where: {
         GroupId: group.id,
-        UserId: userToRemove.id,
+        UserId: userToRemove.id
       }
     });
     for (const i in groupUsers) {
@@ -99,7 +101,6 @@ module.exports = function(sequelize, DataTypes) {
    * that the user belongs if user does not have global read/write permission.
    */
   Group.query = async function(where, user) {
-
     var userWhere = {
       id: user.id
     };
@@ -109,43 +110,45 @@ module.exports = function(sequelize, DataTypes) {
 
     return await models.Group.findAll({
       where: where,
-      include: [{
+      include: [
+        {
           model: models.User,
-          attributes: ['id', 'username'],
-          where: userWhere,
+          attributes: ["id", "username"],
+          where: userWhere
         },
         {
           model: models.Device,
-          attributes: ['id', 'devicename'],
+          attributes: ["id", "devicename"]
         }
       ]
     }).then(groups => {
-
       // TODO: Review the following with a mind to combining with the groups.findAll query to improve efficiency
       const augmentGroupData = new Promise((resolve, reject) => {
         try {
           const groupsPromises = groups.map(group => {
-
             return models.User.findAll({
-              attributes: ['username', 'id'],
-              include: [{
-                model: models.Group,
-                where: {
-                  id: group.id
-                },
-                attributes: []
-              }]
+              attributes: ["username", "id"],
+              include: [
+                {
+                  model: models.Group,
+                  where: {
+                    id: group.id
+                  },
+                  attributes: []
+                }
+              ]
             }).then(async groupUsers => {
-
               const setAdminPromises = groupUsers.map(groupUser => {
-                return models.GroupUsers.isAdmin(group.id, groupUser.id).then(value => {
-                  groupUser.setDataValue("isAdmin", value);
-                });
+                return models.GroupUsers.isAdmin(group.id, groupUser.id).then(
+                  value => {
+                    groupUser.setDataValue("isAdmin", value);
+                  }
+                );
               });
 
               await Promise.all(setAdminPromises);
 
-              group.setDataValue('GroupUsers', groupUsers);
+              group.setDataValue("GroupUsers", groupUsers);
               return group;
             });
           });
@@ -153,7 +156,6 @@ module.exports = function(sequelize, DataTypes) {
           Promise.all(groupsPromises).then(data => {
             resolve(data);
           });
-
         } catch (e) {
           reject(e);
         }
@@ -162,7 +164,6 @@ module.exports = function(sequelize, DataTypes) {
       return augmentGroupData.then(groupData => {
         return groupData;
       });
-
     });
   };
 
@@ -185,7 +186,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     });
     if (group != null) {
-      throw new Error('groupname in use');
+      throw new Error("groupname in use");
     }
     return true;
   };
@@ -194,17 +195,16 @@ module.exports = function(sequelize, DataTypes) {
     var Group = this;
     return new Promise(function(resolve) {
       Group.findOne({
-          where: {
-            groupname: name
-          }
-        })
-        .then(function(group) {
-          if (!group) {
-            resolve(false);
-          } else {
-            resolve(group.getDataValue('id'));
-          }
-        });
+        where: {
+          groupname: name
+        }
+      }).then(function(group) {
+        if (!group) {
+          resolve(false);
+        } else {
+          resolve(group.getDataValue("id"));
+        }
+      });
     });
   };
 
@@ -216,13 +216,15 @@ module.exports = function(sequelize, DataTypes) {
     if (user.hasGlobalWrite()) {
       return newUserPermissions(true);
     }
-    return newUserPermissions(await models.GroupUsers.isAdmin(this.id, user.id));
+    return newUserPermissions(
+      await models.GroupUsers.isAdmin(this.id, user.id)
+    );
   };
 
   const newUserPermissions = function(enabled) {
     return {
       canAddUsers: enabled,
-      canRemoveUsers: enabled,
+      canRemoveUsers: enabled
     };
   };
 

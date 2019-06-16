@@ -16,15 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jwt = require('jsonwebtoken');
-const config = require('../../config');
-const responseUtil = require('./responseUtil');
-const middleware = require('../middleware');
-const {
-  body,
-  oneOf
-} = require('express-validator/check');
-
+const jwt = require("jsonwebtoken");
+const config = require("../../config");
+const responseUtil = require("./responseUtil");
+const middleware = require("../middleware");
+const { body, oneOf } = require("express-validator/check");
 
 module.exports = function(app) {
   /**
@@ -43,28 +39,31 @@ module.exports = function(app) {
    * @apiSuccess {String} token JWT string to provide to further API requests
    */
   app.post(
-    '/authenticate_user',
+    "/authenticate_user",
     [
-      oneOf([
+      oneOf(
+        [
           middleware.getUserByName(body),
-          middleware.getUserByName(body, 'nameOrEmail'),
+          middleware.getUserByName(body, "nameOrEmail"),
           middleware.getUserByEmail(body),
-          middleware.getUserByEmail(body, 'nameOrEmail'),
+          middleware.getUserByEmail(body, "nameOrEmail")
         ],
-        "could not find a user with the given username or email"),
-      body('password').exists(),
+        "could not find a user with the given username or email"
+      ),
+      body("password").exists()
     ],
     middleware.requestWrapper(async (request, response) => {
-
-      const passwordMatch = await request.body.user.comparePassword(request.body.password);
+      const passwordMatch = await request.body.user.comparePassword(
+        request.body.password
+      );
       if (passwordMatch) {
         const userData = await request.body.user.getDataValues();
         var data = request.body.user.getJwtDataValues();
-        data._type = 'user';
+        data._type = "user";
         return responseUtil.send(response, {
           statusCode: 200,
           messages: ["Successful login."],
-          token: 'JWT ' + jwt.sign(data, config.server.passportSecret),
+          token: "JWT " + jwt.sign(data, config.server.passportSecret),
           userData: userData
         });
       } else {

@@ -16,16 +16,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-'use strict';
+"use strict";
 
-var Sequelize = require('sequelize');
+var Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'Event';
+  var name = "Event";
 
   var attributes = {
-    dateTime: DataTypes.DATE,
+    dateTime: DataTypes.DATE
   };
 
   var Event = sequelize.define(name, attributes);
@@ -37,8 +37,8 @@ module.exports = function(sequelize, DataTypes) {
 
   Event.addAssociations = function(models) {
     models.Event.belongsTo(models.DetailSnapshot, {
-      as: 'EventDetail',
-      foreignKey: 'EventDetailId'
+      as: "EventDetail",
+      foreignKey: "EventDetailId"
     });
   };
 
@@ -46,11 +46,18 @@ module.exports = function(sequelize, DataTypes) {
    * Return one or more recordings for a user matching the query
    * arguments given.
    */
-  Event.query = async function(user, startTime, endTime, deviceId, offset, limit) {
+  Event.query = async function(
+    user,
+    startTime,
+    endTime,
+    deviceId,
+    offset,
+    limit
+  ) {
     const where = {};
 
     if (startTime || endTime) {
-      const dateTime = where.dateTime = {};
+      const dateTime = (where.dateTime = {});
       if (startTime) {
         dateTime[Op.gte] = startTime;
       }
@@ -67,20 +74,20 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         [Op.and]: [
           where, // User query
-          await user.getWhereDeviceVisible(), // can only see devices they should
-        ],
+          await user.getWhereDeviceVisible() // can only see devices they should
+        ]
       },
       order: ["dateTime"],
       include: {
         model: models.DetailSnapshot,
-        as: 'EventDetail',
-        attributes: ['type', 'details']
+        as: "EventDetail",
+        attributes: ["type", "details"]
       },
       attributes: {
-        exclude: ['updatedAt', 'EventDetailId']
+        exclude: ["updatedAt", "EventDetailId"]
       },
       limit: limit,
-      offset: offset,
+      offset: offset
     });
   };
 

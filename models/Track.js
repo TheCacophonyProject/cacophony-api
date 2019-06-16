@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var Track = sequelize.define('Track', {
+  var Track = sequelize.define("Track", {
     data: DataTypes.JSONB,
-    archivedAt: DataTypes.DATE,
+    archivedAt: DataTypes.DATE
   });
 
   //---------------
@@ -28,23 +28,19 @@ module.exports = function(sequelize, DataTypes) {
   Track.addAssociations = function(models) {
     models.Track.belongsTo(models.Recording);
     models.Track.belongsTo(models.DetailSnapshot, {
-      as: 'Algorithm',
-      foreignKey: 'AlgorithmId'
+      as: "Algorithm",
+      foreignKey: "AlgorithmId"
     });
     models.Track.hasMany(models.TrackTag);
   };
 
   var models = sequelize.models;
 
-  Track.apiSettableFields = Object.freeze([
-    'algorithm',
-    'data',
-    'archivedAt'
-  ]);
+  Track.apiSettableFields = Object.freeze(["algorithm", "data", "archivedAt"]);
 
-  Track.userGetAttributes = Object.freeze(Track.apiSettableFields.concat([
-    'id'
-  ]));
+  Track.userGetAttributes = Object.freeze(
+    Track.apiSettableFields.concat(["id"])
+  );
 
   //---------------
   // INSTANCE

@@ -16,17 +16,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const {
-  body,
-  param
-} = require('express-validator/check');
-const models = require('../../models');
-const responseUtil = require('./responseUtil');
-const middleware = require('../middleware');
-const auth = require('../auth');
+const { body, param } = require("express-validator/check");
+const models = require("../../models");
+const responseUtil = require("./responseUtil");
+const middleware = require("../middleware");
+const auth = require("../auth");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + '/schedules';
+  var apiUrl = baseUrl + "/schedules";
 
   /**
    * @api {post} /api/v1/schedules Adds a new schedule
@@ -48,29 +45,32 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.parseArray('devices', body),
-      middleware.parseJSON('schedule', body),
-      auth.userCanAccessDevices,
+      middleware.parseArray("devices", body),
+      middleware.parseJSON("schedule", body),
+      auth.userCanAccessDevices
     ],
     middleware.requestWrapper(async function(request, response) {
       var deviceIds = request.body.devices;
 
       var instance = models.Schedule.build(request.body, ["schedule"]);
-      instance.set('UserId', request.user.id);
+      instance.set("UserId", request.user.id);
       // TODO make the device and schedule changes apply in a single transaction
       await instance.save();
 
-      await models.Device.update({
-        ScheduleId: instance.id
-      }, {
-        where: {
-          id: deviceIds
+      await models.Device.update(
+        {
+          ScheduleId: instance.id
+        },
+        {
+          where: {
+            id: deviceIds
+          }
         }
-      });
+      );
 
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ['Added new schedule for the calling device(s).'],
+        messages: ["Added new schedule for the calling device(s)."]
       });
     })
   );
@@ -90,9 +90,7 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    [
-      auth.authenticateDevice,
-    ],
+    [auth.authenticateDevice],
     middleware.requestWrapper(async (request, response) => {
       return getSchedule(request.device, response);
     })
@@ -116,7 +114,7 @@ module.exports = (app, baseUrl) => {
     [
       auth.authenticateUser,
       middleware.getDeviceByName(param),
-      auth.userCanAccessDevices,
+      auth.userCanAccessDevices
     ],
     middleware.requestWrapper(async (request, response) => {
       getSchedule(request.device, response, request.user);
@@ -135,7 +133,7 @@ async function getSchedule(device, response, user = null) {
       return responseUtil.send(response, {
         statusCode: 400,
         devicename: device.devicename,
-        messages: ["Cannot find schedule."],
+        messages: ["Cannot find schedule."]
       });
     }
   }
@@ -157,6 +155,6 @@ async function getSchedule(device, response, user = null) {
     statusCode: 200,
     messages: [],
     devices: devices,
-    schedule: schedule.schedule,
+    schedule: schedule.schedule
   });
 }

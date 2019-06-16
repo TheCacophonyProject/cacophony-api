@@ -1,13 +1,14 @@
-'use strict';
-const util = require('../models/util/util');
+"use strict";
+const util = require("../models/util/util");
 
 module.exports = {
   up: function(queryInterface) {
-    return queryInterface.dropTable('AudioRecordings');
+    return queryInterface.dropTable("AudioRecordings");
   },
 
   down: function(queryInterface, Sequelize) {
-    return queryInterface.createTable('AudioRecordings', {
+    return queryInterface
+      .createTable("AudioRecordings", {
         fileKey: Sequelize.STRING,
         mimeType: Sequelize.STRING,
         size: Sequelize.INTEGER,
@@ -40,10 +41,14 @@ module.exports = {
         },
         relativeToDawn: Sequelize.INTEGER,
         relativeToDusk: Sequelize.INTEGER,
-        version: Sequelize.STRING,
+        version: Sequelize.STRING
       })
-      .then(() => util.addSerial(queryInterface, 'AudioRecordings'))
-      .then(() => util.migrationAddBelongsTo(queryInterface, 'AudioRecordings', 'Groups'))
-      .then(() => util.migrationAddBelongsTo(queryInterface, 'AudioRecordings', 'Devices'));
+      .then(() => util.addSerial(queryInterface, "AudioRecordings"))
+      .then(() =>
+        util.migrationAddBelongsTo(queryInterface, "AudioRecordings", "Groups")
+      )
+      .then(() =>
+        util.migrationAddBelongsTo(queryInterface, "AudioRecordings", "Devices")
+      );
   }
 };

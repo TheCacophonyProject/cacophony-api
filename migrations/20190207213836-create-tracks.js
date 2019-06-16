@@ -1,11 +1,15 @@
-'use strict';
-var util = require('../models/util/util');
+"use strict";
+var util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await util.renameTableAndIdSeq(queryInterface, 'EventDetails', 'DetailSnapshots');
+    await util.renameTableAndIdSeq(
+      queryInterface,
+      "EventDetails",
+      "DetailSnapshots"
+    );
 
-    await queryInterface.createTable('Tracks', {
+    await queryInterface.createTable("Tracks", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -23,15 +27,20 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowedNull: false
-      },
+      }
     });
-    await util.migrationAddBelongsTo(queryInterface, 'Tracks', 'Recordings', "strict");
-    util.migrationAddBelongsTo(queryInterface, 'Tracks', 'DetailSnapshots', {
+    await util.migrationAddBelongsTo(
+      queryInterface,
+      "Tracks",
+      "Recordings",
+      "strict"
+    );
+    util.migrationAddBelongsTo(queryInterface, "Tracks", "DetailSnapshots", {
       name: "Algorithm",
       notNull: true
     });
 
-    await queryInterface.createTable('TrackTags', {
+    await queryInterface.createTable("TrackTags", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -61,23 +70,37 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowedNull: false
-      },
+      }
     });
-    await util.migrationAddBelongsTo(queryInterface, 'TrackTags', 'Tracks', "strict");
-    await util.migrationAddBelongsTo(queryInterface, 'TrackTags', 'Users');
+    await util.migrationAddBelongsTo(
+      queryInterface,
+      "TrackTags",
+      "Tracks",
+      "strict"
+    );
+    await util.migrationAddBelongsTo(queryInterface, "TrackTags", "Users");
   },
 
   down: async function(queryInterface) {
-    await util.renameTableAndIdSeq(queryInterface, 'DetailSnapshots', 'EventDetails');
+    await util.renameTableAndIdSeq(
+      queryInterface,
+      "DetailSnapshots",
+      "EventDetails"
+    );
 
-    await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Users');
-    await util.migrationRemoveBelongsTo(queryInterface, 'TrackTags', 'Tracks');
-    await queryInterface.dropTable('TrackTags');
+    await util.migrationRemoveBelongsTo(queryInterface, "TrackTags", "Users");
+    await util.migrationRemoveBelongsTo(queryInterface, "TrackTags", "Tracks");
+    await queryInterface.dropTable("TrackTags");
 
-    await util.migrationRemoveBelongsTo(queryInterface, 'Tracks', 'DetailSnapshots', {
-      name: "Algorithm"
-    });
-    await util.migrationRemoveBelongsTo(queryInterface, 'Tracks', 'Recordings');
-    await queryInterface.dropTable('Tracks');
+    await util.migrationRemoveBelongsTo(
+      queryInterface,
+      "Tracks",
+      "DetailSnapshots",
+      {
+        name: "Algorithm"
+      }
+    );
+    await util.migrationRemoveBelongsTo(queryInterface, "Tracks", "Recordings");
+    await queryInterface.dropTable("Tracks");
   }
 };

@@ -16,18 +16,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const {
-  body
-} = require('express-validator/check');
+const { body } = require("express-validator/check");
 
-const middleware = require('../middleware');
-const auth = require('../auth');
-const models = require('../../models');
-const recordingUtil = require('./recordingUtil');
-const responseUtil = require('./responseUtil');
+const middleware = require("../middleware");
+const auth = require("../auth");
+const models = require("../../models");
+const recordingUtil = require("./recordingUtil");
+const responseUtil = require("./responseUtil");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/tags';
+  var apiUrl = baseUrl + "/tags";
 
   /**
    * @api {post} /api/v1/tags Adds a new tag
@@ -59,8 +57,8 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.parseJSON('tag', body),
-      body('recordingId').isInt(),
+      middleware.parseJSON("tag", body),
+      body("recordingId").isInt()
     ],
     middleware.requestWrapper(async function(request, response) {
       const recording = await models.Recording.get(
@@ -68,19 +66,24 @@ module.exports = function(app, baseUrl) {
         request.body.recordingId,
         models.Recording.Perms.TAG
       );
-      await recordingUtil.addTag(request.user, recording, request.body.tag, response);
+      await recordingUtil.addTag(
+        request.user,
+        recording,
+        request.body.tag,
+        response
+      );
     })
   );
 
   // Delete a tag
   app.delete(
     apiUrl,
-    [
-      auth.authenticateUser,
-      body('tagId').isInt(),
-    ],
+    [auth.authenticateUser, body("tagId").isInt()],
     middleware.requestWrapper(async function(request, response) {
-      var tagDeleteResult = await models.Tag.deleteFromId(request.body.tagId, request.user);
+      var tagDeleteResult = await models.Tag.deleteFromId(
+        request.body.tagId,
+        request.user
+      );
       if (tagDeleteResult) {
         return responseUtil.send(response, {
           statusCode: 200,

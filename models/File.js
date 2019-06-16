@@ -16,12 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-'use strict';
-const {
-  AuthorizationError
-} = require("../api/customErrors");
+"use strict";
+const { AuthorizationError } = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
-  var name = 'File';
+  var name = "File";
 
   var attributes = {
     type: DataTypes.STRING,
@@ -32,10 +30,7 @@ module.exports = function(sequelize, DataTypes) {
 
   var File = sequelize.define(name, attributes);
 
-  File.apiSettableFields = [
-    'type',
-    'details',
-  ];
+  File.apiSettableFields = ["type", "details"];
 
   //---------------
   // CLASS METHODS
@@ -51,26 +46,26 @@ module.exports = function(sequelize, DataTypes) {
    */
   File.query = async function(where, offset, limit, order) {
     if (order == null) {
-      order = [
-        ["id", "DESC"],
-      ];
+      order = [["id", "DESC"]];
     }
 
     var q = {
       where: where,
       order: order,
       attributes: {
-        exclude: ['updatedAt', 'fileKey']
+        exclude: ["updatedAt", "fileKey"]
       },
       limit: limit,
-      offset: offset,
+      offset: offset
     };
     return this.findAndCountAll(q);
   };
 
   File.deleteIfAllowedElseThrow = async function(user, file) {
     if (!user.hasGlobalWrite() && user.id != file.UserId) {
-      throw new AuthorizationError("The user does not own that file and is not a global admin!");
+      throw new AuthorizationError(
+        "The user does not own that file and is not a global admin!"
+      );
     }
     await file.destroy();
   };

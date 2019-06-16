@@ -16,31 +16,23 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const {
-  param,
-  header,
-  body
-} = require('express-validator/check');
-const moment = require('moment');
-const {
-  format
-} = require('util');
+const { param, header, body } = require("express-validator/check");
+const moment = require("moment");
+const { format } = require("util");
 
-const middleware = require('../middleware');
-const auth = require('../auth');
-const models = require('../../models');
-const recordingUtil = require('./recordingUtil');
-const responseUtil = require('./responseUtil');
-
+const middleware = require("../middleware");
+const auth = require("../auth");
+const models = require("../../models");
+const recordingUtil = require("./recordingUtil");
+const responseUtil = require("./responseUtil");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/audiorecordings';
-
+  var apiUrl = baseUrl + "/audiorecordings";
 
   // Massage fields sent to the legacy AudioRecordings API so that
   // they work in the Recordings schema.
   const mungeAudioData = function(data) {
-    data.type = 'audio';
+    data.type = "audio";
     return data;
   };
 
@@ -74,12 +66,8 @@ module.exports = function(app, baseUrl) {
    */
   app.post(
     apiUrl,
-    [
-      auth.authenticateDevice,
-    ],
-    middleware.requestWrapper(
-      recordingUtil.makeUploadHandler(mungeAudioData)
-    )
+    [auth.authenticateDevice],
+    middleware.requestWrapper(recordingUtil.makeUploadHandler(mungeAudioData))
   );
 
   /**
@@ -103,17 +91,23 @@ module.exports = function(app, baseUrl) {
     apiUrl + "/:id",
     [
       auth.authenticateUser,
-      param('id').isInt(),
-      middleware.parseJSON('data', body),
+      param("id").isInt(),
+      middleware.parseJSON("data", body)
     ],
     middleware.requestWrapper(async (request, response) => {
       var updated = await models.Recording.updateOne(
-        request.user, request.params.id, request.body.data);
+        request.user,
+        request.params.id,
+        request.body.data
+      );
 
       if (updated) {
         responseUtil.validDatapointUpdate(response);
       } else {
-        responseUtil.invalidDatapointUpdate(response, 'Failed to update recordings.');
+        responseUtil.invalidDatapointUpdate(
+          response,
+          "Failed to update recordings."
+        );
       }
     })
   );
@@ -130,11 +124,8 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.delete(
-    apiUrl + '/:id',
-    [
-      auth.authenticateUser,
-      param('id').isInt(),
-    ],
+    apiUrl + "/:id",
+    [auth.authenticateUser, param("id").isInt()],
     middleware.requestWrapper(async (request, response) => {
       await recordingUtil.delete_(request, response);
     })
@@ -164,9 +155,13 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.parseJSON('where', header).optional(),
-      header('offset').isInt().optional(),
-      header('limit').isInt().optional(),
+      middleware.parseJSON("where", header).optional(),
+      header("offset")
+        .isInt()
+        .optional(),
+      header("limit")
+        .isInt()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       // recordingUtil.query expects these as query parameters not
@@ -180,7 +175,7 @@ module.exports = function(app, baseUrl) {
         rows: [],
         limit: request.query.limit,
         offset: request.query.offset,
-        count: qresult.count,
+        count: qresult.count
       };
 
       // Just save the front end fields for each model.
@@ -197,7 +192,9 @@ module.exports = function(app, baseUrl) {
       recordingDateTime: rec.recordingDateTime,
       relativeToDawn: rec.relativeToDawn,
       relativeToDusk: rec.relativeToDusk,
-      recordingTime: moment.parseZone(format("%o", rec.recordingDateTime)).format("HH:mm:ss"),
+      recordingTime: moment
+        .parseZone(format("%o", rec.recordingDateTime))
+        .format("HH:mm:ss"),
       duration: rec.duration,
       location: rec.location,
       fileKey: rec.fileKey,
@@ -208,7 +205,7 @@ module.exports = function(app, baseUrl) {
       deviceId: rec.Device.id,
       groupId: rec.Group.id,
       group: rec.Group.groupname,
-      additionalMetadata: rec.additionalMetadata,
+      additionalMetadata: rec.additionalMetadata
     };
   };
 
@@ -230,20 +227,17 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl + "/:id",
-    [
-      auth.authenticateUser,
-      param('id').isInt(),
-    ],
+    [auth.authenticateUser, param("id").isInt()],
     middleware.requestWrapper(async (request, response) => {
-      const {
-        recording,
-        cookedJWT
-      } = await recordingUtil.get(request, "audio");
+      const { recording, cookedJWT } = await recordingUtil.get(
+        request,
+        "audio"
+      );
       responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         recording: recording,
-        jwt: cookedJWT,
+        jwt: cookedJWT
       });
     })
   );

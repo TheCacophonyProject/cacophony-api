@@ -5,7 +5,6 @@
  * @apiSuccess {String[]} messages Messages about the request.
  */
 
-
 /**
  * @apiDefine V1ResponseSuccess
  * @apiSuccess {Boolean} success `true` - Request was successful.

@@ -1,9 +1,9 @@
-var util = require('../models/util/util');
+var util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await queryInterface.removeColumn('Devices', 'UserId');
-    await queryInterface.createTable('DeviceUsers', {
+    await queryInterface.removeColumn("Devices", "UserId");
+    await queryInterface.createTable("DeviceUsers", {
       admin: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
@@ -15,15 +15,20 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false
-      },
+      }
     });
-    await util.addSerial(queryInterface, 'DeviceUsers');
-    return util.belongsToMany(queryInterface, 'DeviceUsers', 'Devices', 'Users');
+    await util.addSerial(queryInterface, "DeviceUsers");
+    return util.belongsToMany(
+      queryInterface,
+      "DeviceUsers",
+      "Devices",
+      "Users"
+    );
   },
 
   down: async function(queryInterface, Sequelize) {
-    await queryInterface.dropTable('DeviceUsers');
-    return queryInterface.addColumn('Devices', 'UserId', {
+    await queryInterface.dropTable("DeviceUsers");
+    return queryInterface.addColumn("Devices", "UserId", {
       type: Sequelize.INTEGER
     });
   }

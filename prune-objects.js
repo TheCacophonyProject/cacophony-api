@@ -1,16 +1,13 @@
 const process = require("process");
-const args = require('commander');
-const {
-  Client
-} = require('pg');
-const config = require('./config');
-const modelsUtil = require('./models/util/util');
-
+const args = require("commander");
+const { Client } = require("pg");
+const config = require("./config");
+const modelsUtil = require("./models/util/util");
 
 async function main() {
   args
-    .option('--config <path>', 'Configuration file', './config/app.js')
-    .option('--delete', 'Actually delete objects (dry run by default)')
+    .option("--config <path>", "Configuration file", "./config/app.js")
+    .option("--delete", "Actually delete objects (dry run by default)")
     .parse(process.argv);
 
   config.loadConfig(args.config);
@@ -42,14 +39,14 @@ async function main() {
 
 async function allBucketKeys(s3, bucket) {
   const params = {
-    Bucket: bucket,
+    Bucket: bucket
   };
 
   var keys = new Set();
   for (;;) {
     var data = await s3.listObjects(params).promise();
 
-    data.Contents.forEach((elem) => {
+    data.Contents.forEach(elem => {
       keys.add(elem.Key);
     });
 
@@ -64,7 +61,7 @@ async function allBucketKeys(s3, bucket) {
 
 async function deleteObjects(s3, bucket, keys) {
   const params = {
-    Bucket: bucket,
+    Bucket: bucket
   };
 
   for (const key of keys) {
@@ -80,7 +77,7 @@ async function pgConnect() {
     port: dbconf.port,
     user: dbconf.username,
     password: dbconf.password,
-    database: dbconf.database,
+    database: dbconf.database
   });
   await client.connect();
   return client;
@@ -104,9 +101,8 @@ async function allDBKeys(client) {
   return keys;
 }
 
-
 main()
-  .catch((err) => {
+  .catch(err => {
     console.log(err);
   })
   .then(() => {

@@ -16,17 +16,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models = require('../../models');
-const responseUtil = require('./responseUtil');
-const middleware = require('../middleware');
-const auth = require('../auth');
-const {
-  query,
-  body
-} = require('express-validator/check');
+const models = require("../../models");
+const responseUtil = require("./responseUtil");
+const middleware = require("../middleware");
+const auth = require("../auth");
+const { query, body } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + '/groups';
+  var apiUrl = baseUrl + "/groups";
 
   /**
    * @api {post} /api/v1/groups Create a new group
@@ -47,13 +44,11 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.checkNewName('groupname')
-      .custom(value => {
+      middleware.checkNewName("groupname").custom(value => {
         return models.Group.freeGroupname(value);
-      }),
+      })
     ],
     middleware.requestWrapper(async (request, response) => {
-
       const newGroup = await models.Group.create({
         groupname: request.body.groupname
       });
@@ -64,7 +59,7 @@ module.exports = function(app, baseUrl) {
       });
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ['Created new group.']
+        messages: ["Created new group."]
       });
     })
   );
@@ -84,17 +79,13 @@ module.exports = function(app, baseUrl) {
    */
   app.get(
     apiUrl,
-    [
-      auth.authenticateUser,
-      middleware.parseJSON('where', query),
-    ],
+    [auth.authenticateUser, middleware.parseJSON("where", query)],
     middleware.requestWrapper(async (request, response) => {
-
       var groups = await models.Group.query(request.query.where, request.user);
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        groups: groups,
+        groups: groups
       });
     })
   );
@@ -117,24 +108,23 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.post(
-    apiUrl + '/users',
+    apiUrl + "/users",
     [
       auth.authenticateUser,
       middleware.getGroupByNameOrId(body),
       middleware.getUserByNameOrId(body),
-      body('admin').isBoolean(),
+      body("admin").isBoolean()
     ],
     middleware.requestWrapper(async (request, response) => {
-
       await models.Group.addUserToGroup(
         request.user,
         request.body.group,
         request.body.user,
-        request.body.admin,
+        request.body.admin
       );
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ['Added user to group.'],
+        messages: ["Added user to group."]
       });
     })
   );
@@ -155,21 +145,21 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.delete(
-    apiUrl + '/users',
+    apiUrl + "/users",
     [
       auth.authenticateUser,
       middleware.getUserByNameOrId(body),
-      middleware.getGroupByNameOrId(body),
+      middleware.getGroupByNameOrId(body)
     ],
     middleware.requestWrapper(async (request, response) => {
       await models.Group.removeUserFromGroup(
         request.user,
         request.body.group,
-        request.body.user,
+        request.body.user
       );
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ['Removed user from the group.'],
+        messages: ["Removed user from the group."]
       });
     })
   );

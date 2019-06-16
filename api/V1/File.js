@@ -16,21 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models = require('../../models');
-const util = require('./util');
-const responseUtil = require('./responseUtil');
-const config = require('../../config');
-const jsonwebtoken = require('jsonwebtoken');
-const middleware = require('../middleware');
-const auth = require('../auth');
-const {
-  query,
-  param
-} = require('express-validator/check');
-
+const models = require("../../models");
+const util = require("./util");
+const responseUtil = require("./responseUtil");
+const config = require("../../config");
+const jsonwebtoken = require("jsonwebtoken");
+const middleware = require("../middleware");
+const auth = require("../auth");
+const { query, param } = require("express-validator/check");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + '/files';
+  var apiUrl = baseUrl + "/files";
 
   /**
    * @api {post} /api/v1/files Adds a new file.
@@ -50,16 +46,14 @@ module.exports = (app, baseUrl) => {
    */
   app.post(
     apiUrl,
-    [
-      auth.authenticateUser,
-    ],
+    [auth.authenticateUser],
     middleware.requestWrapper(
       util.multipartUpload((request, data, key) => {
         var dbRecord = models.File.build(data, {
-          fields: models.File.apiSettableFields,
+          fields: models.File.apiSettableFields
         });
-        dbRecord.set('UserId', request.user.id);
-        dbRecord.set('fileKey', key);
+        dbRecord.set("UserId", request.user.id);
+        dbRecord.set("fileKey", key);
         return dbRecord;
       })
     )
@@ -80,26 +74,30 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.parseJSON('where', query),
-      query('offset').isInt().optional(),
-      query('limit').isInt().optional(),
-      middleware.parseJSON('order', query).optional(),
+      middleware.parseJSON("where", query),
+      query("offset")
+        .isInt()
+        .optional(),
+      query("limit")
+        .isInt()
+        .optional(),
+      middleware.parseJSON("order", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-
       if (request.query.offset == null) {
-        request.query.offset = '0';
+        request.query.offset = "0";
       }
 
       if (request.query.offset == null) {
-        request.query.limit = '100';
+        request.query.limit = "100";
       }
 
       var result = await models.File.query(
         request.query.where,
         request.query.offset,
         request.query.limit,
-        request.query.order);
+        request.query.order
+      );
 
       return responseUtil.send(response, {
         statusCode: 200,
@@ -107,7 +105,7 @@ module.exports = (app, baseUrl) => {
         limit: request.query.limit,
         offset: request.query.offset,
         count: result.count,
-        rows: result.rows,
+        rows: result.rows
       });
     })
   );
@@ -128,30 +126,23 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1ResponseError
    */
   app.get(
-    apiUrl + '/:id',
-    [
-      auth.authenticateAny,
-      middleware.getFileById(param),
-    ],
+    apiUrl + "/:id",
+    [auth.authenticateAny, middleware.getFileById(param)],
     middleware.requestWrapper(async (request, response) => {
-
       var file = request.body.file;
 
       var downloadFileData = {
-        _type: 'fileDownload',
-        key: file.fileKey,
+        _type: "fileDownload",
+        key: file.fileKey
       };
 
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         file: file,
-        jwt: jsonwebtoken.sign(
-          downloadFileData,
-          config.server.passportSecret, {
-            expiresIn: 60 * 10
-          }
-        ),
+        jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
+          expiresIn: 60 * 10
+        })
       });
     })
   );
@@ -171,16 +162,16 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1ResponseError
    */
   app.delete(
-    apiUrl + '/:id',
-    [
-      auth.authenticateUser,
-      middleware.getFileById(param),
-    ],
+    apiUrl + "/:id",
+    [auth.authenticateUser, middleware.getFileById(param)],
     middleware.requestWrapper(async (request, response) => {
-      await models.File.deleteIfAllowedElseThrow(request.user, request.body.file);
+      await models.File.deleteIfAllowedElseThrow(
+        request.user,
+        request.body.file
+      );
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Deleted file."],
+        messages: ["Deleted file."]
       });
     })
   );

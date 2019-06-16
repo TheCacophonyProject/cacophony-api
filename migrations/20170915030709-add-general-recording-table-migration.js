@@ -1,9 +1,9 @@
-'use strict';
-var util = require('../models/util/util');
+"use strict";
+var util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await queryInterface.createTable('Recordings', {
+    await queryInterface.createTable("Recordings", {
       // Raw file data.
       rawFileKey: Sequelize.STRING,
       rawFileSize: Sequelize.INTEGER,
@@ -39,16 +39,16 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowedNull: false
-      },
+      }
     });
-    await util.addSerial(queryInterface, 'Recordings');
-    await util.migrationAddBelongsTo(queryInterface, 'Recordings', 'Groups');
-    await util.migrationAddBelongsTo(queryInterface, 'Tags', 'Recordings');
-    return util.migrationAddBelongsTo(queryInterface, 'Recordings', 'Devices');
+    await util.addSerial(queryInterface, "Recordings");
+    await util.migrationAddBelongsTo(queryInterface, "Recordings", "Groups");
+    await util.migrationAddBelongsTo(queryInterface, "Tags", "Recordings");
+    return util.migrationAddBelongsTo(queryInterface, "Recordings", "Devices");
   },
 
   down: async function(queryInterface) {
-    await queryInterface.removeColumn('Tags', 'RecordingId');
-    return queryInterface.dropTable('Recordings');
+    await queryInterface.removeColumn("Tags", "RecordingId");
+    return queryInterface.dropTable("Recordings");
   }
 };
