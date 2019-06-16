@@ -32,8 +32,7 @@ module.exports = function(sequelize, DataTypes) {
 
   var attributes = {
     // recording metadata.
-    type: DataTypes.STRING,
-    duration: DataTypes.INTEGER,
+    type: DataTypes.STRING,duration: DataTypes.INTEGER,
     recordingDateTime: DataTypes.DATE,
     location: {
       type: DataTypes.GEOMETRY,
