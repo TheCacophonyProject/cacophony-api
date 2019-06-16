@@ -47,17 +47,15 @@ const authenticate = function(type) {
       return res.status(401).json({ messages: [e.message] });
     }
     if (type && type != jwtDecoded._type) {
-      return res
-        .status(401)
-        .json({
-          messages: [
-            format(
-              "Invalid type of JWT. Need one of %s for this request, but had %s.",
-              type,
-              jwtDecoded._type
-            )
-          ]
-        });
+      return res.status(401).json({
+        messages: [
+          format(
+            "Invalid type of JWT. Need one of %s for this request, but had %s.",
+            type,
+            jwtDecoded._type
+          )
+        ]
+      });
     }
     let result;
     switch (jwtDecoded._type) {
@@ -72,11 +70,9 @@ const authenticate = function(type) {
         break;
     }
     if (result == null) {
-      return res
-        .status(401)
-        .json({
-          messages: [format("Could not find a %s from the JWT.", type)]
-        });
+      return res.status(401).json({
+        messages: [format("Could not find a %s from the JWT.", type)]
+      });
     }
     req[type] = result;
     next();
