@@ -1,5 +1,5 @@
 enabled: true
 restylers:
   - prettier:
-  	include:
-  		- "**/*.js"
+  		include:
+  			- "**/*.js"
