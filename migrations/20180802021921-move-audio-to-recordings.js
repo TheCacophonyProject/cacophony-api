@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  up: async function (queryInterface) {
+  up: async function(queryInterface) {
     // Move audio recordings to Recordings. Leave the source data
     // alone in case of disaster.
     await queryInterface.sequelize.query(`
@@ -53,5 +53,5 @@ module.exports = {
   },
 
   // Do nothing here. Safer to do manual reversal.
-  down: function () {}
+  down: function() {}
 };

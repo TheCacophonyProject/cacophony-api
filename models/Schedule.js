@@ -16,9 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-'use strict';
+"use strict";
 module.exports = function(sequelize, DataTypes) {
-  var name = 'Schedule';
+  var name = "Schedule";
 
   var attributes = {
     schedule: DataTypes.JSONB
@@ -29,7 +29,7 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
   // CLASS METHODS
   //---------------
-  
+
   Schedule.addAssociations = function(models) {
     models.Schedule.belongsTo(models.User);
     models.Schedule.hasMany(models.Device);
@@ -37,4 +37,3 @@ module.exports = function(sequelize, DataTypes) {
 
   return Schedule;
 };
-

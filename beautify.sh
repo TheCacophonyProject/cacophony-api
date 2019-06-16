@@ -1,1 +1,1 @@
-find . -regextype posix-extended -regex '.*\.(js|html)$' | egrep -v "./node_modules/*" | xargs prettier --write
+find . -regextype posix-extended -regex '.*\.(js)$' | egrep -v "./node_modules/*" | xargs prettier --write
