@@ -40,9 +40,8 @@ module.exports = function(app) {
   app.post(
     '/authenticate_device',
     [
-      middleware.setGroupName(body),
-      middleware.getDeviceByNameAndGroup(body),
       body('password').exists(),
+      middleware.getDevice(body),
     ],
     middleware.requestWrapper(async (request, response) => {
       const passwordMatch = await request.body.device.comparePassword(request.body.password);

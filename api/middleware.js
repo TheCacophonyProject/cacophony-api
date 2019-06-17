@@ -119,14 +119,12 @@ function setGroupName(checkFunc){
   });
 }
 
-function getDeviceByNameAndGroup(checkFunc) {
-  return checkFunc("devicename","groupname").custom(async (deviceName, { req }) => {
+function getDevice(checkFunc) {
+  return checkFunc("devicename").custom(async (deviceName, { req }) => {
+    var password=req.body["password"];
     var groupName = req.body["groupname"];
-    if(!groupName){
-      throw new Error(format('Group is missing from request body.'));      
-    }
-    const model = await models.Device.getFromNameAndGroup(deviceName, groupName);
-    if (model === null) {
+    var model = await models.Device.findDevice(deviceName, groupName, password);
+    if (model == null) {
       throw new Error(format('Could not find device %s in group %s.', deviceName, groupName));
     }
     req.body["device"] = model;
@@ -149,7 +147,7 @@ function getRecordingById(checkFunc) {
 const checkNewName = function(field) {
   return body(field, 'Invalid '+field)
     .isLength({ min: 3 })
-    .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
+    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
@@ -226,7 +224,7 @@ exports.getGroupById       = getGroupById;
 exports.getGroupByName     = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
 exports.getDeviceById      = getDeviceById;
-exports.getDeviceByNameAndGroup    = getDeviceByNameAndGroup;
+exports.getDevice          = getDevice;
 exports.getDetailSnapshotById = getDetailSnapshotById;
 exports.getFileById        = getFileById;
 exports.getRecordingById   = getRecordingById;

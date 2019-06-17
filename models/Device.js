@@ -16,7 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 var bcrypt = require('bcrypt');
+const format       = require('util').format;
 var Sequelize = require('sequelize');
 const {AuthorizationError} = require("../api/customErrors");
 const Op = Sequelize.Op;
@@ -177,7 +179,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.freeDevicename = async function(groupID, devicename) {
-    var device = await this.findOne({where: { GroupId:groupID, devicename:devicename }});
+    var device = await this.findOne({where: { devicename:devicename }});
     if (device != null) {
       return false;
     }
@@ -186,6 +188,65 @@ module.exports = function(sequelize, DataTypes) {
 
   Device.getFromId = async function(id) {
     return await this.findById(id);
+  };
+
+
+  Device.findDevice = async function(deviceName, groupName, password) {
+  // attempts to find a unique device by groupname, then deviceid (devicename if int),
+  // then devicename, finally password
+    var model = null;
+    if(groupName){
+      model = await this.getFromNameAndGroup(deviceName, groupName);
+    }
+    else{
+      const models = await this.allWithName(deviceName);
+      //check for devicename being id
+      var deviceID = parseExactInt(deviceName);
+      if(deviceID){
+        model = this.findByPk(deviceID);
+      }
+
+      //check for distinct name
+      if(model == null){
+        if(models.length ==1){
+          model = models[0];
+        }
+      }
+
+      //check for device match from password
+      if(model == null && password){
+        model = await this.wherePasswordMatches(models, password);
+      }
+    }
+    return model;
+  };
+
+  Device.wherePasswordMatches = async function(devices, password) {
+  // checks if there is a unique devicename and password match, else returns null
+    var validDevices = [];
+    for (var i = 0; i < devices.length; i++) {
+      var passwordMatch = await devices[i].comparePassword(password);
+      if(passwordMatch){
+        validDevices.push(devices[i]);
+      }
+    }
+    if(validDevices.length == 1){
+      return validDevices[0];
+    }else{
+      if(validDevices.length > 1){
+        throw new Error(format("Multiple devices match %s and supplied password", name));
+      }
+      return null;
+    }
+  };
+
+  Device.getFromNameAndPassword = async function(name, password) {
+    const devices =  await this.allWithName(name);
+    return this.wherePasswordMatches(devices, password);
+  };
+
+  Device.allWithName=  async function(name) {
+    return await this.findAll({ where: { devicename: name}});
   };
 
   Device.getFromNameAndGroup = async function(name, groupName) {
@@ -254,6 +315,15 @@ module.exports = function(sequelize, DataTypes) {
 
   return Device;
 };
+
+function parseExactInt(value){
+  var iValue =parseInt(value);
+  if(value === iValue.toString()){
+    return Number(iValue);
+  }else{
+    return null;
+  }
+}
 
 /********************/
 /* Validation methods */

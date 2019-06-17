@@ -36,8 +36,9 @@ class Helper:
         api.name_or_email_login(nameOrEmail)
         return TestUser(username, api)
 
-    def login_as_device(self, devicename, groupname):
-        password = self._make_password(devicename)
+    def login_as_device(self, devicename, groupname=None, password=None):
+        if not password:
+            password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_url, devicename, password, groupname).login()
         return TestDevice(devicename, device, self, group=groupname)
 

@@ -110,7 +110,7 @@ module.exports = (app, baseUrl) => {
     [
       auth.authenticateUser,
       middleware.setGroupName(param),
-      middleware.getDeviceByNameAndGroup(param),
+      middleware.getDevice(param),
       auth.userCanAccessDevices,
     ],
     middleware.requestWrapper(async (request, response) => {
