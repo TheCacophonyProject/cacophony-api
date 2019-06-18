@@ -16,35 +16,32 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { param, body } = require('express-validator/check');
+const { param, body } = require("express-validator/check");
 
-const middleware        = require('../middleware');
-const auth              = require('../auth');
-const recordingUtil     = require('./recordingUtil');
+const middleware = require("../middleware");
+const auth = require("../auth");
+const recordingUtil = require("./recordingUtil");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + '/reprocess';
+  var apiUrl = baseUrl + "/reprocess";
 
   /**
-  * @api {get} /api/v1/reprocess/:id
-  * @apiName Reprocess
-  * @apiGroup Recordings
-  * @apiParam {Number} id of recording to reprocess
-  * @apiDescription Marks a recording for reprocessing and archives existing tracks
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {Number} recordingId - recording_id reprocessed
-  */
+   * @api {get} /api/v1/reprocess/:id
+   * @apiName Reprocess
+   * @apiGroup Recordings
+   * @apiParam {Number} id of recording to reprocess
+   * @apiDescription Marks a recording for reprocessing and archives existing tracks
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} recordingId - recording_id reprocessed
+   */
   app.get(
-    apiUrl + '/:id',
-    [
-      auth.authenticateUser,
-      param('id').isInt(),
-    ],
+    apiUrl + "/:id",
+    [auth.authenticateUser, param("id").isInt()],
     middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocess(request,response);
+      return await recordingUtil.reprocess(request, response);
     })
   );
 
@@ -62,14 +59,9 @@ module.exports = (app, baseUrl) => {
   */
   app.post(
     apiUrl,
-    [
-      auth.authenticateUser,
-      middleware.parseJSON('recordings', body),
-
-    ],
+    [auth.authenticateUser, middleware.parseJSON("recordings", body)],
     middleware.requestWrapper(async (request, response) => {
-      return await recordingUtil.reprocessAll(request,response);
+      return await recordingUtil.reprocessAll(request, response);
     })
   );
-
 };
