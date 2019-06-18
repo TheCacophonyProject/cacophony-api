@@ -228,7 +228,8 @@ class TestUser:
 
     def can_see_audio_recordings(self, recordings, **query_args):
         expected_ids = {rec.id_ for rec in recordings}
-        actual_ids = {row["id"] for row in self._userapi.query_audio(**query_args)}
+        actual_ids = {row["id"]
+                      for row in self._userapi.query_audio(**query_args)}
         assert actual_ids == expected_ids
 
     def delete_audio_recording(self, recording):
@@ -327,10 +328,12 @@ class TestUser:
         self._userapi.remove_user_from_device(olduser, device.get_id())
 
     def device_has_device_users(self, device, *users):
-        assert self._get_device_users(device, "device") == {u.username for u in users}
+        assert self._get_device_users(device, "device") == {
+            u.username for u in users}
 
     def device_has_group_users(self, device, *users):
-        assert self._get_device_users(device, "group") == {u.username for u in users}
+        assert self._get_device_users(device, "group") == {
+            u.username for u in users}
 
     def _get_device_users(self, device, relation):
         users = self._userapi.list_device_users(device.get_id())
@@ -353,7 +356,8 @@ class TestUser:
         recording = expected_track.recording
         tracks = self._userapi.get_tracks(recording.id_)
         for t in tracks:
-            this_track = Track(id_=t["id"], recording=recording, data=t["data"])
+            this_track = Track(
+                id_=t["id"], recording=recording, data=t["data"])
             if this_track == expected_track:
                 if expected_tags:
                     tags = [
@@ -476,7 +480,8 @@ class RecordingQueryPromise:
 
         ids = [testRecording.id_ for testRecording in self._expected_recordings]
         print(
-            "Then searching with {} should give only {}.".format(self._queryParams, ids)
+            "Then searching with {} should give only {}.".format(
+                self._queryParams, ids)
         )
 
         # test what should be there, is there

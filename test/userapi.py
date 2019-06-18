@@ -68,19 +68,23 @@ class UserAPI(APIBase):
         self._check_response(response)
 
     def get_recording(self, recording_id, params=None):
-        url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/recordings/{}".format(recording_id))
         r = requests.get(url, headers=self._auth_header, params=params)
         return self._check_response(r)["recording"]
 
     def delete_recording(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/recordings/{}".format(recording_id))
         r = requests.delete(url, headers=self._auth_header)
         return self._check_response(r)
 
     def update_recording(self, recording_id, updates):
-        url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/recordings/{}".format(recording_id))
         r = requests.patch(
-            url, headers=self._auth_header, data={"updates": json.dumps(updates)}
+            url, headers=self._auth_header, data={
+                "updates": json.dumps(updates)}
         )
         return self._check_response(r)
 
@@ -88,7 +92,8 @@ class UserAPI(APIBase):
         reprocessURL = urljoin(
             self._baseurl, "/api/v1/reprocess/{}".format(recording_id)
         )
-        r = requests.get(reprocessURL, headers=self._auth_header, params=params)
+        r = requests.get(
+            reprocessURL, headers=self._auth_header, params=params)
         return self._check_response(r)
 
     def reprocess_recordings(self, recordings, params=None):
@@ -137,25 +142,29 @@ class UserAPI(APIBase):
         raise_specific_exception(r)
 
     def get_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
 
         r = requests.get(url, headers=self._auth_header)
         return self._check_response(r)
 
     def delete_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
         r = requests.delete(url, headers=self._auth_header)
         return self._check_response(r)
 
     def update_audio_recording(self, recording_id, updates):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
         r = requests.put(
             url, headers=self._auth_header, data={"data": json.dumps(updates)}
         )
         return self._check_response(r)
 
     def download_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
+        url = urljoin(
+            self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
         r = requests.get(url, headers=self._auth_header)
         d = self._check_response(r)
         return self._download_signed(d["jwt"])
@@ -200,7 +209,8 @@ class UserAPI(APIBase):
 
     def tag_recording(self, recording_id, tagDictionary):
         url = urljoin(self._baseurl, "/api/v1/tags/")
-        tagData = {"tag": json.dumps(tagDictionary), "recordingId": recording_id}
+        tagData = {"tag": json.dumps(
+            tagDictionary), "recordingId": recording_id}
         response = requests.post(url, headers=self._auth_header, data=tagData)
         return self._check_response(response)
 
@@ -248,7 +258,8 @@ class UserAPI(APIBase):
                     value = value.isoformat()
                 req_params[name] = value
 
-        response = requests.get(url, params=req_params, headers=self._auth_header)
+        response = requests.get(url, params=req_params,
+                                headers=self._auth_header)
         if response.status_code == 200:
             if return_json:
                 return response.json()
@@ -280,13 +291,15 @@ class UserAPI(APIBase):
 
     def upload_schedule(self, devicesIds, schedule):
         url = urljoin(self._baseurl, "api/v1/schedules")
-        props = {"devices": json.dumps(devicesIds), "schedule": json.dumps(schedule)}
+        props = {"devices": json.dumps(
+            devicesIds), "schedule": json.dumps(schedule)}
         response = requests.post(url, data=props, headers=self._auth_header)
         self._check_response(response)
 
     def get_audio_schedule(self, devicename, groupname):
         url = urljoin(
-            self._baseurl, "/api/v1/schedules/{}/{}".format(groupname, devicename)
+            self._baseurl, "/api/v1/schedules/{}/{}".format(
+                groupname, devicename)
         )
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
@@ -296,7 +309,8 @@ class UserAPI(APIBase):
         if not props:
             props = {"type": "thermalRaw"}
         return self._upload(
-            "/api/v1/recordings/group/{}/device/{}".format(groupname, devicename),
+            "/api/v1/recordings/group/{}/device/{}".format(
+                groupname, devicename),
             filename,
             props,
         )
@@ -310,7 +324,8 @@ class UserAPI(APIBase):
 
     def add_user_to_group(self, newuser, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups/users")
-        props = {"group": groupname, "username": newuser.username, "admin": "false"}
+        props = {"group": groupname,
+                 "username": newuser.username, "admin": "false"}
         response = requests.post(url, headers=self._auth_header, data=props)
         self._check_response(response)
 
@@ -322,7 +337,8 @@ class UserAPI(APIBase):
 
     def add_user_to_device(self, newuser, deviceid):
         url = urljoin(self._baseurl, "/api/v1/devices/users")
-        props = {"deviceId": deviceid, "username": newuser.username, "admin": "false"}
+        props = {"deviceId": deviceid,
+                 "username": newuser.username, "admin": "false"}
         response = requests.post(url, headers=self._auth_header, data=props)
         self._check_response(response)
 
@@ -341,15 +357,18 @@ class UserAPI(APIBase):
 
     def add_track(self, recording_id, data, algorithm={"status": "Test added"}):
         response = requests.post(
-            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks".format(recording_id)),
+            urljoin(self._baseurl,
+                    "/api/v1/recordings/{}/tracks".format(recording_id)),
             headers=self._auth_header,
-            data={"algorithm": json.dumps(algorithm), "data": json.dumps(data)},
+            data={"algorithm": json.dumps(
+                algorithm), "data": json.dumps(data)},
         )
         return self._check_response(response)["trackId"]
 
     def get_tracks(self, recording_id):
         response = requests.get(
-            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks".format(recording_id)),
+            urljoin(self._baseurl,
+                    "/api/v1/recordings/{}/tracks".format(recording_id)),
             headers=self._auth_header,
         )
         return self._check_response(response)["tracks"]
@@ -358,7 +377,8 @@ class UserAPI(APIBase):
         response = requests.delete(
             urljoin(
                 self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}".format(recording_id, track_id),
+                "/api/v1/recordings/{}/tracks/{}".format(
+                    recording_id, track_id),
             ),
             headers=self._auth_header,
         )
@@ -368,7 +388,8 @@ class UserAPI(APIBase):
         response = requests.post(
             urljoin(
                 self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}/tags".format(recording_id, track_id),
+                "/api/v1/recordings/{}/tracks/{}/tags".format(
+                    recording_id, track_id),
             ),
             headers=self._auth_header,
             data={

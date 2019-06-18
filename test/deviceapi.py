@@ -41,7 +41,8 @@ class DeviceAPI(APIBase):
         eventData["dateTimes"] = [t.isoformat() for t in times]
         url = urljoin(self._baseurl, "/api/v1/events")
 
-        response = requests.post(url, headers=self._auth_header, json=eventData)
+        response = requests.post(
+            url, headers=self._auth_header, json=eventData)
         self._check_response(response)
         return response.json()["eventsAdded"], response.json()["eventDetailId"]
 

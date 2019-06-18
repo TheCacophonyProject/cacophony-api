@@ -48,7 +48,8 @@ class TestFileProcessing:
         file_processing.put(
             recording, success=True, complete=True, new_object_key="some_key"
         )
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        check_recording(user, recording,
+                        processingState="FINISHED", fileKey="some_key")
 
     def test_metadata_update(self, helper, file_processing):
         user = helper.admin_user()
@@ -80,7 +81,8 @@ class TestFileProcessing:
             complete=False,
             updates={"additionalMetadata": {"one": "1", "two": "2"}},
         )
-        check_recording(user, recording, additionalMetadata={"one": "1", "two": "2"})
+        check_recording(user, recording, additionalMetadata={
+                        "one": "1", "two": "2"})
 
         # Now override one of the previous additionalMetadata keys and add another.
         file_processing.put(
@@ -92,7 +94,8 @@ class TestFileProcessing:
 
         # additionalMetadata updates should be merged.
         check_recording(
-            user, recording, additionalMetadata={"one": "1", "two": "foo", "three": "3"}
+            user, recording, additionalMetadata={
+                "one": "1", "two": "foo", "three": "3"}
         )
 
     def test_can_upload_and_find_algorithm_keys(self, helper, file_processing):
@@ -155,7 +158,8 @@ class TestFileProcessing:
         user = helper.admin_user()
 
         recordings = []
-        recording_first = self.create_processed_recording(helper, file_processing, user)
+        recording_first = self.create_processed_recording(
+            helper, file_processing, user)
         recordings.append(recording_first.id_)
         self.add_tracks_and_tag(file_processing, recording_first)
 
@@ -175,7 +179,8 @@ class TestFileProcessing:
         recordings.append(-1)
         status, json = user.reprocess_recordings(recordings)
         assert status != 200
-        assert json["reprocessed"] == [recording_first.id_, recording_second.id_]
+        assert json["reprocessed"] == [
+            recording_first.id_, recording_second.id_]
         print(json)
         assert json["fail"] == [-1]
 
@@ -196,7 +201,8 @@ class TestFileProcessing:
         file_processing.put(
             recording, success=True, complete=True, new_object_key="some_key"
         )
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        check_recording(user, recording,
+                        processingState="FINISHED", fileKey="some_key")
         return recording
 
     def add_tracks_and_tag(self, file_processing, recording):
@@ -210,7 +216,8 @@ class TestFileProcessing:
 
     def test_reprocess_recording(self, helper, file_processing):
         user = helper.admin_user()
-        recording = self.create_processed_recording(helper, file_processing, user)
+        recording = self.create_processed_recording(
+            helper, file_processing, user)
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         user.can_see_track(track, [tag])
 
@@ -227,7 +234,8 @@ class TestFileProcessing:
         file_processing.put(
             recording, success=True, complete=True, new_object_key="some_key"
         )
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        check_recording(user, recording,
+                        processingState="FINISHED", fileKey="some_key")
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         user.can_see_track(track, [tag])

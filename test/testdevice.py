@@ -15,7 +15,8 @@ class TestDevice:
         return self._id
 
     def has_recording(self):
-        self._print_description("    and '{}' has a recording ".format(self.devicename))
+        self._print_description(
+            "    and '{}' has a recording ".format(self.devicename))
         return self.upload_recording()
 
     def has_audio_recording(self):
@@ -81,7 +82,8 @@ class TestDevice:
         print("    which has three events uploaded with detail id {}.".format(detailId))
         now = datetime.now()
         times = [now, now - timedelta(seconds=2), now - timedelta(seconds=4)]
-        eventsAdded, detailsId = self._deviceapi.record_event_from_id(detailId, times)
+        eventsAdded, detailsId = self._deviceapi.record_event_from_id(
+            detailId, times)
 
         print("Then three events should have been recorded.")
         assert eventsAdded == 3

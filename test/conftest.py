@@ -56,7 +56,8 @@ def pytest_runtest_makereport(item, call):
                 ["docker", "logs", "--tail", "50", "cacophony-api"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
-                check=False,  # this is allowed to fail (perhaps API server is not running in docker)
+                # this is allowed to fail (perhaps API server is not running in docker)
+                check=False,
                 universal_newlines=True,
             )
         except FileNotFoundError:

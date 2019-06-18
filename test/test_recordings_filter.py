@@ -20,8 +20,10 @@ class TestRecordingsFilter:
         group = george.create_group(
             helper.make_unique_group_name(self, "georges_group")
         )
-        device1 = helper.given_new_device(self, "device1", group, description="")
-        device2 = helper.given_new_device(self, "device2", group, description="")
+        device1 = helper.given_new_device(
+            self, "device1", group, description="")
+        device2 = helper.given_new_device(
+            self, "device2", group, description="")
 
         d2_first = device2.has_recording()
         d1_first = device1.has_recording()
@@ -43,12 +45,14 @@ class TestRecordingsFilter:
 
         print("  The recording shoudl have a defautl precision of 100m")
         rec_prec_default = bob.get_recording(rec)
-        assert rec_prec_default["location"]["coordinates"] == [20.00025, 20.00025]
+        assert rec_prec_default["location"]["coordinates"] == [
+            20.00025, 20.00025]
 
         print("  Bob should not be able to get a precision higher than 100m")
         params_prec_10 = {"filterOptions": json.dumps({"latLongPrec": 10})}
         rec_prec_attempt_10 = bob.get_recording(rec, params_prec_10)
-        assert rec_prec_attempt_10["location"]["coordinates"] == [20.00025, 20.00025]
+        assert rec_prec_attempt_10["location"]["coordinates"] == [
+            20.00025, 20.00025]
 
         print("  Bob should be able to use a precision lower than 100m")
         params_prec_200 = {"filterOptions": json.dumps({"latLongPrec": 200})}
@@ -61,8 +65,10 @@ class TestRecordingsFilter:
         print("  An admin should be able to use a precision higher than 100m")
         params_prec_200 = {"filterOptions": json.dumps({"latLongPrec": 10})}
         rec_prec_attempt_200 = helper.admin_user().get_recording(rec, params_prec_200)
-        assert rec_prec_attempt_200["location"]["coordinates"] == [20.000025, 20.000025]
+        assert rec_prec_attempt_200["location"]["coordinates"] == [
+            20.000025, 20.000025]
 
         print("  Recordings from a normal query shoudl also be filtered", end="")
-        rec = bob.query_recordings(filterOptions=json.dumps({"latLongPrec": 10}))[0]
+        rec = bob.query_recordings(
+            filterOptions=json.dumps({"latLongPrec": 10}))[0]
         assert rec["location"]["coordinates"] == [20.00025, 20.00025]

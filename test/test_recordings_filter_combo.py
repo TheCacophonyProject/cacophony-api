@@ -8,8 +8,10 @@ class TestRecordingsFilterCombo:
         group = george.create_group(
             helper.make_unique_group_name(self, "georges_group")
         )
-        device1 = helper.given_new_device(self, "device1", group, description="")
-        device2 = helper.given_new_device(self, "device2", group, description="")
+        device1 = helper.given_new_device(
+            self, "device1", group, description="")
+        device2 = helper.given_new_device(
+            self, "device2", group, description="")
 
         d1_possum = makeTaggedRecording("d1_possum", device1, helper, "possum")
         d2_possum = makeTaggedRecording("d2_possum", device2, helper, "possum")

@@ -45,7 +45,8 @@ class TestUser:
         admins_user_details = bob.get_user_details(helper.admin_user())
         assert admins_user_details["userData"]["id"]
 
-        print("Bob's user id is {}".format(bobs_user_details["userData"]["id"]))
+        print("Bob's user id is {}".format(
+            bobs_user_details["userData"]["id"]))
 
     def test_create_duplicate_user(self, helper):
         # Ensure the user exists
@@ -86,7 +87,8 @@ class TestUser:
             print(
                 "When I try to register with a short password it should return an error"
             )
-            helper.given_new_fixed_user(username=long_username, password=short_password)
+            helper.given_new_fixed_user(
+                username=long_username, password=short_password)
 
         print(
             "When I try to register with a long enough username and password it should be successful"

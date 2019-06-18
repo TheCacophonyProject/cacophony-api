@@ -19,7 +19,8 @@ class APIBase:
 
     def login(self, email=None):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
-        response = requests.post(url, data=self._create_login_and_password_map(email))
+        response = requests.post(
+            url, data=self._create_login_and_password_map(email))
         self.check_login_response(response)
         return self
 

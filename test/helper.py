@@ -39,7 +39,8 @@ class Helper:
     def login_as_device(self, devicename, groupname=None, password=None):
         if not password:
             password = self._make_password(devicename)
-        device = DeviceAPI(self.config.api_url, devicename, password, groupname).login()
+        device = DeviceAPI(self.config.api_url, devicename,
+                           password, groupname).login()
         return TestDevice(devicename, device, self, group=groupname)
 
     def given_new_user_with_device(self, testClass, username_base):
@@ -76,14 +77,16 @@ class Helper:
             testname = "{}{}".format(basename, num)
             testemail = "{}{}".format(num, baseemail)
 
-        raise TestException("Could not create username like '{}'".format(basename))
+        raise TestException(
+            "Could not create username like '{}'".format(basename))
 
     def given_new_fixed_user(self, username, email=None, password=None):
         if not email:
             email = username + "@email.com"
         if not password:
             password = self._make_password(username)
-        api = UserAPI(self.config.api_url, username, email, password).register_as_new()
+        api = UserAPI(self.config.api_url, username,
+                      email, password).register_as_new()
         self._print_actual_name(username)
         return TestUser(username, api, email)
 
@@ -128,10 +131,12 @@ class Helper:
             self._print_actual_name(uniqueName)
             return TestDevice(uniqueName, device, self, group=group)
         except Exception as exception:
-            raise TestException("Failed to create device: {}".format(exception))
+            raise TestException(
+                "Failed to create device: {}".format(exception))
 
     def given_a_recording(self, testClass, devicename=None, group=None):
-        device = self.given_new_device(testClass, devicename=devicename, group=group)
+        device = self.given_new_device(
+            testClass, devicename=devicename, group=group)
         return device.has_recording()
 
     def _make_long_name(self, testClass, name):
