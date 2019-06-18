@@ -191,17 +191,20 @@ module.exports = function(sequelize, DataTypes) {
   };
 
 
-  Device.findDevice = async function(deviceName, groupName, password) {
+  Device.findDevice = async function(deviceID, deviceName, groupName, password) {
   // attempts to find a unique device by groupname, then deviceid (devicename if int),
   // then devicename, finally password
     var model = null;
-    if(groupName){
+    if(deviceID){
+      model = this.findByPk(deviceID);
+    }
+    else if(groupName){
       model = await this.getFromNameAndGroup(deviceName, groupName);
     }
     else{
       const models = await this.allWithName(deviceName);
       //check for devicename being id
-      var deviceID = parseExactInt(deviceName);
+      deviceID = parseExactInt(deviceName);
       if(deviceID){
         model = this.findByPk(deviceID);
       }

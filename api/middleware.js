@@ -123,7 +123,9 @@ function getDevice(checkFunc) {
   return checkFunc("devicename").custom(async (deviceName, { req }) => {
     var password=req.body["password"];
     var groupName = req.body["groupname"];
-    var model = await models.Device.findDevice(deviceName, groupName, password);
+    var deviceID = req.body["deviceID"];
+    log.info("device id is %d", deviceID);
+    var model = await models.Device.findDevice(deviceID, deviceName, groupName, password);
     if (model == null) {
       throw new Error(format('Could not find device %s in group %s.', deviceName, groupName));
     }

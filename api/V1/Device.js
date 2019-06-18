@@ -61,6 +61,7 @@ module.exports = function(app, baseUrl) {
         password: request.body.password,
         GroupId: request.body.group.id,
       });
+
       const data = device.getJwtDataValues();
       return responseUtil.send(response, {
         statusCode: 200,
