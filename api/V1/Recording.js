@@ -64,7 +64,7 @@ module.exports = (app, baseUrl) => {
   app.post(
     apiUrl,
     [auth.authenticateDevice],
-    middleware.requestWrapper(recordingUtil.makeUploadHandler())
+    middleware.requestWrapper(recordingUtil.makeUploadHandler(   ))
   );
 
   /**
