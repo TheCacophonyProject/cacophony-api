@@ -132,7 +132,6 @@ function getDevice(checkFunc) {
     var password = req.body["password"];
     var groupName = req.body["groupname"];
     var deviceID = req.body["deviceID"];
-    log.info("device id is %d", deviceID);
     var model = await models.Device.findDevice(
       deviceID,
       deviceName,

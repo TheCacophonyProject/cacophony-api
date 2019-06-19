@@ -206,7 +206,7 @@ module.exports = function(sequelize, DataTypes) {
     // attempts to find a unique device by groupname, then deviceid (devicename if int),
     // then devicename, finally password
     var model = null;
-    if (deviceID) {
+    if (deviceID && deviceID > 0) {
       model = this.findByPk(deviceID);
     } else if (groupName) {
       model = await this.getFromNameAndGroup(deviceName, groupName);
