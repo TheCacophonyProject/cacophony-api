@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const log = require("../logging");
 const format = require("util").format;
 
-function errorHandler(err, request, response, next) {
+function errorHandler(err, request, response, _) {
   // eslint-disable-line
   if (err instanceof SyntaxError && err.type === "entity.parse.failed") {
     err = new ClientError(err.message, 422); // Convert invalid JSON body error to UnprocessableEntity
