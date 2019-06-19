@@ -50,10 +50,10 @@ module.exports = (app, baseUrl) => {
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(async function(request, response) {
-      var deviceIds = request.body.devices;
+      const deviceIds = request.body.devices;
 
-      var instance = models.Schedule.build(request.body, ["schedule"]);
-      instance.set("UserId", request.user.id);
+      const instance = models.Schedule.buildSafely(request.body);
+      instance.UserId = request.user.id;
       // TODO make the device and schedule changes apply in a single transaction
       await instance.save();
 

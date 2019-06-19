@@ -16,21 +16,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var mime = require("mime");
-var moment = require("moment-timezone");
-var Sequelize = require("sequelize");
+const mime = require("mime");
+const moment = require("moment-timezone");
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const assert = require("assert");
 const uuidv4 = require("uuid/v4");
 
-var util = require("./util/util");
-var validation = require("./util/validation");
+const util = require("./util/util");
+const validation = require("./util/validation");
+const _ = require("lodash");
 const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Recording";
+  const name = "Recording";
 
-  var attributes = {
+  const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
     duration: DataTypes.INTEGER,
@@ -73,12 +74,16 @@ module.exports = function(sequelize, DataTypes) {
     airplaneModeOn: DataTypes.BOOLEAN
   };
 
-  var Recording = sequelize.define(name, attributes);
+  const Recording = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
-  var models = sequelize.models;
+  const models = sequelize.models;
+
+  Recording.buildSafely = function(fields) {
+    return Recording.build(_.pick(fields, Recording.apiSettableFields));
+  };
 
   Recording.Perms = Object.freeze({
     DELETE: "delete",

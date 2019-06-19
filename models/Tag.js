@@ -16,12 +16,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var util = require("./util/util");
+const util = require("./util/util");
+const _ = require("lodash");
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Tag";
+  const name = "Tag";
 
-  var attributes = {
+  const attributes = {
     what: {
       type: DataTypes.STRING
     },
@@ -53,12 +54,16 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var Tag = sequelize.define(name, attributes);
+  const Tag = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
   const Recording = sequelize.models.Recording;
+
+  Tag.buildSafely = function(fields) {
+    return Tag.build(_.pick(fields, Tag.apiSettableFields));
+  };
 
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, { as: "tagger" });

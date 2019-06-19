@@ -49,11 +49,9 @@ module.exports = (app, baseUrl) => {
     [auth.authenticateUser],
     middleware.requestWrapper(
       util.multipartUpload((request, data, key) => {
-        var dbRecord = models.File.build(data, {
-          fields: models.File.apiSettableFields
-        });
-        dbRecord.set("UserId", request.user.id);
-        dbRecord.set("fileKey", key);
+        const dbRecord = models.File.buildSafely(data);
+        dbRecord.UserId = request.user.id;
+        dbRecord.fileKey = key;
         return dbRecord;
       })
     )

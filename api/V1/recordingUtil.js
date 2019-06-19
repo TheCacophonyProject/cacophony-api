@@ -32,19 +32,14 @@ function makeUploadHandler(mungeData) {
       data = mungeData(data);
     }
 
-    const recording = models.Recording.build(data, {
-      fields: models.Recording.apiSettableFields
-    });
-    recording.set("rawFileKey", key);
-    recording.set("rawMimeType", guessRawMimeType(data.type, data.filename));
-    recording.set("DeviceId", request.device.id);
-    recording.set("GroupId", request.device.GroupId);
-    recording.set(
-      "processingState",
-      models.Recording.processingStates[data.type][0]
-    );
+    const recording = models.Recording.buildSafely(data);
+    recording.rawFileKey = key;
+    recording.rawMimeType = guessRawMimeType(data.type, data.filename);
+    recording.DeviceId = request.device.id;
+    recording.GroupId = request.device.GroupId;
+    recording.processingState = models.Recording.processingStates[data.type][0];
     if (typeof request.device.public === "boolean") {
-      recording.set("public", request.device.public);
+      recording.public = request.device.public;
     }
     return recording;
   });
@@ -160,12 +155,10 @@ async function addTag(user, recording, tag, response) {
   // If old tag fields are used, convert to new field names.
   tag = handleLegacyTagFieldsForCreate(tag);
 
-  const tagInstance = models.Tag.build(
-    _.pick(tag, models.Tag.apiSettableFields)
-  );
-  tagInstance.set("RecordingId", recording.id);
+  const tagInstance = models.Tag.buildSafely(tag);
+  tagInstance.RecordingId = recording.id;
   if (user) {
-    tagInstance.set("taggerId", user.id);
+    tagInstance.taggerId = user.id;
   }
   await tagInstance.save();
 
