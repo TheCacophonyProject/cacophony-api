@@ -69,7 +69,7 @@ module.exports = (app, baseUrl) => {
       auth.authenticateDevice,
     ],
     middleware.requestWrapper(
-      recordingUtil.makeUploadHandler()
+      recordingUtil.makeUploadHandler(    )
     )
   );
 
