@@ -17,13 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'GroupUsers';
+  var name = "GroupUsers";
 
   var attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+      defaultValue: false
+    }
   };
 
   var GroupUsers = sequelize.define(name, attributes);
@@ -40,7 +40,7 @@ module.exports = function(sequelize, DataTypes) {
       where: {
         GroupId: groupId,
         UserId: userId,
-        admin: true,
+        admin: true
       }
     });
     return groupUsers != null;

@@ -16,37 +16,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jwt          = require('jsonwebtoken');
-var config         = require('../../config');
-const responseUtil = require('./responseUtil');
-const middleware   = require('../middleware');
-const { body }     = require('express-validator/check');
+const jwt = require("jsonwebtoken");
+var config = require("../../config");
+const responseUtil = require("./responseUtil");
+const middleware = require("../middleware");
+const { body } = require("express-validator/check");
 
 module.exports = function(app) {
   /**
-  * @api {post} /authenticate_device/ Authenticate a device
-  * @apiName AuthenticateDevice
-  * @apiGroup Authentication
-  * @apiDescription Checks the username corresponds to an existing device account
-  * and the password matches the account.
-  *
-  * @apiParam {String} devicename The name identifying a valid device account
-  * @apiParam {String} password Password for the device account
-  *
-  * @apiSuccess {String} token JWT string to provide to further API requests
-  */
+   * @api {post} /authenticate_device/ Authenticate a device
+   * @apiName AuthenticateDevice
+   * @apiGroup Authentication
+   * @apiDescription Checks the username corresponds to an existing device account
+   * and the password matches the account.
+   *
+   * @apiParam {String} devicename The name identifying a valid device account
+   * @apiParam {String} password Password for the device account
+   *
+   * @apiSuccess {String} token JWT string to provide to further API requests
+   */
   app.post(
-    '/authenticate_device',
-    [
-      middleware.getDeviceByName(body),
-      body('password').exists(),
-    ],
+    "/authenticate_device",
+    [middleware.getDeviceByName(body), body("password").exists()],
     middleware.requestWrapper(async (request, response) => {
-
-      const passwordMatch = await request.body.device.comparePassword(request.body.password);
+      const passwordMatch = await request.body.device.comparePassword(
+        request.body.password
+      );
       if (passwordMatch) {
         var data = request.body.device.getJwtDataValues();
-        var token = 'JWT ' + jwt.sign(data, config.server.passportSecret);
+        var token = "JWT " + jwt.sign(data, config.server.passportSecret);
         return responseUtil.send(response, {
           statusCode: 200,
           messages: ["Successful login."],

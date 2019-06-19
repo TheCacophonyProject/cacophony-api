@@ -1,13 +1,13 @@
-const { body, param } = require('express-validator/check');
+const { body, param } = require("express-validator/check");
 
-const log = require('../../logging');
-const middleware = require('../middleware');
-const models = require('../../models');
-const recordingUtil = require('../V1/recordingUtil');
-const responseUtil = require('../V1/responseUtil');
+const log = require("../../logging");
+const middleware = require("../middleware");
+const models = require("../../models");
+const recordingUtil = require("../V1/recordingUtil");
+const responseUtil = require("../V1/responseUtil");
 
 module.exports = function(app) {
-  var apiUrl = '/api/fileProcessing';
+  var apiUrl = "/api/fileProcessing";
 
   /**
    * @api {get} /api/fileProcessing Get a new file processing job
@@ -15,19 +15,19 @@ module.exports = function(app) {
    * @apiGroup FileProcessing
    *
    * @apiParam {String} type Type of recording.
-   * @apiParam {String} state Processing state. 
+   * @apiParam {String} state Processing state.
    */
   app.get(apiUrl, async (request, response) => {
     log.info(request.method + " Request: " + request.url);
     var type = request.query.type;
     var state = request.query.state;
-    var recording = await models.Recording.getOneForProcessing(type,state);
+    var recording = await models.Recording.getOneForProcessing(type, state);
     if (recording == null) {
-      log.debug('No file to be processed.');
+      log.debug("No file to be processed.");
       return response.status(204).json();
-    }else{
+    } else {
       return response.status(200).json({
-        recording: recording.dataValues,
+        recording: recording.dataValues
       });
     }
   });
@@ -47,7 +47,7 @@ module.exports = function(app) {
   app.put(apiUrl, async (request, response) => {
     var id = parseInt(request.body.id);
     var jobKey = request.body.jobKey;
-    var success =  middleware.parseBool(request.body.success);
+    var success = middleware.parseBool(request.body.success);
     var result = request.body.result;
     var complete = middleware.parseBool(request.body.complete);
     var newProcessedFileKey = request.body.newProcessedFileKey;
@@ -73,28 +73,28 @@ module.exports = function(app) {
 
     if (errorMessages.length > 0) {
       return response.status(400).json({
-        messages: errorMessages,
+        messages: errorMessages
       });
     }
 
-    var recording = await models.Recording.findOne({ where: { id: id }});
+    var recording = await models.Recording.findOne({ where: { id: id } });
 
     // Check that jobKey is correct.
-    if (jobKey != recording.get('jobKey')) {
+    if (jobKey != recording.get("jobKey")) {
       return response.status(400).json({
-        messages: ["'jobKey' given did not match the database.."],
+        messages: ["'jobKey' given did not match the database.."]
       });
     }
 
     if (success) {
       var jobs = models.Recording.processingStates[recording.type];
-      var nextJob = jobs[jobs.indexOf(recording.processingState)+1];
-      recording.set('processingState', nextJob);
-      recording.set('fileKey', newProcessedFileKey);
+      var nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
+      recording.set("processingState", nextJob);
+      recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);
       if (complete) {
-        recording.set('jobKey', null);
-        recording.set('processingStartTime', null);
+        recording.set("jobKey", null);
+        recording.set("processingStartTime", null);
       }
 
       // Process extra data from file processing
@@ -103,13 +103,13 @@ module.exports = function(app) {
       }
 
       await recording.save();
-      return response.status(200).json({messages: ["Processing finished."]});
+      return response.status(200).json({ messages: ["Processing finished."] });
     } else {
-      recording.set('processingStartTime', null);
-      recording.set('jobKey', null);
+      recording.set("processingStartTime", null);
+      recording.set("jobKey", null);
       await recording.save();
       return response.status(200).json({
-        messages: ["Processing failed."],
+        messages: ["Processing failed."]
       });
     }
   });
@@ -134,13 +134,17 @@ module.exports = function(app) {
    */
   app.post(
     apiUrl + "/tags",
-    [
-      middleware.parseJSON('tag', body),
-      body('recordingId').isInt(),
-    ],
+    [middleware.parseJSON("tag", body), body("recordingId").isInt()],
     middleware.requestWrapper(async (request, response) => {
-      const options = {include: [{ model: models.Device, where: {}, attributes: ["devicename", "id"] },]};
-      const recording = await models.Recording.findByPk(request.body.recordingId, options);
+      const options = {
+        include: [
+          { model: models.Device, where: {}, attributes: ["devicename", "id"] }
+        ]
+      };
+      const recording = await models.Recording.findByPk(
+        request.body.recordingId,
+        options
+      );
       recordingUtil.addTag(null, recording, request.body.tag, response);
     })
   );
@@ -162,12 +166,12 @@ module.exports = function(app) {
    */
   app.post(
     apiUrl + "/metadata",
-    [
-      middleware.getRecordingById(body),
-      middleware.parseJSON('metadata', body),
-    ],
-    middleware.requestWrapper(async (request) => {
-      recordingUtil.updateMetadata(request.body.recording, request.body.metadata);
+    [middleware.getRecordingById(body), middleware.parseJSON("metadata", body)],
+    middleware.requestWrapper(async request => {
+      recordingUtil.updateMetadata(
+        request.body.recording,
+        request.body.metadata
+      );
     })
   );
 
@@ -189,27 +193,29 @@ module.exports = function(app) {
   app.post(
     apiUrl + "/:id/tracks",
     [
-      param('id').isInt().toInt(),
-      middleware.parseJSON('data', body),
-      middleware.getDetailSnapshotById(body, 'algorithmId'),
+      param("id")
+        .isInt()
+        .toInt(),
+      middleware.parseJSON("data", body),
+      middleware.getDetailSnapshotById(body, "algorithmId")
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."],
+          messages: ["No such recording."]
         });
         return;
       }
       const track = await recording.createTrack({
         data: request.body.data,
-        AlgorithmId: request.body.algorithmId,
+        AlgorithmId: request.body.algorithmId
       });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track added."],
-        trackId: track.id,
+        trackId: track.id
       });
     })
   );
@@ -227,57 +233,65 @@ module.exports = function(app) {
   app.delete(
     apiUrl + "/:id/tracks",
     [
-      param('id').isInt().toInt(),
+      param("id")
+        .isInt()
+        .toInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."],
+          messages: ["No such recording."]
         });
         return;
       }
 
       const tracks = await recording.getTracks();
-      tracks.forEach((track) => track.destroy());
+      tracks.forEach(track => track.destroy());
 
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Tracks cleared."],
+        messages: ["Tracks cleared."]
       });
     })
   );
 
   /**
-  * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
-  * @apiName PostTrackTag
-  * @apiGroup FileProcessing
-  *
-  * @apiParam {String} what Object/event to tag.
-  * @apiParam {Number} confidence Tag confidence score.
-  * @apiParam {JSON} data Data Additional tag data.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
-  *
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
+   * @apiName PostTrackTag
+   * @apiGroup FileProcessing
+   *
+   * @apiParam {String} what Object/event to tag.
+   * @apiParam {Number} confidence Tag confidence score.
+   * @apiParam {JSON} data Data Additional tag data.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(
-    apiUrl + '/:id/tracks/:trackId/tags',
+    apiUrl + "/:id/tracks/:trackId/tags",
     [
-      param('id').isInt().toInt(),
-      param('trackId').isInt().toInt(),
-      body('what'),
-      body('confidence').isFloat().toFloat(),
-      middleware.parseJSON('data', body).optional(),
+      param("id")
+        .isInt()
+        .toInt(),
+      param("trackId")
+        .isInt()
+        .toInt(),
+      body("what"),
+      body("confidence")
+        .isFloat()
+        .toFloat(),
+      middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."],
+          messages: ["No such recording."]
         });
         return;
       }
@@ -286,7 +300,7 @@ module.exports = function(app) {
       if (!track) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such track."],
+          messages: ["No such track."]
         });
         return;
       }
@@ -295,40 +309,41 @@ module.exports = function(app) {
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: true,
-        data: request.body.data,
+        data: request.body.data
       });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
-        trackTagId: tag.id,
+        trackTagId: tag.id
       });
     })
   );
 
   /**
-  * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
-  * @apiName Algorithm
-  * @apiGroup FileProcessing
-  *
-  * @apiParam {JSON} algorithm algorithm data in tag form.
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiSuccess {int} algorithmId Id of the matching algorithm tag.
-  *
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /algorithm Finds matching existing algorithm definition or adds a new one to the database
+   * @apiName Algorithm
+   * @apiGroup FileProcessing
+   *
+   * @apiParam {JSON} algorithm algorithm data in tag form.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} algorithmId Id of the matching algorithm tag.
+   *
+   * @apiUse V1ResponseError
+   */
   app.post(
-    apiUrl + '/algorithm',
-    [
-      middleware.parseJSON('algorithm', body),
-    ],
+    apiUrl + "/algorithm",
+    [middleware.parseJSON("algorithm", body)],
     middleware.requestWrapper(async (request, response) => {
-      var algorithm = await models.DetailSnapshot.getOrCreateMatching("algorithm", request.body.algorithm);
+      var algorithm = await models.DetailSnapshot.getOrCreateMatching(
+        "algorithm",
+        request.body.algorithm
+      );
 
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Algorithm key retrieved."],
-        algorithmId: algorithm.id,
+        algorithmId: algorithm.id
       });
     })
   );

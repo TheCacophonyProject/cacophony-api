@@ -16,35 +16,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var log = require('../../logging');
-var jwt = require('jsonwebtoken');
-var config = require('../../config');
+var log = require("../../logging");
+var jwt = require("jsonwebtoken");
+var config = require("../../config");
 
-const VALID_DATAPOINT_UPLOAD_REQUEST = 'Thanks for the data.';
-const VALID_DATAPOINT_UPDATE_REQUEST = 'Datapoint was updated.';
-const VALID_DATAPOINT_GET_REQUEST = 'Successful datapoint get request.';
-const VALID_FILE_REQUEST = 'Successful file request.';
+const VALID_DATAPOINT_UPLOAD_REQUEST = "Thanks for the data.";
+const VALID_DATAPOINT_UPDATE_REQUEST = "Datapoint was updated.";
+const VALID_DATAPOINT_GET_REQUEST = "Successful datapoint get request.";
+const VALID_FILE_REQUEST = "Successful file request.";
 
-const INVALID_DATAPOINT_UPLOAD_REQUEST = 'Request for uploading a datapoint was invalid.';
-const INVALID_DATAPOINT_UPDATE_REQUEST = 'Request for updating a datapoint was invalid.';
-
+const INVALID_DATAPOINT_UPLOAD_REQUEST =
+  "Request for uploading a datapoint was invalid.";
+const INVALID_DATAPOINT_UPDATE_REQUEST =
+  "Request for updating a datapoint was invalid.";
 
 function send(response, data) {
   // Check that the data is valid.
   if (
-    typeof data != 'object' ||
-    typeof data.statusCode != 'number' ||
-    typeof data.messages != 'object'
+    typeof data != "object" ||
+    typeof data.statusCode != "number" ||
+    typeof data.messages != "object"
   ) {
     // Respond with server error if data is invalid.
     return serverError(response, data);
   }
   var statusCode = data.statusCode;
-  data.success = (200 <= statusCode && statusCode <= 299);
+  data.success = 200 <= statusCode && statusCode <= 299;
   delete data.statusCode;
   return response.status(statusCode).json(data);
 }
-
 
 function invalidDatapointUpload(response, message) {
   badRequest(response, [INVALID_DATAPOINT_UPLOAD_REQUEST, message]);
@@ -78,7 +78,7 @@ function validDatapointGet(response, result) {
   send(response, {
     statusCode: 200,
     messages: [VALID_DATAPOINT_GET_REQUEST],
-    result: result,
+    result: result
   });
 }
 
@@ -86,7 +86,7 @@ function validFileRequest(response, data) {
   send(response, {
     statusCode: 200,
     messages: [VALID_FILE_REQUEST],
-    jwt: jwt.sign(data, config.server.passportSecret, { expiresIn: 60 * 10 }),
+    jwt: jwt.sign(data, config.server.passportSecret, { expiresIn: 60 * 10 })
   });
 }
 
@@ -96,7 +96,6 @@ function serverError(response, err) {
     messages: ["Server error. Sorry!"]
   });
 }
-
 
 exports.send = send;
 exports.invalidDatapointUpload = invalidDatapointUpload;

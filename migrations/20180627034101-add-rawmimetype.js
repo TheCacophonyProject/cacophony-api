@@ -1,8 +1,12 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  up: async function (queryInterface, Sequelize) {
-    await queryInterface.addColumn('Recordings', 'rawMimeType', Sequelize.STRING);
+  up: async function(queryInterface, Sequelize) {
+    await queryInterface.addColumn(
+      "Recordings",
+      "rawMimeType",
+      Sequelize.STRING
+    );
     await queryInterface.sequelize.query(`
         UPDATE "Recordings"
         SET "rawMimeType" = 'application/x-cptv'
@@ -10,7 +14,7 @@ module.exports = {
     `);
   },
 
-  down: async function (queryInterface) {
-    await queryInterface.removeColumn('Recordings', 'rawMimeType');
+  down: async function(queryInterface) {
+    await queryInterface.removeColumn("Recordings", "rawMimeType");
   }
 };

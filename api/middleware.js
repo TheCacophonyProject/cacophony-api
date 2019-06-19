@@ -16,19 +16,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const models = require('../models');
-const format       = require('util').format;
-const log          = require('../logging');
-const customErrors = require('./customErrors');
-const { body, validationResult, oneOf } = require('express-validator/check');
-
-
+const models = require("../models");
+const format = require("util").format;
+const log = require("../logging");
+const customErrors = require("./customErrors");
+const { body, validationResult, oneOf } = require("express-validator/check");
 
 const getModelById = function(modelType, fieldName, checkFunc) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.findByPk(val);
     if (model === null) {
-      throw new Error(format('Could not find a %s with an id of %s.', modelType.name, val));
+      throw new Error(
+        format("Could not find a %s with an id of %s.", modelType.name, val)
+      );
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
@@ -39,23 +39,25 @@ const getModelByName = function(modelType, fieldName, checkFunc) {
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model = await modelType.getFromName(val);
     if (model === null) {
-      throw new Error(format('Could not find %s of %s.', fieldName, val));
+      throw new Error(format("Could not find %s of %s.", fieldName, val));
     }
     req.body[modelTypeName(modelType)] = model;
     return true;
   });
 };
 
-const getUserByEmail = function(checkFunc, fieldName = 'email') {
-  return checkFunc(fieldName).isEmail().custom(async (email, { req }) => {
-    email = email.toLowerCase();
-    const user = await models.User.getFromEmail(email);
-    if (user === null) {
-      throw new Error('Could not find user with email: ' + email);
-    }
-    req.body.user = user;
-    return true;
-  });
+const getUserByEmail = function(checkFunc, fieldName = "email") {
+  return checkFunc(fieldName)
+    .isEmail()
+    .custom(async (email, { req }) => {
+      email = email.toLowerCase();
+      const user = await models.User.getFromEmail(email);
+      if (user === null) {
+        throw new Error("Could not find user with email: " + email);
+      }
+      req.body.user = user;
+      return true;
+    });
 };
 
 function modelTypeName(modelType) {
@@ -63,57 +65,63 @@ function modelTypeName(modelType) {
 }
 
 const isDateArray = function(fieldName, customError) {
-  return body(fieldName, customError).exists().custom((value) => {
-    if (Array.isArray(value)) {
-      value.forEach((dateAsString) => {
-        if (isNaN(Date.parse(dateAsString))) {
-          throw new Error(format("Cannot parse '%s' into a date.  Try formatting the date like '2017-11-13T00:47:51.160Z'.", dateAsString));
-        }
-      });
-      return true;
-    }
-    else {
-      throw new Error("Value should be an array.");
-    }
-  });
+  return body(fieldName, customError)
+    .exists()
+    .custom(value => {
+      if (Array.isArray(value)) {
+        value.forEach(dateAsString => {
+          if (isNaN(Date.parse(dateAsString))) {
+            throw new Error(
+              format(
+                "Cannot parse '%s' into a date.  Try formatting the date like '2017-11-13T00:47:51.160Z'.",
+                dateAsString
+              )
+            );
+          }
+        });
+        return true;
+      } else {
+        throw new Error("Value should be an array.");
+      }
+    });
 };
 
 function getUserById(checkFunc) {
-  return getModelById(models.User, 'userId', checkFunc);
+  return getModelById(models.User, "userId", checkFunc);
 }
 
-function getUserByName(checkFunc, fieldName = 'username') {
+function getUserByName(checkFunc, fieldName = "username") {
   return getModelByName(models.User, fieldName, checkFunc);
 }
 
 function getUserByNameOrId(checkFunc) {
-  return oneOf([
-    getUserByName(checkFunc),
-    getUserById(checkFunc),
-  ], "User doesn't exist or was not specified");
+  return oneOf(
+    [getUserByName(checkFunc), getUserById(checkFunc)],
+    "User doesn't exist or was not specified"
+  );
 }
 
 function getGroupById(checkFunc) {
-  return getModelById(models.Group, 'groupId', checkFunc);
+  return getModelById(models.Group, "groupId", checkFunc);
 }
 
 function getGroupByName(checkFunc) {
-  return getModelByName(models.Group, 'group', checkFunc);
+  return getModelByName(models.Group, "group", checkFunc);
 }
 
 function getGroupByNameOrId(checkFunc) {
-  return oneOf([
-    getGroupById(checkFunc),
-    getGroupByName(checkFunc),
-  ], "Group doesn't exist or hasn't been specified.");
+  return oneOf(
+    [getGroupById(checkFunc), getGroupByName(checkFunc)],
+    "Group doesn't exist or hasn't been specified."
+  );
 }
 
 function getDeviceById(checkFunc) {
-  return getModelById(models.Device, 'deviceId', checkFunc);
+  return getModelById(models.Device, "deviceId", checkFunc);
 }
 
 function getDeviceByName(checkFunc) {
-  return getModelByName(models.Device, 'devicename', checkFunc);
+  return getModelByName(models.Device, "devicename", checkFunc);
 }
 
 function getDetailSnapshotById(checkFunc, paramName) {
@@ -121,42 +129,43 @@ function getDetailSnapshotById(checkFunc, paramName) {
 }
 
 function getFileById(checkFunc) {
-  return getModelById(models.File, 'id', checkFunc);
+  return getModelById(models.File, "id", checkFunc);
 }
 
 function getRecordingById(checkFunc) {
-  return getModelById(models.Recording, 'id', checkFunc);
+  return getModelById(models.Recording, "id", checkFunc);
 }
 
 const checkNewName = function(field) {
-  return body(field, 'Invalid '+field)
+  return body(field, "Invalid " + field)
     .isLength({ min: 3 })
     .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
-  return body(field, 'Password must be at least 8 characters long')
-    .isLength({ min: 8 });
+  return body(field, "Password must be at least 8 characters long").isLength({
+    min: 8
+  });
 };
 
 const parseJSON = function(field, checkFunc) {
-  return checkFunc(field).custom((value, {req, location, path}) => {
+  return checkFunc(field).custom((value, { req, location, path }) => {
     try {
       req[location][path] = JSON.parse(value);
       return true;
-    } catch(e) {
-      throw new Error(format('Could not parse JSON field %s.', path));
+    } catch (e) {
+      throw new Error(format("Could not parse JSON field %s.", path));
     }
   });
 };
 
 const parseArray = function(field, checkFunc) {
-  return checkFunc(field).custom((value, {req, location, path}) => {
+  return checkFunc(field).custom((value, { req, location, path }) => {
     var arr;
     try {
       arr = JSON.parse(value);
-    } catch(e) {
-      throw new Error(format('Could not parse JSON field %s.', path));
+    } catch (e) {
+      throw new Error(format("Could not parse JSON field %s.", path));
     }
     if (Array.isArray(arr)) {
       req[location][path] = arr;
@@ -165,27 +174,29 @@ const parseArray = function(field, checkFunc) {
       req[location][path] = [];
       return true;
     } else {
-      throw new Error(format('%s was not an array', path));
+      throw new Error(format("%s was not an array", path));
     }
   });
 };
 
 const parseBool = function(value) {
-  if (!value){
+  if (!value) {
     return false;
   }
   return value.toString().toLowerCase() == "true";
 };
 
 const requestWrapper = fn => (request, response, next) => {
-  var logMessage = format('%s %s', request.method, request.url);
+  var logMessage = format("%s %s", request.method, request.url);
   if (request.user) {
-    logMessage = format('%s (user: %s)',
+    logMessage = format(
+      "%s (user: %s)",
       logMessage,
       request.user.get("username")
     );
   } else if (request.device) {
-    logMessage = format('%s (device: %s)',
+    logMessage = format(
+      "%s (device: %s)",
       logMessage,
       request.device.get("devicename")
     );
@@ -195,28 +206,26 @@ const requestWrapper = fn => (request, response, next) => {
   if (!validationErrors.isEmpty()) {
     throw new customErrors.ValidationError(validationErrors);
   } else {
-    Promise.resolve(fn(request, response, next))
-      .catch(next);
+    Promise.resolve(fn(request, response, next)).catch(next);
   }
 };
 
-
-exports.getUserById        = getUserById;
-exports.getUserByName      = getUserByName;
-exports.getUserByNameOrId  = getUserByNameOrId;
-exports.getGroupById       = getGroupById;
-exports.getGroupByName     = getGroupByName;
+exports.getUserById = getUserById;
+exports.getUserByName = getUserByName;
+exports.getUserByNameOrId = getUserByNameOrId;
+exports.getGroupById = getGroupById;
+exports.getGroupByName = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
-exports.getDeviceById      = getDeviceById;
-exports.getDeviceByName    = getDeviceByName;
+exports.getDeviceById = getDeviceById;
+exports.getDeviceByName = getDeviceByName;
 exports.getDetailSnapshotById = getDetailSnapshotById;
-exports.getFileById        = getFileById;
-exports.getRecordingById   = getRecordingById;
-exports.checkNewName       = checkNewName;
-exports.checkNewPassword   = checkNewPassword;
-exports.parseJSON          = parseJSON;
-exports.parseArray         = parseArray;
-exports.parseBool          = parseBool;
-exports.requestWrapper     = requestWrapper;
-exports.isDateArray        = isDateArray;
-exports.getUserByEmail     = getUserByEmail;
+exports.getFileById = getFileById;
+exports.getRecordingById = getRecordingById;
+exports.checkNewName = checkNewName;
+exports.checkNewPassword = checkNewPassword;
+exports.parseJSON = parseJSON;
+exports.parseArray = parseArray;
+exports.parseBool = parseBool;
+exports.requestWrapper = requestWrapper;
+exports.isDateArray = isDateArray;
+exports.getUserByEmail = getUserByEmail;
