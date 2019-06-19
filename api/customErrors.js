@@ -16,11 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const log = require('../logging');
-const format = require('util').format;
+const log = require("../logging");
+const format = require("util").format;
 
-function errorHandler(err, request, response, next) { // eslint-disable-line
-  if (err instanceof SyntaxError && err.type === 'entity.parse.failed') {
+// eslint-disable-next-line no-unused-vars
+function errorHandler(err, request, response, next) {
+  if (err instanceof SyntaxError && err.type === "entity.parse.failed") {
     err = new ClientError(err.message, 422); // Convert invalid JSON body error to UnprocessableEntity
   }
   if (err instanceof CustomError) {
@@ -57,7 +58,7 @@ class CustomError extends Error {
   toJson() {
     return {
       message: this.message,
-      errorType: this.getErrorType(),
+      errorType: this.getErrorType()
     };
   }
 }
@@ -76,14 +77,14 @@ class ValidationError extends CustomError {
         errorStrings.push(error.msg);
       }
     }
-    this.message = errorStrings.join('; ');
+    this.message = errorStrings.join("; ");
   }
 
   toJson() {
     return {
       errorType: this.getErrorType(),
       message: this.message,
-      errors: this.errors.mapped(),
+      errors: this.errors.mapped()
     };
   }
 }
@@ -107,7 +108,7 @@ class AuthorizationError extends CustomError {
 class ClientError extends CustomError {
   constructor(message, statusCode) {
     super();
-    if (typeof statusCode === 'undefined') {
+    if (typeof statusCode === "undefined") {
       statusCode = 400;
     }
     this.message = message;
@@ -118,5 +119,5 @@ class ClientError extends CustomError {
 exports.ValidationError = ValidationError;
 exports.AuthenticationError = AuthenticationError;
 exports.AuthorizationError = AuthorizationError;
-exports.ClientError     = ClientError;
-exports.errorHandler    = errorHandler;
+exports.ClientError = ClientError;
+exports.errorHandler = errorHandler;

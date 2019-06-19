@@ -16,12 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
+const fs = require("fs");
+const path = require("path");
+const Sequelize = require("sequelize");
 const basename = path.basename(module.filename);
-const config = require('../config');
-const log = require('../logging');
+const config = require("../config");
+const log = require("../logging");
 
 const dbConfig = config.database;
 
@@ -36,7 +36,7 @@ dbConfig.logging = function(msg, timeMs) {
 // String-based operators are deprecated in sequelize v4 as a security concern.
 // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 // Because they are currently used via the API, we need to keep them enabled.
-// The following definition explicitly enables the aliases we want to support. 
+// The following definition explicitly enables the aliases we want to support.
 const Op = Sequelize.Op;
 dbConfig.operatorsAliases = {
   $eq: Op.eq,
@@ -66,19 +66,19 @@ const sequelize = new Sequelize(
   dbConfig.database,
   dbConfig.username,
   dbConfig.password,
-  dbConfig,
+  dbConfig
 );
 
 const db = {};
 
 fs.readdirSync(__dirname)
   .filter(function(file) {
-    return (file.indexOf('.') !== 0) &&
-      (file !== basename) &&
-      (file.slice(-3) === '.js');
+    return (
+      file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
+    );
   })
   .forEach(function(file) {
-    var model = sequelize['import'](path.join(__dirname, file));
+    var model = sequelize["import"](path.join(__dirname, file));
     db[model.name] = model;
   });
 

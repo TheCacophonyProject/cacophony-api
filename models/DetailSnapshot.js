@@ -16,19 +16,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var Sequelize = require('sequelize');
+var Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = 'DetailSnapshot';
+  var name = "DetailSnapshot";
 
   var attributes = {
     type: DataTypes.STRING,
     details: DataTypes.JSONB
   };
 
-  var options = {
-  };
+  var options = {};
 
   var DetailSnapshot = sequelize.define(name, attributes, options);
 
@@ -37,33 +36,38 @@ module.exports = function(sequelize, DataTypes) {
   //---------------
 
   DetailSnapshot.addAssociations = function(models) {
-    models.DetailSnapshot.hasMany(models.Event, { foreignKey: 'EventDetailId' } );
-    models.DetailSnapshot.hasMany(models.Track, { foreignKey: 'AlgorithmId'});
+    models.DetailSnapshot.hasMany(models.Event, {
+      foreignKey: "EventDetailId"
+    });
+    models.DetailSnapshot.hasMany(models.Track, { foreignKey: "AlgorithmId" });
   };
 
-  DetailSnapshot.getOrCreateMatching = async function(searchType, searchDetails) {
+  DetailSnapshot.getOrCreateMatching = async function(
+    searchType,
+    searchDetails
+  ) {
     if (!searchDetails) {
       searchDetails = {
         [Op.eq]: null
       };
     }
 
-    const existing =  await this.findOne({ where: {
-      type: searchType,
-      details: searchDetails,
-    }});
+    const existing = await this.findOne({
+      where: {
+        type: searchType,
+        details: searchDetails
+      }
+    });
 
     if (existing) {
       return existing;
-    }
-    else {
+    } else {
       return await this.create({
         type: searchType,
-        details: searchDetails,
+        details: searchDetails
       });
     }
   };
-
 
   DetailSnapshot.getFromId = async function(id) {
     return await this.findById(id);

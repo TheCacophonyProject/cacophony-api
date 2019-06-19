@@ -16,18 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const moment       = require('moment');
-const uuidv4       = require('uuid/v4');
-const multiparty   = require('multiparty');
-const log          = require('../../logging');
-const responseUtil = require('./responseUtil');
-const config       = require('../../config');
-const modelsUtil   = require('../../models/util/util');
+const moment = require("moment");
+const uuidv4 = require("uuid/v4");
+const multiparty = require("multiparty");
+const log = require("../../logging");
+const responseUtil = require("./responseUtil");
+const config = require("../../config");
+const modelsUtil = require("../../models/util/util");
 
-
-function multipartUpload(buildRecord){
+function multipartUpload(buildRecord) {
   return (request, response) => {
-    var key = moment().format('YYYY/MM/DD/') + uuidv4();
+    var key = moment().format("YYYY/MM/DD/") + uuidv4();
     var data;
     var filename;
     var upload;
@@ -38,8 +37,8 @@ function multipartUpload(buildRecord){
     var form = new multiparty.Form();
 
     // Handle the "data" field.
-    form.on('field', (name, value) => {
-      if (name != 'data') {
+    form.on("field", (name, value) => {
+      if (name != "data") {
         return;
       }
 
@@ -53,32 +52,35 @@ function multipartUpload(buildRecord){
     });
 
     // Handle the "file" part.
-    form.on('part', (part) => {
-      if (part.name != 'file') {
+    form.on("part", part => {
+      if (part.name != "file") {
         part.resume();
         return;
       }
       filename = part.filename;
 
-      upload = modelsUtil.openS3().upload({
-        Bucket: config.s3.bucket,
-        Key: key,
-        Body: part,
-      }).promise()
-        .catch((err) => {
+      upload = modelsUtil
+        .openS3()
+        .upload({
+          Bucket: config.s3.bucket,
+          Key: key,
+          Body: part
+        })
+        .promise()
+        .catch(err => {
           return err;
         });
-      log.debug('Started streaming upload to bucket...');
+      log.debug("Started streaming upload to bucket...");
     });
 
     // Handle any errors. If this is called, the close handler
     // shouldn't be.
-    form.on('error', (err) => {
+    form.on("error", err => {
       responseUtil.serverError(response, err);
     });
 
     // This gets called once all fields and parts have been read.
-    form.on('close', async () => {
+    form.on("close", async () => {
       if (!data) {
         log.error("Upload missing 'data' field.");
         responseUtil.invalidDatapointUpload(response);

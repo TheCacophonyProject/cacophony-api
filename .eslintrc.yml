@@ -6,7 +6,7 @@ parserOptions:
 extends: 'eslint:recommended'
 rules:
   indent:
-    - error
+    - warn
     - 2
   linebreak-style:
     - error
