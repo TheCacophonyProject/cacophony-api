@@ -295,8 +295,9 @@ class TestUser:
         return AudioSchedulePromise(self, schedule)
 
     def get_audio_schedule(self, device):
-        print(f"device {device.devicename} has group {device.group}")
-        return self._userapi.get_audio_schedule(device.devicename, device.group)
+        print(f"device {device.devicename} has id {device.get_id()}")
+
+        return self._userapi.get_audio_schedule(device.get_id())
 
     def uploads_recording_for(self, testdevice):
         props = testdevice.get_new_recording_props()

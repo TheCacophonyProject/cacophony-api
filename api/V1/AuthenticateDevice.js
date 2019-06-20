@@ -24,7 +24,6 @@ const { body } = require("express-validator/check");
 
 module.exports = function(app) {
   /**
-<<<<<<< HEAD
   * @api {post} /authenticate_device/ Authenticate a device
   * @apiName AuthenticateDevice
   * @apiGroup Authentication

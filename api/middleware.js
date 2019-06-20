@@ -128,24 +128,26 @@ function setGroupName(checkFunc) {
 }
 
 function getDevice(checkFunc) {
-  return checkFunc("devicename").custom(async (deviceName, { req }) => {
-    var password = req.body["password"];
-    var groupName = req.body["groupname"];
-    var deviceID = req.body["deviceID"];
-    var model = await models.Device.findDevice(
-      deviceID,
-      deviceName,
-      groupName,
-      password
-    );
-    if (model == null) {
-      throw new Error(
-        format("Could not find device %s in group %s.", deviceName, groupName)
+  return checkFunc("devicename", "deviceID").custom(
+    async (deviceName, { req }) => {
+      var password = req.body["password"];
+      var groupName = req.body["groupname"];
+      var deviceID = req.body["deviceID"];
+      var model = await models.Device.findDevice(
+        deviceID,
+        deviceName,
+        groupName,
+        password
       );
+      if (model == null) {
+        throw new Error(
+          format("Could not find device %s in group %s.", deviceName, groupName)
+        );
+      }
+      req.body["device"] = model;
+      return true;
     }
-    req.body["device"] = model;
-    return true;
-  });
+  );
 }
 
 function getDetailSnapshotById(checkFunc, paramName) {
