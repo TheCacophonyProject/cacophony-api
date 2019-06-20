@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const jsonwebtoken = require("jsonwebtoken");
 const mime = require("mime");
-const _ = require("lodash");
-
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
 const models = require("../../models");
@@ -115,7 +113,7 @@ async function get(request, type) {
 }
 
 async function delete_(request, response) {
-  var deleted = await models.Recording.deleteOne(
+  const deleted = await models.Recording.deleteOne(
     request.user,
     request.params.id
   );
@@ -133,7 +131,7 @@ async function delete_(request, response) {
 }
 
 function guessRawMimeType(type, filename) {
-  var mimeType = mime.getType(filename);
+  const mimeType = mime.getType(filename);
   if (mimeType) {
     return mimeType;
   }
@@ -210,16 +208,16 @@ const statusCode = {
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
   const recordings = request.body.recordings;
-  var responseMessage = {
+  const responseMessage = {
     statusCode: 200,
     messages: [],
     reprocessed: [],
     fail: []
   };
 
-  var status = 0;
-  for (var i = 0; i < recordings.length; i++) {
-    var resp = await reprocessRecording(request.user, recordings[i]);
+  let status = 0;
+  for (let i = 0; i < recordings.length; i++) {
+    const resp = await reprocessRecording(request.user, recordings[i]);
     if (resp.statusCode != 200) {
       status = status | statusCode.Fail;
       responseMessage.messages.push(resp.messages[0]);
@@ -276,7 +274,10 @@ async function reprocessRecording(user, recording_id) {
 
 // reprocess a recording defined by request.user and request.params.id
 async function reprocess(request, response) {
-  var responseInfo = await reprocessRecording(request.user, request.params.id);
+  const responseInfo = await reprocessRecording(
+    request.user,
+    request.params.id
+  );
   responseUtil.send(response, responseInfo);
 }
 

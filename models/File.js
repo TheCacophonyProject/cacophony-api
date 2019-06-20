@@ -54,7 +54,7 @@ module.exports = function(sequelize, DataTypes) {
       order = [["id", "DESC"]];
     }
 
-    var q = {
+    const q = {
       where: where,
       order: order,
       attributes: { exclude: ["updatedAt", "fileKey"] },

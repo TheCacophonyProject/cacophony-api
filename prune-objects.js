@@ -42,9 +42,9 @@ async function allBucketKeys(s3, bucket) {
     Bucket: bucket
   };
 
-  var keys = new Set();
+  const keys = new Set();
   for (;;) {
-    var data = await s3.listObjects(params).promise();
+    const data = await s3.listObjects(params).promise();
 
     data.Contents.forEach(elem => {
       keys.add(elem.Key);
@@ -84,7 +84,7 @@ async function pgConnect() {
 }
 
 async function allDBKeys(client) {
-  var keys = new Set();
+  const keys = new Set();
   const res = await client.query(`
         select "fileKey" as fk, "rawFileKey" as rk from "Recordings"
         union

@@ -79,7 +79,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Tag.deleteFromId = async function(id, user) {
-    var tag = await this.findOne({ where: { id: id } });
+    const tag = await this.findOne({ where: { id: id } });
     if (tag == null) {
       return true;
     }

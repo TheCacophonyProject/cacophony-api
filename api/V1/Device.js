@@ -25,7 +25,7 @@ const auth = require("../auth");
 const { query, body } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/devices";
+  const apiUrl = baseUrl + "/devices";
 
   /**
    * @api {post} /api/v1/devices Register a new device
@@ -168,7 +168,7 @@ module.exports = function(app, baseUrl) {
       body("admin").isIn([true, false])
     ],
     middleware.requestWrapper(async (request, response) => {
-      var added = await models.Device.addUserToDevice(
+      const added = await models.Device.addUserToDevice(
         request.user,
         request.body.device,
         request.body.user,
@@ -213,7 +213,7 @@ module.exports = function(app, baseUrl) {
       middleware.getUserByNameOrId(body)
     ],
     middleware.requestWrapper(async function(request, response) {
-      var removed = await models.Device.removeUserFromDevice(
+      const removed = await models.Device.removeUserFromDevice(
         request.user,
         request.body.device,
         request.body.user

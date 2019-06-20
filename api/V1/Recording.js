@@ -25,7 +25,7 @@ const recordingUtil = require("./recordingUtil");
 const responseUtil = require("./responseUtil");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + "/recordings";
+  const apiUrl = baseUrl + "/recordings";
 
   /**
    * @apiDefine RecordingParams
@@ -237,7 +237,7 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON("updates", body)
     ],
     middleware.requestWrapper(async (request, response) => {
-      var updated = await models.Recording.updateOne(
+      const updated = await models.Recording.updateOne(
         request.user,
         request.params.id,
         request.body.updates

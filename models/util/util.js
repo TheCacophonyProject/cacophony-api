@@ -16,17 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var AWS = require("aws-sdk");
-var log = require("../../logging");
-var fs = require("fs");
-var mime = require("mime");
-var config = require("../../config");
-var Sequelize = require("sequelize");
+const AWS = require("aws-sdk");
+const log = require("../../logging");
+const fs = require("fs");
+const mime = require("mime");
+const config = require("../../config");
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 function findAllWithUser(model, user, queryParams) {
   return new Promise(function(resolve) {
-    var models = require("../");
+    const models = require("../");
     if (typeof queryParams.limit == "undefined") {
       queryParams.limit = 20;
     }
@@ -80,8 +80,8 @@ function getFileData(model, id, user) {
     findAllWithUser(model, user, { where: { id } })
       .then(function(result) {
         if (result.rows !== null && result.rows.length >= 1) {
-          var model = result.rows[0];
-          var fileData = {
+          const model = result.rows[0];
+          const fileData = {
             key: model.getDataValue("fileKey"),
             name: getFileName(model),
             mimeType: model.getDataValue("mimeType")
@@ -99,8 +99,8 @@ function getFileData(model, id, user) {
 }
 
 function getFileName(model) {
-  var fileName;
-  var dateStr = model.getDataValue("recordingDateTime");
+  let fileName;
+  const dateStr = model.getDataValue("recordingDateTime");
   if (dateStr) {
     fileName = new Date(dateStr)
       .toISOString()
@@ -110,7 +110,7 @@ function getFileName(model) {
     fileName = "file";
   }
 
-  var ext = mime.getExtension(model.getDataValue("mimeType") || "");
+  const ext = mime.getExtension(model.getDataValue("mimeType") || "");
   if (ext) {
     fileName = fileName + "." + ext;
   }
@@ -137,18 +137,18 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
     };
   }
 
-  var columnName = parentTable.substring(0, parentTable.length - 1) + "Id";
+  let columnName = parentTable.substring(0, parentTable.length - 1) + "Id";
   if (opts.name) {
     columnName = opts.name + "Id";
   }
   const constraintName = childTable + "_" + columnName + "_fkey";
 
-  var deleteBehaviour = "SET NULL";
+  let deleteBehaviour = "SET NULL";
   if (opts.cascade) {
     deleteBehaviour = "CASCADE";
   }
 
-  var columnNull = "";
+  let columnNull = "";
   if (opts.notNull) {
     columnNull = "NOT NULL";
   }
@@ -210,7 +210,7 @@ function migrationRemoveBelongsTo(
   parentTable,
   opts = {}
 ) {
-  var columnName = parentTable.substring(0, parentTable.length - 1) + "Id";
+  let columnName = parentTable.substring(0, parentTable.length - 1) + "Id";
   if (opts.name) {
     columnName = opts.name + "Id";
   }
@@ -220,10 +220,10 @@ function migrationRemoveBelongsTo(
 }
 
 function belongsToMany(queryInterface, viaTable, table1, table2) {
-  var columnName1 = table1.substring(0, table1.length - 1) + "Id";
-  var constraintName1 = viaTable + "_" + columnName1 + "_fkey";
-  var columnName2 = table2.substring(0, table2.length - 1) + "Id";
-  var constraintName2 = viaTable + "_" + columnName2 + "_fkey";
+  const columnName1 = table1.substring(0, table1.length - 1) + "Id";
+  const constraintName1 = viaTable + "_" + columnName1 + "_fkey";
+  const columnName2 = table2.substring(0, table2.length - 1) + "Id";
+  const constraintName2 = viaTable + "_" + columnName2 + "_fkey";
   console.log("Adding belongs to many columns.");
   return new Promise(function(resolve, reject) {
     Promise.all([
@@ -281,7 +281,7 @@ function addSerial(queryInterface, tableName) {
 }
 
 function getFromId(id, user, attributes) {
-  var modelClass = this;
+  const modelClass = this;
   return new Promise(resolve => {
     // Get just public models if no user was given
     if (!user) {
@@ -295,7 +295,7 @@ function getFromId(id, user, attributes) {
       .then(ids => {
         // Condition where you get a public recordin or a recording that you
         // have permission to view (in same group).
-        var condition = {
+        const condition = {
           where: {
             id: id,
             [Op.or]: [{ GroupId: { [Op.in]: ids } }, { public: true }]
@@ -315,8 +315,8 @@ function getFromId(id, user, attributes) {
  * to delete the file and modelInstance.
  */
 function deleteModelInstance(id, user) {
-  var modelClass = this;
-  var modelInstance = null;
+  const modelClass = this;
+  let modelInstance = null;
   return new Promise((resolve, reject) => {
     modelClass
       .getFromId(id, user, ["fileKey", "id"])
@@ -335,7 +335,7 @@ function deleteModelInstance(id, user) {
 }
 
 function userCanEdit(id, user) {
-  var modelClass = this;
+  const modelClass = this;
   return new Promise(resolve => {
     //models.User.where
     modelClass.getFromId(id, user, ["id"]).then(result => {
@@ -358,13 +358,15 @@ function openS3() {
 }
 
 function saveFile(file) {
-  var model = this;
+  const model = this;
   return new Promise(function(resolve, reject) {
     // Gets date object set to recordingDateTime field or now if field not set.
-    var date = new Date(model.getDataValue("recordingDateTime") || new Date());
+    const date = new Date(
+      model.getDataValue("recordingDateTime") || new Date()
+    );
 
     // Generate key for file using the date.
-    var key =
+    const key =
       date.getFullYear() +
       "/" +
       date.getMonth() +
@@ -379,9 +381,9 @@ function saveFile(file) {
         .substr(2);
 
     // Save file with key.
-    var s3 = openS3();
+    const s3 = openS3();
     fs.readFile(file.path, function(err, data) {
-      var params = {
+      const params = {
         Bucket: config.s3.bucket,
         Key: key,
         Body: data
@@ -409,8 +411,8 @@ function saveFile(file) {
 
 function deleteFile(fileKey) {
   return new Promise((resolve, reject) => {
-    var s3 = openS3();
-    var params = {
+    const s3 = openS3();
+    const params = {
       Bucket: config.s3.bucket,
       Key: fileKey
     };

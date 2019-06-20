@@ -16,20 +16,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var Sequelize = require("sequelize");
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "DetailSnapshot";
+  const name = "DetailSnapshot";
 
-  var attributes = {
+  const attributes = {
     type: DataTypes.STRING,
     details: DataTypes.JSONB
   };
 
-  var options = {};
+  const options = {};
 
-  var DetailSnapshot = sequelize.define(name, attributes, options);
+  const DetailSnapshot = sequelize.define(name, attributes, options);
 
   //---------------
   // CLASS METHODS

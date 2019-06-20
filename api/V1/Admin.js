@@ -23,7 +23,7 @@ const responseUtil = require("./responseUtil");
 const { param, body } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/admin";
+  const apiUrl = baseUrl + "/admin";
 
   /**
    * @api {patch} /api/v1/admin/global_permission/:username Update user global permissions
