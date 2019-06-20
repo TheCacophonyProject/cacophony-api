@@ -44,7 +44,8 @@
     "winston": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.15.3"
+    "eslint": "^5.15.3",
+    "prettier": "1.18.2"
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",
