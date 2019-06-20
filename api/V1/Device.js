@@ -69,10 +69,15 @@ module.exports = function(app, baseUrl) {
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
    * @apiGroup Device
+   * @apiDescription Returns all devices the user can access
+   * through both group membership and direct assignment.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} devices Object with two entries, a count integer that is the number of rows returned, and
+   * rows, which is an array of devices accessible.
+   * Each element in rows includes `devicename` (string), `id` (int), and `Users` which is an array of Users with permissions on that device.
    *
    * @apiUse V1ResponseError
    */
@@ -80,7 +85,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      var devices = await models.Device.allForUser(request.user);
+      const devices = await models.Device.allForUser(request.user);
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
