@@ -5,7 +5,6 @@
  * @apiSuccess {String[]} messages Messages about the request.
  */
 
-
 /**
  * @apiDefine V1ResponseSuccess
  * @apiSuccess {Boolean} success `true` - Request was successful.
@@ -40,7 +39,7 @@
  * @apiParam {Number} [limit] Max number of records to be returned.
  * @apiParam {JSON} [order] Sorting order for records.
  * * For example, ["dateTime"] or [["dateTime", "ASC"]].
-*/
+ */
 
 /**
  * @apiDefine V1ResponseSuccessQuery
@@ -50,7 +49,7 @@
  * @apiSuccess {Number} limit Mirrors request limit parameter.
  * @apiSuccess {Number} count Total number of records which match the query.
  * @apiSuccess {JSON} rows List of details for records which matched the query.
-*/
+ */
 
 /**
  * @apiDefine MetaDataAndJWT
@@ -58,7 +57,7 @@
  * and a JSON Web Token (JWT) which can be used to retrieve the recorded
  * content. The web token should be used with the
  * [/api/v1/signedUrl API](#api-SignedUrl-GetFile) to retrieve the file.
-*/
+ */
 
 /**
  * @apiDefine FilterOptions
@@ -66,4 +65,4 @@
  * <ul>
  * <li>latLongPrec: Maximum precision of latitude longitude coordinates in meters. Minimum 100m
  * </ul>
-*/
+ */

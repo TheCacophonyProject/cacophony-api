@@ -1,22 +1,27 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up: function(queryInterface, Sequelize) {
     return Promise.all([
+      queryInterface.addColumn("AudioRecordings", "version", Sequelize.STRING),
       queryInterface.addColumn(
-        'AudioRecordings', 'version', Sequelize.STRING),
+        "IrVideoRecordings",
+        "version",
+        Sequelize.STRING
+      ),
       queryInterface.addColumn(
-        'IrVideoRecordings', 'version', Sequelize.STRING),
-      queryInterface.addColumn(
-        'ThermalVideoRecordings', 'version', Sequelize.STRING),
+        "ThermalVideoRecordings",
+        "version",
+        Sequelize.STRING
+      )
     ]);
   },
 
-  down: function (queryInterface) {
+  down: function(queryInterface) {
     return Promise.all([
-      queryInterface.removeColumn('AudioRecordings', 'version'),
-      queryInterface.removeColumn('IrVideoRecordings', 'version'),
-      queryInterface.removeColumn('ThermalVideoRecordings', 'version'),
+      queryInterface.removeColumn("AudioRecordings", "version"),
+      queryInterface.removeColumn("IrVideoRecordings", "version"),
+      queryInterface.removeColumn("ThermalVideoRecordings", "version")
     ]);
   }
 };

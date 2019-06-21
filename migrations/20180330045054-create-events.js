@@ -1,9 +1,9 @@
-'use strict';
-var util = require('../models/util/util');
+"use strict";
+var util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await queryInterface.createTable('EventDetails', {
+    await queryInterface.createTable("EventDetails", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -26,7 +26,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('Events', {
+    await queryInterface.createTable("Events", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -45,11 +45,11 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
-    await util.migrationAddBelongsTo(queryInterface, 'Events', 'Devices');
-    await util.migrationAddBelongsTo(queryInterface, 'Events', 'EventDetails');
+    await util.migrationAddBelongsTo(queryInterface, "Events", "Devices");
+    await util.migrationAddBelongsTo(queryInterface, "Events", "EventDetails");
   },
   down: async function(queryInterface) {
-    await queryInterface.dropTable('Events');
-    await queryInterface.dropTable('EventDetails');
+    await queryInterface.dropTable("Events");
+    await queryInterface.dropTable("EventDetails");
   }
 };

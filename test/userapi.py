@@ -284,9 +284,9 @@ class UserAPI(APIBase):
         response = requests.post(url, data=props, headers=self._auth_header)
         self._check_response(response)
 
-    def get_audio_schedule(self, devicename, groupname):
+    def get_audio_schedule(self, deviceID):
         url = urljoin(
-            self._baseurl, "/api/v1/schedules/{}/{}".format(groupname, devicename)
+            self._baseurl, "/api/v1/schedules/{}".format(deviceID)
         )
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
