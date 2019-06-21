@@ -38,7 +38,7 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
-   *
+   * @apiSuccess {int} id of device registered
    * @apiUse V1ResponseError
    */
   app.post(
