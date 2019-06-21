@@ -66,7 +66,7 @@ module.exports = (app, baseUrl) => {
     [auth.authenticateDevice],
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
   );
-  
+
   /**
    * @api {post} /api/v1/recordings/group/:groupname/device/:devicename Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
