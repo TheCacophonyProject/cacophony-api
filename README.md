@@ -17,8 +17,7 @@ For development and testing purposes it is easiest to run
 cacophony-api using Docker. To do this:
 
 * Ensure your user account is set up to run commands as root using `sudo`.
-* Ensure the Docker is installed (`sudo apt install docker.io` on
-  Ubuntu)
+* Ensure the Docker is installed (`sudo apt install docker.io` on Ubuntu)
 * Run cacophony-api using `./run`
 
 This will build a Docker container which includes all the services

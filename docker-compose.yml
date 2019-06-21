@@ -1,0 +1,11 @@
+version: '3'
+services:
+  cacophony-api:
+    build: .
+    environment:
+      NODE_BIN: node
+    ports:
+      - "1080:1080"
+      - "2008:2008"
+      - "9001:9001"
+      - "5400:5432"
