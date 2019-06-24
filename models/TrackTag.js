@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var TrackTag = sequelize.define("TrackTag", {
+  const TrackTag = sequelize.define("TrackTag", {
     what: DataTypes.STRING,
     confidence: DataTypes.FLOAT,
     automatic: DataTypes.BOOLEAN,

@@ -16,21 +16,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var mime = require("mime");
-var moment = require("moment-timezone");
-var Sequelize = require("sequelize");
+const mime = require("mime");
+const moment = require("moment-timezone");
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const assert = require("assert");
 const uuidv4 = require("uuid/v4");
 
-var util = require("./util/util");
-var validation = require("./util/validation");
+const util = require("./util/util");
+const validation = require("./util/validation");
+const _ = require("lodash");
 const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Recording";
+  const name = "Recording";
 
-  var attributes = {
+  const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
     duration: DataTypes.INTEGER,
@@ -73,12 +74,16 @@ module.exports = function(sequelize, DataTypes) {
     airplaneModeOn: DataTypes.BOOLEAN
   };
 
-  var Recording = sequelize.define(name, attributes);
+  const Recording = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
-  var models = sequelize.models;
+  const models = sequelize.models;
+
+  Recording.buildSafely = function(fields) {
+    return Recording.build(_.pick(fields, Recording.apiSettableFields));
+  };
 
   Recording.Perms = Object.freeze({
     DELETE: "delete",
@@ -126,7 +131,7 @@ module.exports = function(sequelize, DataTypes) {
           lock: t.LOCK.UPDATE,
           transaction: t
         }).then(async function(recording) {
-          var date = new Date();
+          const date = new Date();
           recording.set(
             {
               jobKey: uuidv4(),
@@ -185,7 +190,7 @@ module.exports = function(sequelize, DataTypes) {
       ];
     }
 
-    var q = {
+    const q = {
       where: {
         [Op.and]: [
           where, // User query
@@ -233,7 +238,7 @@ module.exports = function(sequelize, DataTypes) {
       attributes: Recording.queryGetAttributes
     };
 
-    var queryResponse = await this.findAndCountAll(q);
+    const queryResponse = await this.findAndCountAll(q);
 
     filterOptions = makeFilterOptions(user, filterOptions);
     queryResponse.rows.map(rec => rec.filterData(filterOptions));
@@ -241,7 +246,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // local
-  var handleTagMode = (tagMode, tagWhatsIn) => {
+  const handleTagMode = (tagMode, tagWhatsIn) => {
     const tagWhats = tagWhatsIn && tagWhatsIn.length > 0 ? tagWhatsIn : null;
     if (!tagMode) {
       tagMode = tagWhats ? "tagged" : "any";
@@ -285,19 +290,20 @@ module.exports = function(sequelize, DataTypes) {
       case "cool":
       case "missed track":
       case "multiple animals":
-      case "trapped in trap":
-        var sqlQuery =
+      case "trapped in trap": {
+        let sqlQuery =
           "(EXISTS (" + recordingTaggedWith([tagMode], null) + "))";
         if (tagWhats) {
           sqlQuery = sqlQuery + " AND " + tagOfType(tagWhats, null);
         }
         return sqlQuery;
+      }
       default:
         throw `invalid tag mode: ${tagMode}`;
     }
   };
 
-  var tagOfType = (tagWhats, tagTypeSql) => {
+  const tagOfType = (tagWhats, tagTypeSql) => {
     return (
       "(EXISTS (" +
       recordingTaggedWith(tagWhats, tagTypeSql) +
@@ -307,7 +313,7 @@ module.exports = function(sequelize, DataTypes) {
     );
   };
 
-  var notTagOfType = (tagWhats, tagTypeSql) => {
+  const notTagOfType = (tagWhats, tagTypeSql) => {
     return (
       "NOT EXISTS (" +
       recordingTaggedWith(tagWhats, tagTypeSql) +
@@ -317,7 +323,7 @@ module.exports = function(sequelize, DataTypes) {
     );
   };
 
-  var recordingTaggedWith = (tags, tagTypeSql) => {
+  const recordingTaggedWith = (tags, tagTypeSql) => {
     let sql =
       'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
     if (tags) {
@@ -329,7 +335,7 @@ module.exports = function(sequelize, DataTypes) {
     return sql;
   };
 
-  var trackTaggedWith = (tags, tagTypeSql) => {
+  const trackTaggedWith = (tags, tagTypeSql) => {
     let sql =
       'SELECT "Recording"."id" FROM "Tracks" INNER JOIN "TrackTags" AS "Tags" ON "Tracks"."id" = "Tags"."TrackId" ' +
       'WHERE "Tracks"."RecordingId" = "Recording".id AND "Tracks"."archivedAt" IS NULL';
@@ -343,14 +349,14 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // local
-  var selectByTagWhat = (tags, whatName, usesDetail) => {
+  const selectByTagWhat = (tags, whatName, usesDetail) => {
     if (!tags || tags.length === 0) {
       return null;
     }
 
-    var parts = [];
-    for (var i = 0; i < tags.length; i++) {
-      var tag = tags[i];
+    const parts = [];
+    for (let i = 0; i < tags.length; i++) {
+      const tag = tags[i];
       if (tag == "interesting") {
         if (usesDetail) {
           parts.push(
@@ -454,7 +460,7 @@ module.exports = function(sequelize, DataTypes) {
    * Updates a single recording if the user has permission to do so.
    */
   Recording.updateOne = async function(user, id, updates) {
-    for (var key in updates) {
+    for (const key in updates) {
       if (apiUpdatableFields.indexOf(key) == -1) {
         return false;
       }
@@ -469,12 +475,12 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // local
-  var recordingsFor = async function(user) {
+  const recordingsFor = async function(user) {
     if (user.hasGlobalRead()) {
       return null;
     }
-    var deviceIds = await user.getDeviceIds();
-    var groupIds = await user.getGroupsIds();
+    const deviceIds = await user.getDeviceIds();
+    const groupIds = await user.getGroupsIds();
     return {
       [Op.or]: [
         {
@@ -754,7 +760,7 @@ module.exports = function(sequelize, DataTypes) {
   ];
 
   // local
-  var apiUpdatableFields = ["location", "comment", "additionalMetadata"];
+  const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
     thermalRaw: ["getMetadata", "toMp4", "FINISHED"],

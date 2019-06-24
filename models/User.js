@@ -16,8 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var bcrypt = require("bcrypt");
-var Sequelize = require("sequelize");
+const bcrypt = require("bcrypt");
+const Sequelize = require("sequelize");
 const { AuthorizationError } = require("../api/customErrors");
 const log = require("../logging");
 const Op = Sequelize.Op;
@@ -32,9 +32,9 @@ const PERMISSIONS = Object.freeze([
 ]);
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "User";
+  const name = "User";
 
-  var attributes = {
+  const attributes = {
     username: {
       type: DataTypes.STRING,
       unique: true
@@ -61,7 +61,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var options = {
+  const options = {
     hooks: {
       beforeValidate: beforeValidate,
       beforeCreate: beforeModify,
@@ -71,7 +71,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // Define table
-  var User = sequelize.define(name, attributes, options);
+  const User = sequelize.define(name, attributes, options);
 
   User.publicFields = Object.freeze(["id", "username"]);
 
@@ -108,7 +108,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.freeUsername = async function(username) {
-    var user = await this.findOne({ where: { username: username } });
+    const user = await this.findOne({ where: { username: username } });
     if (user != null) {
       throw new Error("Username in use");
     }
@@ -126,7 +126,7 @@ module.exports = function(sequelize, DataTypes) {
       //Ignore email from this user
       where.id = { [Op.not]: userId };
     }
-    var user = await this.findOne({ where: where });
+    const user = await this.findOne({ where: where });
     if (user) {
       throw new Error("Email in use");
     }
@@ -156,9 +156,9 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.getGroupDeviceIds = async function() {
-    var groupIds = await this.getGroupsIds();
+    const groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
-      var devices = await models.Device.findAll({
+      const devices = await models.Device.findAll({
         where: { GroupId: { [Op.in]: groupIds } },
         attributes: ["id"]
       });
@@ -173,7 +173,7 @@ module.exports = function(sequelize, DataTypes) {
       return null;
     }
 
-    var allDeviceIds = await this.getAllDeviceIds();
+    const allDeviceIds = await this.getAllDeviceIds();
     return { DeviceId: { [Op.in]: allDeviceIds } };
   };
 
@@ -185,7 +185,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.getDataValues = function() {
-    var user = this;
+    const user = this;
     return new Promise(function(resolve) {
       user.getGroups().then(function(groups) {
         resolve({
@@ -227,7 +227,7 @@ module.exports = function(sequelize, DataTypes) {
 
   User.prototype.checkUserControlsDevices = async function(deviceIds) {
     if (!this.hasGlobalWrite()) {
-      var usersDevices = await this.getAllDeviceIds();
+      const usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach(deviceId => {
         if (!usersDevices.includes(deviceId)) {
@@ -252,7 +252,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.comparePassword = function(password) {
-    var user = this;
+    const user = this;
     return new Promise(function(resolve, reject) {
       bcrypt.compare(password, user.password, function(err, isMatch) {
         if (err) {

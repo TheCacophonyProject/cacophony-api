@@ -20,6 +20,7 @@
     "install": "^0.12.1",
     "json-pointer": "^0.5.0",
     "jsonwebtoken": "^8.3.0",
+    "lodash": "^4.17.11",
     "mime": "^2.3",
     "moment": "^2.19.3",
     "moment-timezone": "^0.5.14",
@@ -43,7 +44,8 @@
     "winston": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.15.3"
+    "eslint": "^5.15.3",
+    "prettier": "1.18.2"
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",

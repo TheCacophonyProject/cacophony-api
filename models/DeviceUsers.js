@@ -17,16 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "DeviceUsers";
+  const name = "DeviceUsers";
 
-  var attributes = {
+  const attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
   };
 
-  var DeviceUsers = sequelize.define(name, attributes);
+  const DeviceUsers = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
@@ -35,7 +35,7 @@ module.exports = function(sequelize, DataTypes) {
   DeviceUsers.addAssociations = function() {};
 
   DeviceUsers.isAdmin = async function(deviceId, userId) {
-    var deviceUser = await this.findOne({
+    const deviceUser = await this.findOne({
       where: {
         DeviceId: deviceId,
         UserId: userId,

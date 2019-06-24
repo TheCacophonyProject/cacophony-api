@@ -16,9 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var log = require("../../logging");
-var jwt = require("jsonwebtoken");
-var config = require("../../config");
+const log = require("../../logging");
+const jwt = require("jsonwebtoken");
+const config = require("../../config");
 
 const VALID_DATAPOINT_UPLOAD_REQUEST = "Thanks for the data.";
 const VALID_DATAPOINT_UPDATE_REQUEST = "Datapoint was updated.";
@@ -40,7 +40,7 @@ function send(response, data) {
     // Respond with server error if data is invalid.
     return serverError(response, data);
   }
-  var statusCode = data.statusCode;
+  const statusCode = data.statusCode;
   data.success = 200 <= statusCode && statusCode <= 299;
   delete data.statusCode;
   return response.status(statusCode).json(data);

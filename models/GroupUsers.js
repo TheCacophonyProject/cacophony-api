@@ -17,16 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "GroupUsers";
+  const name = "GroupUsers";
 
-  var attributes = {
+  const attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
   };
 
-  var GroupUsers = sequelize.define(name, attributes);
+  const GroupUsers = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
@@ -36,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
    * Checks if a user is a admin of a group.
    */
   GroupUsers.isAdmin = async function(groupId, userId) {
-    var groupUsers = await this.findOne({
+    const groupUsers = await this.findOne({
       where: {
         GroupId: groupId,
         UserId: userId,

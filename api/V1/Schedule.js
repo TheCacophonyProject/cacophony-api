@@ -23,7 +23,7 @@ const middleware = require("../middleware");
 const auth = require("../auth");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + "/schedules";
+  const apiUrl = baseUrl + "/schedules";
 
   /**
    * @api {post} /api/v1/schedules Adds a new schedule
@@ -50,10 +50,10 @@ module.exports = (app, baseUrl) => {
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(async function(request, response) {
-      var deviceIds = request.body.devices;
+      const deviceIds = request.body.devices;
 
-      var instance = models.Schedule.build(request.body, ["schedule"]);
-      instance.set("UserId", request.user.id);
+      const instance = models.Schedule.buildSafely(request.body);
+      instance.UserId = request.user.id;
       // TODO make the device and schedule changes apply in a single transaction
       await instance.save();
 
@@ -117,7 +117,7 @@ module.exports = (app, baseUrl) => {
 };
 
 async function getSchedule(device, response, user = null) {
-  var schedule = { schedule: {} };
+  let schedule = { schedule: {} };
 
   if (device.ScheduleId) {
     schedule = await models.Schedule.findByPk(device.ScheduleId);
@@ -131,7 +131,7 @@ async function getSchedule(device, response, user = null) {
   }
 
   // get all the users devices that are also associated with this same schedule
-  var devices = [];
+  let devices = [];
   if (user && device.ScheduleId) {
     devices = await models.Device.onlyUsersDevicesMatching(user, {
       ScheduleId: device.ScheduleId

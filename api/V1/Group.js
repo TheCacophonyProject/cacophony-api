@@ -23,7 +23,7 @@ const auth = require("../auth");
 const { query, body } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/groups";
+  const apiUrl = baseUrl + "/groups";
 
   /**
    * @api {post} /api/v1/groups Create a new group
@@ -77,7 +77,10 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [auth.authenticateUser, middleware.parseJSON("where", query)],
     middleware.requestWrapper(async (request, response) => {
-      var groups = await models.Group.query(request.query.where, request.user);
+      const groups = await models.Group.query(
+        request.query.where,
+        request.user
+      );
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],

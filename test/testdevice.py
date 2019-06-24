@@ -50,7 +50,7 @@ class TestDevice:
             "additionalMetadata": {"bar": "foo"},
         }
 
-    def upload_audio_recording(self):
+    def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
         props = {
             "recordingDateTime": ts.isoformat(),
@@ -64,6 +64,7 @@ class TestDevice:
             "version": "123",
             "additionalMetadata": {"foo": "bar"},
         }
+        props.update(extraProps)
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
 
