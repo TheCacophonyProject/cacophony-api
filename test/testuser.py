@@ -347,8 +347,6 @@ class TestUser:
         recording = self._userapi.get_recording(recording.id_)
         tags = recording.get("Tags", [])
 
-        print("has_tags")
-        print(tags)
         automatic_tags = [tag for tag in tags if tag["automatic"]]
         human_tags = [tag for tag in tags if tag["automatic"] == False]
         assert ai_tag_count == len(automatic_tags)
