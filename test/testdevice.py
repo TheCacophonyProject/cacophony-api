@@ -15,9 +15,9 @@ class TestDevice:
             self._id = self._helper.admin_user().get_device_id(self.devicename)
         return self._id
 
-    def has_recording(self):
-        self._print_description("    and '{}' has a recording ".format(self.devicename))
-        return self.upload_recording()
+    def has_recording(self, props=None):
+        self._print_description("    and '{}' has a recording with props {}".format(self.devicename, props))
+        return self.upload_recording(properties=props)
 
     def has_audio_recording(self):
         self._print_description(

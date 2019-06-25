@@ -668,6 +668,14 @@ module.exports = function(sequelize, DataTypes) {
 
   // reprocess a recording and set all active tracks to archived
   Recording.prototype.reprocess = async function() {
+
+    await models.Tag.destroy({
+      where: {
+        RecordingId: this.id,
+        automatic: true
+      }
+    });
+
     models.Track.update(
       {
         archivedAt: Date.now()
@@ -763,6 +771,7 @@ module.exports = function(sequelize, DataTypes) {
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
+    thermalTest: ["getMetadata", "toMp4", "FINISHED"],
     thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
     audio: ["toMp3", "FINISHED"]
   };

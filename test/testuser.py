@@ -60,19 +60,19 @@ class TestUser:
 
         # Check presence of various fields
         r0 = recordings[0]
-        assert r0['id']
-        assert r0['type']
-        assert r0['recordingDateTime']
-        assert 'rawFileSize' in r0
-        assert r0['rawMimeType']
-        assert 'fileSize' in r0
-        assert 'fileMimeType' in r0
-        assert r0['processingState']
-        assert r0['duration'] > 0
-        assert 'location' in r0
-        assert 'batteryLevel' in r0
-        assert r0['DeviceId']
-        assert r0['GroupId']
+        assert r0["id"]
+        assert r0["type"]
+        assert r0["recordingDateTime"]
+        assert "rawFileSize" in r0
+        assert r0["rawMimeType"]
+        assert "fileSize" in r0
+        assert "fileMimeType" in r0
+        assert r0["processingState"]
+        assert r0["duration"] > 0
+        assert "location" in r0
+        assert "batteryLevel" in r0
+        assert r0["DeviceId"]
+        assert r0["GroupId"]
 
         _errors = []
         for testRecording in expected_recordings:
@@ -87,7 +87,7 @@ class TestUser:
             recordingIds = "Recording ids seen are: "
             for recording in recordings:
                 recordingIds += str(recording["id"])
-                recordingIds += ','
+                recordingIds += ","
             _errors.append(recordingIds)
             raise TestException(_errors)
 
@@ -332,9 +332,7 @@ class TestUser:
 
     def can_add_track_to_recording(self, recording):
         track = Track.create(recording)
-        track.id_ = self._userapi.add_track(
-            recording.id_, track.data
-        )
+        track.id_ = self._userapi.add_track(recording.id_, track.data)
         return track
 
     def cannot_add_track_to_recording(self, recording):
@@ -345,15 +343,22 @@ class TestUser:
         tracks = self._userapi.get_tracks(recording.id_)
         assert len(tracks) == 0
 
+    def recording_has_tags(self, recording, ai_tag_count, human_tag_count):
+        recording = self._userapi.get_recording(recording.id_)
+        tags = recording.get("Tags", [])
+
+        print("has_tags")
+        print(tags)
+        automatic_tags = [tag for tag in tags if tag["automatic"]]
+        human_tags = [tag for tag in tags if tag["automatic"] == False]
+        assert ai_tag_count == len(automatic_tags)
+        assert human_tag_count == len(human_tags)
+
     def can_see_track(self, expected_track, expected_tags=None):
         recording = expected_track.recording
         tracks = self._userapi.get_tracks(recording.id_)
         for t in tracks:
-            this_track = Track(
-                id_=t["id"],
-                recording=recording,
-                data=t["data"],
-            )
+            this_track = Track(id_=t["id"], recording=recording, data=t["data"])
             if this_track == expected_track:
                 if expected_tags:
                     tags = [
@@ -376,10 +381,7 @@ class TestUser:
     def cannot_see_track(self, target):
         tracks = self._userapi.get_tracks(target.recording.id_)
         for t in tracks:
-            if (
-                Track(target.recording, t["data"], t["id"])
-                == target
-            ):
+            if Track(target.recording, t["data"], t["id"]) == target:
                 pytest.fail("track not deleted: {}".format(target))
 
     def delete_track(self, track):
@@ -448,7 +450,9 @@ class RecordingQueryPromise:
         return self
 
     def devices(self, devices):
-        self._queryParams["deviceIds"] = list(map(lambda device: device.get_id(), devices))
+        self._queryParams["deviceIds"] = list(
+            map(lambda device: device.get_id(), devices)
+        )
         return self
 
     def can_see_recordings(self, *expected_recordings):
@@ -472,16 +476,21 @@ class RecordingQueryPromise:
     def from_(self, allRecordings):
         if not self._expected_recordings:
             raise TestException(
-                "You must call 'can_only_see_recordings' before calling function 'from_list'.")
+                "You must call 'can_only_see_recordings' before calling function 'from_list'."
+            )
 
         ids = [testRecording.id_ for testRecording in self._expected_recordings]
-        print("Then searching with {} should give only {}.".format(self._queryParams, ids))
+        print(
+            "Then searching with {} should give only {}.".format(self._queryParams, ids)
+        )
 
         # test what should be there, is there
         self.can_see_recordings(*self._expected_recordings)
 
         # test what shouldn't be there, isn't there
-        expectedMissingRecordings = [x for x in allRecordings if x not in self._expected_recordings]
+        expectedMissingRecordings = [
+            x for x in allRecordings if x not in self._expected_recordings
+        ]
         self.cannot_see_recordings(*expectedMissingRecordings)
 
 
