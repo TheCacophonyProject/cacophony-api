@@ -15,7 +15,9 @@ install:
  - npm run apidoc
  - npm install -g eslint
  - pip install -r test/requirements.txt
-
+ 
+before_script:
+- pip install black
 script:
  - npm run lint
  - test/check-style
