@@ -40,9 +40,7 @@ class TestUserThermal:
         user.can_download_correct_recording(recording)
 
     def test_can_upload_recording_for_device(self, helper):
-        data_collector, device = helper.given_new_user_with_device(
-            self, "data_collector"
-        )
+        data_collector, device = helper.given_new_user_with_device(self, "data_collector")
         print("   and data_collector uploads a recording on behalf of the device")
         recording = data_collector.uploads_recording_for(device)
         print("Then an super user should be able to download the recording")

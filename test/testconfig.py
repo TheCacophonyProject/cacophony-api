@@ -17,9 +17,7 @@ class TestConfig:
 
     def load_config(self):
         if not Path(CONFIG_FILE).is_file():
-            print(
-                "No config file '{}'.  Running with default config.".format(CONFIG_FILE)
-            )
+            print("No config file '{}'.  Running with default config.".format(CONFIG_FILE))
             return self
 
         print("Attempting to load config from file '{}'...".format(CONFIG_FILE))

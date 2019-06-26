@@ -46,10 +46,7 @@ class Helper:
         user = self.given_new_user(testClass, username_base)
         devicename = user.username + "s_device"
         device = self.given_new_device(
-            None,
-            devicename,
-            group=user.get_own_group(),
-            description="    with a device",
+            None, devicename, group=user.get_own_group(), description="    with a device"
         )
         return (user, device)
 
@@ -63,10 +60,7 @@ class Helper:
         for num in range(2, 200):
             try:
                 api = UserAPI(
-                    self.config.api_url,
-                    testname,
-                    testemail,
-                    self._make_password(testname),
+                    self.config.api_url, testname, testemail, self._make_password(testname)
                 ).register_as_new()
                 self._print_actual_name(testname)
                 return TestUser(testname, api, testemail)
@@ -82,12 +76,7 @@ class Helper:
             email = username + "@email.com"
         if not password:
             password = self._make_password(username)
-        api = UserAPI(
-            self.config.api_url,
-            username,
-            email,
-            password,
-        ).register_as_new()
+        api = UserAPI(self.config.api_url, username, email, password).register_as_new()
         self._print_actual_name(username)
         return TestUser(username, api, email)
 
@@ -107,9 +96,7 @@ class Helper:
         groups = self._get_admin().get_groups_as_string()
         return self._make_unique_name(testClass, groupName, groups)
 
-    def given_new_device(
-        self, testClass, devicename=None, group=None, description=None
-    ):
+    def given_new_device(self, testClass, devicename=None, group=None, description=None):
         if not devicename:
             devicename = "random-device"
 
@@ -182,6 +169,4 @@ class Helper:
             self.admin_user().create_group(default_group)
 
     def random_id(self, length=6):
-        return "".join(
-            random.choice(string.ascii_uppercase + string.digits) for _ in range(length)
-        )
+        return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length))
