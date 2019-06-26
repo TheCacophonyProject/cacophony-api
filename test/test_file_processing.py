@@ -209,7 +209,6 @@ class TestFileProcessing:
 
     def process_all_recordings(self, helper, file_processing):
         recording = file_processing.get("thermalRaw", "getMetadata")
-        start = time.time()
 
         while recording:
             # Move job to next stage.
