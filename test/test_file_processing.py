@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-
 from .recording import Recording
 from .track import Track
 from .track import TrackTag
@@ -208,13 +207,22 @@ class TestFileProcessing:
         tag.id_ = file_processing.add_track_tag(track, tag)
         return track, tag
 
+    def process_all_recordings(self, helper, file_processing):
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        start = time.time()
+
+        while recording:
+            # Move job to next stage.
+            file_processing.put(recording, success=True, complete=False)
+            recording = file_processing.get("thermalRaw", "getMetadata")
+
     def test_reprocess_recording(self, helper, file_processing):
+        self.process_all_recordings(helper, file_processing)
         admin = helper.admin_user()
         recording, track, tag = self.create_processed_recording(
             helper,
             file_processing,
             admin,
-            rec_type="thermalTest",
             ai_tag="multiple animals",
             human_tag="possum",
         )
@@ -240,9 +248,8 @@ class TestFileProcessing:
         db_recording = admin.get_recording(recording2)
         assert len(db_recording["Tags"]) == 2
         admin.can_see_track(track2, [tag2])
-
         # check is returned when asking for another recording
-        recording = file_processing.get("thermalTest", "getMetadata")
+        recording = file_processing.get("thermalRaw", "getMetadata")
         assert recording.id_ == reprocessed_id
 
         # Move job to next stage.
