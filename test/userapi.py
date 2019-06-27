@@ -78,9 +78,7 @@ class UserAPI(APIBase):
 
     def update_recording(self, recording_id, updates):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
-        r = requests.patch(
-            url, headers=self._auth_header, data={"updates": json.dumps(updates)}
-        )
+        r = requests.patch(url, headers=self._auth_header, data={"updates": json.dumps(updates)})
         return self._check_response(r)
 
     def reprocess(self, recording_id, params=None):
@@ -91,7 +89,8 @@ class UserAPI(APIBase):
     def reprocess_recordings(self, recordings, params=None):
         reprocessURL = urljoin(self._baseurl, "/api/v1/recordings/reprocess/multiple")
         r = requests.post(
-            reprocessURL, headers=self._auth_header, data={"recordings": json.dumps(recordings)})
+            reprocessURL, headers=self._auth_header, data={"recordings": json.dumps(recordings)}
+        )
         return r.status_code, r.json()
 
     def download_cptv(self, recording_id):
@@ -106,9 +105,7 @@ class UserAPI(APIBase):
         d = self._check_response(r)
         return self._download_signed(d[jwt_key])
 
-    def query_audio(
-        self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0
-    ):
+    def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
         headers = self._auth_header.copy()
 
         where = defaultdict(dict)
@@ -143,9 +140,7 @@ class UserAPI(APIBase):
 
     def update_audio_recording(self, recording_id, updates):
         url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
-        r = requests.put(
-            url, headers=self._auth_header, data={"data": json.dumps(updates)}
-        )
+        r = requests.put(url, headers=self._auth_header, data={"data": json.dumps(updates)})
         return self._check_response(r)
 
     def download_audio(self, recording_id):
@@ -155,11 +150,7 @@ class UserAPI(APIBase):
         return self._download_signed(d["jwt"])
 
     def _get_all(self, url):
-        r = requests.get(
-            urljoin(self._baseurl, url),
-            params={"where": "{}"},
-            headers=self._auth_header,
-        )
+        r = requests.get(urljoin(self._baseurl, url), params={"where": "{}"}, headers=self._auth_header)
         if r.status_code == 200:
             return r.json()
         raise_specific_exception(r)
@@ -179,9 +170,7 @@ class UserAPI(APIBase):
 
     def create_group(self, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups")
-        response = requests.post(
-            url, headers=self._auth_header, data={"groupname": groupname}
-        )
+        response = requests.post(url, headers=self._auth_header, data={"groupname": groupname})
         self._check_response(response)
 
     def get_user_details(self, username):
@@ -198,22 +187,12 @@ class UserAPI(APIBase):
     def delete_recording_tag(self, tag_id):
         tagData = {"tagId": tag_id}
         response = requests.delete(
-            urljoin(
-                self._baseurl,
-                "/api/v1/tags".format(tag_id),
-            ),
-            headers=self._auth_header, data=tagData
+            urljoin(self._baseurl, "/api/v1/tags".format(tag_id)), headers=self._auth_header, data=tagData
         )
         return self._check_response(response)["messages"]
 
     def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
-        return self._query(
-            "events",
-            deviceId=deviceId,
-            startTime=startTime,
-            endTime=endTime,
-            limit=limit,
-        )
+        return self._query("events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit)
 
     def query_files(self, where=None, limit=None, offset=None):
         if where is None:
@@ -255,15 +234,9 @@ class UserAPI(APIBase):
 
         with open(filename, "rb") as content:
             multipart_data = MultipartEncoder(
-                fields={
-                    "data": json_props,
-                    "file": (os.path.basename(filename), content),
-                }
+                fields={"data": json_props, "file": (os.path.basename(filename), content)}
             )
-            headers = {
-                "Content-Type": multipart_data.content_type,
-                "Authorization": self._token,
-            }
+            headers = {"Content-Type": multipart_data.content_type, "Authorization": self._token}
             r = requests.post(url, data=multipart_data, headers=headers)
         self._check_response(r)
         return r.json()["recordingId"]
@@ -290,9 +263,7 @@ class UserAPI(APIBase):
 
     def set_global_permission(self, user, permission):
         url = urljoin(self._baseurl, "/api/v1/admin/global_permission/" + user)
-        response = requests.patch(
-            url, headers=self._auth_header, data={"permission": permission}
-        )
+        response = requests.patch(url, headers=self._auth_header, data={"permission": permission})
         self._check_response(response)
 
     def add_user_to_group(self, newuser, groupname):
@@ -321,9 +292,7 @@ class UserAPI(APIBase):
 
     def list_device_users(self, deviceid):
         url = urljoin(self._baseurl, "/api/v1/devices/users")
-        response = requests.get(
-            url, headers=self._auth_header, params={"deviceId": deviceid}
-        )
+        response = requests.get(url, headers=self._auth_header, params={"deviceId": deviceid})
         return self._check_response(response).get("rows", [])
 
     def add_track(self, recording_id, data, algorithm={"status": "Test added"}):
@@ -343,20 +312,14 @@ class UserAPI(APIBase):
 
     def delete_track(self, recording_id, track_id):
         response = requests.delete(
-            urljoin(
-                self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}".format(recording_id, track_id),
-            ),
+            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks/{}".format(recording_id, track_id)),
             headers=self._auth_header,
         )
         return self._check_response(response)["messages"]
 
     def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data):
         response = requests.post(
-            urljoin(
-                self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}/tags".format(recording_id, track_id),
-            ),
+            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks/{}/tags".format(recording_id, track_id)),
             headers=self._auth_header,
             data={
                 "what": what,
@@ -371,9 +334,7 @@ class UserAPI(APIBase):
         response = requests.delete(
             urljoin(
                 self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}/tags/{}".format(
-                    recording_id, track_id, track_tag_id
-                ),
+                "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id),
             ),
             headers=self._auth_header,
         )

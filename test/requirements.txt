@@ -3,4 +3,4 @@ python-dateutil
 requests-toolbelt
 pytest
 attrs~=18.2.0
-pycodestyle
+black

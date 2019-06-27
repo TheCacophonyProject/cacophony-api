@@ -668,6 +668,13 @@ module.exports = function(sequelize, DataTypes) {
 
   // reprocess a recording and set all active tracks to archived
   Recording.prototype.reprocess = async function() {
+    await models.Tag.destroy({
+      where: {
+        RecordingId: this.id,
+        automatic: true
+      }
+    });
+
     models.Track.update(
       {
         archivedAt: Date.now()

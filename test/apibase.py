@@ -26,8 +26,9 @@ class APIBase:
             self._set_jwt_token(response)
             return
         if response.status_code == 422:
-            raise ValueError("Could not log on as '{}'.  Please check {} name."
-                             .format(self._loginname, self._logintype))
+            raise ValueError(
+                "Could not log on as '{}'.  Please check {} name.".format(self._loginname, self._logintype)
+            )
         raise_specific_exception(response)
 
     def register_as_new(self, group=None, email=None):
@@ -67,9 +68,7 @@ class APIBase:
 
     def _download_signed(self, token):
         response = requests.get(
-            urljoin(self._baseurl, "/api/v1/signedUrl"),
-            params={"jwt": token},
-            stream=True,
+            urljoin(self._baseurl, "/api/v1/signedUrl"), params={"jwt": token}, stream=True
         )
         raise_specific_exception(response)
         yield from response.iter_content(chunk_size=4096)
@@ -86,15 +85,9 @@ class APIBase:
 
         with open(filename, "rb") as content:
             multipart_data = MultipartEncoder(
-                fields={
-                    "data": json_props,
-                    "file": (os.path.basename(filename), content),
-                }
+                fields={"data": json_props, "file": (os.path.basename(filename), content)}
             )
-            headers = {
-                "Content-Type": multipart_data.content_type,
-                "Authorization": self._token,
-            }
+            headers = {"Content-Type": multipart_data.content_type, "Authorization": self._token}
             r = requests.post(url, data=multipart_data, headers=headers)
         self._check_response(r)
         return r.json()["recordingId"]

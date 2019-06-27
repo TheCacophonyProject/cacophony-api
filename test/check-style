@@ -1,4 +1,4 @@
 #!/bin/sh
 
 dir=$(dirname $0)
-exec pycodestyle --max-line-length=110 $dir/*.py
+black $dir/*.py --target-version=py36 --check --diff -l 110
