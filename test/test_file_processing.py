@@ -219,11 +219,7 @@ class TestFileProcessing:
         self.process_all_recordings(helper, file_processing)
         admin = helper.admin_user()
         recording, track, tag = self.create_processed_recording(
-            helper,
-            file_processing,
-            admin,
-            ai_tag="multiple animals",
-            human_tag="possum",
+            helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
         )
 
         recording2, track2, tag2 = self.create_processed_recording(
