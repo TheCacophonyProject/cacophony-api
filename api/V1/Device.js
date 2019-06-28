@@ -49,11 +49,7 @@ module.exports = function(app, baseUrl) {
       middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
-      if (
-        !(await models.Device.freeDevicename(
-          request.body.devicename
-        ))
-      ) {
+      if (!(await models.Device.freeDevicename(request.body.devicename))) {
         return responseUtil.send(response, {
           statusCode: 422,
           messages: ["Device name in use."]
