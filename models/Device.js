@@ -186,7 +186,7 @@ module.exports = function(sequelize, DataTypes) {
     };
   };
 
-  Device.freeDevicename = async function(groupID, devicename) {
+  Device.freeDevicename = async function(devicename) {
     const device = await this.findOne({ where: { devicename: devicename } });
     if (device != null) {
       return false;

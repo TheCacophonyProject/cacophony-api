@@ -51,7 +51,6 @@ module.exports = function(app, baseUrl) {
     middleware.requestWrapper(async (request, response) => {
       if (
         !(await models.Device.freeDevicename(
-          request.body.group.id,
           request.body.devicename
         ))
       ) {
