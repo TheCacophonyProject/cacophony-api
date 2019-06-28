@@ -1,16 +1,16 @@
-var express = require("express");
-var bodyParser = require("body-parser");
-var passport = require("passport");
-var process = require("process");
-var http = require("http");
+const express = require("express");
+const bodyParser = require("body-parser");
+const passport = require("passport");
+const process = require("process");
+const http = require("http");
 
-var configPath = "./config/app.js";
+let configPath = "./config/app.js";
 process.argv.forEach((val, index) => {
   if (index > 1) {
     if (val.toLowerCase().startsWith("--config=")) {
       configPath = val.split("=")[1];
     } else {
-      var error =
+      const error =
         "Cannot parse '" +
         val +
         "'.  The only accepted parameter is --config=<path-to-config-file> ";
@@ -19,15 +19,15 @@ process.argv.forEach((val, index) => {
   }
 });
 
-var config = require("./config");
+const config = require("./config");
 config.loadConfig(configPath);
 
-var modelsUtil = require("./models/util/util");
-var log = require("./logging");
-var models = require("./models");
+const modelsUtil = require("./models/util/util");
+const log = require("./logging");
+const models = require("./models");
 
 log.info("Starting Full Noise.");
-var app = express();
+const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(passport.initialize());
@@ -56,7 +56,7 @@ require("./api/V1")(app);
 app.use(require("./api/customErrors").errorHandler);
 
 // Add file processing API.
-var fileProcessingApp = express();
+const fileProcessingApp = express();
 fileProcessingApp.use(bodyParser.urlencoded({ extended: false }));
 require("./api/fileProcessing")(fileProcessingApp);
 http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
@@ -93,8 +93,8 @@ function openHttpServer(app) {
 // and reject if connection failed.
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
-    var s3 = modelsUtil.openS3();
-    var params = { Bucket: config.s3.bucket };
+    const s3 = modelsUtil.openS3();
+    const params = { Bucket: config.s3.bucket };
     log.info("Connecting to S3.....");
     s3.headBucket(params, function(err) {
       if (err) {

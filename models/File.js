@@ -17,24 +17,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 "use strict";
+const _ = require("lodash");
 const { AuthorizationError } = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
-  var name = "File";
+  const name = "File";
 
-  var attributes = {
+  const attributes = {
     type: DataTypes.STRING,
     fileKey: DataTypes.STRING,
     fileSize: DataTypes.STRING,
     details: DataTypes.JSONB
   };
 
-  var File = sequelize.define(name, attributes);
+  const File = sequelize.define(name, attributes);
 
   File.apiSettableFields = ["type", "details"];
 
   //---------------
   // CLASS METHODS
   //---------------
+
+  File.buildSafely = function(fields) {
+    return File.build(_.pick(fields, File.apiSettableFields));
+  };
 
   File.addAssociations = function(models) {
     models.File.belongsTo(models.User);
@@ -49,7 +54,7 @@ module.exports = function(sequelize, DataTypes) {
       order = [["id", "DESC"]];
     }
 
-    var q = {
+    const q = {
       where: where,
       order: order,
       attributes: { exclude: ["updatedAt", "fileKey"] },

@@ -122,9 +122,9 @@ class Helper:
         except Exception as exception:
             raise TestException("Failed to create device: {}".format(exception))
 
-    def given_a_recording(self, testClass, devicename=None, group=None):
+    def given_a_recording(self, testClass, devicename=None, group=None, props=None):
         device = self.given_new_device(testClass, devicename=devicename, group=group)
-        return device.has_recording()
+        return device.has_recording(props=props)
 
     def _make_long_name(self, testClass, name):
         testName = type(testClass).__name__

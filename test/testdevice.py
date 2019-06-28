@@ -14,9 +14,9 @@ class TestDevice:
     def get_id(self):
         return self._id
 
-    def has_recording(self):
-        self._print_description("    and '{}' has a recording ".format(self.devicename))
-        return self.upload_recording()
+    def has_recording(self, props=None):
+        self._print_description("    and '{}' has a recording with props {}".format(self.devicename, props))
+        return self.upload_recording(properties=props)
 
     def has_audio_recording(self):
         self._print_description("    and '{}' has an audio recording ".format(self.devicename))
@@ -47,7 +47,7 @@ class TestDevice:
             "additionalMetadata": {"bar": "foo"},
         }
 
-    def upload_audio_recording(self):
+    def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
         props = {
             "recordingDateTime": ts.isoformat(),
@@ -61,6 +61,7 @@ class TestDevice:
             "version": "123",
             "additionalMetadata": {"foo": "bar"},
         }
+        props.update(extraProps)
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
 

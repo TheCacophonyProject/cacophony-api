@@ -27,7 +27,7 @@ const { matchedData } = require("express-validator/filter");
 const { ClientError } = require("../customErrors");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/users";
+  const apiUrl = baseUrl + "/users";
 
   /**
    * @api {post} /api/v1/users Register a new user
@@ -58,14 +58,14 @@ module.exports = function(app, baseUrl) {
       middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
-      var user = await models.User.create({
+      const user = await models.User.create({
         username: request.body.username,
         password: request.body.password,
         email: request.body.email
       });
 
-      var jwtData = user.getJwtDataValues();
-      var userData = await user.getDataValues();
+      const jwtData = user.getJwtDataValues();
+      const userData = await user.getDataValues();
 
       return responseUtil.send(response, {
         statusCode: 200,

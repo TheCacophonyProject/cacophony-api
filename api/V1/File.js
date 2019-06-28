@@ -26,7 +26,7 @@ const auth = require("../auth");
 const { query, param } = require("express-validator/check");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + "/files";
+  const apiUrl = baseUrl + "/files";
 
   /**
    * @api {post} /api/v1/files Adds a new file.
@@ -49,11 +49,9 @@ module.exports = (app, baseUrl) => {
     [auth.authenticateUser],
     middleware.requestWrapper(
       util.multipartUpload((request, data, key) => {
-        var dbRecord = models.File.build(data, {
-          fields: models.File.apiSettableFields
-        });
-        dbRecord.set("UserId", request.user.id);
-        dbRecord.set("fileKey", key);
+        const dbRecord = models.File.buildSafely(data);
+        dbRecord.UserId = request.user.id;
+        dbRecord.fileKey = key;
         return dbRecord;
       })
     )
@@ -92,7 +90,7 @@ module.exports = (app, baseUrl) => {
         request.query.limit = "100";
       }
 
-      var result = await models.File.query(
+      const result = await models.File.query(
         request.query.where,
         request.query.offset,
         request.query.limit,
@@ -129,9 +127,9 @@ module.exports = (app, baseUrl) => {
     apiUrl + "/:id",
     [auth.authenticateAny, middleware.getFileById(param)],
     middleware.requestWrapper(async (request, response) => {
-      var file = request.body.file;
+      const file = request.body.file;
 
-      var downloadFileData = {
+      const downloadFileData = {
         _type: "fileDownload",
         key: file.fileKey
       };

@@ -16,17 +16,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+<<<<<<< HEAD
 var bcrypt = require("bcrypt");
 const format = require("util").format;
 var Sequelize = require("sequelize");
+=======
+const bcrypt = require("bcrypt");
+const Sequelize = require("sequelize");
+>>>>>>> origin/master
 const { AuthorizationError } = require("../api/customErrors");
 
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Device";
+  const name = "Device";
 
-  var attributes = {
+  const attributes = {
     devicename: {
       type: DataTypes.STRING,
       unique: true
@@ -53,13 +58,13 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var options = {
+  const options = {
     hooks: {
       afterValidate: afterValidate
     }
   };
 
-  var Device = sequelize.define(name, attributes, options);
+  const Device = sequelize.define(name, attributes, options);
 
   //---------------
   // CLASS METHODS
@@ -90,7 +95,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     // Get association if already there and update it.
-    var deviceUser = await models.DeviceUsers.findOne({
+    const deviceUser = await models.DeviceUsers.findOne({
       where: {
         DeviceId: device.id,
         UserId: userToAdd.id
@@ -127,7 +132,7 @@ module.exports = function(sequelize, DataTypes) {
         UserId: userToRemove.id
       }
     });
-    for (var i in deviceUsers) {
+    for (const i in deviceUsers) {
       await deviceUsers[i].destroy();
     }
     return true;
@@ -148,8 +153,8 @@ module.exports = function(sequelize, DataTypes) {
       });
     }
 
-    var deviceIds = await user.getDeviceIds();
-    var userGroupIds = await user.getGroupsIds();
+    const deviceIds = await user.getDeviceIds();
+    const userGroupIds = await user.getGroupsIds();
 
     const usersDevice = {
       [Op.or]: [
@@ -300,7 +305,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.prototype.comparePassword = function(password) {
-    var device = this;
+    const device = this;
     return new Promise(function(resolve, reject) {
       bcrypt.compare(password, device.password, function(err, isMatch) {
         if (err) {

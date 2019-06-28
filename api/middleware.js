@@ -187,7 +187,7 @@ const parseJSON = function(field, checkFunc) {
 
 const parseArray = function(field, checkFunc) {
   return checkFunc(field).custom((value, { req, location, path }) => {
-    var arr;
+    let arr;
     try {
       arr = JSON.parse(value);
     } catch (e) {
@@ -213,7 +213,7 @@ const parseBool = function(value) {
 };
 
 const requestWrapper = fn => (request, response, next) => {
-  var logMessage = format("%s %s", request.method, request.url);
+  let logMessage = format("%s %s", request.method, request.url);
   if (request.user) {
     logMessage = format(
       "%s (user: %s)",

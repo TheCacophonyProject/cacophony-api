@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-
 from .recording import Recording
 from .track import Track
 from .track import TrackTag
@@ -143,20 +142,22 @@ class TestFileProcessing:
         user = helper.admin_user()
 
         recordings = []
-        recording_first = self.create_processed_recording(helper, file_processing, user)
+        recording_first, _, _ = self.create_processed_recording(
+            helper, file_processing, user, ai_tag="possum", human_tag="multiple"
+        )
         recordings.append(recording_first.id_)
-        self.add_tracks_and_tag(file_processing, recording_first)
-
-        recording_second = self.create_processed_recording(helper, file_processing, user)
+        recording_second, _, _ = self.create_processed_recording(
+            helper, file_processing, user, ai_tag="possum"
+        )
         recordings.append(recording_second.id_)
-        self.add_tracks_and_tag(file_processing, recording_second)
-
         status, json = user.reprocess_recordings(recordings)
         assert status == 200
         assert json["reprocessed"] == recordings
 
         user.has_no_tracks(recording_first)
         user.has_no_tracks(recording_second)
+        user.recording_has_tags(recording_first, ai_tag_count=0, human_tag_count=1)
+        user.recording_has_tags(recording_second, ai_tag_count=0, human_tag_count=0)
 
         recordings.append(-1)
         status, json = user.reprocess_recordings(recordings)
@@ -165,14 +166,28 @@ class TestFileProcessing:
         print(json)
         assert json["fail"] == [-1]
 
-    def create_processed_recording(self, helper, file_processing, user):
+    def create_processed_recording(
+        self, helper, file_processing, user, rec_type=None, ai_tag=None, human_tag=None
+    ):
         # Ensure there's a recording to work with (the file processing
         # API may return a different one though).
-        helper.given_a_recording(self)
+        props = None
+        if rec_type:
+            props = {"type": rec_type}
+        else:
+            rec_type = "thermalRaw"
+
+        helper.given_a_recording(self, props=props)
 
         # Get a recording to process.
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get(rec_type, "getMetadata")
         assert recording["processingState"] == "getMetadata"
+        if ai_tag:
+            recording.is_tagged_as(what=ai_tag).byAI(helper.admin_user())
+        if human_tag:
+            recording.is_tagged_as(what=ai_tag).by(helper.admin_user())
+
+        track, tag = self.add_tracks_and_tag(file_processing, recording)
 
         # Move job to next stage.
         file_processing.put(recording, success=True, complete=False)
@@ -181,7 +196,7 @@ class TestFileProcessing:
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
         check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
-        return recording
+        return recording, track, tag
 
     def add_tracks_and_tag(self, file_processing, recording):
         # insert tracks
@@ -192,27 +207,56 @@ class TestFileProcessing:
         tag.id_ = file_processing.add_track_tag(track, tag)
         return track, tag
 
-    def test_reprocess_recording(self, helper, file_processing):
-        user = helper.admin_user()
-        recording = self.create_processed_recording(helper, file_processing, user)
-        track, tag = self.add_tracks_and_tag(file_processing, recording)
-        user.can_see_track(track, [tag])
-
-        user.reprocess(recording)
+    def process_all_recordings(self, helper, file_processing):
         recording = file_processing.get("thermalRaw", "getMetadata")
-        assert recording["processingState"] == "getMetadata"
-        user.has_no_tracks(recording)
+
+        while recording:
+            # Move job to next stage.
+            file_processing.put(recording, success=True, complete=False)
+            recording = file_processing.get("thermalRaw", "getMetadata")
+
+    def test_reprocess_recording(self, helper, file_processing):
+        self.process_all_recordings(helper, file_processing)
+        admin = helper.admin_user()
+        recording, track, tag = self.create_processed_recording(
+            helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
+        )
+
+        recording2, track2, tag2 = self.create_processed_recording(
+            helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
+        )
+
+        db_recording = admin.get_recording(recording)
+        assert len(db_recording["Tags"]) == 2
+        admin.can_see_track(track, [tag])
+
+        admin.reprocess(recording)
+        reprocessed_id = recording.id_
+
+        # check recording is ready to be reprocessed
+        db_recording = admin.get_recording(recording)
+        assert db_recording["processingState"] == "getMetadata"
+        admin.has_no_tracks(recording)
+        admin.recording_has_tags(recording, ai_tag_count=0, human_tag_count=1)
+
+        # check other recordings unaffected
+        db_recording = admin.get_recording(recording2)
+        assert len(db_recording["Tags"]) == 2
+        admin.can_see_track(track2, [tag2])
+        # check is returned when asking for another recording
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        assert recording.id_ == reprocessed_id
 
         # Move job to next stage.
         file_processing.put(recording, success=True, complete=False)
-        check_recording(user, recording, processingState="toMp4")
+        check_recording(admin, recording, processingState="toMp4")
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        check_recording(admin, recording, processingState="FINISHED", fileKey="some_key")
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
-        user.can_see_track(track, [tag])
+        admin.can_see_track(track, [tag])
 
 
 def check_recording(user, recording, **expected):

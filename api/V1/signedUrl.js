@@ -45,16 +45,16 @@ module.exports = function(app, baseUrl) {
     baseUrl + "/signedUrl",
     [auth.signedUrl],
     middleware.requestWrapper(async (request, response) => {
-      var mimeType = request.jwtDecoded.mimeType || "";
-      var filename = request.jwtDecoded.filename || "file";
+      const mimeType = request.jwtDecoded.mimeType || "";
+      const filename = request.jwtDecoded.filename || "file";
 
-      var key = request.jwtDecoded.key;
+      const key = request.jwtDecoded.key;
       if (!key) {
         throw new ClientError("No key provided.");
       }
 
-      var s3 = modelsUtil.openS3();
-      var params = {
+      const s3 = modelsUtil.openS3();
+      const params = {
         Bucket: config.s3.bucket,
         Key: key
       };
@@ -76,14 +76,14 @@ module.exports = function(app, baseUrl) {
           return response.end(null, "binary");
         }
 
-        var range = request.headers.range;
-        var positions = range.replace(/bytes=/, "").split("-");
-        var start = parseInt(positions[0], 10);
-        var total = data.Body.length;
-        var end = positions[1] ? parseInt(positions[1], 10) : total - 1;
-        var chunksize = end - start + 1;
+        const range = request.headers.range;
+        const positions = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(positions[0], 10);
+        const total = data.Body.length;
+        const end = positions[1] ? parseInt(positions[1], 10) : total - 1;
+        const chunksize = end - start + 1;
 
-        var headers = {
+        const headers = {
           "Content-Range": "bytes " + start + "-" + end + "/" + total,
           "Content-Length": chunksize,
           "Accept-Ranges": "bytes",
@@ -92,8 +92,8 @@ module.exports = function(app, baseUrl) {
 
         response.writeHead(206, headers);
 
-        var bufStream = new stream.PassThrough();
-        var b2 = data.Body.slice(start, end + 1);
+        const bufStream = new stream.PassThrough();
+        const b2 = data.Body.slice(start, end + 1);
         bufStream.end(b2);
         bufStream.pipe(response);
       });

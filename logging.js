@@ -1,8 +1,8 @@
-var config = require("./config");
-var winston = require("winston");
-var expressWinston = require("express-winston");
+const config = require("./config");
+const winston = require("winston");
+const expressWinston = require("express-winston");
 
-var consoleTransport = new winston.transports.Console({
+const consoleTransport = new winston.transports.Console({
   name: "console",
   level: config.server.loggerLevel,
   colorize: true,
@@ -10,7 +10,7 @@ var consoleTransport = new winston.transports.Console({
   humanReadableUnhandledException: true
 });
 
-var logger = new winston.Logger({
+const logger = new winston.Logger({
   transports: [consoleTransport]
 });
 

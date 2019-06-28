@@ -25,7 +25,7 @@ const recordingUtil = require("./recordingUtil");
 const responseUtil = require("./responseUtil");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/tags";
+  const apiUrl = baseUrl + "/tags";
 
   /**
    * @api {post} /api/v1/tags Adds a new tag
@@ -80,7 +80,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [auth.authenticateUser, body("tagId").isInt()],
     middleware.requestWrapper(async function(request, response) {
-      var tagDeleteResult = await models.Tag.deleteFromId(
+      const tagDeleteResult = await models.Tag.deleteFromId(
         request.body.tagId,
         request.user
       );

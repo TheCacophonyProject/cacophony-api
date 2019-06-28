@@ -6,8 +6,9 @@ parserOptions:
 extends: 'eslint:recommended'
 rules:
   indent:
-    - warn
+    - error
     - 2
+    - SwitchCase: 1
   linebreak-style:
     - error
     - unix
@@ -21,5 +22,7 @@ rules:
     - always
   no-console:
     - off
+  no-var:
+    - error
   prefer-const:
     - error

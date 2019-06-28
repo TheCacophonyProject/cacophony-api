@@ -25,7 +25,7 @@ const auth = require("../auth");
 const { query, body } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/devices";
+  const apiUrl = baseUrl + "/devices";
 
   /**
    * @api {post} /api/v1/devices Register a new device
@@ -81,10 +81,15 @@ module.exports = function(app, baseUrl) {
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
    * @apiGroup Device
+   * @apiDescription Returns all devices the user can access
+   * through both group membership and direct assignment.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} devices Object with two entries, a count integer that is the number of rows returned, and
+   * rows, which is an array of devices accessible.
+   * Each element in rows includes `devicename` (string), `id` (int), and `Users` which is an array of Users with permissions on that device.
    *
    * @apiUse V1ResponseError
    */
@@ -92,7 +97,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      var devices = await models.Device.allForUser(request.user);
+      const devices = await models.Device.allForUser(request.user);
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
@@ -175,7 +180,7 @@ module.exports = function(app, baseUrl) {
       body("admin").isIn([true, false])
     ],
     middleware.requestWrapper(async (request, response) => {
-      var added = await models.Device.addUserToDevice(
+      const added = await models.Device.addUserToDevice(
         request.user,
         request.body.device,
         request.body.user,
@@ -220,7 +225,7 @@ module.exports = function(app, baseUrl) {
       middleware.getUserByNameOrId(body)
     ],
     middleware.requestWrapper(async function(request, response) {
-      var removed = await models.Device.removeUserFromDevice(
+      const removed = await models.Device.removeUserFromDevice(
         request.user,
         request.body.device,
         request.body.user

@@ -26,15 +26,15 @@ const modelsUtil = require("../../models/util/util");
 
 function multipartUpload(buildRecord) {
   return (request, response) => {
-    var key = moment().format("YYYY/MM/DD/") + uuidv4();
-    var data;
-    var filename;
-    var upload;
+    const key = moment().format("YYYY/MM/DD/") + uuidv4();
+    let data;
+    let filename;
+    let upload;
 
     // Note regarding multiparty: there are no guarantees about the
     // order that the field and part handlers will be called. You need
     // to formulate the response to the client in the close handler.
-    var form = new multiparty.Form();
+    const form = new multiparty.Form();
 
     // Handle the "data" field.
     form.on("field", (name, value) => {
@@ -92,10 +92,10 @@ function multipartUpload(buildRecord) {
         return;
       }
 
-      var dbRecord;
+      let dbRecord;
       try {
         // Wait for the upload to complete.
-        var uploadResult = await upload;
+        const uploadResult = await upload;
         if (uploadResult instanceof Error) {
           responseUtil.serverError(response, uploadResult);
           return;

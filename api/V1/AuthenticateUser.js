@@ -58,7 +58,7 @@ module.exports = function(app) {
       );
       if (passwordMatch) {
         const userData = await request.body.user.getDataValues();
-        var data = request.body.user.getJwtDataValues();
+        const data = request.body.user.getJwtDataValues();
         data._type = "user";
         return responseUtil.send(response, {
           statusCode: 200,

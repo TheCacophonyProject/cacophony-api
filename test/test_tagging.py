@@ -23,9 +23,9 @@ class TestTagging:
         admin = helper.admin_user()
         recording.is_tagged_as(what="possum").by(admin)
 
-        props = admin.get_recording(recording)
-        assert len(props["Tags"]) == 1
-        assert props["Tags"][0]["version"] == 0x0100
+        recording = admin.get_recording(recording)
+        assert len(recording["Tags"]) == 1
+        assert recording["Tags"][0]["version"] == 0x0100
 
     def test_set_tag_version(self, helper):
         recording = helper.given_new_device(self).has_recording()
