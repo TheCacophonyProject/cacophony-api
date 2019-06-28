@@ -16,14 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-<<<<<<< HEAD
 var bcrypt = require("bcrypt");
 const format = require("util").format;
 var Sequelize = require("sequelize");
-=======
-const bcrypt = require("bcrypt");
-const Sequelize = require("sequelize");
->>>>>>> origin/master
+
 const { AuthorizationError } = require("../api/customErrors");
 
 const Op = Sequelize.Op;

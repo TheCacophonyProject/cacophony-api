@@ -53,9 +53,7 @@ class TestUser:
     def _can_see_recordings_with_query(self, queryParams, *expected_recordings):
         recordings = self._userapi.query(**queryParams)
         if not recordings:
-            raise TestException(
-                "User '{}' could not see any recordings.".format(self.username)
-            )
+            raise TestException("User '{}' could not see any recordings.".format(self.username))
 
         # Check presence of various fields
         r0 = recordings[0]
@@ -116,16 +114,12 @@ class TestUser:
 
     def can_see_recording_from(self, testdevice):
         recordings = self._userapi.query(limit=1)
-        assert recordings, "User '{}' could not see any recordings.".format(
-            self.username
-        )
+        assert recordings, "User '{}' could not see any recordings.".format(self.username)
 
         lastDevice = recordings[0]["Device"]["devicename"]
         assert (
             lastDevice == testdevice.devicename
-        ), "Latest recording is from device '{}', not from '{}'".format(
-            lastDevice, testdevice.devicename
-        )
+        ), "Latest recording is from device '{}', not from '{}'".format(lastDevice, testdevice.devicename)
 
     def cannot_see_any_recordings(self):
         recordings = self._userapi.query(limit=10)
@@ -174,9 +168,7 @@ class TestUser:
         assert recv_props.pop("processingState") != "FINISHED"
 
         # # Time formatting may differ so these are handled specially.
-        assertDateTimeStrings(
-            recv_props.pop("recordingDateTime"), props.pop("recordingDateTime")
-        )
+        assertDateTimeStrings(recv_props.pop("recordingDateTime"), props.pop("recordingDateTime"))
 
         # Compare the remaining properties.
         assert recv_props == props
@@ -195,9 +187,7 @@ class TestUser:
         try:
             self._userapi.create_group(groupname)
         except Exception as exception:
-            raise TestException(
-                "Failed to create group ({}): {}".format(groupname, exception)
-            )
+            raise TestException("Failed to create group ({}): {}".format(groupname, exception))
         if printname:
             print("({})".format(groupname))
         return groupname
@@ -246,15 +236,11 @@ class TestUser:
         deviceId = None
         if device is not None:
             deviceId = device.get_id()
-        return self._userapi.query_events(
-            deviceId=deviceId, startTime=startTime, endTime=endTime
-        )
+        return self._userapi.query_events(deviceId=deviceId, startTime=startTime, endTime=endTime)
 
     def cannot_see_events(self):
         events = self._userapi.query_events()
-        assert not events, "User '{}' can see events when it shouldn't".format(
-            self.username
-        )
+        assert not events, "User '{}' can see events when it shouldn't".format(self.username)
 
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
@@ -430,9 +416,7 @@ class TestUser:
 
     def can_delete_track_tag(self, tag):
         self._userapi.delete_track_tag(
-            recording_id=tag.track.recording.id_,
-            track_id=tag.track.id_,
-            track_tag_id=tag.id_,
+            recording_id=tag.track.recording.id_, track_id=tag.track.id_, track_tag_id=tag.id_
         )
 
     def cannot_delete_track_tag(self, tag):
@@ -455,20 +439,14 @@ class RecordingQueryPromise:
         return self
 
     def devices(self, devices):
-        self._queryParams["deviceIds"] = list(
-            map(lambda device: device.get_id(), devices)
-        )
+        self._queryParams["deviceIds"] = list(map(lambda device: device.get_id(), devices))
         return self
 
     def can_see_recordings(self, *expected_recordings):
-        self._testUser._can_see_recordings_with_query(
-            self._queryParams, *expected_recordings
-        )
+        self._testUser._can_see_recordings_with_query(self._queryParams, *expected_recordings)
 
     def cannot_see_recordings(self, *expected_recordings):
-        self._testUser._cannot_see_recordings_with_query(
-            self._queryParams, *expected_recordings
-        )
+        self._testUser._cannot_see_recordings_with_query(self._queryParams, *expected_recordings)
 
     def can_see_all_recordings_from_(self, allRecordings):
         self.can_see_recordings(*allRecordings)
@@ -485,17 +463,13 @@ class RecordingQueryPromise:
             )
 
         ids = [testRecording.id_ for testRecording in self._expected_recordings]
-        print(
-            "Then searching with {} should give only {}.".format(self._queryParams, ids)
-        )
+        print("Then searching with {} should give only {}.".format(self._queryParams, ids))
 
         # test what should be there, is there
         self.can_see_recordings(*self._expected_recordings)
 
         # test what shouldn't be there, isn't there
-        expectedMissingRecordings = [
-            x for x in allRecordings if x not in self._expected_recordings
-        ]
+        expectedMissingRecordings = [x for x in allRecordings if x not in self._expected_recordings]
         self.cannot_see_recordings(*expectedMissingRecordings)
 
 
