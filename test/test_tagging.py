@@ -59,9 +59,7 @@ class TestTagging:
         recording.is_tagged_as(what="foo", detail="bar").by(admin)
 
         # Query recent recordings and find the entry.
-        results = [
-            r for r in admin.query_recordings(limit=5) if r["id"] == recording.id_
-        ]
+        results = [r for r in admin.query_recordings(limit=5) if r["id"] == recording.id_]
         assert len(results) == 1
 
         tags = results[0]["Tags"]

@@ -8,16 +8,17 @@ class TestDeviceGroupNames:
         clare = helper.given_new_user(self, "clare")
         clares_group = helper.make_unique_group_name(self, "clares_group")
         clare.create_group(clares_group)
-        c_terminator = helper.given_new_device(
-            self, "Terminator", clares_group, description=None
-        )
+        c_terminator = helper.given_new_device(self, "Terminator", clares_group, description=None)
         assert c_terminator.get_id() is not None
 
         helper.login_as_device(c_terminator.devicename, clares_group)
         helper.login_as_device(c_terminator.devicename, clares_group)
-        helper.login_as_device(
-            c_terminator.get_id(), None, helper._make_password(c_terminator.devicename)
-        )
+        helper.login_as_device(c_terminator.get_id(), None, helper._make_password(c_terminator.devicename))
+
+        # can upload with device/group and with just unique device
+        recording = clare.uploads_recording_for(c_terminator)
+        c_terminator.group = ""
+        recording = clare.uploads_recording_for(c_terminator)
 
     # use this when we make group + device unique
     # def test_authentication(self, helper):

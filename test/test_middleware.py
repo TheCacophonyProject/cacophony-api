@@ -16,9 +16,7 @@ class TestMiddleware:
         print("When I make a request that requires auth with a malformed JWT")
 
         url = urljoin(test_config.api_url, "/api/v1/users")
-        response = requests.patch(
-            url, data="{}", headers={"Authorization": "NOT VALID"}
-        )
+        response = requests.patch(url, data="{}", headers={"Authorization": "NOT VALID"})
         print("  The response code should be 400 level")
         assert 400 <= response.status_code < 500
 

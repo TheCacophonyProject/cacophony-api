@@ -20,22 +20,16 @@ class TestUser:
         print("If a new user Bob signs up", end="")
         bob = helper.given_new_user(self, "bob")
 
-        print(
-            "Then Bob should able to log in with his username in 'username' API field"
-        )
+        print("Then Bob should able to log in with his username in 'username' API field")
         helper.login_as(bob.username)
 
-        print(
-            "And Bob should able to log in with his username in 'emailOrUsername' API field"
-        )
+        print("And Bob should able to log in with his username in 'emailOrUsername' API field")
         helper.login_with_name_or_email(bob.username, bob.username)
 
         print("And Bob should able to log in with his email in 'email' API field")
         helper.login_with_email(bob.username, bob.email)
 
-        print(
-            "And Bob should able to log in with his email in 'emailOrUsername' API field"
-        )
+        print("And Bob should able to log in with his email in 'emailOrUsername' API field")
         helper.login_with_name_or_email(bob.username, bob.email)
 
         print("And Bob should be able to see his details include user id. ")
@@ -57,18 +51,13 @@ class TestUser:
 
         # Now try to create the same user again
         with pytest.raises(UnprocessableError) as excinfo:
-            print(
-                "DuplicateBob should not get created multiple times and returns a 422 error message"
-            )
+            print("DuplicateBob should not get created multiple times and returns a 422 error message")
             helper.given_new_fixed_user("DuplicateBob")
         error_string = str(excinfo.value)
         print("There should be a JSON object in the error message that can be parsed")
         parsed_json = json.loads(error_string)
         assert parsed_json["errorType"] == "validation"
-        assert (
-            "'Username in use" in parsed_json["message"]
-            or "Email in use" in parsed_json["message"]
-        )
+        assert "'Username in use" in parsed_json["message"] or "Email in use" in parsed_json["message"]
 
     def test_register_username_password_length_requirements(self, helper):
         short_username = _random_string_of_length(MIN_USERNAME_LENGTH - 1)
@@ -77,23 +66,15 @@ class TestUser:
         long_password = _random_string_of_length(MIN_PASSWORD_LENGTH)
 
         with pytest.raises(UnprocessableError):
-            print(
-                "When I try to register with a short username it should return an error"
-            )
+            print("When I try to register with a short username it should return an error")
             helper.given_new_fixed_user(username=short_username)
 
         with pytest.raises(UnprocessableError):
-            print(
-                "When I try to register with a short password it should return an error"
-            )
+            print("When I try to register with a short password it should return an error")
             helper.given_new_fixed_user(username=long_username, password=short_password)
 
-        print(
-            "When I try to register with a long enough username and password it should be successful"
-        )
-        user = helper.given_new_fixed_user(
-            username=long_username, password=long_password
-        )
+        print("When I try to register with a long enough username and password it should be successful")
+        user = helper.given_new_fixed_user(username=long_username, password=long_password)
         assert user
 
     def test_patch_username_password_length_requirements(self, helper):
@@ -112,11 +93,7 @@ class TestUser:
             print("When I try to patch to a short password it should return an error")
             user.update(password=short_password)
 
-        print(
-            "When I try to patch to a long enough username and password it should be successful"
-        )
+        print("When I try to patch to a long enough username and password it should be successful")
         user.update(username=long_username, password=long_password)
-        print(
-            "  Then when I then try to login using the newly changed data, it should also be successful"
-        )
+        print("  Then when I then try to login using the newly changed data, it should also be successful")
         helper.login_with_username_password(long_username, long_password)

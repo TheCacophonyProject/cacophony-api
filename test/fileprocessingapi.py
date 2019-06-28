@@ -61,11 +61,7 @@ class FileProcessingAPI:
 
     def add_track_tag(self, track, tag):
         url = self._url + "/{}/tracks/{}/tags".format(track.recording.id_, track.id_)
-        post_data = {
-            "what": tag.what,
-            "confidence": tag.confidence,
-            "data": json.dumps(tag.data),
-        }
+        post_data = {"what": tag.what, "confidence": tag.confidence, "data": json.dumps(tag.data)}
         r = requests.post(url, data=post_data)
         if r.status_code == 200:
             return r.json()["trackTagId"]

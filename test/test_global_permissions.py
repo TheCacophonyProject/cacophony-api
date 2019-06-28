@@ -47,9 +47,7 @@ class TestGlobalPermission:
         print("({})".format(johnsGroup))
 
         description = "  and there is a new device called 'johnsDevice' in this group"
-        johnsDevice = helper.given_new_device(
-            self, "johnsDevice", johnsGroup, description=description
-        )
+        johnsDevice = helper.given_new_device(self, "johnsDevice", johnsGroup, description=description)
 
         print("  which has uploaded a recording", end="")
         recording = johnsDevice.upload_recording()

@@ -68,7 +68,7 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/group/:groupname/device/:devicename Add a new recording on behalf of device
+   * @api {post} /api/v1/recordings/device/:devicename/group/:groupname? Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
@@ -86,7 +86,7 @@ module.exports = (app, baseUrl) => {
    */
 
   app.post(
-    apiUrl + "/group/:groupname/device/:devicename",
+    apiUrl + "/device/:devicename/group/:groupname?",
     [
       auth.authenticateUser,
       middleware.setGroupName(param),

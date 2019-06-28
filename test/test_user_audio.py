@@ -31,9 +31,7 @@ class TestUserAudio:
         print("({})".format(group_name))
 
         description = "  and there is a new device called 'Bob' in this group"
-        device = helper.given_new_device(
-            self, "Bob", group_name, description=description
-        )
+        device = helper.given_new_device(self, "Bob", group_name, description=description)
 
         print("There should be no recordings initially")
         clare.cannot_see_any_audio_recordings()
@@ -57,9 +55,7 @@ class TestUserAudio:
         print("({})".format(group_name))
 
         description = "  and there is a new device called 'Bobby' in this group"
-        device = helper.given_new_device(
-            self, "Bobby", group_name, description=description
-        )
+        device = helper.given_new_device(self, "Bobby", group_name, description=description)
 
         print("When several recordings are uploaded")
         recordings = []

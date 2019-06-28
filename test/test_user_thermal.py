@@ -40,9 +40,7 @@ class TestUserThermal:
         user.can_download_correct_recording(recording)
 
     def test_can_upload_recording_for_device(self, helper):
-        data_collector, device = helper.given_new_user_with_device(
-            self, "data_collector"
-        )
+        data_collector, device = helper.given_new_user_with_device(self, "data_collector")
         print("   and data_collector uploads a recording on behalf of the device")
         recording = data_collector.uploads_recording_for(device)
         print("Then an super user should be able to download the recording")
@@ -54,9 +52,7 @@ class TestUserThermal:
         print("    and an unrelated user 'trouble'", end="")
         trouble = helper.given_new_user(self, "trouble")
 
-        print(
-            "Then 'trouble' should not be able to upload a recording on the behalf of the device."
-        )
+        print("Then 'trouble' should not be able to upload a recording on the behalf of the device.")
         with pytest.raises(AuthorizationError):
             trouble.uploads_recording_for(device)
 
@@ -66,9 +62,7 @@ class TestUserThermal:
 
         user = helper.given_new_user(self, "trouble")
 
-        print(
-            "\nA user should not be able to download the recording using the audio API"
-        )
+        print("\nA user should not be able to download the recording using the audio API")
         user.cannot_download_recording(recording)
 
         print("\nNor be able to see the recording through the audio query API")

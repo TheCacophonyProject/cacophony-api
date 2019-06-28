@@ -5,9 +5,7 @@ import json
 class TestRecordingsFilterCombo:
     def test_get_by_device_and_tag(self, helper):
         george = helper.given_new_user(self, "george")
-        group = george.create_group(
-            helper.make_unique_group_name(self, "georges_group")
-        )
+        group = george.create_group(helper.make_unique_group_name(self, "georges_group"))
         device1 = helper.given_new_device(self, "device1", group, description="")
         device2 = helper.given_new_device(self, "device2", group, description="")
 
@@ -17,9 +15,7 @@ class TestRecordingsFilterCombo:
         d2_rat = makeTaggedRecording("d2_rat", device2, helper, "rat")
 
         all = [d1_possum, d1_possum, d1_rat, d2_rat]
-        george.when_searching_for_tagmode("any").can_only_see_recordings(*all).from_(
-            all
-        )
+        george.when_searching_for_tagmode("any").can_only_see_recordings(*all).from_(all)
 
         expected = [d2_possum]
         george.when_searching_for_tagmode("tagged").tags(["possum"]).devices(

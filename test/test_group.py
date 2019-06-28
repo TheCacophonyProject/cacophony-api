@@ -4,9 +4,7 @@ from test.testexception import AuthorizationError
 
 
 class TestGroup:
-    def test_group_can_be_created_and_users_added_to_it_and_removed_from_it(
-        self, helper
-    ):
+    def test_group_can_be_created_and_users_added_to_it_and_removed_from_it(self, helper):
         print("If a new user Clare", end="")
         clare = helper.given_new_user(self, "clare")
 
@@ -16,9 +14,7 @@ class TestGroup:
         print("({})".format(claresGroup))
 
         description = "  and there is a new device called 'Terminator' in this group"
-        terminator = helper.given_new_device(
-            self, "Terminator", claresGroup, description=description
-        )
+        terminator = helper.given_new_device(self, "Terminator", claresGroup, description=description)
 
         print("  which has uploaded a recording", end="")
         recording = terminator.upload_recording()
@@ -46,9 +42,7 @@ class TestGroup:
         print("Given a Robert is a new user", end="")
         robert = helper.given_new_user(self, "robert")
 
-        print(
-            "Then Robert shouldn't be able to add himself to default group belonged to the admin"
-        )
+        print("Then Robert shouldn't be able to add himself to default group belonged to the admin")
         with pytest.raises(AuthorizationError):
             robert.add_to_group(robert, helper.config.default_group)
 
@@ -57,8 +51,6 @@ class TestGroup:
         print("Given a Steve is a new user", end="")
         steve = helper.given_new_user(self, "steve")
 
-        print(
-            "Then Steve shouldn't be able to remove the admin from a group he is not an admin for"
-        )
+        print("Then Steve shouldn't be able to remove the admin from a group he is not an admin for")
         with pytest.raises(AuthorizationError):
             steve.remove_from_group(helper.admin_user(), helper.config.default_group)
