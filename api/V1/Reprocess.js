@@ -23,7 +23,7 @@ const auth = require("../auth");
 const recordingUtil = require("./recordingUtil");
 
 module.exports = (app, baseUrl) => {
-  var apiUrl = baseUrl + "/reprocess";
+  const apiUrl = baseUrl + "/reprocess";
 
   /**
    * @api {get} /api/v1/reprocess/:id

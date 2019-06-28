@@ -16,9 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 const format = require("util").format;
-var Sequelize = require("sequelize");
+const Sequelize = require("sequelize");
 
 const { AuthorizationError } = require("../api/customErrors");
 
@@ -187,7 +187,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Device.freeDevicename = async function(groupID, devicename) {
-    var device = await this.findOne({ where: { devicename: devicename } });
+    const device = await this.findOne({ where: { devicename: devicename } });
     if (device != null) {
       return false;
     }
@@ -206,7 +206,7 @@ module.exports = function(sequelize, DataTypes) {
   ) {
     // attempts to find a unique device by groupname, then deviceid (devicename if int),
     // then devicename, finally password
-    var model = null;
+    let model = null;
     if (deviceID && deviceID > 0) {
       model = this.findByPk(deviceID);
     } else if (groupName) {
@@ -236,9 +236,10 @@ module.exports = function(sequelize, DataTypes) {
 
   Device.wherePasswordMatches = async function(devices, password) {
     // checks if there is a unique devicename and password match, else returns null
-    var validDevices = [];
-    for (var i = 0; i < devices.length; i++) {
-      var passwordMatch = await devices[i].comparePassword(password);
+    const validDevices = [];
+    let passwordMatch = false;
+    for (let i = 0; i < devices.length; i++) {
+      passwordMatch = await devices[i].comparePassword(password);
       if (passwordMatch) {
         validDevices.push(devices[i]);
       }
@@ -335,7 +336,7 @@ module.exports = function(sequelize, DataTypes) {
 };
 
 function parseExactInt(value) {
-  var iValue = parseInt(value);
+  const iValue = parseInt(value);
   if (value === iValue.toString()) {
     return Number(iValue);
   } else {

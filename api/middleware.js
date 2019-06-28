@@ -130,10 +130,10 @@ function setGroupName(checkFunc) {
 function getDevice(checkFunc) {
   return checkFunc("devicename", "deviceID").custom(
     async (deviceName, { req }) => {
-      var password = req.body["password"];
-      var groupName = req.body["groupname"];
-      var deviceID = req.body["deviceID"];
-      var model = await models.Device.findDevice(
+      const password = req.body["password"];
+      const groupName = req.body["groupname"];
+      const deviceID = req.body["deviceID"];
+      const model = await models.Device.findDevice(
         deviceID,
         deviceName,
         groupName,
