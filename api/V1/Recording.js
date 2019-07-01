@@ -85,7 +85,7 @@ module.exports = (app, baseUrl) => {
    */
 
   app.post(
-    apiUrl + "/device/:devicename/group/:groupname?",
+    apiUrl + "/device/:devicename/group/:groupname",
     [
       auth.authenticateUser,
       middleware.setGroupName(param),
@@ -96,13 +96,14 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/device/:deviceId Add a new recording on behalf of device
+   * @api {post} /api/v1/recordings/device/:devicename Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
    * The user must have permission to view videos from the device or the call will return an
    * error.
    *
+   * @apiParam {String} [devicename] can be name or id of a device
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse RecordingParams
@@ -113,10 +114,10 @@ module.exports = (app, baseUrl) => {
    */
 
   app.post(
-    apiUrl + "/device/:deviceId",
+    apiUrl + "/device/:devicename",
     [
       auth.authenticateUser,
-      middleware.getDeviceById(param),
+      middleware.getDevice(param),
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(recordingUtil.makeUploadHandler())

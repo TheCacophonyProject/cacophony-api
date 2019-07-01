@@ -263,9 +263,10 @@ class UserAPI(APIBase):
     def upload_recording_for(self, groupname, devicename, filename, props=None):
         if not props:
             props = {"type": "thermalRaw"}
-        return self._upload(
-            "/api/v1/recordings/device/{}/group/{}".format(devicename, groupname), filename, props
-        )
+        endpoint = "device/{}".format(devicename)
+        if groupname:
+            endpoint += "/group/{}".format(groupname)
+        return self._upload("/api/v1/recordings/{}".format(endpoint), filename, props)
 
     def set_global_permission(self, user, permission):
         url = urljoin(self._baseurl, "/api/v1/admin/global_permission/" + user)
