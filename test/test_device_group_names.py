@@ -20,8 +20,16 @@ class TestDeviceGroupNames:
         c_terminator.group = ""
         recording = clare.uploads_recording_for(c_terminator)
 
+        with pytest.raises(UnprocessableError):
+            c_terminator = helper.given_new_device(
+                None,
+                "1234",
+                clares_group,
+                description="and devicename 1234 fails, for it must containt alpha char",
+            )
+
     # use this when we make group + device unique
-    # def test_authentication(self, helper):
+    # def test_unique_authentication(self, helper):
     #     clare = helper.given_new_user(self, "clare")
     #     clares_group = helper.make_unique_group_name(self, "clares_group")
     #     clare.create_group(clares_group)
