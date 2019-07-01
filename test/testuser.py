@@ -1,5 +1,4 @@
 import io
-
 import pytest
 
 from .testexception import TestException, AuthorizationError
@@ -246,6 +245,12 @@ class TestUser:
     def get_device_id(self, devicename):
         return self._userapi.get_device_id(devicename)
 
+    def get_devices_as_ids(self):
+        return [device["id"] for device in self._userapi.get_devices_as_json()]
+
+    def get_devices_as_string(self):
+        return self._userapi.get_devices_as_string()
+
     def cannot_download_audio(self, recording):
         with pytest.raises(AuthorizationError):
             self._userapi.download_audio(recording.id_)
@@ -276,13 +281,20 @@ class TestUser:
         return AudioSchedulePromise(self, schedule)
 
     def get_audio_schedule(self, device):
-        return self._userapi.get_audio_schedule(device.devicename)
+        print(f"device {device.devicename} has id {device.get_id()}")
 
-    def uploads_recording_for(self, testdevice):
+        return self._userapi.get_audio_schedule(device.get_id())
+
+    def uploads_recording_for(self, testdevice, device_id=None):
         props = testdevice.get_new_recording_props()
 
         filename = "files/small.cptv"
-        recording_id = self._userapi.upload_recording_for(testdevice.devicename, filename, props)
+        if device_id:
+            devicename = device_id
+        else:
+            devicename = testdevice.devicename
+
+        recording_id = self._userapi.upload_recording_for(testdevice.group, devicename, filename, props)
 
         # Expect to see this in data returned by the API server.
         props["rawMimeType"] = "application/x-cptv"

@@ -38,28 +38,35 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
-   *
+   * @apiSuccess {int} id of device registered
    * @apiUse V1ResponseError
    */
   app.post(
     apiUrl,
     [
-      middleware.checkNewName("devicename").custom(value => {
-        return models.Device.freeDevicename(value);
-      }),
-      middleware.checkNewPassword("password"),
-      middleware.getGroupByName(body)
+      middleware.getGroupByName(body),
+      middleware.checkNewName("devicename"),
+      middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
+      if (!(await models.Device.freeDevicename(request.body.devicename))) {
+        return responseUtil.send(response, {
+          statusCode: 422,
+          messages: ["Device name in use."]
+        });
+      }
+
       const device = await models.Device.create({
         devicename: request.body.devicename,
         password: request.body.password,
         GroupId: request.body.group.id
       });
+
       const data = device.getJwtDataValues();
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
+        id: device.id,
         token: "JWT " + jwt.sign(data, config.server.passportSecret)
       });
     })

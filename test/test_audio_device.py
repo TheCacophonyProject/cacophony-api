@@ -4,7 +4,7 @@ class TestAudioDevice:
         listener = helper.given_new_device(self, "Listener", description=description)
 
         print("Then 'Listener' should able to log in")
-        helper.login_as_device(listener.devicename)
+        helper.login_as_device(listener.devicename, helper.config.default_group)
 
         print("And 'Listener' should be able to upload an audio file")
         recording = listener.upload_audio_recording()

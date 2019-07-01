@@ -36,10 +36,11 @@ class Helper:
         api.name_or_email_login(nameOrEmail)
         return TestUser(username, api)
 
-    def login_as_device(self, devicename):
-        password = self._make_password(devicename)
-        device = DeviceAPI(self.config.api_url, devicename, password).login()
-        return TestDevice(devicename, device, self)
+    def login_as_device(self, devicename, groupname=None, password=None):
+        if not password:
+            password = self._make_password(devicename)
+        device = DeviceAPI(self.config.api_url, devicename, password, groupname).login()
+        return TestDevice(devicename, device, self, group=groupname)
 
     def given_new_user_with_device(self, testClass, username_base):
         self._print_description("Given a new user {}".format(username_base))
@@ -112,13 +113,12 @@ class Helper:
 
         if not group:
             group = self.config.default_group
-
+        device = DeviceAPI(self.config.api_url, uniqueName, self._make_password(uniqueName)).register_as_new(
+            group
+        )
         try:
-            device = DeviceAPI(
-                self.config.api_url, uniqueName, self._make_password(uniqueName)
-            ).register_as_new(group)
             self._print_actual_name(uniqueName)
-            return TestDevice(uniqueName, device, self)
+            return TestDevice(uniqueName, device, self, group=group)
         except Exception as exception:
             raise TestException("Failed to create device: {}".format(exception))
 

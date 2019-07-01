@@ -11,7 +11,7 @@ class TestSmoke:
         listener = helper.given_new_device(self, "Listener_" + self.groupName, group=self.groupName)
 
         print("Then 'Listener' should able to log in")
-        helper.login_as_device(listener.devicename)
+        helper.login_as_device(listener.devicename, self.groupName)
 
         print("And 'Listener' should be able to upload an audio file")
         recording = listener.upload_audio_recording()
@@ -22,7 +22,7 @@ class TestSmoke:
         watcher = helper.given_new_device(self, "Watcher_" + self.groupName, group=self.groupName)
 
         print("Then 'Watcher' should able to log in")
-        helper.login_as_device(watcher.devicename)
+        helper.login_as_device(watcher.devicename, self.groupName)
 
         print("And 'Watcher' should be able to upload an cptv file")
         recording = watcher.upload_recording()

@@ -133,11 +133,13 @@ const userCanAccessDevices = async (request, response, next) => {
   } else if ("devices" in request.body) {
     devices = request.body.devices;
   } else {
-    throw new customErrors.ClientError("No devices specified.", 422);
+    next(new customErrors.ClientError("No devices specified.", 422));
+    return;
   }
 
   if (!("user" in request)) {
-    throw new customErrors.ClientError("No user specified.", 422);
+    next(new customErrors.ClientError("No user specified.", 422));
+    return;
   }
 
   try {

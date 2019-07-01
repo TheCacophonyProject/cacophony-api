@@ -91,7 +91,7 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {get} api/v1/schedules/:devicename Get audio bait schedule (for a user's device)
+   * @api {get} api/v1/schedules/:deviceId Get audio bait schedule (for a user's device)
    * @apiName GetScheduleForDevice
    * @apiGroup Schedules
    * @apiDescription This call is used by a user to retrieve the audio bait
@@ -104,10 +104,10 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1ResponseError
    */
   app.get(
-    apiUrl + "/:devicename",
+    apiUrl + "/:deviceId",
     [
       auth.authenticateUser,
-      middleware.getDeviceByName(param),
+      middleware.getDeviceById(param),
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(async (request, response) => {
