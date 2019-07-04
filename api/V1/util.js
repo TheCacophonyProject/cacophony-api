@@ -24,9 +24,9 @@ const responseUtil = require("./responseUtil");
 const config = require("../../config");
 const modelsUtil = require("../../models/util/util");
 
-function multipartUpload(buildRecord) {
+function multipartUpload(keyPrefix, buildRecord) {
   return (request, response) => {
-    const key = moment().format("YYYY/MM/DD/") + uuidv4();
+    const key = keyPrefix + "/" + moment().format("YYYY/MM/DD/") + uuidv4();
     let data;
     let filename;
     let upload;

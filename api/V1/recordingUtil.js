@@ -25,7 +25,7 @@ const responseUtil = require("./responseUtil");
 const util = require("./util");
 
 function makeUploadHandler(mungeData) {
-  return util.multipartUpload((request, data, key) => {
+  return util.multipartUpload("raw", (request, data, key) => {
     if (mungeData) {
       data = mungeData(data);
     }

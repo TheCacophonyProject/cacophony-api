@@ -48,7 +48,7 @@ module.exports = (app, baseUrl) => {
     apiUrl,
     [auth.authenticateUser],
     middleware.requestWrapper(
-      util.multipartUpload((request, data, key) => {
+      util.multipartUpload("f", (request, data, key) => {
         const dbRecord = models.File.buildSafely(data);
         dbRecord.UserId = request.user.id;
         dbRecord.fileKey = key;
