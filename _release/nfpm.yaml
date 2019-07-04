@@ -15,6 +15,7 @@ depends:
 files:
   "**/*": "/srv/cacophony/api/"
   "_release/cacophony-api.service": "/etc/systemd/system/cacophony-api.service"
+  "_release/cacophony-api-prune-objects": "/etc/cron.d/cacophony-api-prune-objects"
 
 config_files:
   "config/app_TEMPLATE.js": "/etc/cacophony/api.js"

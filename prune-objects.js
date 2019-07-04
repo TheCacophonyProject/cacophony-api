@@ -4,6 +4,13 @@ const { Client } = require("pg");
 const config = require("./config");
 const modelsUtil = require("./models/util/util");
 
+// Define the types of object keys that will be considered for pruning.
+const keyTypes = Object.freeze([
+  { prefix: "f", table: "Files", column: "fileKey" },
+  { prefix: "raw", table: "Recordings", column: "rawFileKey" },
+  { prefix: "rec", table: "Recordings", column: "fileKey" }
+]);
+
 async function main() {
   args
     .option("--config <path>", "Configuration file", "./config/app.js")
@@ -12,34 +19,40 @@ async function main() {
 
   config.loadConfig(args.config);
 
+  if (!args.delete) {
+    console.log("NOTE: no objects will be removed without --delete");
+  }
+
   const pgClient = await pgConnect();
   const s3 = modelsUtil.openS3();
 
-  console.log("retrieving all keys from object store");
-  const storeKeys = await allBucketKeys(s3, config.s3.bucket);
-  console.log(`${storeKeys.size} keys in object store`);
+  const bucketKeys = await loadAllBucketKeys(s3, keyTypes.map(x => x.prefix));
+  console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
-  console.log("retrieving all keys referenced in database");
-  const dbKeys = await allDBKeys(pgClient);
-  console.log(`${dbKeys.size} keys in database`);
+  const dbKeys = await loadAllDBKeys(pgClient, keyTypes);
+  console.log(`${dbKeys.size} keys loaded from the database`);
 
-  const toDelete = new Set([...storeKeys].filter(x => !dbKeys.has(x)));
+  const toDelete = new Set([...bucketKeys].filter(x => !dbKeys.has(x)));
   console.log(`${toDelete.size} keys to delete`);
-  if (toDelete.size < 1) {
-    return;
-  }
 
-  if (args.delete) {
+  if (toDelete.size > 0 && args.delete) {
     await deleteObjects(s3, config.s3.bucket, toDelete);
-    console.log("objects deleted");
-  } else {
-    console.log("(no objects deleted without --delete)");
+    console.log(`objects deleted`);
   }
 }
 
-async function allBucketKeys(s3, bucket) {
+async function loadAllBucketKeys(s3, prefixes) {
+  const p = [];
+  for (const prefix of prefixes) {
+    p.push(loadBucketKeys(s3, config.s3.bucket, prefix));
+  }
+  return collectKeys(p);
+}
+
+async function loadBucketKeys(s3, bucket, prefix) {
   const params = {
-    Bucket: bucket
+    Bucket: bucket,
+    Prefix: prefix
   };
 
   const keys = new Set();
@@ -59,17 +72,6 @@ async function allBucketKeys(s3, bucket) {
   return keys;
 }
 
-async function deleteObjects(s3, bucket, keys) {
-  const params = {
-    Bucket: bucket
-  };
-
-  for (const key of keys) {
-    params.Key = key;
-    await s3.deleteObject(params).promise();
-  }
-}
-
 async function pgConnect() {
   const dbconf = config.database;
   const client = new Client({
@@ -83,22 +85,46 @@ async function pgConnect() {
   return client;
 }
 
-async function allDBKeys(client) {
+async function loadAllDBKeys(client, keyTypes) {
+  const p = [];
+  for (const keyType of keyTypes) {
+    p.push(loadDBKeys(client, keyType.table, keyType.column));
+  }
+  return collectKeys(p);
+}
+
+async function loadDBKeys(client, table, column) {
   const keys = new Set();
-  const res = await client.query(`
-        select "fileKey" as fk, "rawFileKey" as rk from "Recordings"
-        union
-        select "fileKey" as fk, NULL as rk from "Files"
-  `);
+  const res = await client.query(
+    `select "${column}" as k from "${table}" where 1 is not NULL`
+  );
   for (const row of res.rows) {
-    if (row.fk) {
-      keys.add(row.fk);
-    }
-    if (row.rk) {
-      keys.add(row.rk);
-    }
+    keys.add(row.k);
   }
   return keys;
+}
+
+async function collectKeys(promises) {
+  const results = await Promise.all(promises);
+
+  const allKeys = new Set();
+  for (const i in results) {
+    for (const key of results[i]) {
+      allKeys.add(key);
+    }
+  }
+  return allKeys;
+}
+
+async function deleteObjects(s3, bucket, keys) {
+  const params = {
+    Bucket: bucket
+  };
+
+  for (const key of keys) {
+    params.Key = key;
+    await s3.deleteObject(params).promise();
+  }
 }
 
 main()
