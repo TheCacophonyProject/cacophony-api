@@ -33,9 +33,9 @@ async function main() {
   for (const kt of keyTypes) {
     const rows = await loadDBKeys(pgClient, kt.table, kt.column);
     const desiredPrefix = kt.prefix + "/";
-    for (const [id, key] of rows) {
+    for (const [id, key, dt] of rows) {
       if (!key.startsWith(desiredPrefix)) {
-        const newKey = makeKey(kt.prefix);
+        const newKey = makeKey(kt.prefix, dt);
         logger.info(`${kt.table}[${id}]: ${kt.column} "${key}" => "${newKey}"`);
         try {
           await copyObject(s3, config.s3.bucket, key, newKey);
@@ -49,8 +49,8 @@ async function main() {
   }
 }
 
-function makeKey(prefix) {
-  return prefix + "/" + moment().format("YYYY/MM/DD/") + uuidv4();
+function makeKey(prefix, dt) {
+  return prefix + moment(dt).format("/YYYY/MM/DD/") + uuidv4();
 }
 
 async function pgConnect() {
@@ -68,7 +68,7 @@ async function pgConnect() {
 
 async function loadDBKeys(client, table, column) {
   const res = await client.query({
-    text: `select id, "${column}" as k from "${table}" where "${column}" is not NULL`,
+    text: `select id, "${column}", "createdAt" from "${table}" where "${column}" is not NULL`,
     rowMode: "array"
   });
   return res.rows;
