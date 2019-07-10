@@ -165,7 +165,7 @@ function getRecordingById(checkFunc) {
 const checkNewName = function(field) {
   return body(field, "Invalid " + field)
     .isLength({ min: 3 })
-    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/);
+    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([-]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
