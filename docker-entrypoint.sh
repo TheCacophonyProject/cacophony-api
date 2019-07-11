@@ -14,8 +14,8 @@ sudo -i -u postgres psql -c "CREATE DATABASE cacophonytest WITH OWNER test;"
 sudo -i -u postgres psql cacophonytest -c "CREATE EXTENSION postgis"
 
 echo "---- Setting up Minio ----"
-./mc --no-autocompletion config host add myminio http://127.0.0.1:9001 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
-./mc --no-autocompletion mb myminio/cacophony
+./mc config host add myminio http://127.0.0.1:9001 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+./mc mb myminio/cacophony
 
 echo "mc done"
 
