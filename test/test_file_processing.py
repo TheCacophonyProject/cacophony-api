@@ -237,6 +237,8 @@ class TestFileProcessing:
         db_recording = admin.get_recording(recording)
         assert db_recording["processingState"] == "getMetadata"
         admin.has_no_tracks(recording)
+        assert len(db_recording["additionalMetadata"].get("oldTags", [])) == 2
+
         admin.recording_has_tags(recording, ai_tag_count=0, human_tag_count=1)
 
         # check other recordings unaffected

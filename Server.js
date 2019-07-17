@@ -57,7 +57,7 @@ app.use(require("./api/customErrors").errorHandler);
 
 // Add file processing API.
 const fileProcessingApp = express();
-fileProcessingApp.use(bodyParser.urlencoded({ extended: false , limit: "2Mb"}));
+fileProcessingApp.use(bodyParser.urlencoded({ extended: false, limit: "2Mb" }));
 require("./api/fileProcessing")(fileProcessingApp);
 http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
 log.info("Starting file processing on", config.fileProcessing.port);

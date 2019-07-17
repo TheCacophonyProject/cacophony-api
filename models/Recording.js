@@ -668,6 +668,14 @@ module.exports = function(sequelize, DataTypes) {
 
   // reprocess a recording and set all active tracks to archived
   Recording.prototype.reprocess = async function() {
+    const tags = await this.getTags();
+    if (tags.length > 0) {
+      const meta = this.additionalMetadata || {};
+      meta["oldTags"] = tags;
+      this.additionalMetadata = meta;
+      await this.save();
+    }
+
     await models.Tag.destroy({
       where: {
         RecordingId: this.id,
