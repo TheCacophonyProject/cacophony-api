@@ -332,6 +332,19 @@ module.exports = function(sequelize, DataTypes) {
     return device_users.concat(group_users);
   };
 
+  // Will change the device name and group of device
+  Device.prototype.rename = async function(devicename, groupId) {
+    try {
+      await this.update({
+        devicename: devicename,
+        GroupId: groupId,
+      });
+      return true;
+    } catch(e) {
+      return false;
+    }
+  };
+
   return Device;
 };
 

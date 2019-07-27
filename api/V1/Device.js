@@ -239,4 +239,63 @@ module.exports = function(app, baseUrl) {
       }
     })
   );
+
+  /**
+   * @api {post} /api/v1/devices/rename Change the name and group of a device.
+   * @apiName RenameDevice
+   * @apiGroup Device
+   * @apiDescription This call can change the name and the group of a device.
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {String} newName new name of the device
+   * @apiParam {String} group name of the group you want to move the device to.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.post(
+    apiUrl + "/rename",
+    [
+      auth.authenticateDevice,
+      middleware.getGroupByName(body, "newGroup"),
+      middleware.checkNewName("newName"),
+    ],
+    middleware.requestWrapper(async function(request, response) {
+
+      const newName = request.body.newName;
+      const newGroup = request.body.group;
+
+      const conflictingDevice = await models.Device.findOne({
+        where: {
+          devicename: newName,
+          GroupId: newGroup.id,
+        }
+      });
+
+
+
+      if (conflictingDevice != null && conflictingDevice.id != request.device.id) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["already a deice in group '"+newGroup.groupname+"' with the name '"+newName+"'"]
+        });
+      }
+
+      if (await request.device.rename(newName, newGroup.id)) {
+        return responseUtil.send(response, {
+          statusCode: 200,
+          devicename: request.body.newName,
+          groupname: newGroup.groupname,
+          messages: ["name and gruop set"],
+        });
+      } else {
+        return responseUtil.send(response, {
+          statusCode: 500,
+          messages: ["failed to change name and group of device"],
+        });
+      }
+    })
+  );
+
 };
