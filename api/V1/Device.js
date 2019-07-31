@@ -248,8 +248,8 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {String} newName new name of the device
-   * @apiParam {String} group name of the group you want to move the device to.
+   * @apiParam {String} newName new name of the device.
+   * @apiParam {String} newGroup name of the group you want to move the device to.
    *
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
@@ -273,22 +273,26 @@ module.exports = function(app, baseUrl) {
         }
       });
 
+      const successResponse = {
+        statusCode: 200,
+        devicename: request.body.newName,
+        groupname: newGroup.groupname,
+        messages: ["name and gruop set"],
+      };
 
-
-      if (conflictingDevice != null && conflictingDevice.id != request.device.id) {
-        return responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["already a deice in group '"+newGroup.groupname+"' with the name '"+newName+"'"]
-        });
+      if (conflictingDevice != null) {
+        if (conflictingDevice.id == request.device.id) {
+          return responseUtil.send(response, successResponse);
+        } else {
+          return responseUtil.send(response, {
+            statusCode: 400,
+            messages: ["already a deice in group '"+newGroup.groupname+"' with the name '"+newName+"'"]
+          });
+        }
       }
 
       if (await request.device.rename(newName, newGroup.id)) {
-        return responseUtil.send(response, {
-          statusCode: 200,
-          devicename: request.body.newName,
-          groupname: newGroup.groupname,
-          messages: ["name and gruop set"],
-        });
+        return responseUtil.send(response, successResponse);
       } else {
         return responseUtil.send(response, {
           statusCode: 500,
