@@ -3,6 +3,7 @@ import pytest
 from test.testexception import AuthorizationError
 from .deviceapi import DeviceAPI
 
+
 class TestDeviceRename:
     def test_renaming_device(self, helper):
         admin_user = helper.admin_user()
@@ -12,7 +13,7 @@ class TestDeviceRename:
         device1_old_group = device1.group
         device1_password = device1._deviceapi._password
 
-        device1_new_name = "new_name_"+helper.random_id()
+        device1_new_name = "new_name_" + helper.random_id()
         device1_new_group = helper.make_unique_group_name(self, "new_group")
         user1.create_group(device1_new_group)
 

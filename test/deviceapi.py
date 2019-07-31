@@ -53,9 +53,6 @@ class DeviceAPI(APIBase):
 
     def rename(self, new_name, new_group):
         url = urljoin(self._baseurl, "/api/v1/devices/rename")
-        data = {
-            "newName": new_name,
-            "newGroup": new_group
-        }
+        data = {"newName": new_name, "newGroup": new_group}
         response = requests.post(url, headers=self._auth_header, json=data)
         self._check_response(response)

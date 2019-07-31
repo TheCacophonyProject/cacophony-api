@@ -96,6 +96,5 @@ class TestDevice:
         self._deviceapi.rename(new_name, new_group)
 
 
-
 def _new_timestamp():
     return datetime.now(timezone.utc)
