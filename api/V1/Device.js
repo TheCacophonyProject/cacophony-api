@@ -263,42 +263,14 @@ module.exports = function(app, baseUrl) {
     ],
     middleware.requestWrapper(async function(request, response) {
 
-      const newName = request.body.newName;
-      const newGroup = request.body.group;
+      await request.device.rename(request.body.newName, request.body.group);
 
-      const conflictingDevice = await models.Device.findOne({
-        where: {
-          devicename: newName,
-          GroupId: newGroup.id,
-        }
-      });
-
-      const successResponse = {
+      return responseUtil.send(response, {
         statusCode: 200,
         devicename: request.body.newName,
-        groupname: newGroup.groupname,
-        messages: ["name and gruop set"],
-      };
-
-      if (conflictingDevice != null) {
-        if (conflictingDevice.id == request.device.id) {
-          return responseUtil.send(response, successResponse);
-        } else {
-          return responseUtil.send(response, {
-            statusCode: 400,
-            messages: ["already a deice in group '"+newGroup.groupname+"' with the name '"+newName+"'"]
-          });
-        }
-      }
-
-      if (await request.device.rename(newName, newGroup.id)) {
-        return responseUtil.send(response, successResponse);
-      } else {
-        return responseUtil.send(response, {
-          statusCode: 500,
-          messages: ["failed to change name and group of device"],
-        });
-      }
+        groupname: request.body.group.groupname,
+        messages: ["name and group set"],
+      });
     })
   );
 

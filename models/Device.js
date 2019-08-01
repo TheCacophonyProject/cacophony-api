@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const bcrypt = require("bcrypt");
 const format = require("util").format;
 const Sequelize = require("sequelize");
+const ClientError = require("../api/customErrors").ClientError;
 
 const { AuthorizationError } = require("../api/customErrors");
 
@@ -333,16 +334,32 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   // Will change the device name and group of device
-  Device.prototype.rename = async function(devicename, groupId) {
-    try {
-      await this.update({
-        devicename: devicename,
-        GroupId: groupId,
+  Device.prototype.rename = async function(newName, newGroup) {
+
+    await sequelize.transaction({
+      isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+    }, async (t) => {
+      const conflictingDevice = await Device.findOne({
+        where: {
+          devicename: newName,
+          GroupId: newGroup.id,
+        },
+        transaction: t
       });
-      return true;
-    } catch(e) {
-      return false;
-    }
+
+      if (conflictingDevice != null) {
+        if (conflictingDevice.id == this.id) {
+          return;
+        } else {
+          throw new ClientError("already a device in group '"+newGroup.groupname+"' with the name '"+newName+"'");
+        }
+      }
+
+      await this.update({
+        devicename: newName,
+        GroupId: newGroup.id
+      }, {transaction: t});
+    });
   };
 
   return Device;
