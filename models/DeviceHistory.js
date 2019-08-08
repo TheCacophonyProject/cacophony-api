@@ -38,7 +38,11 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  const DeviceHistory = sequelize.define(name, attributes, {});
+  const options = {
+    tableName: 'DeviceHistory',
+  };
+
+  const DeviceHistory = sequelize.define(name, attributes, options);
 
   DeviceHistory.addAssociations = function(models) {
     models.DeviceHistory.belongsTo(models.Device);
