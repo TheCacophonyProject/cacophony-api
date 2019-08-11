@@ -20,7 +20,6 @@ const bcrypt = require("bcrypt");
 const format = require("util").format;
 const Sequelize = require("sequelize");
 const ClientError = require("../api/customErrors").ClientError;
-
 const { AuthorizationError } = require("../api/customErrors");
 
 const Op = Sequelize.Op;
@@ -71,6 +70,7 @@ module.exports = function(sequelize, DataTypes) {
   Device.addAssociations = function(models) {
     models.Device.hasMany(models.Recording);
     models.Device.hasMany(models.Event);
+    models.Device.hasMany(models.DeviceHistory);
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
     models.Device.belongsTo(models.Group);
@@ -354,6 +354,14 @@ module.exports = function(sequelize, DataTypes) {
           throw new ClientError("already a device in group '"+newGroup.groupname+"' with the name '"+newName+"'");
         }
       }
+
+      await models.DeviceHistory.create({
+        newName: newName,
+        oldName: this.getDataValue("devicename"),
+        newGroupID: newGroup.id,
+        oldGroupID: this.getDataValue("GroupId"),
+        DeviceId: this.getDataValue("id"),
+      }, {transaction: t});
 
       await this.update({
         devicename: newName,
