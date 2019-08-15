@@ -56,16 +56,22 @@ async function query(request, type) {
   // remove legacy tag mode selector (if included)
   delete request.query.where._tagged;
 
-  const result = await models.Recording.query(
+  const query = await models.Recording.makeBaseQuery(
     request.user,
     request.query.where,
     request.query.tagMode,
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order,
-    request.query.filterOptions
+    request.query.order
   );
+  const result = await models.Recording.findAndCountAll(query);
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+  result.rows.map(rec => rec.filterData(filterOptions));
   result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
   return result;
 }

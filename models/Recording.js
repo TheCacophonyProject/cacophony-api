@@ -154,19 +154,15 @@ module.exports = function(sequelize, DataTypes) {
         return null;
       });
   };
-  /**
-   * Return one or more recordings for a user matching the query
-   * arguments given.
-   */
-  Recording.query = async function(
+
+  Recording.makeBaseQuery = async function(
     user,
     where,
     tagMode,
     tags,
     offset,
     limit,
-    order,
-    filterOptions
+    order
   ) {
     if (!offset) {
       offset = 0;
@@ -189,8 +185,7 @@ module.exports = function(sequelize, DataTypes) {
         ["id", "DESC"]
       ];
     }
-
-    const q = {
+    return {
       where: {
         [Op.and]: [
           where, // User query
@@ -237,12 +232,6 @@ module.exports = function(sequelize, DataTypes) {
       offset: offset,
       attributes: Recording.queryGetAttributes
     };
-
-    const queryResponse = await this.findAndCountAll(q);
-
-    filterOptions = makeFilterOptions(user, filterOptions);
-    queryResponse.rows.map(rec => rec.filterData(filterOptions));
-    return queryResponse;
   };
 
   // local
@@ -440,7 +429,9 @@ module.exports = function(sequelize, DataTypes) {
       );
     }
 
-    recording.filterData(makeFilterOptions(user, options.filterOptions));
+    recording.filterData(
+      Recording.makeFilterOptions(user, options.filterOptions)
+    );
     return recording;
   };
 
@@ -472,6 +463,16 @@ module.exports = function(sequelize, DataTypes) {
     }
     await recording.update(updates);
     return true;
+  };
+
+  Recording.makeFilterOptions = function(user, options = {}) {
+    if (typeof options.latLongPrec != "number") {
+      options.latLongPrec = 100;
+    }
+    if (!user.hasGlobalWrite()) {
+      options.latLongPrec = Math.max(options.latLongPrec, 100);
+    }
+    return options;
   };
 
   // local
@@ -625,16 +626,6 @@ module.exports = function(sequelize, DataTypes) {
       );
     }
   };
-
-  function makeFilterOptions(user, options = {}) {
-    if (typeof options.latLongPrec != "number") {
-      options.latLongPrec = 100;
-    }
-    if (!user.hasGlobalWrite()) {
-      options.latLongPrec = Math.max(options.latLongPrec, 100);
-    }
-    return options;
-  }
 
   function reduceLatLonPrecision(latLon, prec) {
     assert(latLon.length == 2);
