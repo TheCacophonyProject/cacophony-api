@@ -70,6 +70,7 @@ module.exports = function(app, baseUrl) {
    * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {Groups[]} groups Array of groups
    *
    * @apiUse V1ResponseError
    */
