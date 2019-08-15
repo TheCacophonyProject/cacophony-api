@@ -197,12 +197,10 @@ module.exports = function(sequelize, DataTypes) {
       include: [
         {
           model: models.Group,
-          where: {},
           attributes: ["groupname"]
         },
         {
           model: models.Tag,
-          where: {},
           attributes: ["what", "detail", "automatic", "taggerId"],
           required: false
         },
@@ -217,15 +215,13 @@ module.exports = function(sequelize, DataTypes) {
             {
               model: models.TrackTag,
               attributes: ["what", "automatic", "UserId"],
-              where: {},
               required: false
             }
           ]
         },
         {
           model: models.Device,
-          where: {},
-          attributes: ["devicename"]
+          attributes: ["id", "devicename"]
         }
       ],
       limit: limit,

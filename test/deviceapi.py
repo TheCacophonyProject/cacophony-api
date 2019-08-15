@@ -42,8 +42,8 @@ class DeviceAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/events")
 
         response = requests.post(url, headers=self._auth_header, json=eventData)
-        self._check_response(response)
-        return response.json()["eventsAdded"], response.json()["eventDetailId"]
+        response_data = self._check_response(response)
+        return response_data["eventsAdded"], response_data["eventDetailId"]
 
     def get_audio_schedule(self):
         url = urljoin(self._baseurl, "/api/v1/schedules")

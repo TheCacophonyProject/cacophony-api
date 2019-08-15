@@ -18,6 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const jsonwebtoken = require("jsonwebtoken");
 const mime = require("mime");
+const sequelize = require("sequelize");
+const Op = sequelize.Op;
+const moment = require("moment");
+const urljoin = require("url-join");
+
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
 const models = require("../../models");
@@ -65,15 +70,172 @@ async function query(request, type) {
     request.query.limit,
     request.query.order
   );
+
   const result = await models.Recording.findAndCountAll(query);
 
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
   );
+  // XXX don't loop over twice
   result.rows.map(rec => rec.filterData(filterOptions));
   result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
   return result;
+}
+
+// Returns a promise for report rows for a set of recordings. Takes
+// the same parameters as query() above.
+async function report(request) {
+  if (!request.query.where) {
+    request.query.where = {};
+  }
+
+  const query = await models.Recording.makeBaseQuery(
+    request.user,
+    request.query.where,
+    request.query.tagMode,
+    request.query.tags,
+    request.query.offset,
+    request.query.limit,
+    request.query.order
+  );
+  query.attributes.push("comment"); // XXX add this to builder too
+
+  // XXX dodgy - replace with a builder
+  // XXX consider moving all this to a specialised method on build to get the DB logic out of here
+  const deviceInclude = query.include[3];
+  deviceInclude.include = [
+    {
+      model: models.Event,
+      required: false,
+      where: {
+        dateTime: {
+          [Op.lt]: sequelize.literal('"Recording"."recordingDateTime"'),
+          [Op.gt]: sequelize.literal(
+            '"Recording"."recordingDateTime" - interval \'30 minutes\''
+          )
+        }
+      },
+      include: [
+        {
+          model: models.DetailSnapshot,
+          as: "EventDetail",
+          required: true,
+          where: {
+            type: "audioBait"
+          },
+          attributes: ["details"]
+        }
+      ]
+    }
+  ];
+  const result = await models.Recording.findAll(query);
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+
+  const recording_url_base = config.server.recording_url_base || "";
+
+  const out = [
+    [
+      "id",
+      "type",
+      "group",
+      "device",
+      "timestamp",
+      "duration",
+      "comment",
+      "track_count",
+      "automatic_track_tags",
+      "human_track_tags",
+      "recording_tags",
+      "last_audio_bait",
+      "last_audio_bait_time",
+      "mins_since_last_audio_bait",
+      "url"
+    ]
+  ];
+
+  for (let r of result) {
+    r.filterData(filterOptions);
+
+    automatic_track_tags = new Set();
+    human_track_tags = new Set();
+    for (let track of r.Tracks) {
+      for (let tag of track.TrackTags) {
+        const subject = tag.what || tag.detail;
+        if (tag.automatic) {
+          automatic_track_tags.add(subject);
+        } else {
+          human_track_tags.add(subject);
+        }
+      }
+    }
+
+    const recording_tags = r.Tags.map(t => t.what || t.detail);
+
+    let audioBaitName = "";
+    let audioBaitTime = null;
+    let audioBaitDelta = null;
+    const latestAudioEvent = findLatestEvent(r.Device.Events);
+    if (latestAudioEvent) {
+      audioBaitName = await getAudioEventName(latestAudioEvent);
+      audioBaitTime = moment(latestAudioEvent.dateTime);
+      audioBaitDelta = moment
+        .duration(r.recordingDateTime - audioBaitTime)
+        .asMinutes()
+        .toFixed(1);
+    }
+
+    out.push([
+      r.id,
+      r.type,
+      r.Group.groupname,
+      r.Device.devicename,
+      moment(r.recordingDateTime).format(),
+      r.duration,
+      r.comment,
+      r.Tracks.length,
+      formatTags(automatic_track_tags),
+      formatTags(human_track_tags),
+      formatTags(recording_tags),
+      audioBaitName,
+      audioBaitTime ? audioBaitTime.format() : "",
+      audioBaitDelta,
+      urljoin(recording_url_base, r.id.toString())
+    ]);
+  }
+  return out;
+}
+
+function findLatestEvent(events) {
+  if (!events) {
+    return null;
+  }
+
+  let latest = events[0];
+  for (let event of events) {
+    if (event.dateTime > latest.dateTime) {
+      latest = event;
+    }
+  }
+  return latest;
+}
+
+async function getAudioEventName(event) {
+  const fileInfo = await event.EventDetail.getFile();
+  if (!fileInfo) {
+    return null;
+  }
+  return fileInfo.details.name;
+}
+
+function formatTags(tags) {
+  const out = Array.from(tags);
+  out.sort();
+  return out.join("+");
 }
 
 async function get(request, type) {
@@ -289,6 +451,7 @@ async function reprocess(request, response) {
 
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
+exports.report = report;
 exports.get = get;
 exports.delete_ = delete_;
 exports.addTag = addTag;

@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const { query, param, body } = require("express-validator/check");
+const csv = require("fast-csv");
 
 const middleware = require("../middleware");
 const auth = require("../auth");
@@ -123,6 +124,25 @@ module.exports = (app, baseUrl) => {
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
   );
 
+  const queryValidators = Object.freeze([
+    auth.authenticateUser,
+    middleware.parseJSON("where", query).optional(),
+    query("offset")
+      .isInt()
+      .optional(),
+    query("limit")
+      .isInt()
+      .optional(),
+    middleware.parseJSON("order", query).optional(),
+    middleware.parseArray("tags", query).optional(),
+    query("tagMode")
+      .optional()
+      .custom(value => {
+        return models.Recording.isValidTagMode(value);
+      }),
+    middleware.parseJSON("filterOptions", query).optional()
+  ]);
+
   /**
    * @api {get} /api/v1/recordings Query available recordings
    * @apiName QueryRecordings
@@ -150,24 +170,7 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    [
-      auth.authenticateUser,
-      middleware.parseJSON("where", query).optional(),
-      query("offset")
-        .isInt()
-        .optional(),
-      query("limit")
-        .isInt()
-        .optional(),
-      middleware.parseJSON("order", query).optional(),
-      middleware.parseArray("tags", query).optional(),
-      query("tagMode")
-        .optional()
-        .custom(value => {
-          return models.Recording.isValidTagMode(value);
-        }),
-      middleware.parseJSON("filterOptions", query).optional()
-    ],
+    queryValidators,
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
@@ -178,6 +181,28 @@ module.exports = (app, baseUrl) => {
         count: result.count,
         rows: result.rows
       });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/recordings/report Generate report for a set of recordings.
+   * @apiName QueryRecordings
+   * @apiGroup Recordings
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * Parameters are the same as for /api/v1/recording.
+   *
+   * Output is
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/report",
+    queryValidators,
+    middleware.requestWrapper(async (request, response) => {
+      const rows = await recordingUtil.report(request);
+      csv.writeToStream(response.status(200), rows);
     })
   );
 

@@ -16,6 +16,7 @@
     "express-validator": "^5.3.1",
     "express-winston": "^2.5.0",
     "extend": "^3.0.2",
+    "fast-csv": "^3.4.0",
     "fs": "0.0.2",
     "fstream": "^1.0.12",
     "install": "^0.12.2",
@@ -41,6 +42,7 @@
     "sequelize": "^5.8.12",
     "sequelize-cli": "^5.5.0",
     "tar": "^4.4.10",
+    "url-join": "^4.0.1",
     "uuid": "^3.2.1",
     "winston": "^1.0.1"
   },

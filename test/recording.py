@@ -7,6 +7,9 @@ class Recording:
         # This will be printed out if a recordings query gives unexpected results.
         self.name = recording_name
 
+        self.tags = []
+        self.tracks = []
+
     def __repr__(self):
         return "<Recording: {}>".format(self.id_)
 
@@ -29,10 +32,12 @@ class TagPromise:
         self._tag = tag
 
     def by(self, user):
+        self._recording.tags.append(self._tag)
         return user.tag_recording(self._recording, self._tag)
 
     def byAI(self, user):
         self._tag["automatic"] = True
+        self._recording.tags.append(self._tag)
         return user.tag_recording(self._recording, self._tag)
 
 

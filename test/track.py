@@ -8,6 +8,7 @@ class Track:
     id_ = attr.ib()
     recording = attr.ib()
     data = attr.ib()
+    tags = attr.ib(factory=list)
 
     @classmethod
     def create(cls, recording):
@@ -25,14 +26,17 @@ class TrackTag:
     data = attr.ib()
 
     @classmethod
-    def create(cls, track, automatic=None):
+    def create(cls, track, automatic=None, what=None):
         "Make a TestTrackTag with some plausible data."
         if automatic is None:
             automatic = random.choice([True, False])
+        if what is None:
+            what = random.choice(["possum", "rat", "stoat"])
+
         return cls(
             id_=None,
             track=track,
-            what=random.choice(["possum", "rat", "stoat"]),
+            what=what,
             confidence=random.choice([0.5, 0.8, 0.9]),
             automatic=automatic,
             data=random.choice([["foo", 1], ["bar", 2], ["what", 3]]),
