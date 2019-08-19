@@ -97,9 +97,33 @@ async function report(request) {
     request.filterOptions
   );
 
-  const recording_url_base = config.server.recording_url_base || "";
+  // Our DB schema doesn't allow us to easily get from a audio event
+  // recording to a audio file name so do some work first to look these up.
+  const audioEvents = new Map();
+  const audioFileIds = new Set();
+  for (let r of result) {
+    const event = findLatestEvent(r.Device.Events);
+    if (event) {
+      const fileId = event.EventDetail.details.fileId;
+      audioEvents[r.id] = {
+        timestamp: event.dateTime,
+        fileId
+      };
+      audioFileIds.add(fileId);
+    }
+  }
 
-  // XXX more efficient (bulk) audio event name lookups
+  // Bulk look up file details of played audio events.
+  const audioFileNames = new Map();
+  for (let f of await models.File.getMultiple(Array.from(audioFileIds))) {
+    audioFileNames[f.id] = f.details.name;
+  }
+
+  console.log(audioEvents);
+  console.log(audioFileIds);
+  console.log(audioFileNames);
+
+  const recording_url_base = config.server.recording_url_base || "";
 
   const out = [
     [
@@ -142,10 +166,10 @@ async function report(request) {
     let audioBaitName = "";
     let audioBaitTime = null;
     let audioBaitDelta = null;
-    const latestAudioEvent = findLatestEvent(r.Device.Events);
-    if (latestAudioEvent) {
-      audioBaitName = await getAudioEventName(latestAudioEvent);
-      audioBaitTime = moment(latestAudioEvent.dateTime);
+    const audioEvent = audioEvents[r.id];
+    if (audioEvent) {
+      audioBaitName = audioFileNames[audioEvent.fileId];
+      audioBaitTime = moment(audioEvent.timestamp);
       audioBaitDelta = moment
         .duration(r.recordingDateTime - audioBaitTime)
         .asMinutes()
