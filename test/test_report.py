@@ -12,9 +12,7 @@ class TestReport:
         # Add some audio events
         now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
         file_id = user.upload_audio_bait({"name": "other-sound"})
-        device.record_event(
-            "audioBait", {"fileId": file_id}, [now - timedelta(minutes=5)]
-        )
+        device.record_event("audioBait", {"fileId": file_id}, [now - timedelta(minutes=5)])
 
         exp_audio_bait_name = "some-sound"
         exp_audio_bait_time = now - timedelta(minutes=2)  # newer
@@ -76,9 +74,7 @@ class ReportChecker:
         assert line["recording_tags"] == format_tags(t["what"] for t in rec.tags)
 
         assert line["last_audio_bait"] == exp_audio_bait_name
-        assert_times_equiv(
-            dateutil.parser.parse(line["last_audio_bait_time"]), exp_audio_bait_time
-        )
+        assert_times_equiv(dateutil.parser.parse(line["last_audio_bait_time"]), exp_audio_bait_time)
         assert float(line["mins_since_last_audio_bait"]) == round(
             (recording_time - exp_audio_bait_time).total_seconds() / 60, 1
         )
