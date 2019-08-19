@@ -149,23 +149,10 @@ module.exports = (app, baseUrl) => {
    * @apiGroup Recordings
    *
    * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiUse QueryParams
-   * @apiParam {JSON} [tags] Only return recordings tagged with one or more of the listed tags (JSON array).
-   * @apiParam {String} [tagMode] Only return recordings with specific types of tags. Valid values:
-   * <ul>
-   * <li>any: match recordings with any (or no) tag
-   * <li>untagged: match only recordings with no tags
-   * <li>tagged: match only recordings which have been tagged
-   * <li>no-human: match only recordings which are untagged or have been automatically tagged
-   * <li>automatic-only: match only recordings which have been automatically tagged
-   * <li>human-only: match only recordings which have been manually tagged
-   * <li>automatic+human: match only recordings which have been both automatically & manually tagged
-   * </ul>
+   * @apiUse BaseQueryParams
+   * @apiUse MoreQueryParams
    * @apiUse FilterOptions
-   *
    * @apiUse V1ResponseSuccessQuery
-   *
    * @apiUse V1ResponseError
    */
   app.get(
@@ -193,11 +180,9 @@ module.exports = (app, baseUrl) => {
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
-   * @apiUse QueryParams
-   * @apiParam {JSON} [tags] As per GET /api/V1/recordings
-   * @apiParam {String} [tagMode] As per GET /api/V1/recordings
+   * @apiUse BaseQueryParams
+   * @apiUse MoreQueryParams
    * @apiUse FilterOptions
-   *
    * @apiUse V1ResponseError
    */
   app.get(
