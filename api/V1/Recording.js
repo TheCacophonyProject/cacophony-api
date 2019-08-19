@@ -185,15 +185,18 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {get} /api/v1/recordings/report Generate report for a set of recordings.
-   * @apiName QueryRecordings
+   * @api {get} /api/v1/recordings/report Generate report for a set of recordings
+   * @apiName Report
    * @apiGroup Recordings
+   * @apiDescription Parameters are as per GET /api/V1/recordings. On
+   * success (status 200), the response body will contain CSV
+   * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
-   *
-   * Parameters are the same as for /api/v1/recording.
-   *
-   * Output is
+   * @apiUse QueryParams
+   * @apiParam {JSON} [tags] As per GET /api/V1/recordings
+   * @apiParam {String} [tagMode] As per GET /api/V1/recordings
+   * @apiUse FilterOptions
    *
    * @apiUse V1ResponseError
    */
