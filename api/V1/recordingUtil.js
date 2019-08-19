@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const jsonwebtoken = require("jsonwebtoken");
 const mime = require("mime");
-const sequelize = require("sequelize");
-const Op = sequelize.Op;
 const moment = require("moment");
 const urljoin = require("url-join");
 
@@ -51,17 +49,11 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 async function query(request, type) {
-  if (!request.query.where) {
-    request.query.where = {};
-  }
   if (type) {
     request.query.where.type = type;
   }
 
-  // remove legacy tag mode selector (if included)
-  delete request.query.where._tagged;
-
-  const query = await models.Recording.makeBaseQuery(
+  const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -70,27 +62,23 @@ async function query(request, type) {
     request.query.limit,
     request.query.order
   );
-
-  const result = await models.Recording.findAndCountAll(query);
+  const result = await models.Recording.findAndCountAll(builder.get());
 
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
   );
-  // XXX don't loop over twice
-  result.rows.map(rec => rec.filterData(filterOptions));
-  result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
+  result.rows = result.rows.map(rec => {
+    rec.filterData(filterOptions);
+    return handleLegacyTagFieldsForGetOnRecording(rec);
+  });
   return result;
 }
 
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request) {
-  if (!request.query.where) {
-    request.query.where = {};
-  }
-
-  const query = await models.Recording.makeBaseQuery(
+  const builder = (await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -98,38 +86,11 @@ async function report(request) {
     request.query.offset,
     request.query.limit,
     request.query.order
-  );
-  query.attributes.push("comment"); // XXX add this to builder too
+  ))
+    .addColumn("comment")
+    .addAudioEvents();
 
-  // XXX dodgy - replace with a builder
-  // XXX consider moving all this to a specialised method on build to get the DB logic out of here
-  const deviceInclude = query.include[3];
-  deviceInclude.include = [
-    {
-      model: models.Event,
-      required: false,
-      where: {
-        dateTime: {
-          [Op.lt]: sequelize.literal('"Recording"."recordingDateTime"'),
-          [Op.gt]: sequelize.literal(
-            '"Recording"."recordingDateTime" - interval \'30 minutes\''
-          )
-        }
-      },
-      include: [
-        {
-          model: models.DetailSnapshot,
-          as: "EventDetail",
-          required: true,
-          where: {
-            type: "audioBait"
-          },
-          attributes: ["details"]
-        }
-      ]
-    }
-  ];
-  const result = await models.Recording.findAll(query);
+  const result = await models.Recording.findAll(builder.get());
 
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
@@ -137,6 +98,8 @@ async function report(request) {
   );
 
   const recording_url_base = config.server.recording_url_base || "";
+
+  // XXX more efficient (bulk) audio event name lookups
 
   const out = [
     [

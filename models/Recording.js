@@ -155,223 +155,6 @@ module.exports = function(sequelize, DataTypes) {
       });
   };
 
-  Recording.makeBaseQuery = async function(
-    user,
-    where,
-    tagMode,
-    tags,
-    offset,
-    limit,
-    order
-  ) {
-    if (!offset) {
-      offset = 0;
-    }
-    if (!limit) {
-      limit = 300;
-    }
-    if (!order) {
-      order = [
-        // Sort by recordingDatetime but handle the case of the
-        // timestamp being missing and fallback to sorting by id.
-        [
-          sequelize.fn(
-            "COALESCE",
-            sequelize.col("recordingDateTime"),
-            "1970-01-01"
-          ),
-          "DESC"
-        ],
-        ["id", "DESC"]
-      ];
-    }
-    return {
-      where: {
-        [Op.and]: [
-          where, // User query
-          await recordingsFor(user),
-          sequelize.literal(handleTagMode(tagMode, tags))
-        ]
-      },
-      order: order,
-      include: [
-        {
-          model: models.Group,
-          attributes: ["groupname"]
-        },
-        {
-          model: models.Tag,
-          attributes: ["what", "detail", "automatic", "taggerId"],
-          required: false
-        },
-        {
-          model: models.Track,
-          where: {
-            archivedAt: null
-          },
-          attributes: ["id"],
-          required: false,
-          include: [
-            {
-              model: models.TrackTag,
-              attributes: ["what", "automatic", "UserId"],
-              required: false
-            }
-          ]
-        },
-        {
-          model: models.Device,
-          attributes: ["id", "devicename"]
-        }
-      ],
-      limit: limit,
-      offset: offset,
-      attributes: Recording.queryGetAttributes
-    };
-  };
-
-  // local
-  const handleTagMode = (tagMode, tagWhatsIn) => {
-    const tagWhats = tagWhatsIn && tagWhatsIn.length > 0 ? tagWhatsIn : null;
-    if (!tagMode) {
-      tagMode = tagWhats ? "tagged" : "any";
-    }
-
-    const humanSQL = 'NOT "Tags".automatic';
-    const AISQL = '"Tags".automatic';
-    switch (tagMode) {
-      case "any":
-        return "";
-      case "untagged":
-        return notTagOfType(tagWhats, null);
-      case "tagged":
-        return tagOfType(tagWhats, null);
-      case "human-tagged":
-        return tagOfType(tagWhats, humanSQL);
-      case "automatic-tagged":
-        return tagOfType(tagWhats, AISQL);
-      case "both-tagged":
-        return (
-          tagOfType(tagWhats, humanSQL) + " AND " + tagOfType(tagWhats, AISQL)
-        );
-      case "no-human":
-        return notTagOfType(tagWhats, humanSQL);
-      case "automatic-only":
-        return (
-          tagOfType(tagWhats, AISQL) +
-          " AND " +
-          notTagOfType(tagWhats, humanSQL)
-        );
-      case "human-only":
-        return (
-          tagOfType(tagWhats, humanSQL) +
-          " AND " +
-          notTagOfType(tagWhats, AISQL)
-        );
-      case "automatic+human":
-        return (
-          tagOfType(tagWhats, humanSQL) + " AND " + tagOfType(tagWhats, AISQL)
-        );
-      case "cool":
-      case "missed track":
-      case "multiple animals":
-      case "trapped in trap": {
-        let sqlQuery =
-          "(EXISTS (" + recordingTaggedWith([tagMode], null) + "))";
-        if (tagWhats) {
-          sqlQuery = sqlQuery + " AND " + tagOfType(tagWhats, null);
-        }
-        return sqlQuery;
-      }
-      default:
-        throw `invalid tag mode: ${tagMode}`;
-    }
-  };
-
-  const tagOfType = (tagWhats, tagTypeSql) => {
-    return (
-      "(EXISTS (" +
-      recordingTaggedWith(tagWhats, tagTypeSql) +
-      ") OR EXISTS(" +
-      trackTaggedWith(tagWhats, tagTypeSql) +
-      "))"
-    );
-  };
-
-  const notTagOfType = (tagWhats, tagTypeSql) => {
-    return (
-      "NOT EXISTS (" +
-      recordingTaggedWith(tagWhats, tagTypeSql) +
-      ") AND NOT EXISTS(" +
-      trackTaggedWith(tagWhats, tagTypeSql) +
-      ")"
-    );
-  };
-
-  const recordingTaggedWith = (tags, tagTypeSql) => {
-    let sql =
-      'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
-    if (tags) {
-      sql += " AND (" + selectByTagWhat(tags, "what", true) + ")";
-    }
-    if (tagTypeSql) {
-      sql += " AND (" + tagTypeSql + ")";
-    }
-    return sql;
-  };
-
-  const trackTaggedWith = (tags, tagTypeSql) => {
-    let sql =
-      'SELECT "Recording"."id" FROM "Tracks" INNER JOIN "TrackTags" AS "Tags" ON "Tracks"."id" = "Tags"."TrackId" ' +
-      'WHERE "Tracks"."RecordingId" = "Recording".id AND "Tracks"."archivedAt" IS NULL';
-    if (tags) {
-      sql += " AND (" + selectByTagWhat(tags, "what", false) + ")";
-    }
-    if (tagTypeSql) {
-      sql += " AND (" + tagTypeSql + ")";
-    }
-    return sql;
-  };
-
-  // local
-  const selectByTagWhat = (tags, whatName, usesDetail) => {
-    if (!tags || tags.length === 0) {
-      return null;
-    }
-
-    const parts = [];
-    for (let i = 0; i < tags.length; i++) {
-      const tag = tags[i];
-      if (tag == "interesting") {
-        if (usesDetail) {
-          parts.push(
-            '(("Tags"."' +
-              whatName +
-              '" IS NULL OR "Tags"."' +
-              whatName +
-              "\"!='bird') " +
-              'AND ("Tags"."detail" IS NULL OR "Tags"."detail"!=\'false positive\'))'
-          );
-        } else {
-          parts.push(
-            '("Tags"."' +
-              whatName +
-              '"!=\'bird\' AND "Tags"."' +
-              whatName +
-              "\"!='false positive')"
-          );
-        }
-      } else {
-        parts.push('"Tags"."' + whatName + "\" = '" + tag + "'");
-        if (usesDetail) {
-          // the label could also be the detail field not the what field
-          parts.push('"Tags"."detail" = \'' + tag + "'");
-        }
-      }
-    }
-    return parts.join(" OR ");
-  };
-
   /**
    * Return a single recording for a user.
    */
@@ -702,6 +485,300 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     return track;
+  };
+
+  Recording.queryBuilder = function() {};
+
+  Recording.queryBuilder.prototype.init = async function(
+    user,
+    where,
+    tagMode,
+    tags,
+    offset,
+    limit,
+    order
+  ) {
+    if (!where) {
+      where = {};
+    }
+
+    delete where._tagged; // remove legacy tag mode selector (if included)
+
+    if (!offset) {
+      offset = 0;
+    }
+    if (!limit) {
+      limit = 300;
+    }
+    if (!order) {
+      order = [
+        // Sort by recordingDatetime but handle the case of the
+        // timestamp being missing and fallback to sorting by id.
+        [
+          sequelize.fn(
+            "COALESCE",
+            sequelize.col("recordingDateTime"),
+            "1970-01-01"
+          ),
+          "DESC"
+        ],
+        ["id", "DESC"]
+      ];
+    }
+    this.query = {
+      where: {
+        [Op.and]: [
+          where, // User query
+          await recordingsFor(user),
+          sequelize.literal(Recording.queryBuilder.handleTagMode(tagMode, tags))
+        ]
+      },
+      order: order,
+      include: [
+        {
+          model: models.Group,
+          attributes: ["groupname"]
+        },
+        {
+          model: models.Tag,
+          attributes: ["what", "detail", "automatic", "taggerId"],
+          required: false
+        },
+        {
+          model: models.Track,
+          where: {
+            archivedAt: null
+          },
+          attributes: ["id"],
+          required: false,
+          include: [
+            {
+              model: models.TrackTag,
+              attributes: ["what", "automatic", "UserId"],
+              required: false
+            }
+          ]
+        },
+        {
+          model: models.Device,
+          attributes: ["id", "devicename"]
+        }
+      ],
+      limit: limit,
+      offset: offset,
+      attributes: Recording.queryGetAttributes
+    };
+
+    return this;
+  };
+
+  Recording.queryBuilder.handleTagMode = (tagMode, tagWhatsIn) => {
+    const tagWhats = tagWhatsIn && tagWhatsIn.length > 0 ? tagWhatsIn : null;
+    if (!tagMode) {
+      tagMode = tagWhats ? "tagged" : "any";
+    }
+
+    const humanSQL = 'NOT "Tags".automatic';
+    const AISQL = '"Tags".automatic';
+    switch (tagMode) {
+      case "any":
+        return "";
+      case "untagged":
+        return Recording.queryBuilder.notTagOfType(tagWhats, null);
+      case "tagged":
+        return Recording.queryBuilder.tagOfType(tagWhats, null);
+      case "human-tagged":
+        return Recording.queryBuilder.tagOfType(tagWhats, humanSQL);
+      case "automatic-tagged":
+        return Recording.queryBuilder.tagOfType(tagWhats, AISQL);
+      case "both-tagged":
+        return (
+          Recording.queryBuilder.tagOfType(tagWhats, humanSQL) +
+          " AND " +
+          Recording.queryBuilder.tagOfType(tagWhats, AISQL)
+        );
+      case "no-human":
+        return Recording.queryBuilder.notTagOfType(tagWhats, humanSQL);
+      case "automatic-only":
+        return (
+          Recording.queryBuilder.tagOfType(tagWhats, AISQL) +
+          " AND " +
+          Recording.queryBuilder.notTagOfType(tagWhats, humanSQL)
+        );
+      case "human-only":
+        return (
+          Recording.queryBuilder.tagOfType(tagWhats, humanSQL) +
+          " AND " +
+          Recording.queryBuilder.notTagOfType(tagWhats, AISQL)
+        );
+      case "automatic+human":
+        return (
+          Recording.queryBuilder.tagOfType(tagWhats, humanSQL) +
+          " AND " +
+          Recording.queryBuilder.tagOfType(tagWhats, AISQL)
+        );
+      case "cool":
+      case "missed track":
+      case "multiple animals":
+      case "trapped in trap": {
+        let sqlQuery =
+          "(EXISTS (" +
+          Recording.queryBuilder.recordingTaggedWith([tagMode], null) +
+          "))";
+        if (tagWhats) {
+          sqlQuery =
+            sqlQuery +
+            " AND " +
+            Recording.queryBuilder.tagOfType(tagWhats, null);
+        }
+        return sqlQuery;
+      }
+      default:
+        throw `invalid tag mode: ${tagMode}`;
+    }
+  };
+
+  Recording.queryBuilder.tagOfType = (tagWhats, tagTypeSql) => {
+    return (
+      "(EXISTS (" +
+      Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
+      ") OR EXISTS(" +
+      Recording.queryBuilder.trackTaggedWith(tagWhats, tagTypeSql) +
+      "))"
+    );
+  };
+
+  Recording.queryBuilder.notTagOfType = (tagWhats, tagTypeSql) => {
+    return (
+      "NOT EXISTS (" +
+      Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
+      ") AND NOT EXISTS(" +
+      Recording.queryBuilder.trackTaggedWith(tagWhats, tagTypeSql) +
+      ")"
+    );
+  };
+
+  Recording.queryBuilder.recordingTaggedWith = (tags, tagTypeSql) => {
+    let sql =
+      'SELECT "Recording"."id" FROM "Tags" WHERE  "Tags"."RecordingId" = "Recording".id';
+    if (tags) {
+      sql +=
+        " AND (" +
+        Recording.queryBuilder.selectByTagWhat(tags, "what", true) +
+        ")";
+    }
+    if (tagTypeSql) {
+      sql += " AND (" + tagTypeSql + ")";
+    }
+    return sql;
+  };
+
+  Recording.queryBuilder.trackTaggedWith = (tags, tagTypeSql) => {
+    let sql =
+      'SELECT "Recording"."id" FROM "Tracks" INNER JOIN "TrackTags" AS "Tags" ON "Tracks"."id" = "Tags"."TrackId" ' +
+      'WHERE "Tracks"."RecordingId" = "Recording".id AND "Tracks"."archivedAt" IS NULL';
+    if (tags) {
+      sql +=
+        " AND (" +
+        Recording.queryBuilder.selectByTagWhat(tags, "what", false) +
+        ")";
+    }
+    if (tagTypeSql) {
+      sql += " AND (" + tagTypeSql + ")";
+    }
+    return sql;
+  };
+
+  Recording.queryBuilder.selectByTagWhat = (tags, whatName, usesDetail) => {
+    if (!tags || tags.length === 0) {
+      return null;
+    }
+
+    const parts = [];
+    for (let i = 0; i < tags.length; i++) {
+      const tag = tags[i];
+      if (tag == "interesting") {
+        if (usesDetail) {
+          parts.push(
+            '(("Tags"."' +
+              whatName +
+              '" IS NULL OR "Tags"."' +
+              whatName +
+              "\"!='bird') " +
+              'AND ("Tags"."detail" IS NULL OR "Tags"."detail"!=\'false positive\'))'
+          );
+        } else {
+          parts.push(
+            '("Tags"."' +
+              whatName +
+              '"!=\'bird\' AND "Tags"."' +
+              whatName +
+              "\"!='false positive')"
+          );
+        }
+      } else {
+        parts.push('"Tags"."' + whatName + "\" = '" + tag + "'");
+        if (usesDetail) {
+          // the label could also be the detail field not the what field
+          parts.push('"Tags"."detail" = \'' + tag + "'");
+        }
+      }
+    }
+    return parts.join(" OR ");
+  };
+
+  Recording.queryBuilder.prototype.get = function() {
+    return this.query;
+  };
+
+  Recording.queryBuilder.prototype.addColumn = function(name) {
+    this.query.attributes.push(name);
+    return this;
+  };
+
+  // Include details of recent audio bait events in the query output.
+  Recording.queryBuilder.prototype.addAudioEvents = function() {
+    deviceInclude = this.findInclude(models.Device);
+
+    if (!deviceInclude.include) {
+      deviceInclude.include = {};
+    }
+    deviceInclude.include = [
+      {
+        model: models.Event,
+        required: false,
+        where: {
+          dateTime: {
+            [Op.lt]: sequelize.literal('"Recording"."recordingDateTime"'),
+            [Op.gt]: sequelize.literal(
+              '"Recording"."recordingDateTime" - interval \'30 minutes\''
+            )
+          }
+        },
+        include: [
+          {
+            model: models.DetailSnapshot,
+            as: "EventDetail",
+            required: true,
+            where: {
+              type: "audioBait"
+            },
+            attributes: ["details"]
+          }
+        ]
+      }
+    ];
+
+    return this;
+  };
+
+  Recording.queryBuilder.prototype.findInclude = function(modelType) {
+    for (let inc of this.query.include) {
+      if (inc.model === modelType) {
+        return inc;
+      }
+    }
+    throw new `could not find query include for ${modelType}`();
   };
 
   // Attributes returned in recording query results.
