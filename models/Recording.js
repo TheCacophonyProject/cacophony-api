@@ -738,7 +738,7 @@ module.exports = function(sequelize, DataTypes) {
 
   // Include details of recent audio bait events in the query output.
   Recording.queryBuilder.prototype.addAudioEvents = function() {
-    deviceInclude = this.findInclude(models.Device);
+    const deviceInclude = this.findInclude(models.Device);
 
     if (!deviceInclude.include) {
       deviceInclude.include = {};
@@ -773,7 +773,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Recording.queryBuilder.prototype.findInclude = function(modelType) {
-    for (let inc of this.query.include) {
+    for (const inc of this.query.include) {
       if (inc.model === modelType) {
         return inc;
       }

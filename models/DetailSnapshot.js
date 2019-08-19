@@ -86,7 +86,7 @@ module.exports = function(sequelize, DataTypes) {
       return null;
     }
     return await models.File.findByPk(fid);
-  }
+  };
 
   return DetailSnapshot;
 };

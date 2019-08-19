@@ -101,7 +101,7 @@ async function report(request) {
   // recording to a audio file name so do some work first to look these up.
   const audioEvents = new Map();
   const audioFileIds = new Set();
-  for (let r of result) {
+  for (const r of result) {
     const event = findLatestEvent(r.Device.Events);
     if (event) {
       const fileId = event.EventDetail.details.fileId;
@@ -116,7 +116,7 @@ async function report(request) {
 
   // Bulk look up file details of played audio events.
   const audioFileNames = new Map();
-  for (let f of await models.File.getMultiple(Array.from(audioFileIds))) {
+  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
     audioFileNames[f.id] = f.details.name;
   }
 
@@ -147,13 +147,13 @@ async function report(request) {
     ]
   ];
 
-  for (let r of result) {
+  for (const r of result) {
     r.filterData(filterOptions);
 
-    automatic_track_tags = new Set();
-    human_track_tags = new Set();
-    for (let track of r.Tracks) {
-      for (let tag of track.TrackTags) {
+    const automatic_track_tags = new Set();
+    const human_track_tags = new Set();
+    for (const track of r.Tracks) {
+      for (const tag of track.TrackTags) {
         const subject = tag.what || tag.detail;
         if (tag.automatic) {
           automatic_track_tags.add(subject);
@@ -208,20 +208,12 @@ function findLatestEvent(events) {
   }
 
   let latest = events[0];
-  for (let event of events) {
+  for (const event of events) {
     if (event.dateTime > latest.dateTime) {
       latest = event;
     }
   }
   return latest;
-}
-
-async function getAudioEventName(event) {
-  const fileInfo = await event.EventDetail.getFile();
-  if (!fileInfo) {
-    return null;
-  }
-  return fileInfo.details.name;
 }
 
 function formatTags(tags) {
