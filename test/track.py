@@ -6,7 +6,7 @@ import attr
 @attr.s
 class Track:
     id_ = attr.ib()
-    recording = attr.ib()
+    recording = attr.ib(cmp=False)  # avoid cycles during comparsion
     data = attr.ib()
     tags = attr.ib(factory=list)
 
@@ -19,7 +19,7 @@ class Track:
 @attr.s
 class TrackTag:
     id_ = attr.ib()
-    track = attr.ib()
+    track = attr.ib(cmp=False)  # avoid cycles during comparsion
     what = attr.ib()
     confidence = attr.ib()
     automatic = attr.ib()

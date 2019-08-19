@@ -361,38 +361,34 @@ class TestUser:
             self.can_add_track_to_recording(recording)
 
     def has_no_tracks(self, recording):
-        tracks = self._userapi.get_tracks(recording.id_)
-        assert len(tracks) == 0
+        assert not self._userapi.get_tracks(recording.id_)
 
     def recording_has_tags(self, recording, ai_tag_count, human_tag_count):
         recording = self._userapi.get_recording(recording.id_)
         tags = recording.get("Tags", [])
 
         automatic_tags = [tag for tag in tags if tag["automatic"]]
-        human_tags = [tag for tag in tags if tag["automatic"] == False]
+        human_tags = [tag for tag in tags if not tag["automatic"]]
         assert ai_tag_count == len(automatic_tags)
         assert human_tag_count == len(human_tags)
 
-    def can_see_track(self, expected_track, expected_tags=None):
+    def can_see_track(self, expected_track):
         recording = expected_track.recording
         tracks = self._userapi.get_tracks(recording.id_)
         for t in tracks:
             this_track = Track(id_=t["id"], recording=recording, data=t["data"])
+            this_track.tags = [
+                TrackTag(
+                    id_=tt["id"],
+                    track=this_track,
+                    what=tt["what"],
+                    confidence=tt["confidence"],
+                    automatic=tt["automatic"],
+                    data=tt["data"],
+                )
+                for tt in t["TrackTags"]
+            ]
             if this_track == expected_track:
-                if expected_tags:
-                    tags = [
-                        TrackTag(
-                            id_=tt["id"],
-                            track=this_track,
-                            what=tt["what"],
-                            confidence=tt["confidence"],
-                            automatic=tt["automatic"],
-                            data=tt["data"],
-                        )
-                        for tt in t["TrackTags"]
-                    ]
-                    for expected_tag in expected_tags:
-                        assert expected_tag in tags
                 return
 
         pytest.fail("no such track found: {}".format(expected_track))
@@ -449,6 +445,7 @@ class TestUser:
             track_id=tag.track.id_,
             track_tag_id=tag.id_,
         )
+        tag.track.tags.remove(tag)
 
     def cannot_delete_track_tag(self, tag):
         with pytest.raises(AuthorizationError):

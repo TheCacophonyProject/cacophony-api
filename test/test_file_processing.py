@@ -134,9 +134,8 @@ class TestFileProcessing:
         track.id_ = file_processing.add_track(recording, track)
 
         tag = TrackTag.create(track, automatic=True)
-        tag.id_ = file_processing.add_track_tag(track, tag)
-
-        user.can_see_track(track, [tag])
+        file_processing.add_track_tag(track, tag)
+        user.can_see_track(track)
 
     def test_reprocess_multiple_recordings(self, helper, file_processing):
         user = helper.admin_user()
@@ -204,10 +203,10 @@ class TestFileProcessing:
         track.id_ = file_processing.add_track(recording, track)
 
         tag = TrackTag.create(track, automatic=True)
-        tag.id_ = file_processing.add_track_tag(track, tag)
+        file_processing.add_track_tag(track, tag)
         return track, tag
 
-    def process_all_recordings(self, helper, file_processing):
+    def process_all_recordings(self, file_processing):
         recording = file_processing.get("thermalRaw", "getMetadata")
 
         while recording:
@@ -216,7 +215,7 @@ class TestFileProcessing:
             recording = file_processing.get("thermalRaw", "getMetadata")
 
     def test_reprocess_recording(self, helper, file_processing):
-        self.process_all_recordings(helper, file_processing)
+        self.process_all_recordings(file_processing)
         admin = helper.admin_user()
         recording, track, tag = self.create_processed_recording(
             helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
@@ -228,7 +227,7 @@ class TestFileProcessing:
 
         db_recording = admin.get_recording(recording)
         assert len(db_recording["Tags"]) == 2
-        admin.can_see_track(track, [tag])
+        admin.can_see_track(track)
 
         admin.reprocess(recording)
         reprocessed_id = recording.id_
@@ -244,7 +243,7 @@ class TestFileProcessing:
         # check other recordings unaffected
         db_recording = admin.get_recording(recording2)
         assert len(db_recording["Tags"]) == 2
-        admin.can_see_track(track2, [tag2])
+        admin.can_see_track(track2)
         # check is returned when asking for another recording
         recording = file_processing.get("thermalRaw", "getMetadata")
         assert recording.id_ == reprocessed_id
@@ -258,7 +257,7 @@ class TestFileProcessing:
         check_recording(admin, recording, processingState="FINISHED", fileKey="some_key")
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
-        admin.can_see_track(track, [tag])
+        admin.can_see_track(track)
 
     def test_audio_reprocessing(self, helper, file_processing):
         admin = helper.admin_user()
