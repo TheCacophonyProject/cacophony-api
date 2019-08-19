@@ -19,7 +19,7 @@ class TestReport:
         exp_audio_bait_name = "some-sound"
         exp_audio_bait_time = now - timedelta(minutes=2)  # newer
         file_id = user.upload_audio_bait({"name": exp_audio_bait_name})
-        device0.record_event("audioBait", {"fileId": file_id}, [exp_audio_bait_time])
+        device0.record_event("audioBait", {"fileId": file_id, "volume": 8}, [exp_audio_bait_time])
 
         # Add 2 recordings for device0
         rec0 = device0.upload_recording()
@@ -80,11 +80,12 @@ class ReportChecker:
         assert line["recording_tags"] == format_tags(t["what"] for t in rec.tags)
 
         if exp_audio_bait_name:
-            assert line["last_audio_bait"] == exp_audio_bait_name
-            assert_times_equiv(dateutil.parser.parse(line["last_audio_bait_time"]), exp_audio_bait_time)
-            assert float(line["mins_since_last_audio_bait"]) == round(
+            assert line["audio_bait"] == exp_audio_bait_name
+            assert_times_equiv(dateutil.parser.parse(line["audio_bait_time"]), exp_audio_bait_time)
+            assert float(line["mins_since_audio_bait"]) == round(
                 (recording_time - exp_audio_bait_time).total_seconds() / 60, 1
             )
+            assert line["audio_bait_volume"] == "8"
 
         assert line["url"] == "http://test.site/recording/" + str(rec.id_)
 

@@ -107,6 +107,7 @@ async function report(request) {
       const fileId = event.EventDetail.details.fileId;
       audioEvents[r.id] = {
         timestamp: event.dateTime,
+        volume: event.EventDetail.details.volume,
         fileId
       };
       audioFileIds.add(fileId);
@@ -138,9 +139,10 @@ async function report(request) {
       "automatic_track_tags",
       "human_track_tags",
       "recording_tags",
-      "last_audio_bait",
-      "last_audio_bait_time",
-      "mins_since_last_audio_bait",
+      "audio_bait",
+      "audio_bait_time",
+      "mins_since_audio_bait",
+      "audio_bait_volume",
       "url"
     ]
   ];
@@ -166,6 +168,7 @@ async function report(request) {
     let audioBaitName = "";
     let audioBaitTime = null;
     let audioBaitDelta = null;
+    let audioBaitVolume = null;
     const audioEvent = audioEvents[r.id];
     if (audioEvent) {
       audioBaitName = audioFileNames[audioEvent.fileId];
@@ -174,6 +177,7 @@ async function report(request) {
         .duration(r.recordingDateTime - audioBaitTime)
         .asMinutes()
         .toFixed(1);
+      audioBaitVolume = audioEvent.volume;
     }
 
     out.push([
@@ -191,6 +195,7 @@ async function report(request) {
       audioBaitName,
       audioBaitTime ? audioBaitTime.format() : "",
       audioBaitDelta,
+      audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())
     ]);
   }
