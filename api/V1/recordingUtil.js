@@ -120,10 +120,6 @@ async function report(request) {
     audioFileNames[f.id] = f.details.name;
   }
 
-  console.log(audioEvents);
-  console.log(audioFileIds);
-  console.log(audioFileNames);
-
   const recording_url_base = config.server.recording_url_base || "";
 
   const out = [
