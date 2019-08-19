@@ -44,7 +44,9 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="toMp4")
 
         # Now finalise processing.
-        file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
+        file_processing.put(
+            recording, success=True, complete=True, new_object_key="some_key"
+        )
         check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
 
     def test_metadata_update(self, helper, file_processing):
@@ -56,7 +58,10 @@ class TestFileProcessing:
 
         # Change the fileMimeType field.
         file_processing.put(
-            recording, success=True, complete=False, updates={"fileMimeType": "application/cheese"}
+            recording,
+            success=True,
+            complete=False,
+            updates={"fileMimeType": "application/cheese"},
         )
         check_recording(user, recording, fileMimeType="application/cheese")
 
@@ -69,7 +74,10 @@ class TestFileProcessing:
 
         # Update additionalMetadata.
         file_processing.put(
-            recording, success=True, complete=False, updates={"additionalMetadata": {"one": "1", "two": "2"}}
+            recording,
+            success=True,
+            complete=False,
+            updates={"additionalMetadata": {"one": "1", "two": "2"}},
         )
         check_recording(user, recording, additionalMetadata={"one": "1", "two": "2"})
 
@@ -82,11 +90,15 @@ class TestFileProcessing:
         )
 
         # additionalMetadata updates should be merged.
-        check_recording(user, recording, additionalMetadata={"one": "1", "two": "foo", "three": "3"})
+        check_recording(
+            user, recording, additionalMetadata={"one": "1", "two": "foo", "three": "3"}
+        )
 
     def test_can_upload_and_find_algorithm_keys(self, helper, file_processing):
         # Should be created
-        algorithm1 = file_processing.get_algorithm_id({"timestamp": datetime.now(timezone.utc).isoformat()})
+        algorithm1 = file_processing.get_algorithm_id(
+            {"timestamp": datetime.now(timezone.utc).isoformat()}
+        )
         algorithm2 = file_processing.get_algorithm_id({"speed": "quick"})
         # Should be found in already in the database
         algorithm3 = file_processing.get_algorithm_id({"speed": "quick"})
@@ -194,7 +206,9 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="toMp4")
 
         # Now finalise processing.
-        file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
+        file_processing.put(
+            recording, success=True, complete=True, new_object_key="some_key"
+        )
         check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
         return recording, track, tag
 
@@ -219,11 +233,19 @@ class TestFileProcessing:
         self.process_all_recordings(helper, file_processing)
         admin = helper.admin_user()
         recording, track, tag = self.create_processed_recording(
-            helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
+            helper,
+            file_processing,
+            admin,
+            ai_tag="multiple animals",
+            human_tag="possum",
         )
 
         recording2, track2, tag2 = self.create_processed_recording(
-            helper, file_processing, admin, ai_tag="multiple animals", human_tag="possum"
+            helper,
+            file_processing,
+            admin,
+            ai_tag="multiple animals",
+            human_tag="possum",
         )
 
         db_recording = admin.get_recording(recording)
@@ -254,11 +276,30 @@ class TestFileProcessing:
         check_recording(admin, recording, processingState="toMp4")
 
         # Now finalise processing.
-        file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(admin, recording, processingState="FINISHED", fileKey="some_key")
+        file_processing.put(
+            recording, success=True, complete=True, new_object_key="some_key"
+        )
+        check_recording(
+            admin, recording, processingState="FINISHED", fileKey="some_key"
+        )
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         admin.can_see_track(track, [tag])
+
+        listener = helper.given_new_device(
+            self, "Listener", description="reprcoess test"
+        )
+        
+        # processed audio recording
+        recording = listener.upload_audio_recording()
+        recording = file_processing.get("audio", "toMp3")
+        file_processing.put(recording, success=True, complete=True)
+
+        db_recording = admin.get_recording(recording)
+        assert db_recording["processingState"] == "FINISHED"
+        admin.reprocess(recording)
+        db_recording = admin.get_recording(recording)
+        assert db_recording["processingState"] == "toMp3"
 
 
 def check_recording(user, recording, **expected):
