@@ -7,19 +7,28 @@ class TestReport:
     def test_report(self, helper):
         user = helper.admin_user()
 
-        # Two devices
+        # Create devices
         device0 = helper.given_new_device(self)
         device1 = helper.given_new_device(self)
 
-        # Add some audio events for device0 (device1 won't have any)
+        # Upload audio files
         now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
-        file_id = user.upload_audio_bait({"name": "other-sound"})
-        device0.record_event("audioBait", {"fileId": file_id}, [now - timedelta(minutes=5)])
+        exp_audio_bait_name = "sound2"
 
-        exp_audio_bait_name = "some-sound"
-        exp_audio_bait_time = now - timedelta(minutes=2)  # newer
-        file_id = user.upload_audio_bait({"name": exp_audio_bait_name})
-        device0.record_event("audioBait", {"fileId": file_id, "volume": 8}, [exp_audio_bait_time])
+        sound1 = user.upload_audio_bait({"name": exp_audio_bait_name})
+        sound2 = user.upload_audio_bait({"name": "sound2"})
+        sound3 = user.upload_audio_bait({"name": "sound3"})
+
+        # Add older audio events for device0
+        device0.record_event("audioBait", {"fileId": sound1}, [now - timedelta(minutes=5)])
+
+        # This is sound we expect to see
+        exp_audio_bait_time = now - timedelta(minutes=2)
+        device0.record_event("audioBait", {"fileId": sound2, "volume": 8}, [exp_audio_bait_time])
+
+        # these are past the recording time (shouldn't get used)
+        device0.record_event("audioBait", {"fileId": sound3}, [now + timedelta(seconds=5)])
+        device0.record_event("audioBait", {"fileId": sound3}, [now + timedelta(minutes=1)])
 
         # Add 2 recordings for device0
         rec0 = device0.upload_recording()
@@ -86,6 +95,10 @@ class ReportChecker:
                 (recording_time - exp_audio_bait_time).total_seconds() / 60, 1
             )
             assert line["audio_bait_volume"] == "8"
+        else:
+            assert line["audio_bait"] == ""
+            assert line["mins_since_audio_bait"] == ""
+            assert line["audio_bait_volume"] == ""
 
         assert line["url"] == "http://test.site/recording/" + str(rec.id_)
 
