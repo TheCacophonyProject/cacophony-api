@@ -448,8 +448,7 @@ module.exports = function(sequelize, DataTypes) {
 
     await models.Tag.destroy({
       where: {
-        RecordingId: this.id,
-        automatic: true
+        RecordingId: this.id
       }
     });
 
