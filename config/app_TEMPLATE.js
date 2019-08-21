@@ -7,7 +7,8 @@ const server = {
   http: {
     active: true,
     port: 80
-  }
+  },
+  recording_url_base: "http://localhost/recording"
 };
 
 const fileProcessing = {

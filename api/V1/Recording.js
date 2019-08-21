@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const { query, param, body } = require("express-validator/check");
+const csv = require("fast-csv");
 
 const middleware = require("../middleware");
 const auth = require("../auth");
@@ -123,51 +124,40 @@ module.exports = (app, baseUrl) => {
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
   );
 
+  const queryValidators = Object.freeze([
+    auth.authenticateUser,
+    middleware.parseJSON("where", query).optional(),
+    query("offset")
+      .isInt()
+      .optional(),
+    query("limit")
+      .isInt()
+      .optional(),
+    middleware.parseJSON("order", query).optional(),
+    middleware.parseArray("tags", query).optional(),
+    query("tagMode")
+      .optional()
+      .custom(value => {
+        return models.Recording.isValidTagMode(value);
+      }),
+    middleware.parseJSON("filterOptions", query).optional()
+  ]);
+
   /**
    * @api {get} /api/v1/recordings Query available recordings
    * @apiName QueryRecordings
    * @apiGroup Recordings
    *
    * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiUse QueryParams
-   * @apiParam {JSON} [tags] Only return recordings tagged with one or more of the listed tags (JSON array).
-   * @apiParam {String} [tagMode] Only return recordings with specific types of tags. Valid values:
-   * <ul>
-   * <li>any: match recordings with any (or no) tag
-   * <li>untagged: match only recordings with no tags
-   * <li>tagged: match only recordings which have been tagged
-   * <li>no-human: match only recordings which are untagged or have been automatically tagged
-   * <li>automatic-only: match only recordings which have been automatically tagged
-   * <li>human-only: match only recordings which have been manually tagged
-   * <li>automatic+human: match only recordings which have been both automatically & manually tagged
-   * </ul>
+   * @apiUse BaseQueryParams
+   * @apiUse MoreQueryParams
    * @apiUse FilterOptions
-   *
    * @apiUse V1ResponseSuccessQuery
-   *
    * @apiUse V1ResponseError
    */
   app.get(
     apiUrl,
-    [
-      auth.authenticateUser,
-      middleware.parseJSON("where", query).optional(),
-      query("offset")
-        .isInt()
-        .optional(),
-      query("limit")
-        .isInt()
-        .optional(),
-      middleware.parseJSON("order", query).optional(),
-      middleware.parseArray("tags", query).optional(),
-      query("tagMode")
-        .optional()
-        .custom(value => {
-          return models.Recording.isValidTagMode(value);
-        }),
-      middleware.parseJSON("filterOptions", query).optional()
-    ],
+    queryValidators,
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
@@ -178,6 +168,29 @@ module.exports = (app, baseUrl) => {
         count: result.count,
         rows: result.rows
       });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/recordings/report Generate report for a set of recordings
+   * @apiName Report
+   * @apiGroup Recordings
+   * @apiDescription Parameters are as per GET /api/V1/recordings. On
+   * success (status 200), the response body will contain CSV
+   * formatted details of the selected recordings.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiUse BaseQueryParams
+   * @apiUse MoreQueryParams
+   * @apiUse FilterOptions
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/report",
+    queryValidators,
+    middleware.requestWrapper(async (request, response) => {
+      const rows = await recordingUtil.report(request);
+      csv.writeToStream(response.status(200), rows);
     })
   );
 

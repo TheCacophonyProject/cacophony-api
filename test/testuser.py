@@ -1,3 +1,4 @@
+import csv
 import io
 import pytest
 
@@ -130,6 +131,10 @@ class TestUser:
                 )
             )
 
+    def get_report(self, **args):
+        text = self._userapi.report(**args)
+        return csv.DictReader(text.splitlines())
+
     def can_download_correct_recording(self, recording):
         content = io.BytesIO()
         for chunk in self._userapi.download_cptv(recording.id_):
@@ -182,6 +187,7 @@ class TestUser:
 
     def update_recording(self, recording, **updates):
         self._userapi.update_recording(recording.id_, updates)
+        recording.props.update(updates)
 
     def create_group(self, groupname, printname=True):
         try:
@@ -255,11 +261,13 @@ class TestUser:
         with pytest.raises(AuthorizationError):
             self._userapi.download_audio(recording.id_)
 
-    def upload_audio_bait(self, details={"animal": "possum"}):
+    def upload_audio_bait(self, details=None):
+        if details is None:
+            details = {"animal": "possum"}
         props = {"type": "audioBait", "details": details}
         filename = "files/small.cptv"
-        recording_id = self._userapi.upload_file(filename, props)
-        return recording_id
+        file_id = self._userapi.upload_file(filename, props)
+        return file_id
 
     def download_audio_bait(self, file_id):
         return self._userapi.download_file(file_id)
@@ -329,6 +337,7 @@ class TestUser:
     def can_add_track_to_recording(self, recording):
         track = Track.create(recording)
         track.id_ = self._userapi.add_track(recording.id_, track.data)
+        recording.tracks.append(track)
         return track
 
     def cannot_add_track_to_recording(self, recording):
@@ -336,38 +345,34 @@ class TestUser:
             self.can_add_track_to_recording(recording)
 
     def has_no_tracks(self, recording):
-        tracks = self._userapi.get_tracks(recording.id_)
-        assert len(tracks) == 0
+        assert not self._userapi.get_tracks(recording.id_)
 
     def recording_has_tags(self, recording, ai_tag_count, human_tag_count):
         recording = self._userapi.get_recording(recording.id_)
         tags = recording.get("Tags", [])
 
         automatic_tags = [tag for tag in tags if tag["automatic"]]
-        human_tags = [tag for tag in tags if tag["automatic"] == False]
+        human_tags = [tag for tag in tags if not tag["automatic"]]
         assert ai_tag_count == len(automatic_tags)
         assert human_tag_count == len(human_tags)
 
-    def can_see_track(self, expected_track, expected_tags=None):
+    def can_see_track(self, expected_track):
         recording = expected_track.recording
         tracks = self._userapi.get_tracks(recording.id_)
         for t in tracks:
             this_track = Track(id_=t["id"], recording=recording, data=t["data"])
+            this_track.tags = [
+                TrackTag(
+                    id_=tt["id"],
+                    track=this_track,
+                    what=tt["what"],
+                    confidence=tt["confidence"],
+                    automatic=tt["automatic"],
+                    data=tt["data"],
+                )
+                for tt in t["TrackTags"]
+            ]
             if this_track == expected_track:
-                if expected_tags:
-                    tags = [
-                        TrackTag(
-                            id_=tt["id"],
-                            track=this_track,
-                            what=tt["what"],
-                            confidence=tt["confidence"],
-                            automatic=tt["automatic"],
-                            data=tt["data"],
-                        )
-                        for tt in t["TrackTags"]
-                    ]
-                    for expected_tag in expected_tags:
-                        assert expected_tag in tags
                 return
 
         pytest.fail("no such track found: {}".format(expected_track))
@@ -401,8 +406,8 @@ class TestUser:
             data={},
         )
 
-    def can_tag_track(self, track):
-        tag = TrackTag.create(track)
+    def can_tag_track(self, track, automatic=None, what=None):
+        tag = TrackTag.create(track, automatic=automatic, what=what)
         tag.id_ = self._userapi.add_track_tag(
             recording_id=track.recording.id_,
             track_id=track.id_,
@@ -411,6 +416,7 @@ class TestUser:
             automatic=tag.automatic,
             data=tag.data,
         )
+        track.tags.append(tag)
         return tag
 
     def cannot_tag_track(self, track):
@@ -421,6 +427,7 @@ class TestUser:
         self._userapi.delete_track_tag(
             recording_id=tag.track.recording.id_, track_id=tag.track.id_, track_tag_id=tag.id_
         )
+        tag.track.tags.remove(tag)
 
     def cannot_delete_track_tag(self, tag):
         with pytest.raises(AuthorizationError):

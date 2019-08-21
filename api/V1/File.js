@@ -63,9 +63,7 @@ module.exports = (app, baseUrl) => {
    * @apiGroup Files
    *
    * @apiHeader {String} Authorization Signed JSON web token for a user or device.
-   *
-   * @apiUse QueryParams
-   *
+   * @apiUse BaseQueryParams
    * @apiUse V1ResponseSuccessQuery
    */
   app.get(

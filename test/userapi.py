@@ -62,6 +62,41 @@ class UserAPI(APIBase):
             return_json=return_json,
         )
 
+    def report(
+        self,
+        startDate=None,
+        endDate=None,
+        min_secs=0,
+        limit=100,
+        offset=0,
+        tagmode=None,
+        tags=None,
+        filterOptions=None,
+        deviceIds=None,
+    ):
+        where = defaultdict(dict)
+        where["duration"] = {"$gte": min_secs}
+        if startDate is not None:
+            where["recordingDateTime"]["$gte"] = startDate.isoformat()
+        if endDate is not None:
+            where["recordingDateTime"]["$lte"] = endDate.isoformat()
+        if deviceIds is not None:
+            where["DeviceId"] = deviceIds
+
+        url = urljoin(self._baseurl, "/api/v1/recordings/report")
+        params = {
+            "where": where,
+            "limit": limit,
+            "offset": offset,
+            "tagMode": tagmode,
+            "tags": tags,
+            "filterOptions": filterOptions,
+        }
+        response = requests.get(url, params=serialise_params(params), headers=self._auth_header)
+        if response.status_code == 200:
+            return response.text
+        raise_specific_exception(response)
+
     def update_user(self, body):
         url = urljoin(self._baseurl, "/api/v1/users")
         response = requests.patch(url, data=body, headers=self._auth_header)
@@ -213,18 +248,9 @@ class UserAPI(APIBase):
 
         params.setdefault("limit", 100)
         params.setdefault("offset", 0)
-
         return_json = params.pop("return_json", False)
-        req_params = {}
-        for name, value in params.items():
-            if value is not None:
-                if isinstance(value, (dict, list, tuple)):
-                    value = json.dumps(value)
-                elif isinstance(value, datetime):
-                    value = value.isoformat()
-                req_params[name] = value
 
-        response = requests.get(url, params=req_params, headers=self._auth_header)
+        response = requests.get(url, params=serialise_params(params), headers=self._auth_header)
         if response.status_code == 200:
             if return_json:
                 return response.json()
@@ -346,3 +372,15 @@ class UserAPI(APIBase):
             headers=self._auth_header,
         )
         return self._check_response(response)["messages"]
+
+
+def serialise_params(params):
+    out = {}
+    for name, value in params.items():
+        if value is not None:
+            if isinstance(value, (dict, list, tuple)):
+                value = json.dumps(value)
+            elif isinstance(value, datetime):
+                value = value.isoformat()
+            out[name] = value
+    return out

@@ -34,15 +34,15 @@ class TestTracks:
         track = user.can_add_track_to_recording(recording)
 
         # Add a track tag and ensure the user can see it.
-        tag0 = user.can_tag_track(track)
-        user.can_see_track(track, [tag0])
+        user.can_tag_track(track)
+        user.can_see_track(track)
 
         # Add another track tag and ensure the user can see that too.
-        tag1 = user.can_tag_track(track)
-        user.can_see_track(track, [tag0, tag1])
+        tag = user.can_tag_track(track)
+        user.can_see_track(track)
 
-        user.can_delete_track_tag(tag1)
-        user.can_see_track(track, [tag0])
+        user.can_delete_track_tag(tag)
+        user.can_see_track(track)
 
     def test_cant_add_track_tag_to_other_users_recording(self, helper):
         recording = helper.given_new_device(self, "tracks").has_recording()

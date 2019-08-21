@@ -31,6 +31,8 @@ module.exports = function(sequelize, DataTypes) {
 
   const DetailSnapshot = sequelize.define(name, attributes, options);
 
+  const models = sequelize.models;
+
   //---------------
   // CLASS METHODS
   //---------------
@@ -71,6 +73,19 @@ module.exports = function(sequelize, DataTypes) {
 
   DetailSnapshot.getFromId = async function(id) {
     return await this.findById(id);
+  };
+
+
+  //-----------------
+  // INSTANCE METHODS
+  //-----------------
+
+  DetailSnapshot.prototype.getFile = async function() {
+    const fid = this.details.fileId;
+    if (!fid) {
+      return null;
+    }
+    return await models.File.findByPk(fid);
   };
 
   return DetailSnapshot;

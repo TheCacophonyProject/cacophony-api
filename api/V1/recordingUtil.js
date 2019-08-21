@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const jsonwebtoken = require("jsonwebtoken");
 const mime = require("mime");
+const moment = require("moment");
+const urljoin = require("url-join");
+
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
 const models = require("../../models");
@@ -46,28 +49,173 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 async function query(request, type) {
-  if (!request.query.where) {
-    request.query.where = {};
-  }
   if (type) {
     request.query.where.type = type;
   }
 
-  // remove legacy tag mode selector (if included)
-  delete request.query.where._tagged;
-
-  const result = await models.Recording.query(
+  const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order,
-    request.query.filterOptions
+    request.query.order
   );
-  result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
+  const result = await models.Recording.findAndCountAll(builder.get());
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+  result.rows = result.rows.map(rec => {
+    rec.filterData(filterOptions);
+    return handleLegacyTagFieldsForGetOnRecording(rec);
+  });
   return result;
+}
+
+// Returns a promise for report rows for a set of recordings. Takes
+// the same parameters as query() above.
+async function report(request) {
+  const builder = (await new models.Recording.queryBuilder().init(
+    request.user,
+    request.query.where,
+    request.query.tagMode,
+    request.query.tags,
+    request.query.offset,
+    request.query.limit,
+    request.query.order
+  ))
+    .addColumn("comment")
+    .addAudioEvents();
+
+  const result = await models.Recording.findAll(builder.get());
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+
+  // Our DB schema doesn't allow us to easily get from a audio event
+  // recording to a audio file name so do some work first to look these up.
+  const audioEvents = new Map();
+  const audioFileIds = new Set();
+  for (const r of result) {
+    const event = findLatestEvent(r.Device.Events);
+    if (event) {
+      const fileId = event.EventDetail.details.fileId;
+      audioEvents[r.id] = {
+        timestamp: event.dateTime,
+        volume: event.EventDetail.details.volume,
+        fileId
+      };
+      audioFileIds.add(fileId);
+    }
+  }
+
+  // Bulk look up file details of played audio events.
+  const audioFileNames = new Map();
+  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+    audioFileNames[f.id] = f.details.name;
+  }
+
+  const recording_url_base = config.server.recording_url_base || "";
+
+  const out = [
+    [
+      "id",
+      "type",
+      "group",
+      "device",
+      "timestamp",
+      "duration",
+      "comment",
+      "track_count",
+      "automatic_track_tags",
+      "human_track_tags",
+      "recording_tags",
+      "audio_bait",
+      "audio_bait_time",
+      "mins_since_audio_bait",
+      "audio_bait_volume",
+      "url"
+    ]
+  ];
+
+  for (const r of result) {
+    r.filterData(filterOptions);
+
+    const automatic_track_tags = new Set();
+    const human_track_tags = new Set();
+    for (const track of r.Tracks) {
+      for (const tag of track.TrackTags) {
+        const subject = tag.what || tag.detail;
+        if (tag.automatic) {
+          automatic_track_tags.add(subject);
+        } else {
+          human_track_tags.add(subject);
+        }
+      }
+    }
+
+    const recording_tags = r.Tags.map(t => t.what || t.detail);
+
+    let audioBaitName = "";
+    let audioBaitTime = null;
+    let audioBaitDelta = null;
+    let audioBaitVolume = null;
+    const audioEvent = audioEvents[r.id];
+    if (audioEvent) {
+      audioBaitName = audioFileNames[audioEvent.fileId];
+      audioBaitTime = moment(audioEvent.timestamp);
+      audioBaitDelta = moment
+        .duration(r.recordingDateTime - audioBaitTime)
+        .asMinutes()
+        .toFixed(1);
+      audioBaitVolume = audioEvent.volume;
+    }
+
+    out.push([
+      r.id,
+      r.type,
+      r.Group.groupname,
+      r.Device.devicename,
+      moment(r.recordingDateTime).format(),
+      r.duration,
+      r.comment,
+      r.Tracks.length,
+      formatTags(automatic_track_tags),
+      formatTags(human_track_tags),
+      formatTags(recording_tags),
+      audioBaitName,
+      audioBaitTime ? audioBaitTime.format() : "",
+      audioBaitDelta,
+      audioBaitVolume,
+      urljoin(recording_url_base, r.id.toString())
+    ]);
+  }
+  return out;
+}
+
+function findLatestEvent(events) {
+  if (!events) {
+    return null;
+  }
+
+  let latest = events[0];
+  for (const event of events) {
+    if (event.dateTime > latest.dateTime) {
+      latest = event;
+    }
+  }
+  return latest;
+}
+
+function formatTags(tags) {
+  const out = Array.from(tags);
+  out.sort();
+  return out.join("+");
 }
 
 async function get(request, type) {
@@ -283,6 +431,7 @@ async function reprocess(request, response) {
 
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
+exports.report = report;
 exports.get = get;
 exports.delete_ = delete_;
 exports.addTag = addTag;
