@@ -155,7 +155,7 @@ class TestFileProcessing:
 
         user.has_no_tracks(recording_first)
         user.has_no_tracks(recording_second)
-        user.recording_has_tags(recording_first, ai_tag_count=0, human_tag_count=1)
+        user.recording_has_tags(recording_first, ai_tag_count=0, human_tag_count=0)
         user.recording_has_tags(recording_second, ai_tag_count=0, human_tag_count=0)
 
         recordings.append(-1)
@@ -238,7 +238,7 @@ class TestFileProcessing:
         admin.has_no_tracks(recording)
         assert len(db_recording["additionalMetadata"].get("oldTags", [])) == 2
 
-        admin.recording_has_tags(recording, ai_tag_count=0, human_tag_count=1)
+        admin.recording_has_tags(recording, ai_tag_count=0, human_tag_count=0)
 
         # check other recordings unaffected
         db_recording = admin.get_recording(recording2)
