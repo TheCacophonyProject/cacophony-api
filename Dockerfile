@@ -9,7 +9,7 @@ RUN apt-get install -y apt-utils
 RUN apt-get install -y tzdata
 RUN echo "Pacific/Auckland" > /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
-
+RUN apt-get update --fix-missing
 RUN apt-get -y install curl sudo make build-essential g++
 
 RUN apt-get -y install postgis postgresql-server-dev-10

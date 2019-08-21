@@ -695,9 +695,10 @@ module.exports = function(sequelize, DataTypes) {
       }
     );
 
+    const state = Recording.processingStates[this.type][0];
     this.update({
       processingStartTime: null,
-      processingState: Recording.processingStates["thermalRaw"][0]
+      processingState: state
     });
   };
 

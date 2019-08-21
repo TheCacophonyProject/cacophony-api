@@ -260,6 +260,21 @@ class TestFileProcessing:
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         admin.can_see_track(track, [tag])
 
+    def test_audio_reprocessing(self, helper, file_processing):
+        admin = helper.admin_user()
+        listener = helper.given_new_device(self, "Listener", description="reprocess test")
+
+        # processed audio recording
+        recording = listener.upload_audio_recording()
+        recording = file_processing.get("audio", "toMp3")
+        file_processing.put(recording, success=True, complete=True)
+
+        db_recording = admin.get_recording(recording)
+        assert db_recording["processingState"] == "FINISHED"
+        admin.reprocess(recording)
+        db_recording = admin.get_recording(recording)
+        assert db_recording["processingState"] == "toMp3"
+
 
 def check_recording(user, recording, **expected):
     r = user.get_recording(recording)
