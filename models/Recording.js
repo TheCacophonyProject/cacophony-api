@@ -748,10 +748,12 @@ module.exports = function(sequelize, DataTypes) {
         required: false,
         where: {
           dateTime: {
-            [Op.lt]: sequelize.literal('"Recording"."recordingDateTime"'),
-            [Op.gt]: sequelize.literal(
-              '"Recording"."recordingDateTime" - interval \'30 minutes\''
-            )
+            [Op.between]: [
+              sequelize.literal(
+                '"Recording"."recordingDateTime" - interval \'30 minutes\''
+              ),
+              sequelize.literal('"Recording"."recordingDateTime"')
+            ]
           }
         },
         include: [
