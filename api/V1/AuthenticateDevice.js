@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const { body } = require("express-validator/check");
 
 const auth = require("../auth");
-const config = require("../../config");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 

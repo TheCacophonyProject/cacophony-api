@@ -20,7 +20,6 @@ const config = require("../config");
 const jwt = require("jsonwebtoken");
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const customErrors = require("./customErrors");
-const format = require("util").format;
 const models = require("../models");
 
 /*
