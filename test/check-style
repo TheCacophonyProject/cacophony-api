@@ -1,4 +1,0 @@
-#!/bin/sh
-
-dir=$(dirname $0)
-black $dir/*.py --target-version=py36 --check --diff -l 110

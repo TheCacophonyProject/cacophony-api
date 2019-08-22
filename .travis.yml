@@ -18,7 +18,7 @@ install:
 
 script:
  - npm run lint
- - test/check-style
+ - black --diff --check ./test
  - ./wait-for-api || { docker ps; docker logs cacophony-api; exit 1; }
  - cd test
  - pytest --log-api-on-fail
