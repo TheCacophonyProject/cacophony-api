@@ -43,7 +43,7 @@ module.exports = function(app, baseUrl) {
 
   app.get(
     baseUrl + "/signedUrl",
-    [auth.signedUrl],
+    [auth.fileDownload],
     middleware.requestWrapper(async (request, response) => {
       const mimeType = request.jwtDecoded.mimeType || "";
       const filename = request.jwtDecoded.filename || "file";

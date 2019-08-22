@@ -47,15 +47,8 @@ const authenticate = function(type) {
       return res.status(401).json({ messages: [e.message] });
     }
     if (type && type != jwtDecoded._type) {
-      return res.status(401).json({
-        messages: [
-          format(
-            "Invalid type of JWT. Need one of %s for this request, but had %s.",
-            type,
-            jwtDecoded._type
-          )
-        ]
-      });
+      res.status(401).json({ messages: ["Invalid JWT type."] });
+      return;
     }
     let result;
     switch (jwtDecoded._type) {
@@ -69,10 +62,11 @@ const authenticate = function(type) {
         result = jwtDecoded;
         break;
     }
-    if (result == null) {
-      return res.status(401).json({
-        messages: [format("Could not find a %s from the JWT.", type)]
+    if (!result) {
+      res.status(401).json({
+        messages: ["Could not find entity referenced by JWT."]
       });
+      return;
     }
     req[type] = result;
     next();
@@ -106,22 +100,37 @@ const authenticateAdmin = async (req, res, next) => {
   next();
 };
 
-const signedUrl = (req, res, next) => {
-  const jwtParam = req.query["jwt"];
-  if (jwtParam == null) {
-    return res
-      .status(401)
-      .json({ messages: ["Could not find JWT token in query params."] });
-  }
-  let jwtDecoded;
-  try {
-    jwtDecoded = jwt.verify(jwtParam, config.server.passportSecret);
-  } catch (e) {
-    return res.status(401).json({ messages: ["Failed to verify JWT."] });
-  }
-  req.jwtDecoded = jwtDecoded;
-  next();
+/*
+ * Authenticate a request using a "jwt" query parameter
+ */
+const byJWTParam = function(expectedType) {
+  return (req, res, next) => {
+    const jwtParam = req.query["jwt"];
+    if (!jwtParam) {
+      res
+        .status(401)
+        .json({ messages: ["Could not find JWT token in query params."] });
+      return;
+    }
+
+    let jwtDecoded;
+    try {
+      jwtDecoded = jwt.verify(jwtParam, config.server.passportSecret);
+    } catch (e) {
+      return res.status(401).json({ messages: ["Failed to verify JWT."] });
+    }
+
+    if (jwtDecoded._type !== expectedType) {
+      res.status(401).json({ messages: ["Invalid JWT type."] });
+      return;
+    }
+
+    req.jwtDecoded = jwtDecoded;
+    next();
+  };
 };
+
+const fileDownload = byJWTParam("fileDownload");
 
 // A request wrapper that also checks if user should be playing around with the
 // the named device before continuing.
@@ -154,5 +163,5 @@ exports.authenticateUser = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.authenticateAny = authenticateAny;
 exports.authenticateAdmin = authenticateAdmin;
-exports.signedUrl = signedUrl;
+exports.fileDownload = fileDownload;
 exports.userCanAccessDevices = userCanAccessDevices;
