@@ -179,7 +179,7 @@ module.exports = (app, baseUrl) => {
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
-   * @apiParam {String} [jwt] Signed JWT as produced by the token endpoint XXX.
+   * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
    * @apiUse BaseQueryParams
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
@@ -195,31 +195,6 @@ module.exports = (app, baseUrl) => {
         'Content-Disposition': 'attachment; filename=recordings.csv'
       });
       csv.writeToStream(response, rows);
-    })
-  );
-
-  // XXX move to move general location
-  /**
-   * @api {post} /api/v1/recordings/report/token Generate temporary JWT for accessing /api/v1/recordings/report
-   * @apiName ReportJWT
-   * @apiGroup Recordings
-   * @apiDescription Use this to obtain a JWT to use as the (optional)
-   * "jwt" argument for the report endpoint.
-   *
-   * @apiUse V1UserAuthorizationHeader
-   * @apiSuccess {JSON} jwt JWT that may be used to call the report endpoint.
-   */
-  app.post(
-    apiUrl + "/report/token",
-    [auth.authenticateUser].concat(queryValidators),
-    middleware.requestWrapper(async (request, response) => {
-      // Issue a short-lived user token for accessing the recordings report.
-      const token = auth.createEntityJWT(request.user, { expiresIn: 60 * 5 });
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Token generated."],
-        jwt: token
-      });
     })
   );
 

@@ -22,6 +22,10 @@ class UserAPI(APIBase):
     def login(self):
         return super().login(email=self.email)
 
+    def token(self):
+        response = requests.post(urljoin(self._baseurl, "/token"), headers=self._auth_header)
+        return self._check_response(response)
+
     def name_or_email_login(self, nameOrEmail):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
         data = {"nameOrEmail": nameOrEmail, "password": self._password}
@@ -104,11 +108,6 @@ class UserAPI(APIBase):
         if response.status_code == 200:
             return response.text
         raise_specific_exception(response)
-
-    def report_token(self):
-        url = urljoin(self._baseurl, "/api/v1/recordings/report/token")
-        response = requests.post(url, headers=self._auth_header)
-        return self._check_response(response)
 
     def update_user(self, body):
         url = urljoin(self._baseurl, "/api/v1/users")

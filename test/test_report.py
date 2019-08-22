@@ -59,9 +59,8 @@ class TestReport:
         device = helper.given_new_device(self)
         rec = device.upload_recording()
 
-        # Get report using JWT argument
-        jwt = user.get_report_token()
-        report = ReportChecker(user.get_report(limit=5, jwt=jwt))
+        token = user.new_token()
+        report = ReportChecker(user.get_report(limit=5, jwt=token))
 
         report.check_line(rec, device)
 

@@ -74,4 +74,30 @@ module.exports = function(app) {
       }
     })
   );
+
+
+  /**
+   * @api {post} /token Generate temporary JWT for the current user
+   * @apiName Token
+   * @apiGroup Authentication
+   * @apiDescription It is sometimes necessary to include an
+   * authentication token in a URL but it is not safe to provide a
+   * user's primary JWT as it can easily leak into logs etc. This API
+   * generates a short-lived token which can be used as part of URLs.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiSuccess {JSON} token JWT that may be used to call the report endpoint.
+   */
+  app.post(
+    "/token",
+    [auth.authenticateUser],
+    middleware.requestWrapper(async (request, response) => {
+      const token = auth.createEntityJWT(request.user, { expiresIn: 60 * 5 });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Token generated."],
+        token: token
+      });
+    })
+  );
 };
