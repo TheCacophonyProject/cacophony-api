@@ -52,7 +52,6 @@ class TestReport:
         report.check_line(rec1, device0, exp_audio_bait_name, exp_audio_bait_time)
         report.check_line(rec2, device1)
 
-
     def test_report_jwt_arg(self, helper):
         user = helper.admin_user()
 

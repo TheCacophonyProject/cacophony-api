@@ -15,7 +15,7 @@ class TestUser:
         self._group = None
 
     def new_token(self):
-        return self._userapi.token()['token']
+        return self._userapi.token()["token"]
 
     def update(self, username=None, email=None, password=None):
         data = {}

@@ -91,7 +91,7 @@ module.exports = function(app) {
     "/token",
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      const token = auth.createEntityJWT(request.user, { expiresIn: 60 * 5 });
+      const token = auth.createEntityJWT(request.user, { expiresIn: 60 });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Token generated."],
