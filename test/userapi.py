@@ -73,6 +73,7 @@ class UserAPI(APIBase):
         tags=None,
         filterOptions=None,
         deviceIds=None,
+        jwt=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -92,10 +93,22 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
-        response = requests.get(url, params=serialise_params(params), headers=self._auth_header)
+
+        if jwt:
+            params["jwt"] = jwt
+            headers = None
+        else:
+            headers = self._auth_header
+
+        response = requests.get(url, params=serialise_params(params), headers=headers)
         if response.status_code == 200:
             return response.text
         raise_specific_exception(response)
+
+    def report_token(self):
+        url = urljoin(self._baseurl, "/api/v1/recordings/report/token")
+        response = requests.post(url, headers=self._auth_header)
+        return self._check_response(response)
 
     def update_user(self, body):
         url = urljoin(self._baseurl, "/api/v1/users")

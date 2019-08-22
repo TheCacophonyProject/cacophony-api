@@ -125,7 +125,6 @@ module.exports = (app, baseUrl) => {
   );
 
   const queryValidators = Object.freeze([
-    auth.authenticateUser,
     middleware.parseJSON("where", query).optional(),
     query("offset")
       .isInt()
@@ -157,7 +156,7 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    queryValidators,
+    [auth.authenticateUser].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
@@ -180,6 +179,7 @@ module.exports = (app, baseUrl) => {
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
+   * @apiParam {String} [jwt] Signed JWT as produced by the token endpoint XXX.
    * @apiUse BaseQueryParams
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
@@ -187,10 +187,39 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl + "/report",
-    queryValidators,
+    [auth.byJWTParam("user", "user")].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
       const rows = await recordingUtil.report(request);
-      csv.writeToStream(response.status(200), rows);
+      response.status(200).set({
+        'Content-Type': "text/csv",
+        'Content-Disposition': 'attachment; filename=recordings.csv'
+      });
+      csv.writeToStream(response, rows);
+    })
+  );
+
+  // XXX move to move general location
+  /**
+   * @api {post} /api/v1/recordings/report/token Generate temporary JWT for accessing /api/v1/recordings/report
+   * @apiName ReportJWT
+   * @apiGroup Recordings
+   * @apiDescription Use this to obtain a JWT to use as the (optional)
+   * "jwt" argument for the report endpoint.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiSuccess {JSON} jwt JWT that may be used to call the report endpoint.
+   */
+  app.post(
+    apiUrl + "/report/token",
+    [auth.authenticateUser].concat(queryValidators),
+    middleware.requestWrapper(async (request, response) => {
+      // Issue a short-lived user token for accessing the recordings report.
+      const token = auth.createEntityJWT(request.user, { expiresIn: 60 * 5 });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Token generated."],
+        jwt: token
+      });
     })
   );
 

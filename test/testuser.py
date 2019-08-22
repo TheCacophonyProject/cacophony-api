@@ -135,6 +135,9 @@ class TestUser:
         text = self._userapi.report(**args)
         return csv.DictReader(text.splitlines())
 
+    def get_report_token(self):
+        return self._userapi.report_token()['jwt']
+
     def can_download_correct_recording(self, recording):
         content = io.BytesIO()
         for chunk in self._userapi.download_cptv(recording.id_):

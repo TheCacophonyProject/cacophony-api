@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require("../../models");
-const jwt = require("jsonwebtoken");
-const config = require("../../config");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
@@ -62,12 +60,11 @@ module.exports = function(app, baseUrl) {
         GroupId: request.body.group.id
       });
 
-      const data = device.getJwtDataValues();
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
         id: device.id,
-        token: "JWT " + jwt.sign(data, config.server.passportSecret)
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );

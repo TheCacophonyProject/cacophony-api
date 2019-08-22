@@ -23,6 +23,14 @@ const customErrors = require("./customErrors");
 const format = require("util").format;
 const models = require("../models");
 
+/*
+ * Create a new JWT for a user or device.
+ */
+function createEntityJWT(entity, options) {
+  const payload = entity.getJwtDataValues();
+  return jwt.sign(payload, config.server.passportSecret, options);
+}
+
 const getVerifiedJWT = req => {
   const token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
   if (!token) {
@@ -124,7 +132,7 @@ const byJWTParam = function(paramType, headerType) {
     let token = req.query["jwt"];
     if (!token) {
       token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
-      usingFallBack = false;
+      usingParam = false;
     }
     if (!token) {
       res
@@ -140,7 +148,6 @@ const byJWTParam = function(paramType, headerType) {
       return res.status(401).json({ messages: ["Failed to verify JWT."] });
     }
 
-    //
     const expectedType = usingParam ? paramType : headerType;
     if (expectedType && decoded._type !== expectedType) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
@@ -154,6 +161,7 @@ const byJWTParam = function(paramType, headerType) {
       return;
     }
 
+    req[decoded._type] = entity;
     req.jwtDecoded = decoded;
     next();
   };
@@ -186,6 +194,7 @@ const userCanAccessDevices = async (request, response, next) => {
   next();
 };
 
+exports.createEntityJWT = createEntityJWT;
 exports.authenticateUser = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.authenticateAny = authenticateAny;

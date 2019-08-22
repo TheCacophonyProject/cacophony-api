@@ -50,7 +50,20 @@ class TestReport:
         report = ReportChecker(user.get_report(limit=10))
         report.check_line(rec0, device0, exp_audio_bait_name, exp_audio_bait_time)
         report.check_line(rec1, device0, exp_audio_bait_name, exp_audio_bait_time)
-        report.check_line(rec2, device1, None, None)
+        report.check_line(rec2, device1)
+
+
+    def test_report_jwt_arg(self, helper):
+        user = helper.admin_user()
+
+        device = helper.given_new_device(self)
+        rec = device.upload_recording()
+
+        # Get report using JWT argument
+        jwt = user.get_report_token()
+        report = ReportChecker(user.get_report(limit=5, jwt=jwt))
+
+        report.check_line(rec, device)
 
 
 class ReportChecker:
@@ -61,7 +74,7 @@ class ReportChecker:
             assert recording_id not in self._lines
             self._lines[recording_id] = line
 
-    def check_line(self, rec, device, exp_audio_bait_name, exp_audio_bait_time):
+    def check_line(self, rec, device, exp_audio_bait_name=None, exp_audio_bait_time=None):
         line = self._lines.get(rec.id_)
         assert line is not None
 

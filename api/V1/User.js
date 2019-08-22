@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require("../../models");
-const jwt = require("jsonwebtoken");
-const config = require("../../config");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
@@ -64,13 +62,12 @@ module.exports = function(app, baseUrl) {
         email: request.body.email
       });
 
-      const jwtData = user.getJwtDataValues();
       const userData = await user.getDataValues();
 
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new user."],
-        token: "JWT " + jwt.sign(jwtData, config.server.passportSecret),
+        token: "JWT " + auth.createEntityJWT(user),
         userData: userData
       });
     })

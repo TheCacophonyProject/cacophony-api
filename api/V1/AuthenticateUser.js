@@ -17,10 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const jwt = require("jsonwebtoken");
-const config = require("../../config");
+const { body, oneOf } = require("express-validator/check");
+
+const auth = require("../auth");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
-const { body, oneOf } = require("express-validator/check");
 
 module.exports = function(app) {
   /**
@@ -57,17 +58,16 @@ module.exports = function(app) {
         request.body.password
       );
       if (passwordMatch) {
+        const token = await auth.createEntityJWT(request.body.user);
         const userData = await request.body.user.getDataValues();
-        const data = request.body.user.getJwtDataValues();
-        data._type = "user";
-        return responseUtil.send(response, {
+        responseUtil.send(response, {
           statusCode: 200,
           messages: ["Successful login."],
-          token: "JWT " + jwt.sign(data, config.server.passportSecret),
+          token: "JWT " + token,
           userData: userData
         });
       } else {
-        return responseUtil.send(response, {
+        responseUtil.send(response, {
           statusCode: 401,
           messages: ["Wrong password or username."]
         });
