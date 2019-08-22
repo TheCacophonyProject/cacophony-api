@@ -109,7 +109,10 @@ async function getSingleTrackRecordings(client) {
       WHERE temp.trackCount = 1 AND
       NOT EXISTS (
                   SELECT 1 FROM "TrackTags" tag WHERE tag."TrackId" = t."id" AND tag."automatic"=false
-      )  AND r."additionalMetadata" IS NOT NULL and r."additionalMetadata" ? 'oldTags'`,
+      )  
+      AND r."additionalMetadata" IS NOT NULL
+      AND r."additionalMetadata" ? 'oldTags'
+      AND (r."additionalMetadata"->>'algorithm')::int >=41`,
     rowMode: "array"
   });
   return res.rows;
