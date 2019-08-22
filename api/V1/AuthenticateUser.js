@@ -16,7 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jwt = require("jsonwebtoken");
 const { body, oneOf } = require("express-validator/check");
 
 const auth = require("../auth");
@@ -77,7 +76,7 @@ module.exports = function(app) {
 
 
   /**
-   * @api {post} /token Generate temporary JWT for the current user
+   * @api {post} /token Generate temporary JWT
    * @apiName Token
    * @apiGroup Authentication
    * @apiDescription It is sometimes necessary to include an

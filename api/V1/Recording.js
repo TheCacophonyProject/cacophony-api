@@ -187,7 +187,7 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl + "/report",
-    [auth.byJWTParam("user", "user")].concat(queryValidators),
+    [auth.paramOrHeader].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
       const rows = await recordingUtil.report(request);
       response.status(200).set({
