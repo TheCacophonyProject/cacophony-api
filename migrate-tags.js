@@ -1,5 +1,6 @@
 /*
-This is a one-off script to add type prefixes to object keys that don't have one.
+This is a one-off script to migrate old recordings animal tags to track tags. 
+Only where there is 1 old manual tag and 1 new Track with no manual tags.
 */
 
 const process = require("process");
@@ -10,7 +11,7 @@ const config = require("./config");
 const moment = require("moment");
 
 const MIN_CONFIDENCE = 0.6;
-const animals = [
+const animals = Object.freeze([
   "possum",
   "rodent",
   "mustelid",
@@ -24,8 +25,7 @@ const animals = [
   "insect",
   "pest",
   "part"
-];
-Object.freeze(animals);
+]);
 
 async function main() {
   args
@@ -36,10 +36,9 @@ async function main() {
 
   const pgClient = await pgConnect();
   const recordings = await getSingleTrackRecordings(pgClient);
-  let manualAnimals;
   logger.info(`Found ${recordings.length} possible recordings`);
   for (const [rId, trackId, oldTags] of recordings) {
-    manualAnimals = getManualAnimalTags(oldTags);
+    const manualAnimals = getManualAnimalTags(oldTags);
     if (manualAnimals.length == 1) {
       await addTrackTag(pgClient, rId, trackId, manualAnimals[0]);
     }
@@ -67,7 +66,7 @@ async function addTrackTag(client, rId, trackId, tag) {
   (what, confidence, data, automatic, "createdAt", "updatedAt", "TrackId", "UserId") 
   VALUES($1, $2, $3, $4, $5, $6, $7, $8);`;
   const values = [
-    `${tag.what}`,
+    tag.what,
     tag.confidence,
     '""',
     tag.automatic,
@@ -76,23 +75,20 @@ async function addTrackTag(client, rId, trackId, tag) {
     trackId,
     tag.taggerId
   ];
-  await client.query(text, values).catch(e => logger.error(e.stack));
+  await client.query(text, values).catch(e => {
+    logger.error(e.stack);
+    process.exit(0);
+  });
 }
 
 function getManualAnimalTags(oldTags) {
-  const manualAnimalTags = [];
-  let tag;
-  for (let i = 0; i < oldTags.length; i++) {
-    tag = oldTags[i];
-    if (
-      tag.automatic == false &&
+  return oldTags.filter(tag => {
+    return (
+      !tag.automatic &&
       animals.includes(tag.what) &&
-      tag.condidence > MIN_CONFIDENCE
-    ) {
-      manualAnimalTags.push(tag);
-    }
-  }
-  return manualAnimalTags;
+      tag.confidence >= MIN_CONFIDENCE
+    );
+  });
 }
 
 async function getSingleTrackRecordings(client) {
@@ -108,7 +104,7 @@ async function getSingleTrackRecordings(client) {
         ) temp on temp.id = r.id
       WHERE temp.trackCount = 1 AND
       NOT EXISTS (
-                  SELECT 1 FROM "TrackTags" tag WHERE tag."TrackId" = t."id" AND tag."automatic"=false
+                  SELECT 1 FROM "TrackTags" tag WHERE tag."TrackId" = t."id" AND not tag."automatic"
       )  
       AND r."additionalMetadata" IS NOT NULL
       AND r."additionalMetadata" ? 'oldTags'
