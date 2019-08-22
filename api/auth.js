@@ -50,18 +50,7 @@ const authenticate = function(type) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
-    let result;
-    switch (jwtDecoded._type) {
-      case "user":
-        result = await models.User.findByPk(jwtDecoded.id);
-        break;
-      case "device":
-        result = await models.Device.findByPk(jwtDecoded.id);
-        break;
-      case "fileDownload":
-        result = jwtDecoded;
-        break;
-    }
+    const result = await lookupEntity(jwtDecoded);
     if (!result) {
       res.status(401).json({
         messages: ["Could not find entity referenced by JWT."]
@@ -72,6 +61,19 @@ const authenticate = function(type) {
     next();
   };
 };
+
+async function lookupEntity(jwtDecoded) {
+  switch (jwtDecoded._type) {
+    case "user":
+      return await models.User.findByPk(jwtDecoded.id);
+    case "device":
+      return await models.Device.findByPk(jwtDecoded.id);
+    case "fileDownload":
+      return jwtDecoded;
+    default:
+      return null;
+  }
+}
 
 const authenticateUser = authenticate("user");
 const authenticateDevice = authenticate("device");
@@ -101,36 +103,61 @@ const authenticateAdmin = async (req, res, next) => {
 };
 
 /*
- * Authenticate a request using a "jwt" query parameter
+ * Authenticate a request using a "jwt" query parameter, with fallback
+ * to Authorization header.
+ *
+ * paramType specifies the expected value in the decoded JWT _type
+ * field if a "jwt" URL param is used. headerType specifies the
+ * expected value in the _type field if the JWT is in the
+ * Authorization header. Either can be null indicating that any JWT
+ * type is supported in that context.
+ *
+ * The decoded JWT can be found at req.jwtDecoded.
  */
-const byJWTParam = function(expectedType) {
-  return (req, res, next) => {
-    const jwtParam = req.query["jwt"];
-    if (!jwtParam) {
+const byJWTParam = function(paramType, headerType) {
+  if (typeof paramType === "undefined" || typeof headerType === "undefined") {
+    throw "paramType and headerType must be specified";
+  }
+
+  return async (req, res, next) => {
+    let usingParam = true;
+    let token = req.query["jwt"];
+    if (!token) {
+      token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
+      usingFallBack = false;
+    }
+    if (!token) {
       res
         .status(401)
         .json({ messages: ["Could not find JWT token in query params."] });
       return;
     }
 
-    let jwtDecoded;
+    let decoded;
     try {
-      jwtDecoded = jwt.verify(jwtParam, config.server.passportSecret);
+      decoded = jwt.verify(token, config.server.passportSecret);
     } catch (e) {
       return res.status(401).json({ messages: ["Failed to verify JWT."] });
     }
 
-    if (jwtDecoded._type !== expectedType) {
+    //
+    const expectedType = usingParam ? paramType : headerType;
+    if (expectedType && decoded._type !== expectedType) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
 
-    req.jwtDecoded = jwtDecoded;
+    // Ensure the entity referenced by the JWT actually exists.
+    const entity = await lookupEntity(decoded);
+    if (!entity) {
+      res.status(401).json({ messages: ["Invalid JWT entity."] });
+      return;
+    }
+
+    req.jwtDecoded = decoded;
     next();
   };
 };
-
-const fileDownload = byJWTParam("fileDownload");
 
 // A request wrapper that also checks if user should be playing around with the
 // the named device before continuing.
@@ -163,5 +190,5 @@ exports.authenticateUser = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.authenticateAny = authenticateAny;
 exports.authenticateAdmin = authenticateAdmin;
-exports.fileDownload = fileDownload;
+exports.byJWTParam = byJWTParam;
 exports.userCanAccessDevices = userCanAccessDevices;
