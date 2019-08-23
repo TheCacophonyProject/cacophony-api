@@ -16,11 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const jwt = require("jsonwebtoken");
-const config = require("../../config");
+const { body, oneOf } = require("express-validator/check");
+
+const auth = require("../auth");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
-const { body, oneOf } = require("express-validator/check");
 
 module.exports = function(app) {
   /**
@@ -57,21 +57,46 @@ module.exports = function(app) {
         request.body.password
       );
       if (passwordMatch) {
+        const token = await auth.createEntityJWT(request.body.user);
         const userData = await request.body.user.getDataValues();
-        const data = request.body.user.getJwtDataValues();
-        data._type = "user";
-        return responseUtil.send(response, {
+        responseUtil.send(response, {
           statusCode: 200,
           messages: ["Successful login."],
-          token: "JWT " + jwt.sign(data, config.server.passportSecret),
+          token: "JWT " + token,
           userData: userData
         });
       } else {
-        return responseUtil.send(response, {
+        responseUtil.send(response, {
           statusCode: 401,
           messages: ["Wrong password or username."]
         });
       }
+    })
+  );
+
+
+  /**
+   * @api {post} /token Generate temporary JWT
+   * @apiName Token
+   * @apiGroup Authentication
+   * @apiDescription It is sometimes necessary to include an
+   * authentication token in a URL but it is not safe to provide a
+   * user's primary JWT as it can easily leak into logs etc. This API
+   * generates a short-lived token which can be used as part of URLs.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiSuccess {JSON} token JWT that may be used to call the report endpoint.
+   */
+  app.post(
+    "/token",
+    [auth.authenticateUser],
+    middleware.requestWrapper(async (request, response) => {
+      const token = auth.createEntityJWT(request.user, { expiresIn: 60 });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Token generated."],
+        token: token
+      });
     })
   );
 };

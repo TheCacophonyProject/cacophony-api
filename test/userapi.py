@@ -22,6 +22,10 @@ class UserAPI(APIBase):
     def login(self):
         return super().login(email=self.email)
 
+    def token(self):
+        response = requests.post(urljoin(self._baseurl, "/token"), headers=self._auth_header)
+        return self._check_response(response)
+
     def name_or_email_login(self, nameOrEmail):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
         data = {"nameOrEmail": nameOrEmail, "password": self._password}
@@ -73,6 +77,7 @@ class UserAPI(APIBase):
         tags=None,
         filterOptions=None,
         deviceIds=None,
+        jwt=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -92,7 +97,14 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
-        response = requests.get(url, params=serialise_params(params), headers=self._auth_header)
+
+        if jwt:
+            params["jwt"] = jwt
+            headers = None
+        else:
+            headers = self._auth_header
+
+        response = requests.get(url, params=serialise_params(params), headers=headers)
         if response.status_code == 200:
             return response.text
         raise_specific_exception(response)
