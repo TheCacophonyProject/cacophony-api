@@ -191,8 +191,8 @@ module.exports = (app, baseUrl) => {
     middleware.requestWrapper(async (request, response) => {
       const rows = await recordingUtil.report(request);
       response.status(200).set({
-        'Content-Type': "text/csv",
-        'Content-Disposition': 'attachment; filename=recordings.csv'
+        "Content-Type": "text/csv",
+        "Content-Disposition": "attachment; filename=recordings.csv"
       });
       csv.writeToStream(response, rows);
     })
@@ -208,6 +208,8 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse FilterOptions
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} fileSize the number of bytes in recording file.
+   * @apiSuccess {int} rawSize the number of bytes in raw recording file.
    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
    * recording file.
    * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
@@ -224,11 +226,20 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON("filterOptions", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
+      const {
+        recording,
+        rawSize,
+        rawJWT,
+        cookedSize,
+        cookedJWT
+      } = await recordingUtil.get(request);
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         recording: recording,
+        rawSize: rawSize,
+        fileSize: cookedSize,
         downloadFileJWT: cookedJWT,
         downloadRawJWT: rawJWT
       });

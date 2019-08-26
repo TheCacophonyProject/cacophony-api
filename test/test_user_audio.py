@@ -80,3 +80,11 @@ class TestUserAudio:
         print("the change should be reflected on the API server")
         print(recording["additionalMetadata"])
         user.can_download_correct_recording(recording)
+
+    def test_can_download_audio(self, helper):
+        phone = helper.given_new_device(self, "phone")
+        recording = phone.has_audio_recording()
+
+        print("\nA user should be able to download the audio recording")
+        user = helper.admin_user()
+        user.can_download_correct_recording(recording)

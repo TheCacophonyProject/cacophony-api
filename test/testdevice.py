@@ -87,7 +87,13 @@ class TestDevice:
         return detailsId
 
     def download_audio_bait(self, file_id):
-        return self._deviceapi.download_file(file_id)
+        file_json = self._deviceapi.get_file(file_id)
+        file = self._deviceapi._download_signed(file_json["jwt"])
+        file_bytes = 0
+        for chunk in file:
+            file_bytes += len(chunk)
+        assert file_bytes == file_json["fileSize"]
+        return file
 
     def get_audio_schedule(self):
         return self._deviceapi.get_audio_schedule()
