@@ -64,9 +64,7 @@ class TestUser:
         assert r0["id"]
         assert r0["type"]
         assert r0["recordingDateTime"]
-        assert "rawFileSize" in r0
         assert r0["rawMimeType"]
-        assert "fileSize" in r0
         assert "fileMimeType" in r0
         assert r0["processingState"]
         assert r0["duration"] > 0
@@ -160,11 +158,9 @@ class TestUser:
         del recv_props["GroupId"]
         del recv_props["location"]
         del recv_props["rawFileKey"]
-        del recv_props["rawFileSize"]
         if "rawMimeType" not in props:
             del recv_props["rawMimeType"]
         del recv_props["fileKey"]
-        del recv_props["fileSize"]
         del recv_props["fileMimeType"]
         if "type" not in props:
             recv_props.pop("type", None)

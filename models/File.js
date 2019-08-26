@@ -30,7 +30,6 @@ module.exports = function(sequelize, DataTypes) {
   const attributes = {
     type: DataTypes.STRING,
     fileKey: DataTypes.STRING,
-    fileSize: DataTypes.STRING,
     details: DataTypes.JSONB
   };
 

@@ -55,12 +55,10 @@ module.exports = function(sequelize, DataTypes) {
 
     // Raw file data.
     rawFileKey: DataTypes.STRING,
-    rawFileSize: DataTypes.INTEGER,
     rawMimeType: DataTypes.STRING,
 
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
-    fileSize: DataTypes.STRING,
     fileMimeType: DataTypes.STRING,
     processingStartTime: DataTypes.DATE,
     processingMeta: DataTypes.JSONB,
@@ -787,9 +785,7 @@ module.exports = function(sequelize, DataTypes) {
     "id",
     "type",
     "recordingDateTime",
-    "rawFileSize",
     "rawMimeType",
-    "fileSize",
     "fileMimeType",
     "processingState",
     "duration",
@@ -802,9 +798,7 @@ module.exports = function(sequelize, DataTypes) {
   // Attributes returned when looking up a single recording.
   Recording.userGetAttributes = [
     "id",
-    "rawFileSize",
     "rawMimeType",
-    "fileSize",
     "fileMimeType",
     "processingState",
     "duration",
