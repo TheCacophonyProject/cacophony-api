@@ -115,7 +115,7 @@ module.exports = (app, baseUrl) => {
    * @apiHeader {String} Authorization Signed JSON web token for either a user or a device.
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {int} fileBytes the number of bytes in the file.
+   * @apiSuccess {int} fileSize the number of bytes in the file.
    * @apiSuccess {String} jwt JSON Web Token to use to download the
    * recording file.
    * @apiSuccess {JSON} file Metadata for the file.
@@ -141,7 +141,7 @@ module.exports = (app, baseUrl) => {
         statusCode: 200,
         messages: [],
         file: file,
-        fileBytes: s3Data.ContentLength,
+        fileSize: s3Data.ContentLength,
         jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
           expiresIn: 60 * 10
         })

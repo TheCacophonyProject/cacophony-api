@@ -74,7 +74,6 @@ module.exports = function(app) {
     })
   );
 
-
   /**
    * @api {post} /token Generate temporary JWT
    * @apiName Token

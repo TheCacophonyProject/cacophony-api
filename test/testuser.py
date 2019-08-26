@@ -144,7 +144,7 @@ class TestUser:
         for chunk in self._userapi._download_signed(r["downloadRawJWT"]):
             content.write(chunk)
         assert content.getvalue() == recording.content
-        assert len(content.getvalue()) == r["rawBytes"]
+        assert len(content.getvalue()) == r["rawSize"]
         recv_props = r["recording"]
 
         props = recording.props.copy()

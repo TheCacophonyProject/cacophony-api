@@ -92,7 +92,7 @@ class TestDevice:
         file_bytes = 0
         for chunk in file:
             file_bytes += len(chunk)
-        assert file_bytes == file_json["fileBytes"]
+        assert file_bytes == file_json["fileSize"]
         return file
 
     def get_audio_schedule(self):

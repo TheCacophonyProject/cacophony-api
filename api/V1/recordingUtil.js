@@ -247,12 +247,12 @@ async function get(request, type) {
     mimeType: recording.rawMimeType
   };
 
-  let rawBytes = null;
+  let rawSize = null;
   if (recording.rawFileKey) {
     await util
       .getS3Object(recording.rawFileKey)
       .then(rawS3Data => {
-        rawBytes = rawS3Data.ContentLength;
+        rawSize = rawS3Data.ContentLength;
       })
       .catch(err => {
         log.warn(
@@ -263,12 +263,12 @@ async function get(request, type) {
       });
   }
 
-  let cookedBytes = null;
+  let cookedSize = null;
   if (recording.fileKey) {
     await util
       .getS3Object(recording.fileKey)
       .then(s3Data => {
-        cookedBytes = s3Data.ContentLength;
+        cookedSize = s3Data.ContentLength;
       })
       .catch(err => {
         log.warn(
@@ -283,13 +283,13 @@ async function get(request, type) {
 
   return {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
-    cookedBytes: cookedBytes,
+    cookedSize: cookedSize,
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
     ),
-    rawBytes: rawBytes,
+    rawSize: rawSize,
     rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
       expiresIn: 60 * 10
     })
