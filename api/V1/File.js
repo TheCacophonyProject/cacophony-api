@@ -115,6 +115,7 @@ module.exports = (app, baseUrl) => {
    * @apiHeader {String} Authorization Signed JSON web token for either a user or a device.
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} fileSize the number of bytes in the file.
    * @apiSuccess {String} jwt JSON Web Token to use to download the
    * recording file.
    * @apiSuccess {JSON} file Metadata for the file.
@@ -132,10 +133,15 @@ module.exports = (app, baseUrl) => {
         key: file.fileKey
       };
 
+      const s3Data = await util.getS3Object(file.fileKey).catch(err => {
+        return responseUtil.serverError(response, err);
+      });
+
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         file: file,
+        fileSize: s3Data.ContentLength,
         jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
           expiresIn: 60 * 10
         })

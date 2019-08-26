@@ -78,11 +78,14 @@ class APIBase:
         raise_specific_exception(response)
         yield from response.iter_content(chunk_size=4096)
 
-    def download_file(self, file_id):
+    def get_file(self, file_id):
         url = urljoin(self._baseurl, "/api/v1/files/{}".format(file_id))
         response = requests.get(url, headers=self._auth_header)
-        self._check_response(response)
-        return self._download_signed(response.json()["jwt"])
+        return self._check_response(response)
+
+    def download_file(self, file_id):
+        json = self.get_file(file_id)
+        return self._download_signed(json["jwt"])
 
     def _upload(self, url, filename, props):
         url = urljoin(self._baseurl, url)

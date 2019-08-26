@@ -23,7 +23,7 @@ module.exports = function(sequelize, DataTypes) {
   const attributes = {
     groupname: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: true
     }
   };
 

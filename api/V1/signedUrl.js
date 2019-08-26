@@ -77,6 +77,7 @@ module.exports = function(app, baseUrl) {
             "attachment; filename=" + filename
           );
           response.setHeader("Content-type", mimeType);
+          response.setHeader("Content-Length", data.ContentLength);
           response.write(data.Body, "binary");
           return response.end(null, "binary");
         }

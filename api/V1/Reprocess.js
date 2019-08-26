@@ -46,19 +46,19 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-  * @api {post} /api/v1/reprocess Mark recordings for reprocessing
-  * @apiName ReprocessMultiple
-  * @apiGroup Recordings
-  * @apiParam {JSON} recordings an array of recording ids to reprocess
-  *
-  * @apiDescription Mark one or more recordings for reprocessing,
-  * archiving any tracks and recording tags that are associated with
-  * them.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiUse V1RecordingReprocessResponse
-  */
+   * @api {post} /api/v1/reprocess Mark recordings for reprocessing
+   * @apiName ReprocessMultiple
+   * @apiGroup Recordings
+   * @apiParam {JSON} recordings an array of recording ids to reprocess
+   *
+   * @apiDescription Mark one or more recordings for reprocessing,
+   * archiving any tracks and recording tags that are associated with
+   * them.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1RecordingReprocessResponse
+   */
   app.post(
     apiUrl,
     [auth.authenticateUser, middleware.parseJSON("recordings", body)],

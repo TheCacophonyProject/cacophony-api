@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   const options = {
-    tableName: 'DeviceHistory',
+    tableName: "DeviceHistory"
   };
 
   const DeviceHistory = sequelize.define(name, attributes, options);
