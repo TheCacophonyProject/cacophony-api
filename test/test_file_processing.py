@@ -44,8 +44,8 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="toMp4")
 
         # Now finalise processing.
-        file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        file_processing.put(recording, success=True, complete=True)
+        check_recording(user, recording, processingState="FINISHED")
 
     def test_metadata_update(self, helper, file_processing):
         user = helper.admin_user()
@@ -193,8 +193,8 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="toMp4")
 
         # Now finalise processing.
-        file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(user, recording, processingState="FINISHED", fileKey="some_key")
+        file_processing.put(recording, success=True, complete=True)
+        check_recording(user, recording, processingState="FINISHED")
         return recording, track, tag
 
     def add_tracks_and_tag(self, file_processing, recording):

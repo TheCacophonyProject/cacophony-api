@@ -119,4 +119,14 @@ function multipartUpload(keyPrefix, buildRecord) {
   };
 }
 
+async function getS3Object(fileKey) {
+  const s3 = modelsUtil.openS3();
+  const params = {
+    Bucket: config.s3.bucket,
+    Key: fileKey
+  };
+  return s3.getObject(params).promise();
+}
+
+exports.getS3Object = getS3Object;
 exports.multipartUpload = multipartUpload;

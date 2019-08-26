@@ -19,11 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 "use strict";
 
 const _ = require("lodash");
-const sequelize = require('sequelize');
+const sequelize = require("sequelize");
 const Op = sequelize.Op;
 
 const { AuthorizationError } = require("../api/customErrors");
-
 
 module.exports = function(sequelize, DataTypes) {
   const name = "File";
@@ -82,7 +81,7 @@ module.exports = function(sequelize, DataTypes) {
   File.getMultiple = async function(ids) {
     return this.findAll({
       where: {
-        "id": {
+        id: {
           [Op.in]: ids
         }
       }

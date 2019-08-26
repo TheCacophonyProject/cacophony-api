@@ -105,7 +105,7 @@ function getGroupById(checkFunc) {
   return getModelById(models.Group, "groupId", checkFunc);
 }
 
-function getGroupByName(checkFunc, fieldName="group") {
+function getGroupByName(checkFunc, fieldName = "group") {
   return getModelByName(models.Group, fieldName, checkFunc);
 }
 

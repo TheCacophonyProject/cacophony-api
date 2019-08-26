@@ -220,11 +220,20 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON("filterOptions", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
+      const {
+        recording,
+        rawBytes,
+        rawJWT,
+        cookedBytes,
+        cookedJWT
+      } = await recordingUtil.get(request);
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         recording: recording,
+        rawBytes: rawBytes,
+        fileBytes: cookedBytes,
         downloadFileJWT: cookedJWT,
         downloadRawJWT: rawJWT
       });

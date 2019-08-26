@@ -259,19 +259,17 @@ module.exports = function(app, baseUrl) {
     [
       auth.authenticateDevice,
       middleware.getGroupByName(body, "newGroup"),
-      middleware.checkNewName("newName"),
+      middleware.checkNewName("newName")
     ],
     middleware.requestWrapper(async function(request, response) {
-
       await request.device.rename(request.body.newName, request.body.group);
 
       return responseUtil.send(response, {
         statusCode: 200,
         devicename: request.body.newName,
         groupname: request.body.group.groupname,
-        messages: ["name and group set"],
+        messages: ["name and group set"]
       });
     })
   );
-
 };

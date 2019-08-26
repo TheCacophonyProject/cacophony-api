@@ -23,6 +23,7 @@ const urljoin = require("url-join");
 
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
+const log = require("../../logging");
 const models = require("../../models");
 const responseUtil = require("./responseUtil");
 const util = require("./util");
@@ -245,15 +246,50 @@ async function get(request, type) {
     filename: recording.getRawFileName(),
     mimeType: recording.rawMimeType
   };
+
+  let rawBytes = null;
+  if (recording.rawFileKey) {
+    await util
+      .getS3Object(recording.rawFileKey)
+      .then(rawS3Data => {
+        rawBytes = rawS3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.rawFileKey
+        );
+      });
+  }
+
+  let cookedBytes = null;
+  if (recording.fileKey) {
+    await util
+      .getS3Object(recording.fileKey)
+      .then(s3Data => {
+        cookedBytes = s3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.fileKey
+        );
+      });
+  }
+
   delete recording.rawFileKey;
 
   return {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
+    cookedBytes: cookedBytes,
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
     ),
+    rawBytes: rawBytes,
     rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
       expiresIn: 60 * 10
     })

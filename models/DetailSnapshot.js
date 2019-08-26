@@ -75,7 +75,6 @@ module.exports = function(sequelize, DataTypes) {
     return await this.findById(id);
   };
 
-
   //-----------------
   // INSTANCE METHODS
   //-----------------

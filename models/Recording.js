@@ -465,7 +465,7 @@ module.exports = function(sequelize, DataTypes) {
     );
 
     const state = Recording.processingStates[this.type][0];
-    this.update({
+    await this.update({
       processingStartTime: null,
       processingState: state
     });

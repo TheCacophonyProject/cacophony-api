@@ -103,9 +103,12 @@ class UserAPI(APIBase):
         self._check_response(response)
 
     def get_recording(self, recording_id, params=None):
+        return self.get_recording_response(recording_id, params)["recording"]
+
+    def get_recording_response(self, recording_id, params=None):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
         r = requests.get(url, headers=self._auth_header, params=params)
-        return self._check_response(r)["recording"]
+        return self._check_response(r)
 
     def delete_recording(self, recording_id):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))

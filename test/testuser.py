@@ -136,12 +136,13 @@ class TestUser:
         return csv.DictReader(text.splitlines())
 
     def can_download_correct_recording(self, recording):
+        r = self._userapi.get_recording_response(recording.id_)
         content = io.BytesIO()
-        for chunk in self._userapi.download_cptv(recording.id_):
+        for chunk in self._userapi._download_signed(r["downloadRawJWT"]):
             content.write(chunk)
         assert content.getvalue() == recording.content
-
-        recv_props = self._userapi.get_recording(recording.id_)
+        assert len(content.getvalue()) == r["rawBytes"]
+        recv_props = r["recording"]
 
         props = recording.props.copy()
 
