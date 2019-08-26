@@ -35,7 +35,7 @@ async function main() {
     .option("-d, --delete", "Delete manual old tags")
     .option(
       "-b, --before <date>",
-      "Delete manual old tags that were created/updated before this date",
+      "Delete manual old tags that were created/updated before this date YYYY-MM-dd",
       "2019-08-01"
     )
     .parse(process.argv);
