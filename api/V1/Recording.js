@@ -208,6 +208,8 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse FilterOptions
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} fileBytes the number of bytes in recording file.
+   * @apiSuccess {int} rawBytes the number of bytes in raw recording file.
    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
    * recording file.
    * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
