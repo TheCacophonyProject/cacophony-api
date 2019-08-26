@@ -125,7 +125,7 @@ function getS3Object(fileKey) {
     Bucket: config.s3.bucket,
     Key: fileKey
   };
-  return s3.getObject(params).promise();
+  return s3.headObject(params).promise();
 }
 
 exports.getS3Object = getS3Object;
