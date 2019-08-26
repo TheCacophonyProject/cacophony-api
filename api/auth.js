@@ -20,8 +20,15 @@ const config = require("../config");
 const jwt = require("jsonwebtoken");
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const customErrors = require("./customErrors");
-const format = require("util").format;
 const models = require("../models");
+
+/*
+ * Create a new JWT for a user or device.
+ */
+function createEntityJWT(entity, options) {
+  const payload = entity.getJwtDataValues();
+  return jwt.sign(payload, config.server.passportSecret, options);
+}
 
 const getVerifiedJWT = req => {
   const token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
@@ -47,37 +54,33 @@ const authenticate = function(type) {
       return res.status(401).json({ messages: [e.message] });
     }
     if (type && type != jwtDecoded._type) {
-      return res.status(401).json({
-        messages: [
-          format(
-            "Invalid type of JWT. Need one of %s for this request, but had %s.",
-            type,
-            jwtDecoded._type
-          )
-        ]
-      });
+      res.status(401).json({ messages: ["Invalid JWT type."] });
+      return;
     }
-    let result;
-    switch (jwtDecoded._type) {
-      case "user":
-        result = await models.User.findByPk(jwtDecoded.id);
-        break;
-      case "device":
-        result = await models.Device.findByPk(jwtDecoded.id);
-        break;
-      case "fileDownload":
-        result = jwtDecoded;
-        break;
-    }
-    if (result == null) {
-      return res.status(401).json({
-        messages: [format("Could not find a %s from the JWT.", type)]
+    const result = await lookupEntity(jwtDecoded);
+    if (!result) {
+      res.status(401).json({
+        messages: ["Could not find entity referenced by JWT."]
       });
+      return;
     }
     req[type] = result;
     next();
   };
 };
+
+async function lookupEntity(jwtDecoded) {
+  switch (jwtDecoded._type) {
+    case "user":
+      return await models.User.findByPk(jwtDecoded.id);
+    case "device":
+      return await models.Device.findByPk(jwtDecoded.id);
+    case "fileDownload":
+      return jwtDecoded;
+    default:
+      return null;
+  }
+}
 
 const authenticateUser = authenticate("user");
 const authenticateDevice = authenticate("device");
@@ -106,7 +109,46 @@ const authenticateAdmin = async (req, res, next) => {
   next();
 };
 
-const signedUrl = (req, res, next) => {
+/*
+ * Authenticate a request using a "jwt" query parameter, with fallback
+ * to Authorization header. The JWT must of a "user" type.
+ */
+async function paramOrHeader(req, res, next) {
+  let token = req.query["jwt"];
+
+  if (!token) {
+    token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
+  }
+  if (!token) {
+    res.status(401).json({ messages: ["Could not find JWT token."] });
+    return;
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, config.server.passportSecret);
+  } catch (e) {
+    res.status(401).json({ messages: ["Failed to verify JWT."] });
+    return;
+  }
+
+  if (decoded._type !== "user") {
+    res.status(401).json({ messages: ["Invalid JWT type."] });
+    return;
+  }
+
+  // Ensure the user referenced by the JWT actually exists.
+  const user = await lookupEntity(decoded);
+  if (!user) {
+    res.status(401).json({ messages: ["Invalid JWT entity."] });
+    return;
+  }
+
+  req["user"] = user;
+  next();
+}
+
+function signedUrl(req, res, next) {
   const jwtParam = req.query["jwt"];
   if (jwtParam == null) {
     return res
@@ -119,9 +161,14 @@ const signedUrl = (req, res, next) => {
   } catch (e) {
     return res.status(401).json({ messages: ["Failed to verify JWT."] });
   }
+
+  if (jwtDecoded._type !== "fileDownload") {
+    return res.status(401).json({ messages: ["Incorrect JWT type."] });
+  }
+
   req.jwtDecoded = jwtDecoded;
   next();
-};
+}
 
 // A request wrapper that also checks if user should be playing around with the
 // the named device before continuing.
@@ -150,9 +197,11 @@ const userCanAccessDevices = async (request, response, next) => {
   next();
 };
 
+exports.createEntityJWT = createEntityJWT;
 exports.authenticateUser = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.authenticateAny = authenticateAny;
 exports.authenticateAdmin = authenticateAdmin;
+exports.paramOrHeader = paramOrHeader;
 exports.signedUrl = signedUrl;
 exports.userCanAccessDevices = userCanAccessDevices;
