@@ -30,13 +30,29 @@ const animals = Object.freeze([
 async function main() {
   args
     .option("--config <path>", "Configuration file", "./config/app.js")
+    .option("--algorithm <algid>", "Minimum algorithm requirement", 41)
+    .option("-c, --create", "Create new track tags from old tags")
+    .option("-d, --delete", "Delete manual old tags")
+    .option(
+      "-b, --before <date>",
+      "Delete manual old tags that were created/updated before this date",
+      "2019-08-01"
+    )
     .parse(process.argv);
 
   config.loadConfig(args.config);
-
   const pgClient = await pgConnect();
+  if (args.create) {
+    await createNewTrackTags(pgClient);
+  }
+  if (args.delete) {
+    await deleteOldTags(pgClient);
+  }
+}
+
+async function createNewTrackTags(pgClient) {
   const recordings = await getSingleTrackRecordings(pgClient);
-  logger.info(`Found ${recordings.length} possible recordings`);
+  logger.info(`Create found ${recordings.length} possible recordings`);
   for (const [rId, trackId, oldTags] of recordings) {
     const manualAnimals = getManualAnimalTags(oldTags);
     if (manualAnimals.length == 1) {
@@ -108,12 +124,60 @@ async function getSingleTrackRecordings(client) {
       )  
       AND r."additionalMetadata" IS NOT NULL
       AND r."additionalMetadata" ? 'oldTags'
-      AND (r."additionalMetadata"->>'algorithm')::int >=41`,
+      AND (r."additionalMetadata"->>'algorithm')::int >=$1`,
+    values: [args.algorithm],
     rowMode: "array"
   });
   return res.rows;
 }
 
+function toTimestamp(strDate) {
+  const datum = Date.parse(strDate);
+  return datum / 1000;
+}
+
+function getAnimalsSql() {
+  return animals.map(animal => `'${animal}'`).join(",");
+}
+
+async function deleteOldTags(pgClient) {
+  const recordings = await getOldTags(pgClient);
+  logger.info(`Delete found ${recordings.length} possible old tags`);
+  for (const [tagId, oldTags] of recordings) {
+    if (oldTags.find(oldTag => oldTag.id === tagId)) {
+      await deleteTag(pgClient, tagId);
+    }
+  }
+}
+
+async function deleteTag(client, tagId) {
+  logger.info("Deleting tag", tagId);
+  await client.query(`DELETE FROM "Tags" where "id"=$1`, [tagId]).catch(e => {
+    logger.error(e.stack);
+    process.exit(0);
+  });
+}
+
+async function getOldTags(client) {
+  const res = await client
+    .query({
+      text: `SELECT t."id", r."additionalMetadata"->'oldTags' as trackId FROM "Tags" t
+    JOIN "Recordings" r on r."id" = t."RecordingId"
+    WHERE r."additionalMetadata" IS NOT NULL
+    AND t."createdAt" < to_timestamp($1) AND t."updatedAt" < to_timestamp($1)
+    AND NOT t."automatic"
+    AND t."what" in (${getAnimalsSql()})
+    AND r."additionalMetadata" ? 'oldTags'
+    AND (r."additionalMetadata"->>'algorithm')::int >=$2`,
+      values: [toTimestamp(args.before), args.algorithm],
+      rowMode: "array"
+    })
+    .catch(e => {
+      logger.error(e.stack);
+      process.exit(0);
+    });
+  return res.rows;
+}
 const logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
