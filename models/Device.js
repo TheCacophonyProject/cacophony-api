@@ -348,7 +348,6 @@ module.exports = function(sequelize, DataTypes) {
         isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
       },
       async t => {
-
         const conflictingDevice = await Device.findOne({
           where: {
             devicename: newName,
@@ -382,8 +381,6 @@ module.exports = function(sequelize, DataTypes) {
         }, {
           transaction: t,
         });
-
-        await this.update({active: false}, { transaction: t });
       }
     );
     return newDevice;

@@ -242,8 +242,8 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {post} /api/v1/devices/reregister Reregister the device
-   * @apiName Reregoster
+   * @api {post} /api/v1/devices/reregister Reregister the device.
+   * @apiName Reregister
    * @apiGroup Device
    * @apiDescription This call is to reregister a device to change the name and/or group
    *
@@ -273,7 +273,7 @@ module.exports = function(app, baseUrl) {
 
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Created new device."],
+        messages: ["Registered the device again."],
         id: device.id,
         token: "JWT " + auth.createEntityJWT(device)
       });
