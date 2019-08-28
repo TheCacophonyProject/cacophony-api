@@ -341,53 +341,6 @@ module.exports = function(sequelize, DataTypes) {
     return device_users.concat(group_users);
   };
 
-  // Will change the device name and group of device
-  Device.prototype.rename = async function(newName, newGroup) {
-    await sequelize.transaction(
-      {
-        isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
-      },
-      async t => {
-        const conflictingDevice = await Device.findOne({
-          where: {
-            devicename: newName,
-            GroupId: newGroup.id
-          },
-          transaction: t
-        });
-
-        if (conflictingDevice != null) {
-          throw new ClientError(
-            "already a device in group '" +
-              newGroup.groupname +
-              "' with the name '" +
-              newName +
-              "'"
-          );
-        }
-
-        await models.DeviceHistory.create(
-          {
-            newName: newName,
-            oldName: this.getDataValue("devicename"),
-            newGroupID: newGroup.id,
-            oldGroupID: this.getDataValue("GroupId"),
-            DeviceId: this.getDataValue("id")
-          },
-          { transaction: t }
-        );
-
-        await this.update(
-          {
-            devicename: newName,
-            GroupId: newGroup.id
-          },
-          { transaction: t }
-        );
-      }
-    );
-  };
-
   // Will register as a new device
   Device.prototype.reregister = async function(newName, newGroup, newPassword) {
     let newDevice;

@@ -242,39 +242,6 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {post} /api/v1/devices/rename Change the name and group of a device.
-   * @apiName RenameDevice
-   * @apiGroup Device
-   * @apiDescription This call can change the name and the group of a device.
-   *
-   * @apiUse V1DeviceAuthorizationHeader
-   *
-   * @apiParam {String} newName new name of the device.
-   * @apiParam {String} newGroup name of the group you want to move the device to.
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiUse V1ResponseError
-   */
-  app.post(
-    apiUrl + "/rename",
-    [
-      auth.authenticateDevice,
-      middleware.getGroupByName(body, "newGroup"),
-      middleware.checkNewName("newName")
-    ],
-    middleware.requestWrapper(async function(request, response) {
-      await request.device.rename(request.body.newName, request.body.group);
-
-      return responseUtil.send(response, {
-        statusCode: 200,
-        devicename: request.body.newName,
-        groupname: request.body.group.groupname,
-        messages: ["name and group set"]
-      });
-    })
-  );
-
-  /**
    * @api {post} /api/v1/devices/reregister Reregister the device
    * @apiName Reregoster
    * @apiGroup Device

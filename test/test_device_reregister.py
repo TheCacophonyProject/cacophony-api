@@ -45,9 +45,9 @@ class TestDeviceRename:
 
         # can't have same name and group as another device
         with pytest.raises(Exception):
-            device2.rename(device1_new_name, device1_new_group)
+            device2.reregister(device1_new_name, device1_new_group, "password")
 
         # can't reregister with user token
         device2._deviceapi._auth_header = user1._userapi._auth_header
         with pytest.raises(Exception):
-            device2.rename(helper.random_id(), device1_new_group)
+            device2.reregister(helper.random_id(), device1_new_group, "password")
