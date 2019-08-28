@@ -60,6 +60,10 @@ module.exports = function(app, baseUrl) {
         GroupId: request.body.group.id
       });
 
+      await device.update({
+        saltId: device.id,
+      });
+
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
@@ -266,6 +270,45 @@ module.exports = function(app, baseUrl) {
         devicename: request.body.newName,
         groupname: request.body.group.groupname,
         messages: ["name and group set"]
+      });
+    })
+  );
+
+  /**
+   * @api {post} /api/v1/devices/reregister Reregister the device
+   * @apiName Reregoster
+   * @apiGroup Device
+   * @apiDescription This call is to reregister a device to change the name and/or group
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {String} newName new name of the device.
+   * @apiParam {String} newGroup name of the group you want to move the device to.
+   * @apiParam {String} newPassword password for the device
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.post(
+    apiUrl + "/reregister",
+    [
+      auth.authenticateDevice,
+      middleware.getGroupByName(body, "newGroup"),
+      middleware.checkNewName("newName"),
+      middleware.checkNewPassword("newPassword"),
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const device = await request.device.reregister(
+        request.body.newName,
+        request.body.group,
+        request.body.newPassword
+      );
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Created new device."],
+        id: device.id,
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );

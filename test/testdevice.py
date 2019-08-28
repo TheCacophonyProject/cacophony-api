@@ -98,8 +98,8 @@ class TestDevice:
     def get_audio_schedule(self):
         return self._deviceapi.get_audio_schedule()
 
-    def rename(self, new_name, new_group):
-        self._deviceapi.rename(new_name, new_group)
+    def reregister(self, new_name, new_group, new_password):
+        self._deviceapi.reregister(new_name, new_group, new_password)
 
 
 def _new_timestamp():

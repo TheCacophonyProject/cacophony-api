@@ -254,6 +254,14 @@ class TestUser:
     def get_devices_as_ids(self):
         return [device["id"] for device in self._userapi.get_devices_as_json()]
 
+    def get_active_devices(self):
+        devices = self._userapi.get_devices_as_json()
+        active_devices = []
+        for device in devices:
+            if device["active"]:
+                active_devices.append(device)
+        return active_devices
+
     def get_devices_as_string(self):
         return self._userapi.get_devices_as_string()
 
