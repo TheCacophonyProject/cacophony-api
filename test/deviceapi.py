@@ -51,8 +51,8 @@ class DeviceAPI(APIBase):
         self._check_response(response)
         return response.json()
 
-    def rename(self, new_name, new_group):
-        url = urljoin(self._baseurl, "/api/v1/devices/rename")
-        data = {"newName": new_name, "newGroup": new_group}
+    def reregister(self, new_name, new_group, new_password):
+        url = urljoin(self._baseurl, "/api/v1/devices/reregister")
+        data = {"newName": new_name, "newGroup": new_group, "newPassword": new_password}
         response = requests.post(url, headers=self._auth_header, json=data)
         self._check_response(response)

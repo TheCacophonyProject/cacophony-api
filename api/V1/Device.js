@@ -60,6 +60,10 @@ module.exports = function(app, baseUrl) {
         GroupId: request.body.group.id
       });
 
+      await device.update({
+        saltId: device.id,
+      });
+
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
@@ -238,34 +242,40 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {post} /api/v1/devices/rename Change the name and group of a device.
-   * @apiName RenameDevice
+   * @api {post} /api/v1/devices/reregister Reregister the device.
+   * @apiName Reregister
    * @apiGroup Device
-   * @apiDescription This call can change the name and the group of a device.
+   * @apiDescription This call is to reregister a device to change the name and/or group
    *
    * @apiUse V1DeviceAuthorizationHeader
    *
    * @apiParam {String} newName new name of the device.
    * @apiParam {String} newGroup name of the group you want to move the device to.
+   * @apiParam {String} newPassword password for the device
    *
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
   app.post(
-    apiUrl + "/rename",
+    apiUrl + "/reregister",
     [
       auth.authenticateDevice,
       middleware.getGroupByName(body, "newGroup"),
-      middleware.checkNewName("newName")
+      middleware.checkNewName("newName"),
+      middleware.checkNewPassword("newPassword"),
     ],
     middleware.requestWrapper(async function(request, response) {
-      await request.device.rename(request.body.newName, request.body.group);
+      const device = await request.device.reregister(
+        request.body.newName,
+        request.body.group,
+        request.body.newPassword
+      );
 
       return responseUtil.send(response, {
         statusCode: 200,
-        devicename: request.body.newName,
-        groupname: request.body.group.groupname,
-        messages: ["name and group set"]
+        messages: ["Registered the device again."],
+        id: device.id,
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );
