@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return Promise.all([
+  up: async (queryInterface, Sequelize) => {
+    await Promise.all([
       queryInterface.addColumn("Devices", "saltId", Sequelize.INTEGER),
       queryInterface.addColumn("Devices", "active", {
         type: Sequelize.BOOLEAN,
@@ -10,6 +10,8 @@ module.exports = {
         allowNull: false,
       }),
     ]);
+    return queryInterface.sequelize.query(
+      'update "Devices" set "saltId" = id where "saltId" is null;');
   },
 
   down: queryInterface => {

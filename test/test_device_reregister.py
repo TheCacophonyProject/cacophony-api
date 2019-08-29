@@ -22,7 +22,7 @@ class TestDeviceRename:
         with pytest.raises(Exception):
             device1.reregister(new_name, new_group)
 
-        # fail movign to a group that doesn't exist
+        # fail moving to a group that doesn't exist
         with pytest.raises(Exception):
             device1.reregister(new_name, helper.random_id())
 

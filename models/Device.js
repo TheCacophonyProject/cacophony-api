@@ -369,7 +369,7 @@ module.exports = function(sequelize, DataTypes) {
         await Device.update({
           active: false
         }, {
-          where: {saltId: this.getDataValue("saltId")},
+          where: {saltId: this.saltId},
           transaction: t
         });
 
@@ -377,7 +377,7 @@ module.exports = function(sequelize, DataTypes) {
           devicename: newName,
           GroupId: newGroup.id,
           password: newPassword,
-          saltId: this.getDataValue("saltId"),
+          saltId: this.saltId,
         }, {
           transaction: t,
         });
