@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 const util = require("../models/util/util");
 
@@ -20,6 +20,5 @@ module.exports = {
     });
     await util.addSerial(queryInterface, tableName);
     await util.migrationAddBelongsTo(queryInterface, tableName, "Devices");
-    
   }
 };

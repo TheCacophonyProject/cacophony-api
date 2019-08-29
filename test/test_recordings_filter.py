@@ -59,3 +59,35 @@ class TestRecordingsFilter:
         print("  Recordings from a normal query shoudl also be filtered", end="")
         rec = bob.query_recordings(filterOptions=json.dumps({"latLongPrec": 10}))[0]
         assert rec["location"]["coordinates"] == [20.00025, 20.00025]
+
+    def test_recordfing_query_tag_fields(self, helper):
+        larry = helper.given_new_user(self, "larry_confident")
+        larry_group = helper.make_unique_group_name(self, "larrys_group")
+        larry.create_group(larry_group)
+        larry_device = helper.given_new_device(self, "larrys_device", larry_group)
+        recording = larry_device.upload_recording()
+        track = larry.can_add_track_to_recording(recording)
+        larry.can_tag_track(track, automatic=False, what="possum")
+        recording.is_tagged_as(what="foo", detail="bar").by(larry)
+
+        response = larry.query_recordings(return_json=True)
+        assert response["rows"] is not None
+        for r in response["rows"]:
+            tags = r["Tags"]
+            for tag in tags:
+                assert tag.get("what") != 0
+                assert tag.get("detail") == "bar"
+                assert tag.get("automatic") is False
+                assert tag.get("taggerId") is not None
+                assert tag.get("confidence") != 0
+
+            tracks = r["Tracks"]
+            assert tracks is not None
+            for track in tracks:
+                track_tags = track.get("TrackTags")
+                assert track_tags is not None
+                for track_tag in track_tags:
+                    assert track_tag.get("confidence") != 0
+                    assert track_tag.get("what") == "possum"
+                    assert track_tag.get("UserId") is not None
+                    assert track_tag.get("automatic") is False

@@ -61,7 +61,7 @@ module.exports = function(app, baseUrl) {
       });
 
       await device.update({
-        saltId: device.id,
+        saltId: device.id
       });
 
       return responseUtil.send(response, {
@@ -262,7 +262,7 @@ module.exports = function(app, baseUrl) {
       auth.authenticateDevice,
       middleware.getGroupByName(body, "newGroup"),
       middleware.checkNewName("newName"),
-      middleware.checkNewPassword("newPassword"),
+      middleware.checkNewPassword("newPassword")
     ],
     middleware.requestWrapper(async function(request, response) {
       const device = await request.device.reregister(
