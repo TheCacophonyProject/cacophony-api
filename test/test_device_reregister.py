@@ -35,7 +35,6 @@ class TestDeviceRename:
         # login with old credentials
         device1 = helper.login_as_device(device1_old_name, device1_old_group, device1_password)
 
-
         # get active devices for user
         active_devices = user1.get_active_devices()
         assert len(active_devices) == 1
