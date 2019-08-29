@@ -58,7 +58,7 @@ module.exports = function(sequelize, DataTypes) {
     active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
-      allowNull: false,
+      allowNull: false
     }
   };
 
@@ -366,21 +366,27 @@ module.exports = function(sequelize, DataTypes) {
           );
         }
 
-        await Device.update({
-          active: false
-        }, {
-          where: {saltId: this.saltId},
-          transaction: t
-        });
+        await Device.update(
+          {
+            active: false
+          },
+          {
+            where: { saltId: this.saltId },
+            transaction: t
+          }
+        );
 
-        newDevice = await models.Device.create({
-          devicename: newName,
-          GroupId: newGroup.id,
-          password: newPassword,
-          saltId: this.saltId,
-        }, {
-          transaction: t,
-        });
+        newDevice = await models.Device.create(
+          {
+            devicename: newName,
+            GroupId: newGroup.id,
+            password: newPassword,
+            saltId: this.saltId
+          },
+          {
+            transaction: t
+          }
+        );
       }
     );
     return newDevice;

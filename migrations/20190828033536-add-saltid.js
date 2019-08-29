@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -7,17 +7,18 @@ module.exports = {
       queryInterface.addColumn("Devices", "active", {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
-        allowNull: false,
-      }),
+        allowNull: false
+      })
     ]);
     return queryInterface.sequelize.query(
-      'update "Devices" set "saltId" = id where "saltId" is null;');
+      'update "Devices" set "saltId" = id where "saltId" is null;'
+    );
   },
 
   down: queryInterface => {
     return Promise.all([
       queryInterface.removeColumn("Devices", "saltId"),
-      queryInterface.removeColumn("Devices", "active"),
+      queryInterface.removeColumn("Devices", "active")
     ]);
   }
 };

@@ -538,7 +538,7 @@ module.exports = function(sequelize, DataTypes) {
         },
         {
           model: models.Tag,
-          attributes: ["what", "detail", "automatic", "taggerId"],
+          attributes: ["what", "detail", "automatic", "taggerId", "confidence"],
           required: false
         },
         {
@@ -551,7 +551,7 @@ module.exports = function(sequelize, DataTypes) {
           include: [
             {
               model: models.TrackTag,
-              attributes: ["what", "automatic", "UserId"],
+              attributes: ["what", "automatic", "UserId", "confidence"],
               required: false
             }
           ]
