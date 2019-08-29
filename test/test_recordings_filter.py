@@ -71,9 +71,7 @@ class TestRecordingsFilter:
         recording.is_tagged_as(what="foo", detail="bar").by(larry)
 
         response = larry.query_recordings(return_json=True)
-        print(response)
         for r in response["rows"]:
-            print(r)
             tags = r.get("Tags")
             assert tags is not None
             for tag in tags:
