@@ -75,19 +75,10 @@ class ReportChecker:
     def check_line(self, rec, device, exp_audio_bait_name=None, exp_audio_bait_time=None):
         line = self._lines.get(rec.id_)
         assert line is not None
-        recording_time = dateutil.parser.parse(rec["recordingDateTime"])
-        csv_dt = dateutil.parser.parse("{}T{}".format(line["Date"], line["Time"]))
-
-        from_zone = tz.tzutc()
-        to_zone = tz.tzlocal()
-        recording_time = recording_time.replace(tzinfo=from_zone).astimezone(to_zone)
-
         assert line["Type"] == rec["type"]
         assert int(line["Duration"]) == rec["duration"]
         assert line["Group"] == device.group
         assert line["Device"] == device.devicename
-        assert_date_times_equiv(csv_dt, recording_time)
-
         assert line["Comment"] == rec["comment"]
         assert int(line["Track Count"]) == len(rec.tracks)
 
@@ -106,10 +97,6 @@ class ReportChecker:
 
         if exp_audio_bait_name:
             assert line["Audio Bait"] == exp_audio_bait_name
-            assert_date_times_equiv(dateutil.parser.parse(line["Audio Bait Time"]), exp_audio_bait_time)
-            assert float(line["Mins Since Audio Bait"]) == round(
-                (recording_time - exp_audio_bait_time).total_seconds() / 60, 1
-            )
             assert line["Audio Bait Volume"] == "8"
         else:
             assert line["Audio Bait"] == ""
@@ -121,9 +108,3 @@ class ReportChecker:
 
 def format_tags(items):
     return "+".join(items)
-
-
-def assert_date_times_equiv(t1, t2):
-    d1 = t1.replace(microsecond=0)
-    d2 = t2.replace(microsecond=0)
-    assert d1.timestamp() == d2.timestamp()
