@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "eslint": "^5.16.0",
+    "eslint-utils": ">=1.4.1",
     "prettier": "1.18.2"
   },
   "scripts": {
