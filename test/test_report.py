@@ -103,7 +103,7 @@ class ReportChecker:
             assert line["Mins Since Audio Bait"] == ""
             assert line["Audio Bait Volume"] == ""
 
-        assert line["Url"] == "http://test.site/recording/" + str(rec.id_)
+        assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
 
 
 def format_tags(items):
