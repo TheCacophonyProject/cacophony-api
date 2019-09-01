@@ -51,6 +51,14 @@ module.exports = function(sequelize, DataTypes) {
     },
     newConfig: {
       type: DataTypes.JSONB
+    },
+    saltId: {
+      type: DataTypes.INTEGER
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false
     }
   };
 
@@ -70,7 +78,6 @@ module.exports = function(sequelize, DataTypes) {
   Device.addAssociations = function(models) {
     models.Device.hasMany(models.Recording);
     models.Device.hasMany(models.Event);
-    models.Device.hasMany(models.DeviceHistory);
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
     models.Device.belongsTo(models.Group);
@@ -144,7 +151,7 @@ module.exports = function(sequelize, DataTypes) {
     if (user.hasGlobalRead()) {
       return this.findAndCountAll({
         where: conditions,
-        attributes: ["devicename", "id", "GroupId"],
+        attributes: ["devicename", "id", "GroupId", "active"],
         include: includeData,
         order: ["devicename"]
       });
@@ -162,7 +169,7 @@ module.exports = function(sequelize, DataTypes) {
 
     return this.findAndCountAll({
       where: { [Op.and]: [usersDevice, conditions] },
-      attributes: ["devicename", "id"],
+      attributes: ["devicename", "id", "active"],
       order: ["devicename"],
       include: includeData
     });
@@ -333,41 +340,56 @@ module.exports = function(sequelize, DataTypes) {
     return device_users.concat(group_users);
   };
 
-  // Will change the device name and group of device
-  Device.prototype.rename = async function(newName, newGroup) {
+  // Will register as a new device
+  Device.prototype.reregister = async function(newName, newGroup, newPassword) {
+    let newDevice;
+    await sequelize.transaction(
+      {
+        isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+      },
+      async t => {
+        const conflictingDevice = await Device.findOne({
+          where: {
+            devicename: newName,
+            GroupId: newGroup.id
+          },
+          transaction: t
+        });
 
-    await sequelize.transaction({
-      isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
-    }, async (t) => {
-      const conflictingDevice = await Device.findOne({
-        where: {
-          devicename: newName,
-          GroupId: newGroup.id,
-        },
-        transaction: t
-      });
-
-      if (conflictingDevice != null) {
-        if (conflictingDevice.id == this.id) {
-          return;
-        } else {
-          throw new ClientError("already a device in group '"+newGroup.groupname+"' with the name '"+newName+"'");
+        if (conflictingDevice != null) {
+          throw new ClientError(
+            "already a device in group '" +
+              newGroup.groupname +
+              "' with the name '" +
+              newName +
+              "'"
+          );
         }
+
+        await Device.update(
+          {
+            active: false
+          },
+          {
+            where: { saltId: this.saltId },
+            transaction: t
+          }
+        );
+
+        newDevice = await models.Device.create(
+          {
+            devicename: newName,
+            GroupId: newGroup.id,
+            password: newPassword,
+            saltId: this.saltId
+          },
+          {
+            transaction: t
+          }
+        );
       }
-
-      await models.DeviceHistory.create({
-        newName: newName,
-        oldName: this.getDataValue("devicename"),
-        newGroupID: newGroup.id,
-        oldGroupID: this.getDataValue("GroupId"),
-        DeviceId: this.getDataValue("id"),
-      }, {transaction: t});
-
-      await this.update({
-        devicename: newName,
-        GroupId: newGroup.id
-      }, {transaction: t});
-    });
+    );
+    return newDevice;
   };
 
   return Device;

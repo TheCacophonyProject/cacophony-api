@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import dateutil.parser
-import dateutil.tz
+import dateutil.tz as tz
 
 
 class TestReport:
@@ -50,30 +50,37 @@ class TestReport:
         report = ReportChecker(user.get_report(limit=10))
         report.check_line(rec0, device0, exp_audio_bait_name, exp_audio_bait_time)
         report.check_line(rec1, device0, exp_audio_bait_name, exp_audio_bait_time)
-        report.check_line(rec2, device1, None, None)
+        report.check_line(rec2, device1)
+
+    def test_report_jwt_arg(self, helper):
+        user = helper.admin_user()
+
+        device = helper.given_new_device(self)
+        rec = device.upload_recording()
+
+        token = user.new_token()
+        report = ReportChecker(user.get_report(limit=5, jwt=token))
+
+        report.check_line(rec, device)
 
 
 class ReportChecker:
     def __init__(self, lines):
         self._lines = {}
         for line in lines:
-            recording_id = int(line["id"])
+            recording_id = int(line["Id"])
             assert recording_id not in self._lines
             self._lines[recording_id] = line
 
-    def check_line(self, rec, device, exp_audio_bait_name, exp_audio_bait_time):
+    def check_line(self, rec, device, exp_audio_bait_name=None, exp_audio_bait_time=None):
         line = self._lines.get(rec.id_)
         assert line is not None
-
-        recording_time = dateutil.parser.parse(rec["recordingDateTime"])
-
-        assert line["type"] == rec["type"]
-        assert int(line["duration"]) == rec["duration"]
-        assert line["group"] == device.group
-        assert line["device"] == device.devicename
-        assert_times_equiv(dateutil.parser.parse(line["timestamp"]), recording_time)
-        assert line["comment"] == rec["comment"]
-        assert int(line["track_count"]) == len(rec.tracks)
+        assert line["Type"] == rec["type"]
+        assert int(line["Duration"]) == rec["duration"]
+        assert line["Group"] == device.group
+        assert line["Device"] == device.devicename
+        assert line["Comment"] == rec["comment"]
+        assert int(line["Track Count"]) == len(rec.tracks)
 
         expected_auto_tags = []
         expected_human_tags = []
@@ -84,30 +91,20 @@ class ReportChecker:
                 else:
                     expected_human_tags.append(tag.what)
 
-        assert line["automatic_track_tags"] == format_tags(expected_auto_tags)
-        assert line["human_track_tags"] == format_tags(expected_human_tags)
-        assert line["recording_tags"] == format_tags(t["what"] for t in rec.tags)
+        assert line["Automatic Track Tags"] == format_tags(expected_auto_tags)
+        assert line["Human Track Tags"] == format_tags(expected_human_tags)
+        assert line["Recording Tags"] == format_tags(t["what"] for t in rec.tags)
 
         if exp_audio_bait_name:
-            assert line["audio_bait"] == exp_audio_bait_name
-            assert_times_equiv(dateutil.parser.parse(line["audio_bait_time"]), exp_audio_bait_time)
-            assert float(line["mins_since_audio_bait"]) == round(
-                (recording_time - exp_audio_bait_time).total_seconds() / 60, 1
-            )
-            assert line["audio_bait_volume"] == "8"
+            assert line["Audio Bait"] == exp_audio_bait_name
+            assert line["Audio Bait Volume"] == "8"
         else:
-            assert line["audio_bait"] == ""
-            assert line["mins_since_audio_bait"] == ""
-            assert line["audio_bait_volume"] == ""
+            assert line["Audio Bait"] == ""
+            assert line["Mins Since Audio Bait"] == ""
+            assert line["Audio Bait Volume"] == ""
 
-        assert line["url"] == "http://test.site/recording/" + str(rec.id_)
+        assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
 
 
 def format_tags(items):
     return "+".join(items)
-
-
-def assert_times_equiv(t1, t2):
-    t1 = t1.replace(microsecond=0)
-    t2 = t2.replace(microsecond=0)
-    assert (t1 - t2).total_seconds() == 0

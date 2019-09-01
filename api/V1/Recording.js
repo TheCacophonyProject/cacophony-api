@@ -125,7 +125,6 @@ module.exports = (app, baseUrl) => {
   );
 
   const queryValidators = Object.freeze([
-    auth.authenticateUser,
     middleware.parseJSON("where", query).optional(),
     query("offset")
       .isInt()
@@ -157,7 +156,7 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl,
-    queryValidators,
+    [auth.authenticateUser].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
       const result = await recordingUtil.query(request);
       responseUtil.send(response, {
@@ -180,6 +179,7 @@ module.exports = (app, baseUrl) => {
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
+   * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
    * @apiUse BaseQueryParams
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
@@ -187,10 +187,14 @@ module.exports = (app, baseUrl) => {
    */
   app.get(
     apiUrl + "/report",
-    queryValidators,
+    [auth.paramOrHeader].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
       const rows = await recordingUtil.report(request);
-      csv.writeToStream(response.status(200), rows);
+      response.status(200).set({
+        "Content-Type": "text/csv",
+        "Content-Disposition": "attachment; filename=recordings.csv"
+      });
+      csv.writeToStream(response, rows);
     })
   );
 
@@ -204,6 +208,8 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse FilterOptions
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} fileSize the number of bytes in recording file.
+   * @apiSuccess {int} rawSize the number of bytes in raw recording file.
    * @apiSuccess {String} downloadFileJWT JSON Web Token to use to download the
    * recording file.
    * @apiSuccess {String} downloadRawJWT JSON Web Token to use to download
@@ -220,11 +226,20 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON("filterOptions", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const { recording, rawJWT, cookedJWT } = await recordingUtil.get(request);
+      const {
+        recording,
+        rawSize,
+        rawJWT,
+        cookedSize,
+        cookedJWT
+      } = await recordingUtil.get(request);
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         recording: recording,
+        rawSize: rawSize,
+        fileSize: cookedSize,
         downloadFileJWT: cookedJWT,
         downloadRawJWT: rawJWT
       });

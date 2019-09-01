@@ -23,6 +23,7 @@ const urljoin = require("url-join");
 
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
+const log = require("../../logging");
 const models = require("../../models");
 const responseUtil = require("./responseUtil");
 const util = require("./util");
@@ -124,22 +125,23 @@ async function report(request) {
 
   const out = [
     [
-      "id",
-      "type",
-      "group",
-      "device",
-      "timestamp",
-      "duration",
-      "comment",
-      "track_count",
-      "automatic_track_tags",
-      "human_track_tags",
-      "recording_tags",
-      "audio_bait",
-      "audio_bait_time",
-      "mins_since_audio_bait",
-      "audio_bait_volume",
-      "url"
+      "Id",
+      "Type",
+      "Group",
+      "Device",
+      "Date",
+      "Time",
+      "Duration",
+      "Comment",
+      "Track Count",
+      "Automatic Track Tags",
+      "Human Track Tags",
+      "Recording Tags",
+      "Audio Bait",
+      "Audio Bait Time",
+      "Mins Since Audio Bait",
+      "Audio Bait Volume",
+      "URL"
     ]
   ];
 
@@ -181,7 +183,8 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime).format(),
+      moment(r.recordingDateTime).format("L"),
+      moment(r.recordingDateTime).format("LTS"),
       r.duration,
       r.comment,
       r.Tracks.length,
@@ -189,7 +192,7 @@ async function report(request) {
       formatTags(human_track_tags),
       formatTags(recording_tags),
       audioBaitName,
-      audioBaitTime ? audioBaitTime.format() : "",
+      audioBaitTime ? audioBaitTime.format("LTS") : "",
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())
@@ -245,15 +248,50 @@ async function get(request, type) {
     filename: recording.getRawFileName(),
     mimeType: recording.rawMimeType
   };
+
+  let rawSize = null;
+  if (recording.rawFileKey) {
+    await util
+      .getS3Object(recording.rawFileKey)
+      .then(rawS3Data => {
+        rawSize = rawS3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.rawFileKey
+        );
+      });
+  }
+
+  let cookedSize = null;
+  if (recording.fileKey) {
+    await util
+      .getS3Object(recording.fileKey)
+      .then(s3Data => {
+        cookedSize = s3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.fileKey
+        );
+      });
+  }
+
   delete recording.rawFileKey;
 
   return {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
+    cookedSize: cookedSize,
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
     ),
+    rawSize: rawSize,
     rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
       expiresIn: 60 * 10
     })

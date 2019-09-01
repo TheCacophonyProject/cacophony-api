@@ -5,7 +5,11 @@ const util = require("../models/util/util");
 const tableName = "DeviceHistory";
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: queryInterface => {
+    return queryInterface.dropTable(tableName);
+  },
+
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.createTable(tableName, {
       oldName: { type: Sequelize.STRING, allowNull: false },
       newName: { type: Sequelize.STRING, allowNull: false },
@@ -16,9 +20,5 @@ module.exports = {
     });
     await util.addSerial(queryInterface, tableName);
     await util.migrationAddBelongsTo(queryInterface, tableName, "Devices");
-  },
-
-  down: queryInterface => {
-    return queryInterface.dropTable(tableName);
   }
 };

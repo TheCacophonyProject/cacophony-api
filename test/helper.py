@@ -170,3 +170,6 @@ class Helper:
 
     def random_id(self, length=6):
         return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length))
+
+    def random_password(self, length=10):
+        return self.random_id(length)

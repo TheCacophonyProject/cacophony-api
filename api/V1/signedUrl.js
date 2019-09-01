@@ -32,9 +32,14 @@ module.exports = function(app, baseUrl) {
    * @apiName GetFile
    * @apiGroup SignedUrl
    *
-   * @apiDescription Gets a file using a JWT as a method of authentication.
+   * @apiDescription Gets a file. The JWT for authentication may be
+   * passed using a URL parameter or using the Authorization header
+   * (as for other API endpoints).
    *
-   * @apiParam {String} jwt the value of the downloadFileJWT field from a successful [GetRecording](#api-Recordings-GetRecording) request
+   * @apiParam {String} [jwt] the value of the downloadFileJWT field
+   * from a successful [GetRecording](#api-Recordings-GetRecording)
+   * request. Authentication using the Authorization header is also
+   * supported.
    *
    * @apiSuccess {file} file Raw data stream of the file.
    *
@@ -72,6 +77,7 @@ module.exports = function(app, baseUrl) {
             "attachment; filename=" + filename
           );
           response.setHeader("Content-type", mimeType);
+          response.setHeader("Content-Length", data.ContentLength);
           response.write(data.Body, "binary");
           return response.end(null, "binary");
         }
