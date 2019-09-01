@@ -141,7 +141,7 @@ async function report(request) {
       "Audio Bait Time",
       "Mins Since Audio Bait",
       "Audio Bait Volume",
-      "Url"
+      "URL"
     ]
   ];
 
