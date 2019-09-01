@@ -125,22 +125,23 @@ async function report(request) {
 
   const out = [
     [
-      "id",
-      "type",
-      "group",
-      "device",
-      "timestamp",
-      "duration",
-      "comment",
-      "track_count",
-      "automatic_track_tags",
-      "human_track_tags",
-      "recording_tags",
-      "audio_bait",
-      "audio_bait_time",
-      "mins_since_audio_bait",
-      "audio_bait_volume",
-      "url"
+      "Id",
+      "Type",
+      "Group",
+      "Device",
+      "Date",
+      "Time",
+      "Duration",
+      "Comment",
+      "Track Count",
+      "Automatic Track Tags",
+      "Human Track Tags",
+      "Recording Tags",
+      "Audio Bait",
+      "Audio Bait Time",
+      "Mins Since Audio Bait",
+      "Audio Bait Volume",
+      "URL"
     ]
   ];
 
@@ -182,7 +183,8 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime).format(),
+      moment(r.recordingDateTime).format("L"),
+      moment(r.recordingDateTime).format("LTS"),
       r.duration,
       r.comment,
       r.Tracks.length,
@@ -190,7 +192,7 @@ async function report(request) {
       formatTags(human_track_tags),
       formatTags(recording_tags),
       audioBaitName,
-      audioBaitTime ? audioBaitTime.format() : "",
+      audioBaitTime ? audioBaitTime.format("LTS") : "",
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())
