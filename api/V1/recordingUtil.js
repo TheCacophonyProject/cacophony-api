@@ -63,6 +63,7 @@ async function query(request, type) {
     request.query.limit,
     request.query.order
   );
+  builder.query.distinct = true;
   const result = await models.Recording.findAndCountAll(builder.get());
 
   const filterOptions = models.Recording.makeFilterOptions(
