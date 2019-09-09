@@ -5,6 +5,8 @@ import pytest
 from .testexception import TestException, AuthorizationError
 from .recording import Recording
 from .track import Track, TrackTag
+from .testdevice import TestDevice
+from typing import List
 
 
 class TestUser:
@@ -14,8 +16,8 @@ class TestUser:
         self.email = email
         self._group = None
 
-    def new_token(self):
-        return self._userapi.token()["token"]
+    def new_token(self, access=None, set_token=False):
+        return self._userapi.token(access,set_token)["token"]
 
     def update(self, username=None, email=None, password=None):
         data = {}
@@ -190,10 +192,7 @@ class TestUser:
         recording.props.update(updates)
 
     def create_group(self, groupname, printname=True):
-        try:
-            self._userapi.create_group(groupname)
-        except Exception as exception:
-            raise TestException("Failed to create group ({}): {}".format(groupname, exception))
+        self._userapi.create_group(groupname)
         if printname:
             print("({})".format(groupname))
         return groupname
@@ -261,6 +260,9 @@ class TestUser:
             if device["active"]:
                 active_devices.append(device)
         return active_devices
+
+    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None):
+        return self._userapi.query_devices(devices=devices, groups=groups)
 
     def get_devices_as_string(self):
         return self._userapi.get_devices_as_string()

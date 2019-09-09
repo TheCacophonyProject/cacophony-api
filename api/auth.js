@@ -21,12 +21,14 @@ const jwt = require("jsonwebtoken");
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const customErrors = require("./customErrors");
 const models = require("../models");
-
 /*
  * Create a new JWT for a user or device.
  */
-function createEntityJWT(entity, options) {
+function createEntityJWT(entity, options, access) {
   const payload = entity.getJwtDataValues();
+  if (access) {
+    payload.access = access;
+  }
   return jwt.sign(payload, config.server.passportSecret, options);
 }
 
@@ -42,10 +44,36 @@ const getVerifiedJWT = req => {
   }
 };
 
+/**
+ * check requested auth access exists in jwt access object
+ */
+async function checkAccess(reqAccess, jwtDecoded) {
+  if (!reqAccess && jwtDecoded.access) {
+    return false;
+  }
+  if (!jwtDecoded.access) {
+    return true;
+  }
+
+  const reqKeys = Object.keys(reqAccess);
+  if (reqKeys.length == 0 && jwtDecoded.access) {
+    return false;
+  }
+  for (const key of reqKeys) {
+    if (
+      !jwtDecoded.access[key] ||
+      jwtDecoded.access[key].indexOf(reqAccess[key]) == -1
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
-const authenticate = function(type) {
+const authenticate = function(type, reqAccess) {
   return async (req, res, next) => {
     let jwtDecoded;
     try {
@@ -53,8 +81,14 @@ const authenticate = function(type) {
     } catch (e) {
       return res.status(401).json({ messages: [e.message] });
     }
+
     if (type && type != jwtDecoded._type) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
+      return;
+    }
+    const hasAccess = await checkAccess(reqAccess, jwtDecoded);
+    if (!hasAccess) {
+      res.status(401).json({ messages: ["JWT does not have access."] });
       return;
     }
     const result = await lookupEntity(jwtDecoded);
@@ -86,6 +120,9 @@ const authenticateUser = authenticate("user");
 const authenticateDevice = authenticate("device");
 const authenticateAny = authenticate(null);
 
+const authenticateAccess = function(type, access) {
+  return authenticate(type, access);
+};
 const authenticateAdmin = async (req, res, next) => {
   let jwtDecoded;
   try {
@@ -198,6 +235,7 @@ const userCanAccessDevices = async (request, response, next) => {
 };
 
 exports.createEntityJWT = createEntityJWT;
+exports.authenticateAccess = authenticateAccess;
 exports.authenticateUser = authenticateUser;
 exports.authenticateDevice = authenticateDevice;
 exports.authenticateAny = authenticateAny;

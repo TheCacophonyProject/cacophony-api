@@ -8,6 +8,8 @@ from datetime import datetime
 
 from .testexception import raise_specific_exception
 from .apibase import APIBase
+from typing import List
+from .testdevice import TestDevice
 
 
 class UserAPI(APIBase):
@@ -22,9 +24,21 @@ class UserAPI(APIBase):
     def login(self):
         return super().login(email=self.email)
 
-    def token(self):
-        response = requests.post(urljoin(self._baseurl, "/token"), headers=self._auth_header)
-        return self._check_response(response)
+    def token(self, access=None, set_token=False):
+        post_data = {}
+        if access is not None:
+            post_data["access"] = access
+
+        headers = self._auth_header.copy()
+        headers["Content-Type"] = "application/json"
+        response = requests.post(
+            urljoin(self._baseurl, "/token"), headers=headers, data=json.dumps(post_data)
+        )
+        json_response = self._check_response(response)
+
+        if set_token:
+            self._auth_header["Authorization"] = "JWT " + json_response["token"]
+        return json_response
 
     def name_or_email_login(self, nameOrEmail):
         url = urljoin(self._baseurl, "/authenticate_" + self._logintype)
@@ -205,6 +219,20 @@ class UserAPI(APIBase):
         if r.status_code == 200:
             return r.json()
         raise_specific_exception(r)
+
+    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None):
+        default_dict = defaultdict(dict)
+        if devices:
+            default_dict["devices"] = [
+                {"devicename": device.devicename, "groupname": device.group} for device in devices
+            ]
+        if groups:
+            default_dict["groups"] = groups
+        url = urljoin(self._baseurl, "/api/v1/devices/query")
+        headers = self._auth_header.copy()
+        headers["Content-Type"] = "application/json"
+        r = requests.post(url, headers=headers, data=json.dumps(default_dict))
+        return self._check_response(r)["devices"]
 
     def get_devices_as_json(self):
         return self._get_all("/api/v1/devices")["devices"]["rows"]

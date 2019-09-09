@@ -279,4 +279,39 @@ module.exports = function(app, baseUrl) {
       });
     })
   );
+
+  /**
+   * @api {post} /api/v1/devices/query Querys devices by group:name.
+   * @apiName query
+   * @apiGroup Device
+   * @apiDescription This call is to query all devices by groups or devicenames
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {JSON} devices array of device obejcts [{devicename:"<name>",groupname:"<group>"}].
+   * @apiParam {String} groups array of group names.
+   * @apiParam {String} operator sequelize operator to join devices and groups.
+   * by defualt $or "device in devices $OR device in groups"
+
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.post(
+    apiUrl + "/query",
+    [auth.authenticateAccess("user", { devices: "r" })],
+    middleware.requestWrapper(async function(request, response) {
+      const devices = await models.Device.queryDevices(
+        request.user,
+        request.body.devices,
+        request.body.groups,
+        request.body.operator
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        devices: devices,
+        messages: ["Completed get devices query."]
+      });
+    })
+  );
 };
