@@ -220,7 +220,7 @@ class UserAPI(APIBase):
             return r.json()
         raise_specific_exception(r)
 
-    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None):
+    def query_devices(self, username=None, devices: List[TestDevice] = None, groups: List[str] = None):
         default_dict = defaultdict(dict)
         if devices:
             default_dict["devices"] = [
@@ -228,6 +228,9 @@ class UserAPI(APIBase):
             ]
         if groups:
             default_dict["groups"] = groups
+        if username:
+            default_dict["username"] = username
+
         url = urljoin(self._baseurl, "/api/v1/devices/query")
         headers = self._auth_header.copy()
         headers["Content-Type"] = "application/json"

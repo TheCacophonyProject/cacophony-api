@@ -299,8 +299,20 @@ module.exports = function(app, baseUrl) {
    */
   app.post(
     apiUrl + "/query",
-    [auth.authenticateAccess("user", { devices: "r" })],
+    [
+      body("username").optional(),
+      auth.authenticateAccess("user", { devices: "r" })
+    ],
     middleware.requestWrapper(async function(request, response) {
+      if (
+        request.body.username &&
+        request.body.username != request.user.username
+      ) {
+        return responseUtil.send(response, {
+          statusCode: 401,
+          messages: ["Invalid token."]
+        });
+      }
       const devices = await models.Device.queryDevices(
         request.user,
         request.body.devices,
