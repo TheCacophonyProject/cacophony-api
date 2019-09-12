@@ -56,6 +56,3 @@ class TestDeviceQuery:
         clares_group = helper.make_unique_group_name(self, "clares_group")
         with pytest.raises(AuthenticationError):
             clare.create_group(clares_group)
-
-        with pytest.raises(AuthenticationError):
-            devices = clare.query_devices(username="john", devices=[terminator, terminator2])
