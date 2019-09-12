@@ -22,7 +22,7 @@ const auth = require("../auth");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 
-const ttyTypes = Object.freeze({ short: 60, medium: 5 * 60, long: 30 * 60 });
+const ttlTypes = Object.freeze({ short: 60, medium: 5 * 60, long: 30 * 60 });
 
 module.exports = function(app) {
   /**
@@ -85,7 +85,7 @@ module.exports = function(app) {
    * user's primary JWT as it can easily leak into logs etc. This API
    * generates a short-lived token which can be used as part of URLs.
    *
-   * @apiParam {String} ttl short,mediam,long defining token expiry time
+   * @apiParam {String} ttl short,medium,long defining token expiry time
    * @apiParam {JSON} access dictionary of access to different entities
    *  e.g. {"devices":"r"}
    * @apiUse V1UserAuthorizationHeader
@@ -95,9 +95,9 @@ module.exports = function(app) {
     "/token",
     [body("ttl").optional(), body("access").optional(), auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      let expiry = ttyTypes[request.body.ttl];
+      let expiry = ttlTypes[request.body.ttl];
       if (!expiry) {
-        expiry = ttyTypes["short"];
+        expiry = ttlTypes["short"];
       }
       const token = auth.createEntityJWT(
         request.user,

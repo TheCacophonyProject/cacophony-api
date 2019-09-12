@@ -281,43 +281,47 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {post} /api/v1/devices/query Querys devices by group:name.
+   * @api {get} /api/v1/devices/query Query devices by groups or  devices.
    * @apiName query
    * @apiGroup Device
-   * @apiDescription This call is to query all devices by groups or devicenames
+   * @apiDescription This call is to query all devices by groups or devices
    *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {JSON} devices array of device obejcts [{devicename:"<name>",groupname:"<group>"}].
+   * @apiParam {JSON} array of Devices
+   * @apiParamExample {JSON} Device:
+   * {
+   *   "devicename":"newdevice",
+   *   "groupname":"newgroup"
+   * }
    * @apiParam {String} groups array of group names.
    * @apiParam {String} operator sequelize operator to join devices and groups.
-   * by defualt $or "device in devices $OR device in groups"
-
-   *
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
-  app.post(
+  app.get(
     apiUrl + "/query",
     [
-      body("username").optional(),
+      middleware.parseJSON("devices", query).optional(),
+      middleware.parseArray("groups", query).optional(),
+      query("operator").optional(),
       auth.authenticateAccess("user", { devices: "r" })
     ],
     middleware.requestWrapper(async function(request, response) {
       if (
-        request.body.username &&
-        request.body.username != request.user.username
+        request.query.operator &&
+        request.query.operator.toLowerCase() == "and"
       ) {
-        return responseUtil.send(response, {
-          statusCode: 401,
-          messages: ["Invalid token."]
-        });
+        request.query.operator = "$and";
+      } else {
+        request.query.operator = "$or";
       }
+
       const devices = await models.Device.queryDevices(
         request.user,
-        request.body.devices,
-        request.body.groups,
-        request.body.operator
+        request.query.devices,
+        request.query.groups,
+        request.query.operator
       );
       return responseUtil.send(response, {
         statusCode: 200,

@@ -433,7 +433,7 @@ module.exports = function(sequelize, DataTypes) {
 
 /**
 *
-fitlers the supplied query by devices and groups authUser is authorized to access
+filters the supplied query by devices and groups authUser is authorized to access
 */
 async function addUserAccessQuery(authUser, whereQuery) {
   if (authUser.hasGlobalRead()) {
@@ -474,7 +474,7 @@ function parseExactInt(value) {
 function afterValidate(device) {
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
-    // TODO or make a custome validation for the password.
+    // TODO or make a customer validation for the password.
     return new Promise(function(resolve, reject) {
       bcrypt.hash(device.password, 10, function(err, hash) {
         if (err) {

@@ -29,11 +29,7 @@ class UserAPI(APIBase):
         if access is not None:
             post_data["access"] = access
 
-        headers = self._auth_header.copy()
-        headers["Content-Type"] = "application/json"
-        response = requests.post(
-            urljoin(self._baseurl, "/token"), headers=headers, data=json.dumps(post_data)
-        )
+        response = requests.post(urljoin(self._baseurl, "/token"), headers=self._auth_header, json=post_data)
         json_response = self._check_response(response)
 
         if set_token:
@@ -221,20 +217,18 @@ class UserAPI(APIBase):
         raise_specific_exception(r)
 
     def query_devices(self, username=None, devices: List[TestDevice] = None, groups: List[str] = None):
-        default_dict = defaultdict(dict)
+        query = defaultdict(dict)
         if devices:
-            default_dict["devices"] = [
+            query["devices"] = [
                 {"devicename": device.devicename, "groupname": device.group} for device in devices
             ]
         if groups:
-            default_dict["groups"] = groups
+            query["groups"] = groups
         if username:
-            default_dict["username"] = username
+            query["username"] = username
 
         url = urljoin(self._baseurl, "/api/v1/devices/query")
-        headers = self._auth_header.copy()
-        headers["Content-Type"] = "application/json"
-        r = requests.post(url, headers=headers, data=json.dumps(default_dict))
+        r = requests.get(url, headers=self._auth_header, params=serialise_params(query))
         return self._check_response(r)["devices"]
 
     def get_devices_as_json(self):
