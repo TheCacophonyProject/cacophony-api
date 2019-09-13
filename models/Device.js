@@ -1,17 +1,14 @@
 /*
 cacophony-api: The Cacophony Project API server
 Copyright (C) 2018  The Cacophony Project
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
-
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -157,18 +154,10 @@ module.exports = function(sequelize, DataTypes) {
       });
     }
 
-    const deviceIds = await user.getDeviceIds();
-    const userGroupIds = await user.getGroupsIds();
-
-    const usersDevice = {
-      [Op.or]: [
-        { GroupId: { [Op.in]: userGroupIds } },
-        { id: { [Op.in]: deviceIds } }
-      ]
-    };
+    const whereQuery = await addUserAccessQuery(user, conditions);
 
     return this.findAndCountAll({
-      where: { [Op.and]: [usersDevice, conditions] },
+      where: whereQuery,
       attributes: ["devicename", "id", "active"],
       order: ["devicename"],
       include: includeData
@@ -285,6 +274,53 @@ module.exports = function(sequelize, DataTypes) {
     });
   };
 
+  /**
+   * finds devices that match device array and groups array with supplied operator (or by default)
+   */
+  Device.queryDevices = async function(authUser, devices, groups, operator) {
+    let whereQuery;
+    if (!operator) {
+      operator = Op.or;
+    }
+    if (devices) {
+      const groupDevices = devices.map(device =>
+        [device.groupname, device.devicename].join(":")
+      );
+      whereQuery = Sequelize.where(
+        Sequelize.fn(
+          "concat",
+          Sequelize.col("Group.groupname"),
+          ":",
+          Sequelize.col("devicename")
+        ),
+        { [Op.in]: groupDevices }
+      );
+    }
+    if (groups) {
+      const groupQuery = Sequelize.where(Sequelize.col("Group.groupname"), {
+        [Op.in]: groups
+      });
+      if (devices) {
+        whereQuery = { [operator]: [whereQuery, groupQuery] };
+      } else {
+        whereQuery = groupQuery;
+      }
+    }
+
+    whereQuery = await addUserAccessQuery(authUser, whereQuery);
+    return await this.findAll({
+      where: whereQuery,
+      include: [
+        {
+          model: models.Group,
+          as: "Group",
+          attributes: ["groupname"]
+        }
+      ],
+      attributes: ["Group.groupname", "devicename", "id", "saltId"]
+    });
+  };
+
   // Fields that are directly settable by the API.
   Device.apiSettableFields = ["location", "newConfig"];
 
@@ -395,6 +431,33 @@ module.exports = function(sequelize, DataTypes) {
   return Device;
 };
 
+/**
+*
+filters the supplied query by devices and groups authUser is authorized to access
+*/
+async function addUserAccessQuery(authUser, whereQuery) {
+  if (authUser.hasGlobalRead()) {
+    return whereQuery;
+  }
+
+  const deviceIds = await authUser.getDeviceIds();
+  const userGroupIds = await authUser.getGroupsIds();
+
+  const accessQuery = {
+    [Op.and]: [
+      {
+        [Op.or]: [
+          { GroupId: { [Op.in]: userGroupIds } },
+          { id: { [Op.in]: deviceIds } }
+        ]
+      },
+      whereQuery
+    ]
+  };
+
+  return accessQuery;
+}
+
 function parseExactInt(value) {
   const iValue = parseInt(value);
   if (value === iValue.toString()) {
@@ -411,7 +474,7 @@ function parseExactInt(value) {
 function afterValidate(device) {
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
-    // TODO or make a custome validation for the password.
+    // TODO or make a custom validation for the password.
     return new Promise(function(resolve, reject) {
       bcrypt.hash(device.password, 10, function(err, hash) {
         if (err) {

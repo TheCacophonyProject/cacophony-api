@@ -21,6 +21,9 @@ const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
 const { query, body } = require("express-validator/check");
+const Sequelize = require("sequelize");
+
+const Op = Sequelize.Op;
 
 module.exports = function(app, baseUrl) {
   const apiUrl = baseUrl + "/devices";
@@ -276,6 +279,60 @@ module.exports = function(app, baseUrl) {
         messages: ["Registered the device again."],
         id: device.id,
         token: "JWT " + auth.createEntityJWT(device)
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/devices/query Query devices by groups or devices.
+   * @apiName query
+   * @apiGroup Device
+   * @apiDescription This call is to query all devices by groups or devices
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {JSON} array of Devices
+   * @apiParamExample {JSON} Device:
+   * {
+   *   "devicename":"newdevice",
+   *   "groupname":"newgroup"
+   * }
+   * @apiParam {String} groups array of group names.
+   * @apiParam {String} operator to use. Default is "or".
+   * Accepted values are "and" or "or".
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/query",
+    [
+      middleware.parseJSON("devices", query).optional(),
+      middleware.parseArray("groups", query).optional(),
+      query("operator")
+        .isIn(["or", "and", "OR", "AND"])
+        .optional(),
+      auth.authenticateAccess("user", { devices: "r" })
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      if (
+        request.query.operator &&
+        request.query.operator.toLowerCase() == "and"
+      ) {
+        request.query.operator = Op.and;
+      } else {
+        request.query.operator = Op.or;
+      }
+
+      const devices = await models.Device.queryDevices(
+        request.user,
+        request.query.devices,
+        request.query.groups,
+        request.query.operator
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        devices: devices,
+        messages: ["Completed get devices query."]
       });
     })
   );
