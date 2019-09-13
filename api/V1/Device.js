@@ -298,7 +298,8 @@ module.exports = function(app, baseUrl) {
    *   "groupname":"newgroup"
    * }
    * @apiParam {String} groups array of group names.
-   * @apiParam {String} operator to use accepted values [and,or].
+   * @apiParam {String} operator to use. Default is "or".
+   * Accepted values are "and" or "or".
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
