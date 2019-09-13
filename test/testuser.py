@@ -261,8 +261,8 @@ class TestUser:
                 active_devices.append(device)
         return active_devices
 
-    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None):
-        return self._userapi.query_devices(devices=devices, groups=groups)
+    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None, operator=None):
+        return self._userapi.query_devices(devices=devices, groups=groups, operator=operator)
 
     def get_devices_as_string(self):
         return self._userapi.get_devices_as_string()

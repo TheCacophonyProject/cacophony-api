@@ -21,6 +21,9 @@ const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
 const { query, body } = require("express-validator/check");
+const Sequelize = require("sequelize");
+
+const Op = Sequelize.Op;
 
 module.exports = function(app, baseUrl) {
   const apiUrl = baseUrl + "/devices";
@@ -281,7 +284,7 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} /api/v1/devices/query Query devices by groups or  devices.
+   * @api {get} /api/v1/devices/query Query devices by groups or devices.
    * @apiName query
    * @apiGroup Device
    * @apiDescription This call is to query all devices by groups or devices
@@ -295,7 +298,7 @@ module.exports = function(app, baseUrl) {
    *   "groupname":"newgroup"
    * }
    * @apiParam {String} groups array of group names.
-   * @apiParam {String} operator sequelize operator to join devices and groups.
+   * @apiParam {String} operator to use accepted values [and,or].
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
@@ -304,7 +307,9 @@ module.exports = function(app, baseUrl) {
     [
       middleware.parseJSON("devices", query).optional(),
       middleware.parseArray("groups", query).optional(),
-      query("operator").optional(),
+      query("operator")
+        .isIn(["or", "and", "OR", "AND"])
+        .optional(),
       auth.authenticateAccess("user", { devices: "r" })
     ],
     middleware.requestWrapper(async function(request, response) {
@@ -312,9 +317,9 @@ module.exports = function(app, baseUrl) {
         request.query.operator &&
         request.query.operator.toLowerCase() == "and"
       ) {
-        request.query.operator = "$and";
+        request.query.operator = Op.and;
       } else {
-        request.query.operator = "$or";
+        request.query.operator = Op.or;
       }
 
       const devices = await models.Device.queryDevices(

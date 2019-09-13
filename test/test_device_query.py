@@ -1,6 +1,6 @@
 import pytest
 
-from test.testexception import AuthenticationError
+from test.testexception import AuthenticationError, UnprocessableError
 
 
 class TestDeviceQuery:
@@ -47,12 +47,20 @@ class TestDeviceQuery:
         clare.create_group(clares_group)
         terminator = helper.given_new_device(self, "Terminator", clares_group)
         terminator2 = helper.given_new_device(self, "Terminator", clares_group)
-
+        terminator3 = helper.given_new_device(self, "Terminator", clares_group)
         access = {"devices": "r"}
         clare.new_token(access, set_token=True)
         devices = clare.query_devices(devices=[terminator, terminator2])
         ids = [device["id"] for device in devices]
         assert ids == [terminator.get_id(), terminator2.get_id()]
-        clares_group = helper.make_unique_group_name(self, "clares_group")
+        new_group = helper.make_unique_group_name(self, "clares_group")
         with pytest.raises(AuthenticationError):
-            clare.create_group(clares_group)
+            clare.create_group(new_group)
+
+        devices = clare.query_devices(
+            devices=[terminator, terminator2], groups=[clares_group], operator="AND"
+        )
+        ids = [device["id"] for device in devices]
+        assert ids == [terminator.get_id(), terminator2.get_id()]
+        with pytest.raises(UnprocessableError):
+            devices = clare.query_devices(devices=[terminator, terminator2], operator="in")

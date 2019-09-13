@@ -474,7 +474,7 @@ function parseExactInt(value) {
 function afterValidate(device) {
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
-    // TODO or make a customer validation for the password.
+    // TODO or make a custom validation for the password.
     return new Promise(function(resolve, reject) {
       bcrypt.hash(device.password, 10, function(err, hash) {
         if (err) {

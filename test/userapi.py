@@ -216,7 +216,7 @@ class UserAPI(APIBase):
             return r.json()
         raise_specific_exception(r)
 
-    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None):
+    def query_devices(self, devices: List[TestDevice] = None, groups: List[str] = None, operator=None):
         query = defaultdict(dict)
         if devices:
             query["devices"] = [
@@ -224,6 +224,8 @@ class UserAPI(APIBase):
             ]
         if groups:
             query["groups"] = groups
+        if operator:
+            query["operator"] = operator
 
         url = urljoin(self._baseurl, "/api/v1/devices/query")
         r = requests.get(url, headers=self._auth_header, params=serialise_params(query))
