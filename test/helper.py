@@ -113,6 +113,7 @@ class Helper:
 
         if not group:
             group = self.config.default_group
+
         device = DeviceAPI(self.config.api_url, uniqueName, self._make_password(uniqueName)).register_as_new(
             group
         )
