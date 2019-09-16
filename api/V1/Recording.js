@@ -143,6 +143,34 @@ module.exports = (app, baseUrl) => {
   ]);
 
   /**
+   * @api {post} /api/v1/recordings/:devicename Legacy upload on behalf of
+   * @apiName PostRecordingOnBehalfLegacy
+   * @apiGroup Recordings
+   * @apiDeprecated use now (#Recordings:PostRecordingOnBehalf)
+   *
+   * @apiDescription Called by a user to upload raw thermal video on
+   * behalf of a device. This endpoint can only be used if a device's
+   * name is unique across all groups. It should not be used for new code.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse RecordingParams
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Number} recordingId ID of the recording.
+   * @apiuse V1ResponseError
+   */
+  app.post(
+    apiUrl + "/:devicename",
+    [
+      auth.authenticateUser,
+      middleware.getDevice(param),
+      auth.userCanAccessDevices
+    ],
+    middleware.requestWrapper(recordingUtil.makeUploadHandler())
+  );
+
+  /**
    * @api {get} /api/v1/recordings Query available recordings
    * @apiName QueryRecordings
    * @apiGroup Recordings

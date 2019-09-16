@@ -319,6 +319,16 @@ class TestUser:
 
         return Recording(recording_id, props, filename)
 
+    def legacy_uploads_recording_for(self, testdevice):
+        props = testdevice.get_new_recording_props()
+        filename = "files/small.cptv"
+        recording_id = self._userapi.legacy_upload_recording_for(testdevice.devicename, filename, props)
+
+        # Expect to see this in data returned by the API server.
+        props["rawMimeType"] = "application/x-cptv"
+
+        return Recording(recording_id, props, filename)
+
     def set_global_permission(self, user, permission):
         self._userapi.set_global_permission(user, permission)
 

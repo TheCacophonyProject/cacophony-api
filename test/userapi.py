@@ -334,6 +334,12 @@ class UserAPI(APIBase):
             endpoint += "/group/{}".format(groupname)
         return self._upload("/api/v1/recordings/{}".format(endpoint), filename, props)
 
+    def legacy_upload_recording_for(self, devicename, filename, props=None):
+        print("legacy_upload_recording_for:", devicename)
+        if not props:
+            props = {"type": "thermalRaw"}
+        return self._upload("/api/v1/recordings/{}".format(devicename), filename, props)
+
     def set_global_permission(self, user, permission):
         url = urljoin(self._baseurl, "/api/v1/admin/global_permission/" + user)
         response = requests.patch(url, headers=self._auth_header, data={"permission": permission})
