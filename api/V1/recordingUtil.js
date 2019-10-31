@@ -184,8 +184,12 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime).format("L"),
-      moment(r.recordingDateTime).format("LTS"),
+      moment(r.recordingDateTime)
+        .tz("Pacific/Auckland")
+        .format("YYYY-MM-DD"),
+      moment(r.recordingDateTime)
+        .tz("Pacific/Auckland")
+        .format("h:mm a"),
       r.duration,
       r.comment,
       r.Tracks.length,
@@ -193,7 +197,9 @@ async function report(request) {
       formatTags(human_track_tags),
       formatTags(recording_tags),
       audioBaitName,
-      audioBaitTime ? audioBaitTime.format("LTS") : "",
+      audioBaitTime
+        ? audioBaitTime.tz("Pacific/Auckland").format("h:mm a")
+        : "",
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())

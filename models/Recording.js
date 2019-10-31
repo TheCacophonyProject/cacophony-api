@@ -30,6 +30,7 @@ const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
   const name = "Recording";
+  const maxQueryResults = 100000;
 
   const attributes = {
     // recording metadata.
@@ -506,6 +507,8 @@ module.exports = function(sequelize, DataTypes) {
     }
     if (!limit) {
       limit = 300;
+    } else {
+      limit = Math.min(limit, maxQueryResults);
     }
     if (!order) {
       order = [
