@@ -9,6 +9,7 @@ class TestReport:
 
         # Create devices
         device0 = helper.given_new_device(self)
+        device0.location = [20.00025, 20.00025]
         device1 = helper.given_new_device(self)
 
         # Upload audio files
@@ -79,6 +80,11 @@ class ReportChecker:
         assert int(line["Duration"]) == rec["duration"]
         assert line["Group"] == device.group
         assert line["Device"] == device.devicename
+        if device.location:
+            assert line["Location"] == "{},{}".format(device.location[0], device.location[1])
+        else:
+            assert line["Location"] == ""
+
         assert line["Comment"] == rec["comment"]
         assert int(line["Track Count"]) == len(rec.tracks)
 

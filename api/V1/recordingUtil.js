@@ -132,6 +132,7 @@ async function report(request) {
       "Device",
       "Date",
       "Time",
+      "Location",
       "Duration",
       "Comment",
       "Track Count",
@@ -190,6 +191,7 @@ async function report(request) {
       moment(r.recordingDateTime)
         .tz("Pacific/Auckland")
         .format("h:mm a"),
+      r.location ? r.location.coordinates : "",
       r.duration,
       r.comment,
       r.Tracks.length,
