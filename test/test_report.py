@@ -84,8 +84,8 @@ class ReportChecker:
             assert line["Location"] == "{},{}".format(device.location[0], device.location[1])
         else:
             assert line["Location"] == ""
-
         assert line["Comment"] == rec["comment"]
+        assert line["BatteryPercent"] == "98"
         assert int(line["Track Count"]) == len(rec.tracks)
 
         expected_auto_tags = []
