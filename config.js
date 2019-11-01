@@ -6,6 +6,8 @@ const server = {
   loggerLevel: "info"
 };
 
+const timeZone = "Pacific/Auckland";
+
 function loadConfig(configPath) {
   configPath = path.resolve(configPath);
   checkConfigFileExists(configPath);
@@ -35,5 +37,6 @@ function checkDatabaseConfigAvailable(config) {
   }
 }
 
+exports.timeZone = timeZone;
 exports.loadConfig = loadConfig;
 exports.server = server;

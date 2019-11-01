@@ -22,7 +22,7 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const assert = require("assert");
 const uuidv4 = require("uuid/v4");
-
+const config = require("../config");
 const util = require("./util/util");
 const validation = require("./util/validation");
 const _ = require("lodash");
@@ -285,7 +285,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Recording.prototype.getFileBaseName = function() {
     return moment(new Date(this.recordingDateTime))
-      .tz("Pacific/Auckland")
+      .tz(config.timeZone)
       .format("YYYYMMDD-HHmmss");
   };
 

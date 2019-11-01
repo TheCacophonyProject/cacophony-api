@@ -81,9 +81,12 @@ class ReportChecker:
         assert line["Group"] == device.group
         assert line["Device"] == device.devicename
         if device.location:
-            assert line["Location"] == "{},{}".format(device.location[0], device.location[1])
+            assert line["Latitude"] == "{}".format(device.location[0])
+            assert line["Longitude"] == "{}".format(device.location[1])
         else:
-            assert line["Location"] == ""
+            assert line["Latitude"] == ""
+            assert line["Longitude"] == ""
+
         assert line["Comment"] == rec["comment"]
         assert line["BatteryPercent"] == "98"
         assert int(line["Track Count"]) == len(rec.tracks)
