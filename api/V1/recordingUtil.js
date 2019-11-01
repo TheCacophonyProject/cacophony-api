@@ -192,7 +192,7 @@ async function report(request) {
         .format("YYYY-MM-DD"),
       moment(r.recordingDateTime)
         .tz(config.timeZone)
-        .format("h:mm a"),
+        .format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
       r.location ? r.location.coordinates[1] : "",
       r.duration,
@@ -203,7 +203,7 @@ async function report(request) {
       formatTags(human_track_tags),
       formatTags(recording_tags),
       audioBaitName,
-      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("h:mm a") : "",
+      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())
