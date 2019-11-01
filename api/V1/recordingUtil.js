@@ -132,7 +132,10 @@ async function report(request) {
       "Device",
       "Date",
       "Time",
+      "Latitude",
+      "Longitude",
       "Duration",
+      "BatteryPercent",
       "Comment",
       "Track Count",
       "Automatic Track Tags",
@@ -184,16 +187,23 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime).format("L"),
-      moment(r.recordingDateTime).format("LTS"),
+      moment(r.recordingDateTime)
+        .tz(config.timeZone)
+        .format("YYYY-MM-DD"),
+      moment(r.recordingDateTime)
+        .tz(config.timeZone)
+        .format("HH:mm:ss"),
+      r.location ? r.location.coordinates[0] : "",
+      r.location ? r.location.coordinates[1] : "",
       r.duration,
+      r.batteryLevel,
       r.comment,
       r.Tracks.length,
       formatTags(automatic_track_tags),
       formatTags(human_track_tags),
       formatTags(recording_tags),
       audioBaitName,
-      audioBaitTime ? audioBaitTime.format("LTS") : "",
+      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString())

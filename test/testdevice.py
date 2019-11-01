@@ -4,12 +4,13 @@ from .recording import Recording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi, helper, group=None):
+    def __init__(self, devicename, deviceapi, helper, group=None, location=None):
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
         self._id = deviceapi.id
         self.group = group
+        self.location = location
 
     def get_id(self):
         return self._id
@@ -35,7 +36,7 @@ class TestDevice:
         return Recording(recording_id, props, filename)
 
     def get_new_recording_props(self):
-        return {
+        props = {
             "type": "thermalRaw",
             "recordingDateTime": _new_timestamp().isoformat(),
             "duration": 10,
@@ -46,6 +47,10 @@ class TestDevice:
             "version": "223",
             "additionalMetadata": {"bar": "foo"},
         }
+        if self.location:
+            props["location"] = self.location
+
+        return props
 
     def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
@@ -61,6 +66,9 @@ class TestDevice:
             "version": "123",
             "additionalMetadata": {"foo": "bar"},
         }
+        if self.location:
+            props["location"] = self.location
+
         props.update(extraProps)
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)

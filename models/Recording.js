@@ -22,7 +22,7 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const assert = require("assert");
 const uuidv4 = require("uuid/v4");
-
+const config = require("../config");
 const util = require("./util/util");
 const validation = require("./util/validation");
 const _ = require("lodash");
@@ -30,6 +30,7 @@ const { AuthorizationError } = require("../api/customErrors");
 
 module.exports = function(sequelize, DataTypes) {
   const name = "Recording";
+  const maxQueryResults = 100000;
 
   const attributes = {
     // recording metadata.
@@ -284,7 +285,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Recording.prototype.getFileBaseName = function() {
     return moment(new Date(this.recordingDateTime))
-      .tz("Pacific/Auckland")
+      .tz(config.timeZone)
       .format("YYYYMMDD-HHmmss");
   };
 
@@ -506,6 +507,8 @@ module.exports = function(sequelize, DataTypes) {
     }
     if (!limit) {
       limit = 300;
+    } else {
+      limit = Math.min(limit, maxQueryResults);
     }
     if (!order) {
       order = [
