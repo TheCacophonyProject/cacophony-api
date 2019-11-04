@@ -1,0 +1,4 @@
+#
+# cron.d/cacophony-api-remove-dups
+#
+*/30 * * * * root (cd /srv/cacophony/api/ && node remove-dups.js --delete) 2>&1 | logger --tag remove-dups
