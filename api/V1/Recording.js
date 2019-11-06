@@ -481,8 +481,8 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/:id/tracks/:trackId/replaceTag/
-   * Adds or Replaces track tag based off:
+   * @api {post} /api/v1/recordings/:id/tracks/:trackId/replaceTag  Adds/Replaces  a Track Tag
+   * @apiDescription Adds or Replaces track tag based off:
    * if tag already exists for this user, ignore request
    * Add tag if it is an additional tag e.g. :Part"
    * Add tag if this user hasn't already tagged this track
