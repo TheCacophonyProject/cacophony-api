@@ -482,11 +482,11 @@ module.exports = (app, baseUrl) => {
 
   /**
    * @api {post} /api/v1/recordings/:id/tracks/:trackId/replaceTag/
-   * Adds or Replaced track tag based off:
-   *  if tag already exists for this user, ignore request
-   *  Add tag if it is an additional tag e.g. "Part"
-   *  Add tag if this user hasn't already tagged this track
-   *  Replace existing tag, if user has an existing animal tag
+   * Adds or Replaces track tag based off:
+   * if tag already exists for this user, ignore request
+   * Add tag if it is an additional tag e.g. :Part"
+   * Add tag if this user hasn't already tagged this track
+   * Replace existing tag, if user has an existing animal tag
    * @apiName PostTrackTag
    * @apiGroup Tracks
    *
@@ -523,20 +523,18 @@ module.exports = (app, baseUrl) => {
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const track = await loadTrack(request, response);
-      if (!track) {
-        return;
-      }
       const newTag = models.TrackTag.build({
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: request.body.automatic,
         data: request.body.data,
         UserId: request.user.id,
-        TrackId: track.id
+        TrackId: request.params.trackId
       });
-      await track.replaceTag(newTag);
-
+      const result = await models.Track.replaceTag(
+        request.params.trackId,
+        newTag
+      );
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
