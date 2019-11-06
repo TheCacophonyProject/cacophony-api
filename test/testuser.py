@@ -426,7 +426,7 @@ class TestUser:
             data={},
         )
 
-    def can_tag_track(self, track, automatic=None, what=None):
+    def can_tag_track(self, track, automatic=None, what=None, replace=False):
         tag = TrackTag.create(track, automatic=automatic, what=what)
         tag.id_ = self._userapi.add_track_tag(
             recording_id=track.recording.id_,
@@ -435,6 +435,7 @@ class TestUser:
             confidence=tag.confidence,
             automatic=tag.automatic,
             data=tag.data,
+            replace=replace,
         )
         track.tags.append(tag)
         return tag
@@ -452,6 +453,9 @@ class TestUser:
     def cannot_delete_track_tag(self, tag):
         with pytest.raises(AuthorizationError):
             self.can_delete_track_tag(tag)
+
+    def get_tracks(self, recording_id):
+        return self._userapi.get_tracks(recording_id)
 
 
 class RecordingQueryPromise:

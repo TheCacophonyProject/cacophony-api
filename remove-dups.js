@@ -19,7 +19,7 @@ async function main() {
   // recordingDateTime). The recording with the lowest id will be
   // kept. Recordings with an updatedAt timestamp within the last 30
   // mins are ignored.
-  await client.query('BEGIN');
+  await client.query("BEGIN");
   const res = await client.query(
     `DELETE FROM "Recordings"
      WHERE id IN (
@@ -34,15 +34,19 @@ async function main() {
     `
   );
   for (const row of res.rows) {
-    const ts = row.recordingDateTime ? row.recordingDateTime.toISOString() : "null";
+    const ts = row.recordingDateTime
+      ? row.recordingDateTime.toISOString()
+      : "null";
     console.log(`deleted ${row.id}: device=${row.DeviceId} ts=${ts}`);
   }
   if (args.delete) {
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     console.log(`deleted ${res.rows.length} duplicate recording(s)`);
   } else {
-    await client.query('ROLLBACK');
-    console.log(`${res.rows.length} duplicate recording(s) would be deleted (pass --delete to remove)`);
+    await client.query("ROLLBACK");
+    console.log(
+      `${res.rows.length} duplicate recording(s) would be deleted (pass --delete to remove)`
+    );
   }
 }
 

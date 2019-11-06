@@ -481,6 +481,71 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
+   * @api {post} /api/v1/recordings/:id/tracks/:trackId/replaceTag/
+   * Adds or Replaced track tag based off:
+   *  if tag already exists for this user, ignore request
+   *  Add tag if it is an additional tag e.g. "Part"
+   *  Add tag if this user hasn't already tagged this track
+   *  Replace existing tag, if user has an existing animal tag
+   * @apiName PostTrackTag
+   * @apiGroup Tracks
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {String} what Object/event to tag.
+   * @apiParam {Number} confidence Tag confidence score.
+   * @apiParam {Boolean} automatic "true" if tag is machine generated, "false" otherwise.
+   * @apiParam {JSON} data Data Additional tag data.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} trackTagId Unique id of the newly created track tag.
+   *
+   * @apiUse V1ResponseError
+   *
+   */
+  app.post(
+    apiUrl + "/:id/tracks/:trackId/replaceTag",
+    [
+      auth.authenticateUser,
+      param("id")
+        .isInt()
+        .toInt(),
+      param("trackId")
+        .isInt()
+        .toInt(),
+      body("what"),
+      body("confidence")
+        .isFloat()
+        .toFloat(),
+      body("automatic")
+        .isBoolean()
+        .toBoolean(),
+      middleware.parseJSON("data", body).optional()
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const track = await loadTrack(request, response);
+      if (!track) {
+        return;
+      }
+      const newTag = models.TrackTag.build({
+        what: request.body.what,
+        confidence: request.body.confidence,
+        automatic: request.body.automatic,
+        data: request.body.data,
+        UserId: request.user.id,
+        TrackId: track.id
+      });
+      await track.replaceTag(newTag);
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Track tag added."],
+        trackTagId: newTag.id
+      });
+    })
+  );
+
+  /**
    * @api {post} /api/v1/recordings/:id/tracks/:trackId/tags Add tag to track
    * @apiName PostTrackTag
    * @apiGroup Tracks

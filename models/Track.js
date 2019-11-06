@@ -46,6 +46,30 @@ module.exports = function(sequelize, DataTypes) {
   // INSTANCE
   //---------------
 
+  //add or replace a tag, such that this track only has 1 animal tag by this user
+  //and no duplicate tags
+  Track.prototype.replaceTag = async function(tag) {
+    const trackTags = await this.getTrackTags({
+      where: { UserId: tag.UserId, automatic: tag.automatic }
+    });
+    const existingTag = trackTags.find(function(uTag) {
+      return uTag.what == tag.what;
+    });
+    if (existingTag) {
+      return;
+    } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
+      const existingAnimalTags = trackTags.filter(function(uTag) {
+        return !uTag.isAdditionalTag();
+      });
+
+      for (let i = 0; i < existingAnimalTags.length; i++) {
+        await existingAnimalTags[i].destroy();
+      }
+    }
+
+    await tag.save();
+  };
+
   // Return a specific track tag for the track.
   Track.prototype.getTrackTag = async function(trackTagId) {
     const trackTag = await models.TrackTag.findByPk(trackTagId);
