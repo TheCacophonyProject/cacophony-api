@@ -527,14 +527,12 @@ module.exports = (app, baseUrl) => {
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: request.body.automatic,
-        data: request.body.data,
+        data: request.body.data ? request.body.data : "",
         UserId: request.user.id,
         TrackId: request.params.trackId
       });
-      const result = await models.Track.replaceTag(
-        request.params.trackId,
-        newTag
-      );
+
+      await models.Track.replaceTag(request.params.trackId, newTag);
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
@@ -590,7 +588,7 @@ module.exports = (app, baseUrl) => {
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: request.body.automatic,
-        data: request.body.data,
+        data: request.body.data ? request.body.data : "",
         UserId: request.user.id
       });
       responseUtil.send(response, {

@@ -51,36 +51,32 @@ module.exports = function(sequelize, DataTypes) {
     if (!track) {
       throw new ClientError("No track found for " + trackId);
     }
-    return sequelize
-      .transaction(async function(t) {
-        const trackTags = await models.TrackTag.findAll({
-          where: {
-            UserId: tag.UserId,
-            automatic: tag.automatic,
-            TrackId: trackId
-          },
-          transaction: t
-        });
-
-        const existingTag = trackTags.find(function(uTag) {
-          return uTag.what == tag.what;
-        });
-        if (existingTag) {
-          return;
-        } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
-          const existingAnimalTags = trackTags.filter(function(uTag) {
-            return !uTag.isAdditionalTag();
-          });
-
-          for (let i = 0; i < existingAnimalTags.length; i++) {
-            await existingAnimalTags[i].destroy();
-          }
-        }
-        await tag.save();
-      })
-      .catch(function(err) {
-        return err;
+    return sequelize.transaction(async function(t) {
+      const trackTags = await models.TrackTag.findAll({
+        where: {
+          UserId: tag.UserId,
+          automatic: tag.automatic,
+          TrackId: trackId
+        },
+        transaction: t
       });
+
+      const existingTag = trackTags.find(function(uTag) {
+        return uTag.what == tag.what;
+      });
+      if (existingTag) {
+        return;
+      } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
+        const existingAnimalTags = trackTags.filter(function(uTag) {
+          return !uTag.isAdditionalTag();
+        });
+
+        for (let i = 0; i < existingAnimalTags.length; i++) {
+          await existingAnimalTags[i].destroy();
+        }
+      }
+      await tag.save();
+    });
   };
 
   //---------------
