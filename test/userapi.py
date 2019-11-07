@@ -396,9 +396,14 @@ class UserAPI(APIBase):
         )
         return self._check_response(response)["messages"]
 
-    def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data):
+    def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data, replace=False):
+        url = "/api/v1/recordings/{}/tracks/{}/"
+        if replace:
+            url += "replaceTag"
+        else:
+            url += "tags"
         response = requests.post(
-            urljoin(self._baseurl, "/api/v1/recordings/{}/tracks/{}/tags".format(recording_id, track_id)),
+            urljoin(self._baseurl, url.format(recording_id, track_id)),
             headers=self._auth_header,
             data={
                 "what": what,

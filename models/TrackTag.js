@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
+  const additionalTags = Object.freeze(["poor tracking", "part"]);
+
   const TrackTag = sequelize.define("TrackTag", {
     what: DataTypes.STRING,
     confidence: DataTypes.FLOAT,
@@ -37,6 +39,14 @@ module.exports = function(sequelize, DataTypes) {
   TrackTag.userGetAttributes = Object.freeze(
     TrackTag.apiSettableFields.concat(["id"])
   );
+
+  //---------------
+  // INSTANCE
+  //---------------
+
+  TrackTag.prototype.isAdditionalTag = function() {
+    return additionalTags.includes(this.what);
+  };
 
   return TrackTag;
 };
