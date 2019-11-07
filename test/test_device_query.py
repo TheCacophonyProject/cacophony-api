@@ -41,6 +41,11 @@ class TestDeviceQuery:
         ids = set([device["id"] for device in devices])
         assert ids == set([terminator.get_id(), terminator2.get_id(), gary_device.get_id()])
 
+        terminator.group = ""
+        devices = clare.query_devices(devices=[terminator])
+        ids = set([device["id"] for device in devices])
+        assert ids == set([terminator.get_id()])
+
     def test_access(self, helper):
         clare = helper.given_new_user(self, "clare")
         clares_group = helper.make_unique_group_name(self, "clares_group")

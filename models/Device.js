@@ -282,20 +282,44 @@ module.exports = function(sequelize, DataTypes) {
     if (!operator) {
       operator = Op.or;
     }
+
     if (devices) {
-      const groupDevices = devices.map(device =>
-        [device.groupname, device.devicename].join(":")
-      );
-      whereQuery = Sequelize.where(
-        Sequelize.fn(
-          "concat",
-          Sequelize.col("Group.groupname"),
-          ":",
-          Sequelize.col("devicename")
-        ),
-        { [Op.in]: groupDevices }
-      );
+      const fullNames = devices.filter(device => {
+        return device.devicename.length > 0 && device.groupname.length > 0;
+      });
+      if (fullNames.length > 0) {
+        const groupDevices = fullNames.map(device =>
+          [device.groupname, device.devicename].join(":")
+        );
+        whereQuery = Sequelize.where(
+          Sequelize.fn(
+            "concat",
+            Sequelize.col("Group.groupname"),
+            ":",
+            Sequelize.col("devicename")
+          ),
+          { [Op.in]: groupDevices }
+        );
+      }
+
+      let nameQuery;
+      const deviceNames = devices.filter(device => {
+        return device.devicename.length > 0 && device.groupname.length == 0;
+      });
+      if (deviceNames.length > 0) {
+        const names = deviceNames.map(device => device.devicename);
+        nameQuery = Sequelize.where(Sequelize.col("devicename"), {
+          [Op.in]: names
+        });
+      }
+
+      if (deviceNames.length > 0 && fullNames.length > 0) {
+        whereQuery = { [Op.or]: [whereQuery, nameQuery] };
+      } else if (deviceNames.length > 0) {
+        whereQuery = nameQuery;
+      }
     }
+
     if (groups) {
       const groupQuery = Sequelize.where(Sequelize.col("Group.groupname"), {
         [Op.in]: groups
