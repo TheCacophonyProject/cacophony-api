@@ -229,7 +229,7 @@ class UserAPI(APIBase):
 
         url = urljoin(self._baseurl, "/api/v1/devices/query")
         r = requests.get(url, headers=self._auth_header, params=serialise_params(query))
-        return self._check_response(r)["devices"]
+        return self._check_response(r)
 
     def get_devices_as_json(self):
         return self._get_all("/api/v1/devices")["devices"]["rows"]
