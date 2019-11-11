@@ -56,7 +56,6 @@ module.exports = function(app, baseUrl) {
           messages: ["Device name in use."]
         });
       }
-
       const device = await models.Device.create({
         devicename: request.body.devicename,
         password: request.body.password,
@@ -300,6 +299,8 @@ module.exports = function(app, baseUrl) {
    * @apiParam {String} groups array of group names.
    * @apiParam {String} operator to use. Default is "or".
    * Accepted values are "and" or "or".
+   * @apiSuccess {JSON} devices Array of devices which match fully (group or group and devicename)
+   * @apiSuccess {JSON} nameMatches Array of devices which match only on devicename
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
@@ -331,7 +332,8 @@ module.exports = function(app, baseUrl) {
       );
       return responseUtil.send(response, {
         statusCode: 200,
-        devices: devices,
+        devices: devices.devices,
+        nameMatches: devices.nameMatches,
         messages: ["Completed get devices query."]
       });
     })
