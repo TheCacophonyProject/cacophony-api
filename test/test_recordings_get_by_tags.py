@@ -9,7 +9,9 @@ class TestRecordingsGetByTags:
         device = helper.given_new_device(self, "Rec", group, description="")
 
         untagged = device.has_recording()
-        human_cool_cat = makeTrackTaggedRecording(device, helper, lucy,  [[None,"cat"]], human_recordingTags=["cool"])
+        human_cool_cat = makeTrackTaggedRecording(
+            device, helper, lucy, [[None, "cat"]], human_recordingTags=["cool"]
+        )
         human_missed_track = makeTaggedRecording(device, helper, [], lucy, ["missed track"])
         human_multiple_animals = makeTaggedRecording(device, helper, [], lucy, ["multiple animals"])
         human_trapped = makeTaggedRecording(device, helper, [], lucy, ["trapped in trap"])
@@ -17,7 +19,7 @@ class TestRecordingsGetByTags:
         ai_multiple = makeTaggedRecording(device, helper, ["multiple animals"], lucy, [])
 
         ai_possum = makeTrackTaggedRecording(device, helper, lucy, [["possum", None]])
-        human_possum = makeTrackTaggedRecording(device, helper, lucy, [[None,"possum"]])
+        human_possum = makeTrackTaggedRecording(device, helper, lucy, [[None, "possum"]])
         ai_human_possum = makeTrackTaggedRecording(
             device, helper, lucy, [["possum", "possum"]], human_recordingTags=["cool"]
         )
