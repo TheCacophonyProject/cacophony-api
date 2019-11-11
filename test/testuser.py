@@ -393,7 +393,7 @@ class TestUser:
                 )
                 for tt in t["TrackTags"]
             ]
-            this_track.tags = sorted(this_track.tags, key=lambda tag: tag.id_)
+            this_track.tags = sorted(this_track.tags, key=lambda tag: tag.id_ if tag.id_ else -1)
 
             if this_track == expected_track:
                 return
@@ -441,7 +441,7 @@ class TestUser:
             replace=replace,
         )
         track.tags.append(tag)
-        track.tags = sorted(track.tags, key=lambda tag: tag.id_)
+        track.tags = sorted(track.tags, key=lambda tag: tag.id_ if tag.id_ else -1)
         return tag
 
     def cannot_tag_track(self, track):
