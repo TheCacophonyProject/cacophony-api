@@ -580,6 +580,21 @@ module.exports = function(sequelize, DataTypes) {
 
     const humanSQL = 'NOT "Tags".automatic';
     const AISQL = '"Tags".automatic';
+    if (models.Tag.acceptableTags.includes(tagMode)) {
+      let sqlQuery =
+        "(EXISTS (" +
+        Recording.queryBuilder.recordingTaggedWith([tagMode], null) +
+        "))";
+      if (tagWhats) {
+        sqlQuery =
+          sqlQuery +
+          " AND EXISTS(" +
+          Recording.queryBuilder.trackTaggedWith(tagWhats, null) +
+          ")";
+      }
+      return sqlQuery;
+    }
+
     switch (tagMode) {
       case "any":
         return "";
@@ -617,45 +632,48 @@ module.exports = function(sequelize, DataTypes) {
           " AND " +
           Recording.queryBuilder.tagOfType(tagWhats, AISQL)
         );
-      case "cool":
-      case "missed track":
-      case "multiple animals":
-      case "trapped in trap": {
-        let sqlQuery =
-          "(EXISTS (" +
-          Recording.queryBuilder.recordingTaggedWith([tagMode], null) +
-          "))";
-        if (tagWhats) {
-          sqlQuery =
-            sqlQuery +
-            " AND " +
-            Recording.queryBuilder.tagOfType(tagWhats, null);
-        }
-        return sqlQuery;
-      }
-      default:
+      default: {
         throw `invalid tag mode: ${tagMode}`;
+      }
     }
   };
 
   Recording.queryBuilder.tagOfType = (tagWhats, tagTypeSql) => {
-    return (
-      "(EXISTS (" +
-      Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
-      ") OR EXISTS(" +
+    let query =
+      "( EXISTS(" +
       Recording.queryBuilder.trackTaggedWith(tagWhats, tagTypeSql) +
-      "))"
-    );
+      ")";
+    if (
+      !tagWhats ||
+      (!tagWhats && tagTypeSql) ||
+      models.Tag.acceptableTags.includes(tagWhats)
+    ) {
+      query +=
+        " OR EXISTS (" +
+        Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
+        ")";
+    }
+    query += ")";
+    return query;
   };
 
   Recording.queryBuilder.notTagOfType = (tagWhats, tagTypeSql) => {
-    return (
-      "NOT EXISTS (" +
-      Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
-      ") AND NOT EXISTS(" +
+    let query =
+      "( NOT EXISTS(" +
       Recording.queryBuilder.trackTaggedWith(tagWhats, tagTypeSql) +
-      ")"
-    );
+      ")";
+    if (
+      !tagWhats ||
+      (!tagWhats && tagTypeSql) ||
+      models.Tag.acceptableTags.includes(tagWhats)
+    ) {
+      query +=
+        " AND NOT EXISTS (" +
+        Recording.queryBuilder.recordingTaggedWith(tagWhats, tagTypeSql) +
+        ")";
+    }
+    query += ")";
+    return query;
   };
 
   Recording.queryBuilder.recordingTaggedWith = (tags, tagTypeSql) => {
