@@ -337,7 +337,7 @@ module.exports = function(sequelize, DataTypes) {
         whereQuery = groupQuery;
       }
     }
-    let matches = {};
+    const matches = {};
     if (whereQuery) {
       whereQuery = await addUserAccessQuery(authUser, whereQuery);
       matches.devices = await this.findAll({
