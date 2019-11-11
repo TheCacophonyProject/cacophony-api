@@ -279,6 +279,7 @@ module.exports = function(sequelize, DataTypes) {
    */
   Device.queryDevices = async function(authUser, devices, groups, operator) {
     let whereQuery;
+    let nameMatches;
     if (!operator) {
       operator = Op.or;
     }
@@ -302,21 +303,27 @@ module.exports = function(sequelize, DataTypes) {
         );
       }
 
-      let nameQuery;
       const deviceNames = devices.filter(device => {
         return device.devicename.length > 0 && device.groupname.length == 0;
       });
       if (deviceNames.length > 0) {
         const names = deviceNames.map(device => device.devicename);
-        nameQuery = Sequelize.where(Sequelize.col("devicename"), {
+        let nameQuery = Sequelize.where(Sequelize.col("devicename"), {
           [Op.in]: names
         });
-      }
-
-      if (deviceNames.length > 0 && fullNames.length > 0) {
-        whereQuery = { [Op.or]: [whereQuery, nameQuery] };
-      } else if (deviceNames.length > 0) {
-        whereQuery = nameQuery;
+        nameQuery = await addUserAccessQuery(authUser, nameQuery);
+        nameMatches = await this.findAll({
+          where: nameQuery,
+          include: [
+            {
+              model: models.Group,
+              as: "Group",
+              attributes: ["groupname"]
+            }
+          ],
+          raw: true,
+          attributes: ["Group.groupname", "devicename", "id", "saltId"]
+        });
       }
     }
 
@@ -330,19 +337,26 @@ module.exports = function(sequelize, DataTypes) {
         whereQuery = groupQuery;
       }
     }
-
-    whereQuery = await addUserAccessQuery(authUser, whereQuery);
-    return await this.findAll({
-      where: whereQuery,
-      include: [
-        {
-          model: models.Group,
-          as: "Group",
-          attributes: ["groupname"]
-        }
-      ],
-      attributes: ["Group.groupname", "devicename", "id", "saltId"]
-    });
+    let matches = {};
+    if (whereQuery) {
+      whereQuery = await addUserAccessQuery(authUser, whereQuery);
+      matches.devices = await this.findAll({
+        where: whereQuery,
+        include: [
+          {
+            model: models.Group,
+            as: "Group",
+            attributes: ["groupname"]
+          }
+        ],
+        raw: true,
+        attributes: ["Group.groupname", "devicename", "id", "saltId"]
+      });
+    }
+    if (nameMatches) {
+      matches.nameMatches = nameMatches;
+    }
+    return matches;
   };
 
   // Fields that are directly settable by the API.
