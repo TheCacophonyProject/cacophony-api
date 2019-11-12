@@ -39,6 +39,7 @@ class TestTracks:
 
         # Add another track tag and ensure the user can see that too.
         tag = user.can_tag_track(track)
+
         user.can_see_track(track)
 
         user.can_delete_track_tag(tag)

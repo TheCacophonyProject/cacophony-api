@@ -21,7 +21,6 @@ const _ = require("lodash");
 
 module.exports = function(sequelize, DataTypes) {
   const name = "Tag";
-
   const attributes = {
     what: {
       type: DataTypes.STRING
@@ -96,6 +95,14 @@ module.exports = function(sequelize, DataTypes) {
     await tag.destroy();
     return true;
   };
+
+  Tag.acceptableTags = Object.freeze([
+    "cool",
+    "interaction with trap",
+    "missed track",
+    "multiple animals",
+    "trapped in trap"
+  ]);
 
   Tag.userGetAttributes = Object.freeze([
     "id",

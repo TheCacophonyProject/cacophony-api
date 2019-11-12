@@ -379,6 +379,7 @@ class TestUser:
     def can_see_track(self, expected_track):
         recording = expected_track.recording
         tracks = self._userapi.get_tracks(recording.id_)
+
         for t in tracks:
             this_track = Track(id_=t["id"], recording=recording, data=t["data"])
             this_track.tags = [
@@ -392,6 +393,8 @@ class TestUser:
                 )
                 for tt in t["TrackTags"]
             ]
+            this_track.tags = sorted(this_track.tags, key=lambda tag: tag.id_ if tag.id_ else -1)
+
             if this_track == expected_track:
                 return
 
@@ -438,6 +441,7 @@ class TestUser:
             replace=replace,
         )
         track.tags.append(tag)
+        track.tags = sorted(track.tags, key=lambda tag: tag.id_ if tag.id_ else -1)
         return tag
 
     def cannot_tag_track(self, track):

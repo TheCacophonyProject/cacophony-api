@@ -9,15 +9,20 @@ class TestRecordingsGetByTags:
         device = helper.given_new_device(self, "Rec", group, description="")
 
         untagged = device.has_recording()
-        human_cool_cat = makeTaggedRecording(device, helper, [], lucy, ["cat", "cool"])
+        human_cool_cat = makeTrackTaggedRecording(
+            device, helper, lucy, [[None, "cat"]], human_recordingTags=["cool"]
+        )
         human_missed_track = makeTaggedRecording(device, helper, [], lucy, ["missed track"])
         human_multiple_animals = makeTaggedRecording(device, helper, [], lucy, ["multiple animals"])
         human_trapped = makeTaggedRecording(device, helper, [], lucy, ["trapped in trap"])
 
         ai_multiple = makeTaggedRecording(device, helper, ["multiple animals"], lucy, [])
-        ai_possum = makeTaggedRecording(device, helper, ["possum"], lucy, [])
-        human_possum = makeTaggedRecording(device, helper, [], lucy, ["possum"])
-        ai_human_possum = makeTaggedRecording(device, helper, ["possum"], lucy, ["possum", "cool"])
+
+        ai_possum = makeTrackTaggedRecording(device, helper, lucy, [["possum", None]])
+        human_possum = makeTrackTaggedRecording(device, helper, lucy, [[None, "possum"]])
+        ai_human_possum = makeTrackTaggedRecording(
+            device, helper, lucy, [["possum", "possum"]], human_recordingTags=["cool"]
+        )
 
         ai_possum2 = makeTrackTaggedRecording(device, helper, lucy, [["possum", None], ["cat", None]])
         human_cat_possum2 = makeTrackTaggedRecording(
@@ -63,12 +68,12 @@ class TestRecordingsGetByTags:
             *expected
         ).from_(all)
 
-        expected = [ai_possum, ai_possum2, ai_human_possum, ai_human_possum2, ai_human_possum3]
+        expected = [ai_possum, ai_possum2, ai_human_possum, ai_human_possum2]
         lucy.when_searching_for_tagmode_and_tags("automatic-tagged", ["possum"]).can_only_see_recordings(
             *expected
         ).from_(all)
 
-        expected = [ai_human_possum, ai_human_possum2, ai_human_possum3]
+        expected = [ai_human_possum, ai_human_possum2]
         lucy.when_searching_for_tagmode_and_tags("both-tagged", ["possum"]).can_only_see_recordings(
             *expected
         ).from_(all)
@@ -115,27 +120,6 @@ class TestRecordingsGetByTags:
 
         expected = [human_cool_cat]
         lucy.when_searching_for_tagmode("cool").tags(["cat"]).can_only_see_recordings(*expected).from_(all)
-
-    def testInterestingRecordingTags(self, helper):
-        julie = helper.given_new_user(self, "julie")
-        group = julie.create_group(helper.make_unique_group_name(self, "julies_group"))
-        device = helper.given_new_device(self, "Rec", group, description="")
-
-        animal = makeTaggedRecording(device, helper, ["possum"], julie, [])
-        false_positive = makeTaggedRecording(device, helper, ["false positive"], julie, [])
-        bird = makeTaggedRecording(device, helper, [], julie, ["bird"])
-
-        all = [animal, false_positive, bird]
-
-        julie.when_searching_for_tagmode_and_tags("tagged", ["interesting"]).can_only_see_recordings(
-            animal
-        ).from_(all)
-        julie.when_searching_for().tagmode("tagged").tags(["interesting", "bird"]).can_only_see_recordings(
-            animal, bird
-        ).from_(all)
-        julie.when_searching_for().tagmode("tagged").tags(
-            ["interesting", "false positive"]
-        ).can_only_see_recordings(animal, false_positive).from_(all)
 
     def testInterestingRecordingTrackTags(self, helper):
         julie = helper.given_new_user(self, "julie")
