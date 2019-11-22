@@ -60,7 +60,7 @@ class TestRecordingsFilter:
         rec = bob.query_recordings(filterOptions=json.dumps({"latLongPrec": 10}))[0]
         assert rec["location"]["coordinates"] == [20.00025, 20.00025]
 
-    def test_recordfing_query_tag_fields(self, helper):
+    def test_recording_query_tag_fields(self, helper):
         larry = helper.given_new_user(self, "larry_confident")
         larry_group = helper.make_unique_group_name(self, "larrys_group")
         larry.create_group(larry_group)
@@ -85,8 +85,14 @@ class TestRecordingsFilter:
             assert tracks is not None
             for track in tracks:
                 track_tags = track.get("TrackTags")
+                assert "end_s" in track["data"]
+                assert "start_s" in track["data"]
                 assert track_tags is not None
                 for track_tag in track_tags:
+                    assert track_tag.get("TrackId") is not None
+                    assert track_tag.get("User") is not None
+                    assert track_tag.get("User").get("id") is not None
+                    assert track_tag.get("User").get("username") is not None
                     assert track_tag.get("confidence") != 0
                     assert track_tag.get("what") == "possum"
                     assert track_tag.get("UserId") is not None

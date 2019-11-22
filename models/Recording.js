@@ -161,7 +161,6 @@ module.exports = function(sequelize, DataTypes) {
     if (!Recording.Perms.isValid(permission)) {
       throw "valid permission must be specified (e.g. models.Recording.Perms.VIEW)";
     }
-
     const query = {
       where: {
         [Op.and]: [
@@ -170,23 +169,7 @@ module.exports = function(sequelize, DataTypes) {
           }
         ]
       },
-      include: [
-        {
-          model: models.Tag,
-          attributes: models.Tag.userGetAttributes,
-          include: [
-            {
-              association: "tagger",
-              attributes: ["username"]
-            }
-          ]
-        },
-        {
-          model: models.Device,
-          where: {},
-          attributes: ["devicename", "id"]
-        }
-      ],
+      include: getRecordingInclude(),
       attributes: this.userGetAttributes.concat(["rawFileKey"])
     };
 
@@ -534,44 +517,77 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       order: order,
-      include: [
-        {
-          model: models.Group,
-          attributes: ["groupname"]
-        },
-        {
-          model: models.Tag,
-          attributes: ["what", "detail", "automatic", "taggerId", "confidence"],
-          required: false
-        },
-        {
-          model: models.Track,
-          where: {
-            archivedAt: null
-          },
-          attributes: ["id"],
-          required: false,
-          include: [
-            {
-              model: models.TrackTag,
-              attributes: ["what", "automatic", "UserId", "confidence"],
-              required: false
-            }
-          ]
-        },
-        {
-          model: models.Device,
-          attributes: ["id", "devicename"]
-        }
-      ],
+      include: getRecordingInclude(),
       limit: limit,
       offset: offset,
       attributes: Recording.queryGetAttributes
     };
-
     return this;
   };
 
+  function getRecordingInclude() {
+    return [
+      {
+        model: models.Group,
+        attributes: ["groupname"]
+      },
+      {
+        model: models.Tag,
+        attributes: models.Tag.userGetAttributes,
+        include: [
+          {
+            association: "tagger",
+            attributes: ["username", "id"]
+          }
+        ]
+      },
+      {
+        model: models.Track,
+        where: {
+          archivedAt: null
+        },
+        attributes: [
+          "id",
+          [
+            Sequelize.fn(
+              "json_build_object",
+              "start_s",
+              Sequelize.literal(`"Tracks"."data"#>>'{start_s}'`),
+              "end_s",
+              Sequelize.literal(`"Tracks"."data"#>>'{end_s}'`)
+            ),
+            "data"
+          ]
+        ],
+
+        required: false,
+        include: [
+          {
+            model: models.TrackTag,
+            attributes: [
+              "what",
+              "automatic",
+              "TrackId",
+              "confidence",
+              "UserId"
+            ],
+            include: [
+              {
+                model: models.User,
+                attributes: ["username", "id"]
+              }
+            ],
+            required: false
+          }
+        ]
+      },
+      {
+        model: models.Device,
+        where: {},
+        attributes: ["devicename", "id"]
+      }
+    ];
+  }
   Recording.queryBuilder.handleTagMode = (tagMode, tagWhatsIn) => {
     const tagWhats = tagWhatsIn && tagWhatsIn.length > 0 ? tagWhatsIn : null;
     if (!tagMode) {
