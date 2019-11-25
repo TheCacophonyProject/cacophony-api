@@ -552,9 +552,9 @@ module.exports = function(sequelize, DataTypes) {
             Sequelize.fn(
               "json_build_object",
               "start_s",
-              Sequelize.literal(`"Tracks"."data"#>>'{start_s}'`),
+              Sequelize.literal(`"Tracks"."data"#>'{start_s}'`),
               "end_s",
-              Sequelize.literal(`"Tracks"."data"#>>'{end_s}'`)
+              Sequelize.literal(`"Tracks"."data"#>'{end_s}'`)
             ),
             "data"
           ]
