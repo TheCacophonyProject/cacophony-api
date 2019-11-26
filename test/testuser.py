@@ -178,7 +178,7 @@ class TestUser:
         assertDateTimeStrings(recv_props.pop("recordingDateTime"), props.pop("recordingDateTime"))
 
         # Compare the remaining properties.
-        assert recv_props == props
+        assert_props_exist(props, recv_props)
 
     def cannot_download_recording(self, recording):
         with pytest.raises(AuthorizationError):
@@ -540,3 +540,13 @@ class AudioBaitList:
 
 def assertDateTimeStrings(left, right):
     assert left[:23] == right[:23]
+
+
+def assert_props_exist(props, recv_props):
+    for key in props:
+        if isinstance(props[key], dict):
+            assert key in recv_props
+            assert_props_exist(props[key], recv_props[key])
+        else:
+            assert key in recv_props
+            assert props[key] == recv_props[key]

@@ -13,7 +13,7 @@ class Track:
     @classmethod
     def create(cls, recording):
         "Make a TestTrack with some plausible data."
-        return cls(None, recording, data={"foo": [[1, 2], [3, 4]]})
+        return cls(None, recording, data={"foo": [[1, 2], [3, 4]], "start_s": 10, "end_s": 20})
 
 
 @attr.s
