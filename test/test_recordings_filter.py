@@ -84,9 +84,9 @@ class TestRecordingsFilter:
             tracks = r["Tracks"]
             assert tracks is not None
             for track in tracks:
-                track_tags = track.get("TrackTags")
                 assert "end_s" in track["data"]
                 assert "start_s" in track["data"]
+                track_tags = track.get("TrackTags")
                 assert track_tags is not None
                 for track_tag in track_tags:
                     assert track_tag.get("TrackId") is not None
