@@ -876,7 +876,7 @@ module.exports = function(sequelize, DataTypes) {
 
   Recording.processingStates = {
     thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
-    audio: ["toMp3", "FINISHED"]
+    audio: ["toMp3", "analyse", "FINISHED"]
   };
 
   Recording.processingAttributes = [
