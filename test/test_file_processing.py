@@ -265,14 +265,17 @@ class TestFileProcessing:
 
         # processed audio recording
         recording = listener.upload_audio_recording()
+
         recording = file_processing.get("audio", "toMp3")
         file_processing.put(recording, success=True, complete=True)
+        assert admin.get_recording(recording)["processingState"] == "analyse"
 
-        db_recording = admin.get_recording(recording)
-        assert db_recording["processingState"] == "FINISHED"
+        recording = file_processing.get("audio", "analyse")
+        file_processing.put(recording, success=True, complete=True)
+        assert admin.get_recording(recording)["processingState"] == "FINISHED"
+
         admin.reprocess(recording)
-        db_recording = admin.get_recording(recording)
-        assert db_recording["processingState"] == "toMp3"
+        assert admin.get_recording(recording)["processingState"] == "toMp3"
 
 
 def check_recording(user, recording, **expected):
