@@ -20,6 +20,7 @@ const models = require("../../models");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
+const config = require("../../config")
 const { body, param } = require("express-validator/check");
 const { matchedData } = require("express-validator/filter");
 const { ClientError } = require("../customErrors");
@@ -35,6 +36,7 @@ module.exports = function(app, baseUrl) {
    * @apiParam {String} username Username for new user.
    * @apiParam {String} password Password for new user.
    * @apiParam {String} email Email for new user.
+   * @apiParam {Integer} [endUserAgreement] Version of the end user agreement accepted.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the user ID and type.
@@ -53,13 +55,15 @@ module.exports = function(app, baseUrl) {
         .custom(value => {
           return models.User.freeEmail(value);
         }),
-      middleware.checkNewPassword("password")
+      middleware.checkNewPassword("password"),
+      body("endUserAgreement").isInt().optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const user = await models.User.create({
         username: request.body.username,
         password: request.body.password,
-        email: request.body.email
+        email: request.body.email,
+        endUserAgreement: request.body.endUserAgreement,
       });
 
       const userData = await user.getDataValues();
@@ -99,6 +103,7 @@ module.exports = function(app, baseUrl) {
             req.body.email = json.email;
             req.body.username = json.username;
             req.body.password = json.password;
+            req.body.endUserAgreement = json.endUserAgreement;
           } catch (e) {
             throw new ClientError("Could not parse JSON in data field.");
           }
@@ -117,13 +122,14 @@ module.exports = function(app, baseUrl) {
           return models.User.freeEmail(value);
         })
         .optional(),
-      middleware.checkNewPassword("password").optional()
+      middleware.checkNewPassword("password").optional(),
+      body("endUserAgreement").isInt().optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const validData = matchedData(request);
       if (Object.keys(validData).length === 0) {
         throw new ClientError(
-          "Must provide at least one of: username; email; password."
+          "Must provide at least one of: username; email; password; endUserAgreement."
         );
       }
       const user = request.user;
@@ -155,6 +161,27 @@ module.exports = function(app, baseUrl) {
         statusCode: 200,
         messages: [],
         userData: await request.body.user.getDataValues()
+      });
+    })
+  );
+
+  /**
+   * @api {get} api/v1/endUserAgreementVersion Get the latest end user agreement version
+   * @apiName EndUserAgreementVersion
+   * @apiGroup User
+   *
+   * @apiSuccess {Integer} euaVersion Version of the latest end user agreement.
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    baseUrl + "/endUserAgreementVersion",
+    middleware.requestWrapper(async (request, response) => {
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: [],
+        euaVersion: config.euaVersion,
       });
     })
   );
