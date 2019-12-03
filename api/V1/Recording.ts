@@ -587,6 +587,7 @@ export default (app: Application, baseUrl: string) => {
         return;
       }
 
+      // FIXME(jon): This function doesn't exist.
       const tag = await track.createTrackTag({
         what: request.body.what,
         confidence: request.body.confidence,
@@ -664,7 +665,6 @@ export default (app: Application, baseUrl: string) => {
       return;
     }
 
-    // FIXME(jon): This function does not exist!
     const track = await recording.getTrack(request.params.trackId);
     if (!track) {
       responseUtil.send(response, {

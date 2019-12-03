@@ -33,6 +33,7 @@ import { AcceptableTag, TagStatic } from "./Tag";
 import { DeviceId as DeviceIdAlias } from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
 import { bool } from "aws-sdk/clients/signer";
+import { Track, TrackId } from "./Track";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -119,6 +120,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   rawFileKey: string;
   rawMimeType: string;
   reprocess: (user: User) => Promise<Recording>;
+  getTrack: (id: TrackId) => Promise<Track>;
 
   DeviceId: DeviceIdAlias;
   GroupId: GroupIdAlias;

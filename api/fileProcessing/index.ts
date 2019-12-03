@@ -306,6 +306,7 @@ export default function(app: Application) {
         return;
       }
 
+      // FIXME(jon): This function doesn't exist.
       const tag = await track.createTrackTag({
         what: request.body.what,
         confidence: request.body.confidence,
