@@ -116,9 +116,12 @@ class ReportChecker:
             assert line["Audio Bait Volume"] == ""
 
         assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
-        assert line["Cacophony Index"] == "{}".format(
-            rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index", "")
-        )
+        index = rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index")
+        if index:
+            percents = [str(period["index_percent"]) for period in index]
+            assert line["Cacophony Index"] == ",".join(percents)
+        else:
+            assert line["Cacophony Index"] == ""
 
 
 def format_tags(items):

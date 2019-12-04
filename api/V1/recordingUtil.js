@@ -185,9 +185,11 @@ async function report(request) {
     }
 
     let cacophonyIndex = null;
-    console.log(r.additionalMetadata);
     if (r.additionalMetadata && r.additionalMetadata.analysis) {
       cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
+      if (cacophonyIndex) {
+        cacophonyIndex = cacophonyIndex.map(val => val.index_percent);
+      }
     }
 
     out.push([

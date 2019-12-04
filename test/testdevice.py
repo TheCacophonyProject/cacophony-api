@@ -66,7 +66,15 @@ class TestDevice:
             "relativeToDawn": 9877,
             "relativeToDusk": -6543,
             "version": "123",
-            "additionalMetadata": {"foo": "bar", "analysis": {"cacophony_index": 25}},
+            "additionalMetadata": {
+                "foo": "bar",
+                "analysis": {
+                    "cacophony_index": [
+                        {"end_s": 20, "begin_s": 0, "index_percent": 83.3},
+                        {"end_s": 41, "begin_s": 21, "index_percent": 93.3},
+                    ]
+                },
+            },
         }
         if self.location:
             props["location"] = self.location
