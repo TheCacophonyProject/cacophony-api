@@ -55,16 +55,18 @@ class TestDevice:
     def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
         props = {
+            "type": "audio",
+            "comment": "hmmm",
             "recordingDateTime": ts.isoformat(),
             "recordingTime": ts.strftime("%H:%M:%S"),
             "duration": 2,
-            "batteryLevel": 99,
+            "batteryLevel": 98,
             "batteryCharging": "FULL",
             "airplaneModeOn": False,
             "relativeToDawn": 9877,
             "relativeToDusk": -6543,
             "version": "123",
-            "additionalMetadata": {"foo": "bar"},
+            "additionalMetadata": {"foo": "bar", "analysis": {"cacophony_index": 25}},
         }
         if self.location:
             props["location"] = self.location
