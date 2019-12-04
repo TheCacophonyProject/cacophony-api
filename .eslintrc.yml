@@ -26,3 +26,5 @@ rules:
     - error
   prefer-const:
     - error
+  require-atomic-updates:
+    - off
