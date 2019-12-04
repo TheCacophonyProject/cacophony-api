@@ -24,14 +24,14 @@ cacophony-api using Docker and docker-compose. To do this:
 This will fetch and build a set of images which include all the services
 that cacophony-api relies on and then runs them. The end
 result is a fully functioning API server. All container names start with
-"cacophony-api_", followed by "server", "db" or "s3", and end with "_1".
+"cacophony-api_", followed by "server", "db" or "s3".
 
 The first time `./run` is used will be somewhat slow as dependencies
 are downloaded. Future executions are quite fast as Docker caches the
 images it creates.
 
 Once the container is running, you can start a bash session inside
-the db container with `docker exec -it cacophony-api_db_1 bash`.  You can then use
+the db container with `docker exec -it cacophony-api_db bash`.  You can then use
 psql to query the database `psql -h localhost -U test cacophonytest` and password `test`.
 
 Note that the source code is mounted on to the docker image, so any changes 
