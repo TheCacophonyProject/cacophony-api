@@ -15,7 +15,7 @@ const s3 = {
   publicKey: "minio",
   privateKey: "miniostorage",
   bucket: "cacophony",
-  endpoint: "http://127.0.0.1:9001"
+  endpoint: "http://s3:9001"
 };
 
 const fileProcessing = {
@@ -27,7 +27,7 @@ const database = {
   username: "test",
   password: "test",
   database: "cacophonytest",
-  host: "localhost",
+  host: "db",
   dialect: "postgres"
 };
 
