@@ -37,8 +37,8 @@ class TestSchedule:
         assert rocker.get_audio_schedule()["schedule"] == schedule
         assert rolla.get_audio_schedule()["schedule"] == schedule
 
-        print("    and each should only see their device on the schedule.")
-        assert rocker.get_audio_schedule()["devices"]["count"] == 1
+        print("    and devices shouldn't see what other devices are in the schedule.")
+        assert "devices" not in rocker.get_audio_schedule()
 
     def test_user_can_get_device_schedule(self, helper):
         max, maxs_device = helper.given_new_user_with_device(self, "Max")
