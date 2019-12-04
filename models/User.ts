@@ -28,6 +28,7 @@ import log from "../logging";
 import { bool } from "aws-sdk/clients/signer";
 import Model from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
+import {Group} from "../models/Group";
 
 const Op = Sequelize.Op;
 
@@ -54,6 +55,7 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   canAccessDevice: (deviceId: number) => Promise<bool>;
   getDeviceIds: () => Promise<number>;
 
+  admin: boolean;
   getGroupDeviceIds: () => Promise<number[]>;
   hasGlobalWrite: () => boolean;
   hasGlobalRead: () => boolean;
@@ -62,7 +64,7 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   firstName: string;
   lastName: string;
   email: string;
-  groups: GroupData[];
+  groups: Group[];
   globalPermission: GlobalPermission;
 }
 
@@ -80,10 +82,7 @@ export interface UserStatic extends ModelStaticCommon<User> {
   getFromEmail: (email: string) => Promise<User | null>;
   freeEmail: (email: string) => Promise<boolean>;
   getFromId: (id: number) => Promise<User | null>;
-}
-
-interface GroupData {
-  // TODO(jon)
+  ["GLOBAL_PERMISSIONS"]: string[],
 }
 
 interface UserData {
@@ -92,7 +91,7 @@ interface UserData {
   firstName: string;
   lastName: string;
   email: string;
-  groups: GroupData[];
+  groups: Group[];
   globalPermission: GlobalPermission;
 }
 

@@ -25,7 +25,10 @@ import { User, UserId as UserIdAlias } from "./User";
 const Op = sequelize.Op;
 export type FileId = number;
 export interface File extends Sequelize.Model, ModelCommon<File> {
+  id: FileId;
   UserId: UserIdAlias;
+  details: any;
+  type: any;
   fileKey: string; // TODO(jon): JwtToken?
 }
 export interface FileStatic extends ModelStaticCommon<File> {

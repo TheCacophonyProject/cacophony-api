@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
+import {File, FileStatic} from "./File";
 
 const Op = Sequelize.Op;
 export type DetailSnapshotId = number;
@@ -26,6 +27,8 @@ export interface DetailSnapShot
     ModelCommon<DetailSnapShot> {
   getFile: () => Promise<File>;
   id: DetailSnapshotId;
+  type: string;
+  details: any;
 }
 
 export interface DetailSnapshotStatic
@@ -66,7 +69,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
   DetailSnapshot.getOrCreateMatching = async function(
     searchType,
     searchDetails
-  ) {
+  ): Promise<DetailSnapShot> {
     if (!searchDetails) {
       searchDetails = {
         [Op.eq]: null
@@ -83,7 +86,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
     if (existing) {
       return existing;
     } else {
-      return await this.create({
+      return this.create({
         type: searchType,
         details: searchDetails
       });
@@ -103,7 +106,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
     if (!fid) {
       return null;
     }
-    return await models.File.findByPk(fid);
+    return (models.File as FileStatic).findByPk(fid);
   };
 
   return DetailSnapshot;

@@ -29,6 +29,10 @@ import { TrackStatic } from "./Track";
 import { DetailSnapshotStatic } from "./DetailSnapshot";
 import { FileStatic } from "./File";
 import { EventStatic } from "./Event";
+import {DeviceStatic} from "./Device";
+import {GroupStatic} from "./Group";
+import {GroupUsersStatic} from "./GroupUsers";
+import {DeviceUsersStatic} from "./DeviceUsers";
 
 const basename = path.basename(module.filename);
 const dbConfig = config.database;
@@ -119,6 +123,10 @@ const AllModels = {
   DetailSnapshot: db.DetailSnapshot as DetailSnapshotStatic,
   File: db.File as FileStatic,
   Event: db.Event as EventStatic,
+  Device: db.Device as DeviceStatic,
+  Group: db.Group as GroupStatic,
+  GroupUsers: db.GroupUsers as GroupUsersStatic,
+  DeviceUsers: db.DeviceUsers as DeviceUsersStatic,
   sequelize,
   Sequelize
 };

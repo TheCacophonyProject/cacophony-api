@@ -176,7 +176,7 @@ export default function(app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getUserByNameOrId(body),
       middleware.getDeviceById(body),
-      body("admin").isIn([true, false])
+      body("admin").isIn(['true', 'false'])
     ],
     middleware.requestWrapper(async (request, response) => {
       const added = await models.Device.addUserToDevice(

@@ -20,28 +20,27 @@ import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
 import moment from "moment";
 import urljoin from "url-join";
-import { ClientError } from "../customErrors";
+import {ClientError} from "../customErrors";
 import config from "../../config";
 import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import { Request, Response } from "express";
-import {
-  RecordingPermission,
-  RecordingPermissions,
-  RecordingType
-} from "../../models/Recording";
+import {Response} from "express";
+import {Recording, RecordingId, RecordingPermission, RecordingType, TagMode} from "../../models/Recording";
+import {Event} from "../../models/Event";
+import {Order} from "sequelize";
+import {FileId} from "../../models/File";
 
-interface RecordingQuery {
+export interface RecordingQuery {
   user: any;
   query: {
     where: any;
-    tagMode: any;
-    tags: any;
+    tagMode: TagMode;
+    tags: string[];
     offset: number;
     limit: number;
-    order: any;
+    order: Order;
     distinct: boolean;
   };
   filterOptions: any;
@@ -68,7 +67,7 @@ function makeUploadHandler(mungeData?: (any) => any) {
 
 // Returns a promise for the recordings query specified in the
 // request.
-async function query(request: RecordingQuery, type?) {
+async function query(request: RecordingQuery, type?): Promise<{rows: Recording[], count: number}> {
   if (type) {
     request.query.where.type = type;
   }
@@ -85,6 +84,7 @@ async function query(request: RecordingQuery, type?) {
   builder.query.distinct = true;
   const result = await models.Recording.findAndCountAll(builder.get());
 
+  // This gives less location precision if the user isn't admin.
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
@@ -113,7 +113,8 @@ async function report(request) {
     .addColumn("comment")
     .addAudioEvents();
 
-  const result = await models.Recording.findAll(builder.get());
+  // NOTE(jon): Not really a recording, since it's extended with other comments
+  const result: Recording[] = await models.Recording.findAll(builder.get());
 
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
@@ -122,8 +123,8 @@ async function report(request) {
 
   // Our DB schema doesn't allow us to easily get from a audio event
   // recording to a audio file name so do some work first to look these up.
-  const audioEvents = new Map();
-  const audioFileIds = new Set();
+  const audioEvents: Map<RecordingId, {timestamp: Date, volume: number, fileId: FileId}> = new Map();
+  const audioFileIds: Set<number> = new Set();
   for (const r of result) {
     const event = findLatestEvent(r.Device.Events);
     if (event) {
@@ -233,7 +234,7 @@ async function report(request) {
   return out;
 }
 
-function findLatestEvent(events) {
+function findLatestEvent(events: Event[]) {
   if (!events) {
     return null;
   }
@@ -472,7 +473,7 @@ async function reprocessRecording(user, recording_id) {
   const recording = await models.Recording.get(
     user,
     recording_id,
-    models.Recording.Perms.UPDATE
+    RecordingPermission.UPDATE
   );
 
   if (!recording) {

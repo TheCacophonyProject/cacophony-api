@@ -102,6 +102,8 @@ export default function(app: Application) {
       if (!expiry) {
         expiry = ttlTypes["short"];
       }
+      // FIXME(jon): Understand what can be passed to access? {"devices":"r"}
+      // How is that access authenticated?
       const token = auth.createEntityJWT(
         request.user,
         { expiresIn: expiry },

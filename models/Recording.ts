@@ -30,7 +30,7 @@ import { User } from "./User";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import Transaction from "sequelize";
 import { AcceptableTag, TagStatic } from "./Tag";
-import { DeviceId as DeviceIdAlias } from "./Device";
+import {DeviceId as DeviceIdAlias, DeviceStatic} from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
 import { bool } from "aws-sdk/clients/signer";
 import { Track, TrackId } from "./Track";
@@ -38,7 +38,7 @@ import { Track, TrackId } from "./Track";
 export type RecordingId = number;
 type SqlString = string;
 
-enum TagMode {
+export enum TagMode {
   Any = "any",
   UnTagged = "untagged",
   Tagged = "tagged",
@@ -81,7 +81,7 @@ interface RecordingQueryBuilder {
     user: User,
     where: any,
     tagMode: TagMode,
-    tags: AcceptableTag[],
+    tags: string[], // AcceptableTag[]
     offset: number,
     limit: number,
     order: Order
@@ -106,12 +106,14 @@ interface RecordingQueryBuilderInstance {
 }
 
 export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
+  id: RecordingId;
   type?: RecordingType;
   getFileBaseName: () => string;
   getRawFileName: () => string;
   getFileName: () => string;
   getRawFileExt: () => string;
   getFileExt: () => string;
+  getActiveTracks: () => Promise<Track[]>;
   getActiveTracksTagsAndTagger: () => Promise<any>;
   getUserPermissions: (user: User) => Promise<RecordingPermission[]>;
   recordingDateTime: string;
@@ -121,6 +123,8 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   rawMimeType: string;
   reprocess: (user: User) => Promise<Recording>;
   getTrack: (id: TrackId) => Promise<Track>;
+  getTracks: (options: FindOptions) => Promise<Track[]>;
+  mergeUpdate: (updates: any) => void;
 
   DeviceId: DeviceIdAlias;
   GroupId: GroupIdAlias;
@@ -152,6 +156,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     permission: RecordingPermission,
     options?: { type: RecordingType; filterOptions: any }
   ) => Promise<Recording>;
+  //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
 
 const Op = Sequelize.Op;
@@ -453,7 +458,7 @@ export default function(
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function() {
+  Recording.prototype.getActiveTracksTagsAndTagger = async function(): Promise<any> {
     return await this.getTracks({
       where: {
         archivedAt: null
@@ -500,8 +505,7 @@ export default function(
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
   Recording.prototype.mergeUpdate = function(newValues) {
-    for (const name in newValues) {
-      const newValue = newValues[name];
+    for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
       } else {
@@ -512,11 +516,7 @@ export default function(
 
   // Update additionalMetadata fields with new values supplied.
   Recording.prototype.mergeAdditionalMetadata = function(newValues) {
-    const meta = this.additionalMetadata || {};
-    for (const name in newValues) {
-      meta[name] = newValues[name];
-    }
-    this.additionalMetadata = meta;
+    this.additionalMetadata = {...this.additionalMetadata, ...newValues};
   };
 
   Recording.prototype.getFileExt = function() {
@@ -556,7 +556,7 @@ export default function(
 
   // Returns all active tracks for the recording which are not archived.
   Recording.prototype.getActiveTracks = async function() {
-    const tracks = await this.getTracks({
+    return await this.getTracks({
       where: {
         archivedAt: null
       },
@@ -566,7 +566,6 @@ export default function(
         }
       ]
     });
-    return tracks;
   };
 
   // reprocess a recording and set all active tracks to archived
@@ -605,7 +604,8 @@ export default function(
   };
 
   // Return a specific track for the recording.
-  Recording.prototype.getTrack = async function(trackId) {
+  Recording.prototype.getTrack = async function(trackId: TrackId): Promise<Track | null> {
+    // FIXME(jon): Should this throw if not found?
     const track = await models.Track.findByPk(trackId);
     if (!track) {
       return null;
@@ -615,7 +615,6 @@ export default function(
     if (track.RecordingId !== this.id) {
       return null;
     }
-
     return track;
   };
 
@@ -901,7 +900,7 @@ export default function(
 
   // Include details of recent audio bait events in the query output.
   Recording.queryBuilder.prototype.addAudioEvents = function() {
-    const deviceInclude = this.findInclude(models.Device);
+    const deviceInclude = this.findInclude(models.Device as DeviceStatic);
 
     if (!deviceInclude.include) {
       deviceInclude.include = {};

@@ -23,7 +23,9 @@ import { User } from "./User";
 
 const Op = Sequelize.Op;
 
-export interface Event extends Sequelize.Model, ModelCommon<Event> {}
+export interface Event extends Sequelize.Model, ModelCommon<Event> {
+  dateTime: Date;
+}
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (
     user: User,

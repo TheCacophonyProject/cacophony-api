@@ -16,12 +16,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { User } from "./User";
+
+import Sequelize from "sequelize";
+import {ModelCommon, ModelStaticCommon} from "./index";
+import {User} from "./User";
 
 const { AuthorizationError } = require("../api/customErrors");
 export type GroupId = number;
 
-export default function(sequelize, DataTypes) {
+export interface Group extends Sequelize.Model, ModelCommon<Group> {
+  id: GroupId;
+  addUser: (userToAdd: User, through: any) => Promise<void>,
+  getUsers: (options: any) => Promise<User[]>,
+  userPermissions: (user: User) => Promise<{
+    canAddUsers: boolean,
+    canRemoveUsers: boolean
+  }>;
+}
+export interface GroupStatic extends ModelStaticCommon<Group> {
+  addUserToGroup: (authUser: User, group: Group, userToAdd: User, admin: boolean) => Promise<void>;
+  removeUserFromGroup: (authUser: User, group: Group, userToRemove: User) => Promise<void>;
+  query: (where: any, user: User) => Promise<Group[]>;
+  getFromId: (id: GroupId) => Promise<Group>;
+  freeGroupname: (groupname: string) => Promise<boolean>;
+  getIdFromName: (groupname: string) => Promise<GroupId>;
+}
+
+export default function(sequelize, DataTypes): GroupStatic {
   const name = "Group";
 
   const attributes = {
@@ -31,7 +52,7 @@ export default function(sequelize, DataTypes) {
     }
   };
 
-  const Group = sequelize.define(name, attributes);
+  const Group = sequelize.define(name, attributes) as unknown as GroupStatic;
 
   Group.apiSettableFields = [];
 
@@ -90,8 +111,8 @@ export default function(sequelize, DataTypes) {
         UserId: userToRemove.id
       }
     });
-    for (const i in groupUsers) {
-      await groupUsers[i].destroy();
+    for (const groupUser of groupUsers) {
+      await groupUser.destroy();
     }
   };
 
@@ -165,11 +186,11 @@ export default function(sequelize, DataTypes) {
   };
 
   Group.getFromId = async function(id) {
-    return await this.findByPk(id);
+    return this.findByPk(id);
   };
 
   Group.getFromName = async function(name) {
-    return await this.findOne({ where: { groupname: name } });
+    return this.findOne({ where: { groupname: name } });
   };
 
   Group.freeGroupname = async function(name) {
@@ -185,6 +206,8 @@ export default function(sequelize, DataTypes) {
     return new Promise(function(resolve) {
       Group.findOne({ where: { groupname: name } }).then(function(group) {
         if (!group) {
+          // FIXME(jon): Should this resolve false, or throw an error?
+          //  At least reject the promise!
           resolve(false);
         } else {
           resolve(group.getDataValue("id"));

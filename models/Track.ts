@@ -27,7 +27,7 @@ export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
 }
 
-export default function(sequelize, DataTypes): TrackStatic {
+export default function(sequelize: Sequelize.Sequelize, DataTypes): TrackStatic {
   const { ClientError } = require("../api/customErrors");
 
   const Track = (sequelize.define("Track", {

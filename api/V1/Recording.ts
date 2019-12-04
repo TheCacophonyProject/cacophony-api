@@ -16,16 +16,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Application } from "express";
+import e, {Application} from "express";
 import middleware from "../middleware";
 import auth from "../auth";
-import recordingUtil from "./recordingUtil";
+import recordingUtil, {RecordingQuery} from "./recordingUtil";
 import responseUtil from "./responseUtil";
 import models from "../../models";
 import csv from "fast-csv";
-import { body, param, query } from "express-validator/check";
-import { RecordingPermission } from "../../models/Recording";
-import { TrackTag } from "../../models/TrackTag";
+import {body, param, query} from "express-validator/check";
+import {RecordingPermission, TagMode} from "../../models/Recording";
+import {TrackTag} from "../../models/TrackTag";
+import {Track} from "../../models/Track";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
@@ -187,8 +188,44 @@ export default (app: Application, baseUrl: string) => {
   app.get(
     apiUrl,
     [auth.authenticateUser, ...queryValidators],
-    middleware.requestWrapper(async (request, response) => {
-      const result = await recordingUtil.query(request);
+    middleware.requestWrapper(async (request: e.Request, response: e.Response) => {
+      const result = await recordingUtil.query(request as unknown as RecordingQuery);
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Completed query."],
+        limit: request.query.limit,
+        offset: request.query.offset,
+        count: result.count,
+        rows: result.rows
+      });
+    })
+  );
+
+  // TODO(jon): Bulk tagging recordings interface:
+  app.get(
+    `${apiUrl}/recordings-to-tag`,
+    [auth.authenticateUser],
+    middleware.requestWrapper(async (request: e.Request, response: e.Response) => {
+
+      // TODO(jon): Where there are Tracks
+      const result = await recordingUtil.query({
+          filterOptions: {},
+          query: {
+              distinct: true,
+              limit: 0,
+              offset: 0,
+              order: [['!!!columnName', 'DESC']],
+              tagMode: TagMode.NoHuman,
+              tags: [],
+              where: {
+
+              }
+          },
+          user: request.body.user
+      });
+
+      // Do some randomisation of the items.
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Completed query."],
@@ -217,7 +254,7 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/report`,
-    [auth.paramOrHeader].concat(queryValidators),
+    [auth.paramOrHeader, ...queryValidators],
     middleware.requestWrapper(async (request, response) => {
       const rows = await recordingUtil.report(request);
       response.status(200).set({
@@ -651,7 +688,7 @@ export default (app: Application, baseUrl: string) => {
     })
   );
 
-  async function loadTrack(request, response) {
+  async function loadTrack(request, response): Promise<Track> {
     const recording = await models.Recording.get(
       request.user,
       request.params.id,

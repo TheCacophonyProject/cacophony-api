@@ -27,7 +27,7 @@ import models, { ModelCommon } from "../models";
 /*
  * Create a new JWT for a user or device.
  */
-function createEntityJWT(entity: ModelCommon, options?, access?: {}): string {
+function createEntityJWT<T>(entity: ModelCommon<T>, options?, access?: {}): string {
   const payload: {
     id: string;
     _type: string;
@@ -105,19 +105,16 @@ const authenticate = function(
     }
 
     if (type && type != jwtDecoded._type) {
-      // NOTE(jon): Should these be returned, rather than `undefined`?
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
     const hasAccess = await checkAccess(reqAccess, jwtDecoded);
     if (!hasAccess) {
-      // NOTE(jon): Should these be returned, rather than `undefined`?
       res.status(401).json({ messages: ["JWT does not have access."] });
       return;
     }
     const result = await lookupEntity(jwtDecoded);
     if (!result) {
-      // NOTE(jon): Should these be returned, rather than `undefined`?
       res.status(401).json({
         messages: ["Could not find entity referenced by JWT."]
       });
@@ -131,9 +128,9 @@ const authenticate = function(
 async function lookupEntity(jwtDecoded) {
   switch (jwtDecoded._type) {
     case "user":
-      return await models.User.findByPk(jwtDecoded.id);
+      return models.User.findByPk(jwtDecoded.id);
     case "device":
-      return await models.Device.findByPk(jwtDecoded.id);
+      return models.Device.findByPk(jwtDecoded.id);
     case "fileDownload":
       return jwtDecoded;
     default:

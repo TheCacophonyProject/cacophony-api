@@ -17,10 +17,52 @@ import { AuthorizationError, ClientError } from "../api/customErrors";
 import bcrypt from "bcrypt";
 import { format } from "util";
 import Sequelize from "sequelize";
+import {ModelCommon, ModelStaticCommon} from "./index";
+import {User, UserId} from "./User";
+import {Group, GroupStatic} from "./Group";
+import {GroupUsersStatic} from "./GroupUsers";
+import {DeviceUsersStatic} from "./DeviceUsers";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
-export default function(sequelize, DataTypes) {
+
+export interface Device extends Sequelize.Model,
+        ModelCommon<Device> {
+  id: DeviceId;
+  userPermissions: (user: User) => any; // TODO(jon): What is this?
+  addUser: (userId: UserId, options: any) => any;
+  devicename: string;
+  groupname: string;
+  password?: string;
+  comparePassword: (password: string) => Promise<boolean>;
+  reregister: (devicename: string, group: Group, newPassword: string) => Promise<Device>; // FIXME(jon): Needs to throw if fails
+}
+
+export interface DeviceStatic
+    extends ModelStaticCommon<Device> {
+  addUserToDevice: (authUser: User, device: Device, userToAdd: User, admin: boolean) => Promise<boolean>;
+  allForUser: (user: User) => Promise<{rows: Device[], count: number}>;
+  removeUserFromDevice: (authUser: User, device: Device, user: User) => Promise<boolean>;
+  onlyUsersDevicesMatching: (user: User, conditions: any, includeData: any) => Promise<{rows: Device[], count: number}>;
+  freeDevicename: (name: string) => Promise<boolean>;
+  newUserPermissions: (enabled: boolean) => {
+    canListUsers: boolean,
+    canAddUsers: boolean,
+    canRemoveUsers: boolean
+  };
+  getFromId: (id: DeviceId) => Promise<Device>;
+  findDevice: (deviceID?: DeviceId,
+               deviceName?: string,
+               groupName?: string,
+               password?: string) => Promise<Device>;
+  wherePasswordMatches: (devices: Device[], password: string) => Promise<Device>;
+  getFromNameAndPassword: (name: string, password: string) => Promise<Device>;
+  allWithName: (name: string) => Promise<Device[]>;
+  getFromNameAndGroup: (name: string, groupName: string) => Promise<Device>;
+  queryDevices: (authUser: User, devices: Device[], groupNames: string[], operator: any) => Promise<{devices: Device[], nameMatches: string}>;
+}
+
+export default function(sequelize: Sequelize.Sequelize, DataTypes): DeviceStatic {
   const name = "Device";
 
   const attributes = {
@@ -64,7 +106,7 @@ export default function(sequelize, DataTypes) {
     }
   };
 
-  const Device = sequelize.define(name, attributes, options);
+  const Device = (sequelize.define(name, attributes, options) as unknown) as DeviceStatic;
 
   //---------------
   // CLASS METHODS
@@ -258,11 +300,11 @@ export default function(sequelize, DataTypes) {
   };
 
   Device.allWithName = async function(name) {
-    return await this.findAll({ where: { devicename: name } });
+    return this.findAll({ where: { devicename: name } });
   };
 
   Device.getFromNameAndGroup = async function(name, groupName) {
-    return await this.findOne({
+    return this.findOne({
       where: { devicename: name },
       include: [
         {
@@ -276,7 +318,7 @@ export default function(sequelize, DataTypes) {
   /**
    * finds devices that match device array and groups array with supplied operator (or by default)
    */
-  Device.queryDevices = async function(authUser, devices, groups, operator) {
+  Device.queryDevices = async function(authUser, devices, groupNames, operator) {
     let whereQuery;
     let nameMatches;
     if (!operator) {
@@ -326,9 +368,9 @@ export default function(sequelize, DataTypes) {
       }
     }
 
-    if (groups) {
+    if (groupNames) {
       const groupQuery = Sequelize.where(Sequelize.col("Group.groupname"), {
-        [Op.in]: groups
+        [Op.in]: groupNames
       });
       if (devices) {
         whereQuery = { [operator]: [whereQuery, groupQuery] };
@@ -370,8 +412,8 @@ export default function(sequelize, DataTypes) {
       return Device.newUserPermissions(true);
     }
 
-    const isGroupAdmin = await models.GroupUsers.isAdmin(this.GroupId, user.id);
-    const isDeviceAdmin = await models.DeviceUsers.isAdmin(this.id, user.id);
+    const isGroupAdmin = await (models.GroupUsers as GroupUsersStatic).isAdmin(this.GroupId, user.id);
+    const isDeviceAdmin = await (models.DeviceUsers as DeviceUsersStatic).isAdmin(this.id, user.id);
     return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
 
@@ -407,7 +449,8 @@ export default function(sequelize, DataTypes) {
     }
 
     const device_users = await this.getUsers({ attributes: attrs });
-    const group = await models.Group.getFromId(this.GroupId);
+    const group: Group = await (models.Group as GroupStatic).getFromId(this.GroupId);
+
     const group_users = await group.getUsers({ attributes: attrs });
 
     return device_users.concat(group_users);
@@ -504,7 +547,7 @@ function parseExactInt(value) {
 /* Validation methods */
 /********************/
 
-function afterValidate(device) {
+function afterValidate(device: Device): Promise<void> | undefined {
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
     // TODO or make a custom validation for the password.

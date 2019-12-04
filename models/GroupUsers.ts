@@ -16,7 +16,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-export default function(sequelize, DataTypes) {
+import Sequelize from "sequelize";
+import {ModelCommon, ModelStaticCommon} from "./index";
+import {GroupId} from "./Group";
+import {UserId} from "./User";
+
+export interface GroupUsers extends Sequelize.Model, ModelCommon<GroupUsers> {
+
+}
+export interface GroupUsersStatic extends ModelStaticCommon<GroupUsers> {
+  isAdmin: (groupId: GroupId, userId: UserId) => Promise<boolean>;
+}
+
+export default function(sequelize, DataTypes): GroupUsersStatic {
   const name = "GroupUsers";
 
   const attributes = {
@@ -26,7 +38,7 @@ export default function(sequelize, DataTypes) {
     }
   };
 
-  const GroupUsers = sequelize.define(name, attributes);
+  const GroupUsers = sequelize.define(name, attributes) as unknown as GroupUsersStatic;
 
   //---------------
   // CLASS METHODS
