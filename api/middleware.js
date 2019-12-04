@@ -127,8 +127,8 @@ function setGroupName(checkFunc) {
   });
 }
 
-function getDevice(checkFunc) {
-  return checkFunc("devicename", "deviceID").custom(
+function getDevice(checkFunc, paramName="devicename") {
+  return checkFunc(paramName).custom(
     async (deviceName, { req }) => {
       const password = req.body["password"];
       const groupName = req.body["groupname"];
