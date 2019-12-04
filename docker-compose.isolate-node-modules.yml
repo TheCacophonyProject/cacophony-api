@@ -1,0 +1,9 @@
+# Prevents the node_modules from being mounted into the container.
+# Useful for non linux systems where dependencies are platform specific.
+version: "2.4"
+volumes:
+  node_modules:
+services:
+  server:
+    volumes:
+      - node_modules:/app/node_modules

@@ -89,8 +89,11 @@ function openHttpServer(app) {
   });
 }
 
-// Returns a Promise that will reolve if it could connect to the S3 file storage
-// and reject if connection failed.
+
+/**
+ * Returns a Promise that will resolve if it could connect to the S3 file
+ * storage and reject if connection failed.
+ */
 function checkS3Connection() {
   return new Promise(function(resolve, reject) {
     const s3 = modelsUtil.openS3();

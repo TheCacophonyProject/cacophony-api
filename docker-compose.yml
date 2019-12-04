@@ -1,12 +1,12 @@
-version: '2.4'
+version: "2.4"
 services:
   server:
     build: .
     environment:
       NODE_BIN: node
     ports:
-      - "1080:1080"
-      - "2008:2008"
+      - 1080:1080
+      - 2008:2008
     depends_on:
       db:
         condition: service_healthy
@@ -17,9 +17,9 @@ services:
       POSTGRES_USER: test
       POSTGRES_DBNAME: cacophonytest
     ports:
-      - "5432:5432"
+      - 5432:5432
     healthcheck:
-      test: "pg_isready -h localhost -p 5432 -q -U test"
+      test: pg_isready -q -h db -p 5432 -U test
       interval: 3s
       timeout: 5s
       retries: 5
@@ -31,4 +31,4 @@ services:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: miniostorage
     ports:
-    - "9001:9001"
+      - 9001:9001

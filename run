@@ -16,7 +16,14 @@ parser.add_argument(
     "--isolate",
     default=False,
     action="store_true",
-    help="Re-install npm dependencies, don't restart server when code changes",
+    help="Use static files, won't restart server when code changes",
+)
+parser.add_argument(
+    "--isolate-node-modules",
+    dest="isolate_node_modules",
+    default=False,
+    action="store_true",
+    help="Restart server when code changes but not when node_modules changes",
 )
 parser.add_argument(
     "--background",
@@ -33,7 +40,10 @@ parser.add_argument(
 )
 # Set to false if your current user is already in the docker user group
 parser.add_argument(
-    "--sudo", default=False, action="store_true", help="Run commands with sudo"
+    "--sudo",
+    default=False,
+    action="store_true",
+    help="Run commands with sudo"
 )
 args = parser.parse_args()
 
@@ -69,68 +79,30 @@ def add_sudo(cmd_list):
         cmd_list.insert(0, "sudo")
     return cmd_list
 
-
-if not os.path.exists("node_modules"):
+if not (os.path.exists("node_modules") or args.isolate or args.isolate_node_modules):
     print("Node modules have not been installed yet, doing so now")
     subprocess.call(["npm", "install"])
 
-print("Stopping {} container (if running)".format(CONTAINER_NAME))
-remove_container_cmd = ["docker", "rm", "--force", CONTAINER_NAME]
-subprocess.call(
-    add_sudo(remove_container_cmd), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-)
-
-print("Building container")
-build_container_cmd = ["docker", "build", ".", "-t", IMAGE_NAME]
+print("Building containers")
+build_container_cmd = ["docker-compose", "build"]
 if not args.cache:
+    subprocess.check_call(add_sudo(["docker-compose", "pull"]))
     build_container_cmd.append("--no-cache")
 subprocess.check_call(add_sudo(build_container_cmd))
 
-print("Starting container")
-run_cmd = [
-    "docker",
-    "run",
-    "-td",
-    "--rm",
-    "--name",
-    CONTAINER_NAME,
-    "-p",
-    "1080:1080",
-    "-p",
-    "2008:2008",
-    "-p",
-    "9001:9001",
-    "-p",
-    "5400:5432",
-    "--volume",
-    os.getcwd() + ":/app",
-]
+print("Starting containers")
+run_cmd = ["docker-compose", "-f", "docker-compose.yml"]
 
-if args.isolate:
-    run_cmd.extend(
-        [
-            "-e",
-            "ISOLATE=1",  # copy code to a separate location & run "npm install"
-            "--volume",
-            "/app/node_modules",  # don't pass node_modules directory through
-            "-e",
-            "NODE_BIN=node",  # use node to run the server
-        ]
-    )
-else:
-    run_cmd.extend(
-        [
-            "-e",
-            "NODE_BIN=nodemon",  # use nodemon to restart the server when the code changes
-        ]
-    )
-run_cmd.append(IMAGE_NAME)
+if not args.isolate:
+    run_cmd.extend(["-f", "docker-compose.live-dev.yml"])
+
+if args.isolate_node_modules:
+    run_cmd.extend(["-f", "docker-compose.isolate-node-modules.yml"])
+
+run_cmd.extend(["up", "--force-recreate"])
+
+if args.background:
+    run_cmd.append("--detach")
+
+print(run_cmd)
 subprocess.check_call(add_sudo(run_cmd))
-
-if not args.background:
-    print("\nShowing container logs")
-    try:
-        docker_logs_cmd = ["docker", "logs", "--follow", CONTAINER_NAME]
-        subprocess.call(add_sudo(docker_logs_cmd))
-    except (KeyboardInterrupt, PermissionError):
-        pass

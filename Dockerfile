@@ -1,12 +1,11 @@
-# Build:                   sudo docker build --no-cache . -t cacophony-api
-# Run interactive session: sudo docker run -it cacophony-api
-
 FROM node:12
 
 ENV TZ=Pacific/Auckland
 
 RUN echo $TZ > /etc/timezone \
  && ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+
+RUN npm install -g nodemon
 
 COPY docker-entrypoint.sh /
 
@@ -17,8 +16,6 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-
-RUN npm run apidoc
 
 # API
 EXPOSE 1080

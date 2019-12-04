@@ -14,28 +14,33 @@ This project is licensed under the Affero General Public License
 ## Running the server
 
 For development and testing purposes it is easiest to run
-cacophony-api using Docker. To do this:
+cacophony-api using Docker and docker-compose. To do this:
 
 * Ensure your user account is set up to run commands as root using `sudo`.
-* Ensure the Docker is installed (`sudo apt install docker.io` on Ubuntu)
-* Run cacophony-api using `./run`
+* Ensure that Docker is installed (`sudo apt install docker.io` on Ubuntu)
+* Ensure that docker-compose is installed.
+* Run cacophony-api using `./run`, or `python3 run` if you are on Windows.
 
-This will build a Docker container which includes all the services
-that cacophony-api relies on and then runs the container. The end
-result is a fully functioning API server. The container name is
-"cacophony-api".
+This will fetch and build a set of images which include all the services
+that cacophony-api relies on and then runs them. The end
+result is a fully functioning API server. All container names start with
+"cacophony-api_", followed by "server", "db" or "s3", and end with "_1".
 
 The first time `./run` is used will be somewhat slow as dependencies
 are downloaded. Future executions are quite fast as Docker caches the
 images it creates.
 
 Once the container is running, you can start a bash session inside
-the container with `docker exec -it cacophony-api bash`.  You can then use
-psql to query the database `sudo -i -u postgres psql cacophonytest`
+the db container with `docker exec -it cacophony-api_db_1 bash`.  You can then use
+psql to query the database `psql -h localhost -U test cacophonytest` and password `test`.
 
 Note that the source code is mounted on to the docker image, so any changes 
 causes the server to reload. However, running `./run --isolate` will run the server
 independently of the source code, include the node_modules.
+
+For non linux developers, you may not be able to run without isolating the node_modules,
+however, you can still get the live reload functionality with the `./run --isolate-node-modules`
+command, which will still mount the source code but not the node_modules.
 
 If you would like to run without sudo (for example your user is already in the docker user group) you can use `./run --no-sudo`
 
