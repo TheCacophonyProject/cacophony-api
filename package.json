@@ -9,7 +9,7 @@
   "dependencies": {
     "apidoc": "^0.17.7",
     "aws-sdk": "^2.514.0",
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^3.0.7",
     "body-parser": "^1.19.0",
     "commander": "^2.20.0",
     "express": "^4.17.1",
