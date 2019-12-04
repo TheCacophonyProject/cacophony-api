@@ -4,7 +4,7 @@ class TestThermalDevice:
         destroyer = helper.given_new_device(self, "Destroyer", description=description)
 
         print("Then 'Destroyer' should able to log in")
-        helper.login_as_device(destroyer.devicename)
+        helper.login_as_device(destroyer.devicename, helper.config.default_group)
 
         print("And 'Destroyer' should be able to upload a CPTV file")
         destroyer.upload_recording()

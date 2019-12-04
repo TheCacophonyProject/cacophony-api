@@ -1,6 +1,6 @@
 "use strict";
 
-var util = require("../models/util/util");
+const util = require("../models/util/util");
 
 module.exports = {
   up: async function(queryInterface) {

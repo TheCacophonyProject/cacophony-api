@@ -18,33 +18,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const jsonwebtoken = require("jsonwebtoken");
 const mime = require("mime");
-const _ = require("lodash");
+const moment = require("moment");
+const urljoin = require("url-join");
 
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
+const log = require("../../logging");
 const models = require("../../models");
 const responseUtil = require("./responseUtil");
 const util = require("./util");
 
 function makeUploadHandler(mungeData) {
-  return util.multipartUpload((request, data, key) => {
+  return util.multipartUpload("raw", (request, data, key) => {
     if (mungeData) {
       data = mungeData(data);
     }
 
-    const recording = models.Recording.build(data, {
-      fields: models.Recording.apiSettableFields
-    });
-    recording.set("rawFileKey", key);
-    recording.set("rawMimeType", guessRawMimeType(data.type, data.filename));
-    recording.set("DeviceId", request.device.id);
-    recording.set("GroupId", request.device.GroupId);
-    recording.set(
-      "processingState",
-      models.Recording.processingStates[data.type][0]
-    );
+    const recording = models.Recording.buildSafely(data);
+    recording.rawFileKey = key;
+    recording.rawMimeType = guessRawMimeType(data.type, data.filename);
+    recording.DeviceId = request.device.id;
+    recording.GroupId = request.device.GroupId;
+    recording.processingState = models.Recording.processingStates[data.type][0];
     if (typeof request.device.public === "boolean") {
-      recording.set("public", request.device.public);
+      recording.public = request.device.public;
     }
     return recording;
   });
@@ -53,28 +50,186 @@ function makeUploadHandler(mungeData) {
 // Returns a promise for the recordings query specified in the
 // request.
 async function query(request, type) {
-  if (!request.query.where) {
-    request.query.where = {};
-  }
   if (type) {
     request.query.where.type = type;
   }
 
-  // remove legacy tag mode selector (if included)
-  delete request.query.where._tagged;
-
-  const result = await models.Recording.query(
+  const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order,
-    request.query.filterOptions
+    request.query.order
   );
-  result.rows = result.rows.map(handleLegacyTagFieldsForGetOnRecording);
+  builder.query.distinct = true;
+  const result = await models.Recording.findAndCountAll(builder.get());
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+  result.rows = result.rows.map(rec => {
+    rec.filterData(filterOptions);
+    return handleLegacyTagFieldsForGetOnRecording(rec);
+  });
   return result;
+}
+
+// Returns a promise for report rows for a set of recordings. Takes
+// the same parameters as query() above.
+async function report(request) {
+  const builder = (await new models.Recording.queryBuilder().init(
+    request.user,
+    request.query.where,
+    request.query.tagMode,
+    request.query.tags,
+    request.query.offset,
+    request.query.limit,
+    request.query.order
+  ))
+    .addColumn("comment")
+    .addAudioEvents();
+
+  const result = await models.Recording.findAll(builder.get());
+
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+
+  // Our DB schema doesn't allow us to easily get from a audio event
+  // recording to a audio file name so do some work first to look these up.
+  const audioEvents = new Map();
+  const audioFileIds = new Set();
+  for (const r of result) {
+    const event = findLatestEvent(r.Device.Events);
+    if (event) {
+      const fileId = event.EventDetail.details.fileId;
+      audioEvents[r.id] = {
+        timestamp: event.dateTime,
+        volume: event.EventDetail.details.volume,
+        fileId
+      };
+      audioFileIds.add(fileId);
+    }
+  }
+
+  // Bulk look up file details of played audio events.
+  const audioFileNames = new Map();
+  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+    audioFileNames[f.id] = f.details.name;
+  }
+
+  const recording_url_base = config.server.recording_url_base || "";
+
+  const out = [
+    [
+      "Id",
+      "Type",
+      "Group",
+      "Device",
+      "Date",
+      "Time",
+      "Latitude",
+      "Longitude",
+      "Duration",
+      "BatteryPercent",
+      "Comment",
+      "Track Count",
+      "Automatic Track Tags",
+      "Human Track Tags",
+      "Recording Tags",
+      "Audio Bait",
+      "Audio Bait Time",
+      "Mins Since Audio Bait",
+      "Audio Bait Volume",
+      "URL"
+    ]
+  ];
+
+  for (const r of result) {
+    r.filterData(filterOptions);
+
+    const automatic_track_tags = new Set();
+    const human_track_tags = new Set();
+    for (const track of r.Tracks) {
+      for (const tag of track.TrackTags) {
+        const subject = tag.what || tag.detail;
+        if (tag.automatic) {
+          automatic_track_tags.add(subject);
+        } else {
+          human_track_tags.add(subject);
+        }
+      }
+    }
+
+    const recording_tags = r.Tags.map(t => t.what || t.detail);
+
+    let audioBaitName = "";
+    let audioBaitTime = null;
+    let audioBaitDelta = null;
+    let audioBaitVolume = null;
+    const audioEvent = audioEvents[r.id];
+    if (audioEvent) {
+      audioBaitName = audioFileNames[audioEvent.fileId];
+      audioBaitTime = moment(audioEvent.timestamp);
+      audioBaitDelta = moment
+        .duration(r.recordingDateTime - audioBaitTime)
+        .asMinutes()
+        .toFixed(1);
+      audioBaitVolume = audioEvent.volume;
+    }
+
+    out.push([
+      r.id,
+      r.type,
+      r.Group.groupname,
+      r.Device.devicename,
+      moment(r.recordingDateTime)
+        .tz(config.timeZone)
+        .format("YYYY-MM-DD"),
+      moment(r.recordingDateTime)
+        .tz(config.timeZone)
+        .format("HH:mm:ss"),
+      r.location ? r.location.coordinates[0] : "",
+      r.location ? r.location.coordinates[1] : "",
+      r.duration,
+      r.batteryLevel,
+      r.comment,
+      r.Tracks.length,
+      formatTags(automatic_track_tags),
+      formatTags(human_track_tags),
+      formatTags(recording_tags),
+      audioBaitName,
+      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
+      audioBaitDelta,
+      audioBaitVolume,
+      urljoin(recording_url_base, r.id.toString())
+    ]);
+  }
+  return out;
+}
+
+function findLatestEvent(events) {
+  if (!events) {
+    return null;
+  }
+
+  let latest = events[0];
+  for (const event of events) {
+    if (event.dateTime > latest.dateTime) {
+      latest = event;
+    }
+  }
+  return latest;
+}
+
+function formatTags(tags) {
+  const out = Array.from(tags);
+  out.sort();
+  return out.join("+");
 }
 
 async function get(request, type) {
@@ -104,15 +259,50 @@ async function get(request, type) {
     filename: recording.getRawFileName(),
     mimeType: recording.rawMimeType
   };
+
+  let rawSize = null;
+  if (recording.rawFileKey) {
+    await util
+      .getS3Object(recording.rawFileKey)
+      .then(rawS3Data => {
+        rawSize = rawS3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.rawFileKey
+        );
+      });
+  }
+
+  let cookedSize = null;
+  if (recording.fileKey) {
+    await util
+      .getS3Object(recording.fileKey)
+      .then(s3Data => {
+        cookedSize = s3Data.ContentLength;
+      })
+      .catch(err => {
+        log.warn(
+          "Error retrieving S3 Object for recording",
+          err.message,
+          recording.fileKey
+        );
+      });
+  }
+
   delete recording.rawFileKey;
 
   return {
     recording: handleLegacyTagFieldsForGetOnRecording(recording),
+    cookedSize: cookedSize,
     cookedJWT: jsonwebtoken.sign(
       downloadFileData,
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
     ),
+    rawSize: rawSize,
     rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
       expiresIn: 60 * 10
     })
@@ -120,7 +310,7 @@ async function get(request, type) {
 }
 
 async function delete_(request, response) {
-  var deleted = await models.Recording.deleteOne(
+  const deleted = await models.Recording.deleteOne(
     request.user,
     request.params.id
   );
@@ -138,7 +328,7 @@ async function delete_(request, response) {
 }
 
 function guessRawMimeType(type, filename) {
-  var mimeType = mime.getType(filename);
+  const mimeType = mime.getType(filename);
   if (mimeType) {
     return mimeType;
   }
@@ -160,12 +350,10 @@ async function addTag(user, recording, tag, response) {
   // If old tag fields are used, convert to new field names.
   tag = handleLegacyTagFieldsForCreate(tag);
 
-  const tagInstance = models.Tag.build(
-    _.pick(tag, models.Tag.apiSettableFields)
-  );
-  tagInstance.set("RecordingId", recording.id);
+  const tagInstance = models.Tag.buildSafely(tag);
+  tagInstance.RecordingId = recording.id;
   if (user) {
-    tagInstance.set("taggerId", user.id);
+    tagInstance.taggerId = user.id;
   }
   await tagInstance.save();
 
@@ -217,16 +405,16 @@ const statusCode = {
 // will mark each recording to be reprocessed
 async function reprocessAll(request, response) {
   const recordings = request.body.recordings;
-  var responseMessage = {
+  const responseMessage = {
     statusCode: 200,
     messages: [],
     reprocessed: [],
     fail: []
   };
 
-  var status = 0;
-  for (var i = 0; i < recordings.length; i++) {
-    var resp = await reprocessRecording(request.user, recordings[i]);
+  let status = 0;
+  for (let i = 0; i < recordings.length; i++) {
+    const resp = await reprocessRecording(request.user, recordings[i]);
     if (resp.statusCode != 200) {
       status = status | statusCode.Fail;
       responseMessage.messages.push(resp.messages[0]);
@@ -283,12 +471,16 @@ async function reprocessRecording(user, recording_id) {
 
 // reprocess a recording defined by request.user and request.params.id
 async function reprocess(request, response) {
-  var responseInfo = await reprocessRecording(request.user, request.params.id);
+  const responseInfo = await reprocessRecording(
+    request.user,
+    request.params.id
+  );
   responseUtil.send(response, responseInfo);
 }
 
 exports.makeUploadHandler = makeUploadHandler;
 exports.query = query;
+exports.report = report;
 exports.get = get;
 exports.delete_ = delete_;
 exports.addTag = addTag;

@@ -4,25 +4,23 @@ from .recording import Recording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi, helper):
+    def __init__(self, devicename, deviceapi, helper, group=None, location=None):
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
-        self._id = None
+        self._id = deviceapi.id
+        self.group = group
+        self.location = location
 
     def get_id(self):
-        if self._id is None:
-            self._id = self._helper.admin_user().get_device_id(self.devicename)
         return self._id
 
-    def has_recording(self):
-        self._print_description("    and '{}' has a recording ".format(self.devicename))
-        return self.upload_recording()
+    def has_recording(self, props=None):
+        self._print_description("    and '{}' has a recording with props {}".format(self.devicename, props))
+        return self.upload_recording(properties=props)
 
     def has_audio_recording(self):
-        self._print_description(
-            "    and '{}' has an audio recording ".format(self.devicename)
-        )
+        self._print_description("    and '{}' has an audio recording ".format(self.devicename))
         return self.upload_audio_recording()
 
     def upload_recording(self, properties=None):
@@ -38,7 +36,7 @@ class TestDevice:
         return Recording(recording_id, props, filename)
 
     def get_new_recording_props(self):
-        return {
+        props = {
             "type": "thermalRaw",
             "recordingDateTime": _new_timestamp().isoformat(),
             "duration": 10,
@@ -49,8 +47,12 @@ class TestDevice:
             "version": "223",
             "additionalMetadata": {"bar": "foo"},
         }
+        if self.location:
+            props["location"] = self.location
 
-    def upload_audio_recording(self):
+        return props
+
+    def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
         props = {
             "recordingDateTime": ts.isoformat(),
@@ -64,6 +66,10 @@ class TestDevice:
             "version": "123",
             "additionalMetadata": {"foo": "bar"},
         }
+        if self.location:
+            props["location"] = self.location
+
+        props.update(extraProps)
         filename = "files/small.mp3"
         recording_id = self._deviceapi.upload_audio_recording(filename, props)
 
@@ -89,10 +95,19 @@ class TestDevice:
         return detailsId
 
     def download_audio_bait(self, file_id):
-        return self._deviceapi.download_file(file_id)
+        file_json = self._deviceapi.get_file(file_id)
+        file = self._deviceapi._download_signed(file_json["jwt"])
+        file_bytes = 0
+        for chunk in file:
+            file_bytes += len(chunk)
+        assert file_bytes == file_json["fileSize"]
+        return file
 
     def get_audio_schedule(self):
         return self._deviceapi.get_audio_schedule()
+
+    def reregister(self, new_name, new_group, new_password):
+        self._deviceapi.reregister(new_name, new_group, new_password)
 
 
 def _new_timestamp():

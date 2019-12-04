@@ -105,8 +105,8 @@ function getGroupById(checkFunc) {
   return getModelById(models.Group, "groupId", checkFunc);
 }
 
-function getGroupByName(checkFunc) {
-  return getModelByName(models.Group, "group", checkFunc);
+function getGroupByName(checkFunc, fieldName = "group") {
+  return getModelByName(models.Group, fieldName, checkFunc);
 }
 
 function getGroupByNameOrId(checkFunc) {
@@ -120,8 +120,34 @@ function getDeviceById(checkFunc) {
   return getModelById(models.Device, "deviceId", checkFunc);
 }
 
-function getDeviceByName(checkFunc) {
-  return getModelByName(models.Device, "devicename", checkFunc);
+function setGroupName(checkFunc) {
+  return checkFunc("groupname").custom(async (value, { req }) => {
+    req.body["groupname"] = value;
+    return true;
+  });
+}
+
+function getDevice(checkFunc) {
+  return checkFunc("devicename", "deviceID").custom(
+    async (deviceName, { req }) => {
+      const password = req.body["password"];
+      const groupName = req.body["groupname"];
+      const deviceID = req.body["deviceID"];
+      const model = await models.Device.findDevice(
+        deviceID,
+        deviceName,
+        groupName,
+        password
+      );
+      if (model == null) {
+        throw new Error(
+          format("Could not find device %s in group %s.", deviceName, groupName)
+        );
+      }
+      req.body["device"] = model;
+      return true;
+    }
+  );
 }
 
 function getDetailSnapshotById(checkFunc, paramName) {
@@ -139,7 +165,7 @@ function getRecordingById(checkFunc) {
 const checkNewName = function(field) {
   return body(field, "Invalid " + field)
     .isLength({ min: 3 })
-    .matches(/^[a-zA-Z0-9]+(?:[_ -]?[a-zA-Z0-9])*$/);
+    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function(field) {
@@ -161,7 +187,7 @@ const parseJSON = function(field, checkFunc) {
 
 const parseArray = function(field, checkFunc) {
   return checkFunc(field).custom((value, { req, location, path }) => {
-    var arr;
+    let arr;
     try {
       arr = JSON.parse(value);
     } catch (e) {
@@ -187,7 +213,7 @@ const parseBool = function(value) {
 };
 
 const requestWrapper = fn => (request, response, next) => {
-  var logMessage = format("%s %s", request.method, request.url);
+  let logMessage = format("%s %s", request.method, request.url);
   if (request.user) {
     logMessage = format(
       "%s (user: %s)",
@@ -217,7 +243,7 @@ exports.getGroupById = getGroupById;
 exports.getGroupByName = getGroupByName;
 exports.getGroupByNameOrId = getGroupByNameOrId;
 exports.getDeviceById = getDeviceById;
-exports.getDeviceByName = getDeviceByName;
+exports.getDevice = getDevice;
 exports.getDetailSnapshotById = getDetailSnapshotById;
 exports.getFileById = getFileById;
 exports.getRecordingById = getRecordingById;
@@ -229,3 +255,4 @@ exports.parseBool = parseBool;
 exports.requestWrapper = requestWrapper;
 exports.isDateArray = isDateArray;
 exports.getUserByEmail = getUserByEmail;
+exports.setGroupName = setGroupName;

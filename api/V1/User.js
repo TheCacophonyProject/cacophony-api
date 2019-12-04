@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require("../../models");
-const jwt = require("jsonwebtoken");
-const config = require("../../config");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
@@ -27,7 +25,7 @@ const { matchedData } = require("express-validator/filter");
 const { ClientError } = require("../customErrors");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/users";
+  const apiUrl = baseUrl + "/users";
 
   /**
    * @api {post} /api/v1/users Register a new user
@@ -58,19 +56,18 @@ module.exports = function(app, baseUrl) {
       middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
-      var user = await models.User.create({
+      const user = await models.User.create({
         username: request.body.username,
         password: request.body.password,
         email: request.body.email
       });
 
-      var jwtData = user.getJwtDataValues();
-      var userData = await user.getDataValues();
+      const userData = await user.getDataValues();
 
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new user."],
-        token: "JWT " + jwt.sign(jwtData, config.server.passportSecret),
+        token: "JWT " + auth.createEntityJWT(user),
         userData: userData
       });
     })

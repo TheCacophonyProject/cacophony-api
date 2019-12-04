@@ -7,8 +7,16 @@ from .apibase import APIBase
 
 
 class DeviceAPI(APIBase):
-    def __init__(self, baseurl, devicename, password="password"):
+    def __init__(self, baseurl, devicename, password="password", groupname=None):
         super().__init__("device", baseurl, devicename, password)
+        self.postdata["groupname"] = groupname
+        self.id = None
+
+    def register_as_new(self, group=None):
+        super().register_as_new(group=group)
+        if self._response:
+            self.id = self._response.get("id")
+        return self
 
     def upload_recording(self, filename, props=None):
         if not props:
@@ -34,11 +42,17 @@ class DeviceAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/events")
 
         response = requests.post(url, headers=self._auth_header, json=eventData)
-        self._check_response(response)
-        return response.json()["eventsAdded"], response.json()["eventDetailId"]
+        response_data = self._check_response(response)
+        return response_data["eventsAdded"], response_data["eventDetailId"]
 
     def get_audio_schedule(self):
         url = urljoin(self._baseurl, "/api/v1/schedules")
         response = requests.get(url, headers=self._auth_header)
         self._check_response(response)
         return response.json()
+
+    def reregister(self, new_name, new_group, new_password):
+        url = urljoin(self._baseurl, "/api/v1/devices/reregister")
+        data = {"newName": new_name, "newGroup": new_group, "newPassword": new_password}
+        response = requests.post(url, headers=self._auth_header, json=data)
+        self._check_response(response)

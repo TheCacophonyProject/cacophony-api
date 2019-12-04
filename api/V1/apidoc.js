@@ -28,7 +28,7 @@
  */
 
 /**
- * @apiDefine QueryParams
+ * @apiDefine BaseQueryParams
  * @apiParam {JSON} [where] Selection criteria as a map of keys and requried value, or a list of possible values.
  * * For example {"device": 1}  or {"name": ["bob", "charles"]}.
  * * All matches must be exact.
@@ -39,6 +39,21 @@
  * @apiParam {Number} [limit] Max number of records to be returned.
  * @apiParam {JSON} [order] Sorting order for records.
  * * For example, ["dateTime"] or [["dateTime", "ASC"]].
+ */
+
+/**
+ * @apiDefine MoreQueryParams
+ * @apiParam {JSON} [tags] Only return recordings tagged with one or more of the listed tags (JSON array).
+ * @apiParam {String} [tagMode] Only return recordings with specific types of tags. Valid values:
+ * <ul>
+ * <li>any: match recordings with any (or no) tag
+ * <li>untagged: match only recordings with no tags
+ * <li>tagged: match only recordings which have been tagged
+ * <li>no-human: match only recordings which are untagged or have been automatically tagged
+ * <li>automatic-only: match only recordings which have been automatically tagged
+ * <li>human-only: match only recordings which have been manually tagged
+ * <li>automatic+human: match only recordings which have been both automatically & manually tagged
+ * </ul>
  */
 
 /**

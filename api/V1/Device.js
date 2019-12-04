@@ -17,15 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 const models = require("../../models");
-const jwt = require("jsonwebtoken");
-const config = require("../../config");
 const responseUtil = require("./responseUtil");
 const middleware = require("../middleware");
 const auth = require("../auth");
 const { query, body } = require("express-validator/check");
+const Sequelize = require("sequelize");
+
+const Op = Sequelize.Op;
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/devices";
+  const apiUrl = baseUrl + "/devices";
 
   /**
    * @api {post} /api/v1/devices Register a new device
@@ -38,29 +39,38 @@ module.exports = function(app, baseUrl) {
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
-   *
+   * @apiSuccess {int} id of device registered
    * @apiUse V1ResponseError
    */
   app.post(
     apiUrl,
     [
-      middleware.checkNewName("devicename").custom(value => {
-        return models.Device.freeDevicename(value);
-      }),
-      middleware.checkNewPassword("password"),
-      middleware.getGroupByName(body)
+      middleware.getGroupByName(body),
+      middleware.checkNewName("devicename"),
+      middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
+      if (!(await models.Device.freeDevicename(request.body.devicename))) {
+        return responseUtil.send(response, {
+          statusCode: 422,
+          messages: ["Device name in use."]
+        });
+      }
       const device = await models.Device.create({
         devicename: request.body.devicename,
         password: request.body.password,
         GroupId: request.body.group.id
       });
-      const data = device.getJwtDataValues();
+
+      await device.update({
+        saltId: device.id
+      });
+
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
-        token: "JWT " + jwt.sign(data, config.server.passportSecret)
+        id: device.id,
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );
@@ -69,10 +79,15 @@ module.exports = function(app, baseUrl) {
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
    * @apiGroup Device
+   * @apiDescription Returns all devices the user can access
+   * through both group membership and direct assignment.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} devices Object with two entries, a count integer that is the number of rows returned, and
+   * rows, which is an array of devices accessible.
+   * Each element in rows includes `devicename` (string), `id` (int), and `Users` which is an array of Users with permissions on that device.
    *
    * @apiUse V1ResponseError
    */
@@ -80,7 +95,7 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      var devices = await models.Device.allForUser(request.user);
+      const devices = await models.Device.allForUser(request.user);
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
@@ -163,7 +178,7 @@ module.exports = function(app, baseUrl) {
       body("admin").isIn([true, false])
     ],
     middleware.requestWrapper(async (request, response) => {
-      var added = await models.Device.addUserToDevice(
+      const added = await models.Device.addUserToDevice(
         request.user,
         request.body.device,
         request.body.user,
@@ -208,7 +223,7 @@ module.exports = function(app, baseUrl) {
       middleware.getUserByNameOrId(body)
     ],
     middleware.requestWrapper(async function(request, response) {
-      var removed = await models.Device.removeUserFromDevice(
+      const removed = await models.Device.removeUserFromDevice(
         request.user,
         request.body.device,
         request.body.user
@@ -225,6 +240,102 @@ module.exports = function(app, baseUrl) {
           messages: ["Failed to remove user from the device."]
         });
       }
+    })
+  );
+
+  /**
+   * @api {post} /api/v1/devices/reregister Reregister the device.
+   * @apiName Reregister
+   * @apiGroup Device
+   * @apiDescription This call is to reregister a device to change the name and/or group
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {String} newName new name of the device.
+   * @apiParam {String} newGroup name of the group you want to move the device to.
+   * @apiParam {String} newPassword password for the device
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.post(
+    apiUrl + "/reregister",
+    [
+      auth.authenticateDevice,
+      middleware.getGroupByName(body, "newGroup"),
+      middleware.checkNewName("newName"),
+      middleware.checkNewPassword("newPassword")
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const device = await request.device.reregister(
+        request.body.newName,
+        request.body.group,
+        request.body.newPassword
+      );
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Registered the device again."],
+        id: device.id,
+        token: "JWT " + auth.createEntityJWT(device)
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/devices/query Query devices by groups or devices.
+   * @apiName query
+   * @apiGroup Device
+   * @apiDescription This call is to query all devices by groups or devices
+   *
+   * @apiUse V1DeviceAuthorizationHeader
+   *
+   * @apiParam {JSON} array of Devices
+   * @apiParamExample {JSON} Device:
+   * {
+   *   "devicename":"newdevice",
+   *   "groupname":"newgroup"
+   * }
+   * @apiParam {String} groups array of group names.
+   * @apiParam {String} operator to use. Default is "or".
+   * Accepted values are "and" or "or".
+   * @apiSuccess {JSON} devices Array of devices which match fully (group or group and devicename)
+   * @apiSuccess {JSON} nameMatches Array of devices which match only on devicename
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/query",
+    [
+      middleware.parseJSON("devices", query).optional(),
+      middleware.parseArray("groups", query).optional(),
+      query("operator")
+        .isIn(["or", "and", "OR", "AND"])
+        .optional(),
+      auth.authenticateAccess("user", { devices: "r" })
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      if (
+        request.query.operator &&
+        request.query.operator.toLowerCase() == "and"
+      ) {
+        request.query.operator = Op.and;
+      } else {
+        request.query.operator = Op.or;
+      }
+
+      const devices = await models.Device.queryDevices(
+        request.user,
+        request.query.devices,
+        request.query.groups,
+        request.query.operator
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        devices: devices.devices,
+        nameMatches: devices.nameMatches,
+        messages: ["Completed get devices query."]
+      });
     })
   );
 };

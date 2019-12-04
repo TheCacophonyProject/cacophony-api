@@ -27,7 +27,7 @@ const recordingUtil = require("./recordingUtil");
 const responseUtil = require("./responseUtil");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/audiorecordings";
+  const apiUrl = baseUrl + "/audiorecordings";
 
   // Massage fields sent to the legacy AudioRecordings API so that
   // they work in the Recordings schema.
@@ -95,7 +95,7 @@ module.exports = function(app, baseUrl) {
       middleware.parseJSON("data", body)
     ],
     middleware.requestWrapper(async (request, response) => {
-      var updated = await models.Recording.updateOne(
+      const updated = await models.Recording.updateOne(
         request.user,
         request.params.id,
         request.body.data
@@ -171,7 +171,7 @@ module.exports = function(app, baseUrl) {
       request.query.offset = request.headers.offset;
 
       const qresult = await recordingUtil.query(request, "audio");
-      var result = {
+      const result = {
         rows: [],
         limit: request.query.limit,
         offset: request.query.offset,

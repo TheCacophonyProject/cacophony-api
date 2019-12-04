@@ -2,16 +2,18 @@ const fs = require("fs");
 const path = require("path");
 
 // Set some default configuration
-var server = {
+const server = {
   loggerLevel: "info"
 };
+
+const timeZone = "Pacific/Auckland";
 
 function loadConfig(configPath) {
   configPath = path.resolve(configPath);
   checkConfigFileExists(configPath);
 
   const config = require(configPath);
-  for (var key in config) {
+  for (const key in config) {
     exports[key] = config[key];
   }
 
@@ -35,5 +37,6 @@ function checkDatabaseConfigAvailable(config) {
   }
 }
 
+exports.timeZone = timeZone;
 exports.loadConfig = loadConfig;
 exports.server = server;

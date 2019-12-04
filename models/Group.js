@@ -18,22 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const { AuthorizationError } = require("../api/customErrors");
 module.exports = function(sequelize, DataTypes) {
-  var name = "Group";
+  const name = "Group";
 
-  var attributes = {
+  const attributes = {
     groupname: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      unique: true
     }
   };
 
-  var Group = sequelize.define(name, attributes);
+  const Group = sequelize.define(name, attributes);
 
   Group.apiSettableFields = [];
 
   //---------------
   // Class methods
   //---------------
-  var models = sequelize.models;
+  const models = sequelize.models;
 
   Group.addAssociations = function(models) {
     models.Group.hasMany(models.Device);
@@ -53,7 +54,7 @@ module.exports = function(sequelize, DataTypes) {
     }
 
     // Get association if already there and update it.
-    var groupUser = await models.GroupUsers.findOne({
+    const groupUser = await models.GroupUsers.findOne({
       where: {
         GroupId: group.id,
         UserId: userToAdd.id
@@ -95,7 +96,7 @@ module.exports = function(sequelize, DataTypes) {
    * that the user belongs if user does not have global read/write permission.
    */
   Group.query = async function(where, user) {
-    var userWhere = { id: user.id };
+    let userWhere = { id: user.id };
     if (user.hasGlobalRead()) {
       userWhere = null;
     }
@@ -168,7 +169,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Group.freeGroupname = async function(name) {
-    var group = await this.findOne({ where: { groupname: name } });
+    const group = await this.findOne({ where: { groupname: name } });
     if (group != null) {
       throw new Error("groupname in use");
     }
@@ -176,7 +177,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Group.getIdFromName = function(name) {
-    var Group = this;
+    const Group = this;
     return new Promise(function(resolve) {
       Group.findOne({ where: { groupname: name } }).then(function(group) {
         if (!group) {

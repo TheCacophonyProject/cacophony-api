@@ -7,7 +7,7 @@ const recordingUtil = require("../V1/recordingUtil");
 const responseUtil = require("../V1/responseUtil");
 
 module.exports = function(app) {
-  var apiUrl = "/api/fileProcessing";
+  const apiUrl = "/api/fileProcessing";
 
   /**
    * @api {get} /api/fileProcessing Get a new file processing job
@@ -19,9 +19,9 @@ module.exports = function(app) {
    */
   app.get(apiUrl, async (request, response) => {
     log.info(request.method + " Request: " + request.url);
-    var type = request.query.type;
-    var state = request.query.state;
-    var recording = await models.Recording.getOneForProcessing(type, state);
+    const type = request.query.type;
+    const state = request.query.state;
+    const recording = await models.Recording.getOneForProcessing(type, state);
     if (recording == null) {
       log.debug("No file to be processed.");
       return response.status(204).json();
@@ -45,15 +45,15 @@ module.exports = function(app) {
    * @apiParam {String} [newProcessedFileKey] LeoFS Key of the new file.
    */
   app.put(apiUrl, async (request, response) => {
-    var id = parseInt(request.body.id);
-    var jobKey = request.body.jobKey;
-    var success = middleware.parseBool(request.body.success);
-    var result = request.body.result;
-    var complete = middleware.parseBool(request.body.complete);
-    var newProcessedFileKey = request.body.newProcessedFileKey;
+    const id = parseInt(request.body.id);
+    const jobKey = request.body.jobKey;
+    const success = middleware.parseBool(request.body.success);
+    let result = request.body.result;
+    const complete = middleware.parseBool(request.body.complete);
+    const newProcessedFileKey = request.body.newProcessedFileKey;
 
     // Validate request.
-    var errorMessages = [];
+    const errorMessages = [];
     if (isNaN(id)) {
       errorMessages.push("'id' field needs to be a number.");
     }
@@ -77,7 +77,7 @@ module.exports = function(app) {
       });
     }
 
-    var recording = await models.Recording.findOne({ where: { id: id } });
+    const recording = await models.Recording.findOne({ where: { id: id } });
 
     // Check that jobKey is correct.
     if (jobKey != recording.get("jobKey")) {
@@ -87,8 +87,8 @@ module.exports = function(app) {
     }
 
     if (success) {
-      var jobs = models.Recording.processingStates[recording.type];
-      var nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
+      const jobs = models.Recording.processingStates[recording.type];
+      const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
       recording.set("processingState", nextJob);
       recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);
@@ -105,7 +105,7 @@ module.exports = function(app) {
       await recording.save();
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
-      recording.set("processingStartTime", null);
+      recording.set("processingState", recording.processingState + '.failed');
       recording.set("jobKey", null);
       await recording.save();
       return response.status(200).json({
@@ -335,7 +335,7 @@ module.exports = function(app) {
     apiUrl + "/algorithm",
     [middleware.parseJSON("algorithm", body)],
     middleware.requestWrapper(async (request, response) => {
-      var algorithm = await models.DetailSnapshot.getOrCreateMatching(
+      const algorithm = await models.DetailSnapshot.getOrCreateMatching(
         "algorithm",
         request.body.algorithm
       );

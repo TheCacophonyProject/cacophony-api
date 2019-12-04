@@ -16,12 +16,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var util = require("./util/util");
+const util = require("./util/util");
+const _ = require("lodash");
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Tag";
-
-  var attributes = {
+  const name = "Tag";
+  const attributes = {
     what: {
       type: DataTypes.STRING
     },
@@ -53,12 +53,16 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  var Tag = sequelize.define(name, attributes);
+  const Tag = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
   const Recording = sequelize.models.Recording;
+
+  Tag.buildSafely = function(fields) {
+    return Tag.build(_.pick(fields, Tag.apiSettableFields));
+  };
 
   Tag.addAssociations = function(models) {
     models.Tag.belongsTo(models.User, { as: "tagger" });
@@ -74,7 +78,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   Tag.deleteFromId = async function(id, user) {
-    var tag = await this.findOne({ where: { id: id } });
+    const tag = await this.findOne({ where: { id: id } });
     if (tag == null) {
       return true;
     }
@@ -92,6 +96,14 @@ module.exports = function(sequelize, DataTypes) {
     return true;
   };
 
+  Tag.acceptableTags = Object.freeze([
+    "cool",
+    "interaction with trap",
+    "missed track",
+    "multiple animals",
+    "trapped in trap"
+  ]);
+
   Tag.userGetAttributes = Object.freeze([
     "id",
     "what",
@@ -101,7 +113,8 @@ module.exports = function(sequelize, DataTypes) {
     "duration",
     "automatic",
     "version",
-    "createdAt"
+    "createdAt",
+    "taggerId"
   ]);
 
   Tag.apiSettableFields = Object.freeze([

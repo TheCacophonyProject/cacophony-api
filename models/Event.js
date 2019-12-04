@@ -18,22 +18,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 "use strict";
 
-var Sequelize = require("sequelize");
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 module.exports = function(sequelize, DataTypes) {
-  var name = "Event";
+  const name = "Event";
 
-  var attributes = {
+  const attributes = {
     dateTime: DataTypes.DATE
   };
 
-  var Event = sequelize.define(name, attributes);
+  const Event = sequelize.define(name, attributes);
 
   //---------------
   // CLASS METHODS
   //---------------
-  var models = sequelize.models;
+  const models = sequelize.models;
 
   Event.addAssociations = function(models) {
     models.Event.belongsTo(models.DetailSnapshot, {

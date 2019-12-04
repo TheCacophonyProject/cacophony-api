@@ -24,23 +24,28 @@ parser.add_argument(
     action="store_true",
     help="Run container in background & don't show container logs",
 )
+parser.add_argument(
+    "--no-cache",
+    dest="cache",
+    default=True,
+    action="store_false",
+    help="Don't use previously cached Docker images; rebuild them all",
+)
 # Set to false if your current user is already in the docker user group
 parser.add_argument(
-    "--sudo",
-    default=False,
-    action="store_true",
-    help="Run commands with sudo",
+    "--sudo", default=False, action="store_true", help="Run commands with sudo"
 )
 args = parser.parse_args()
 
-#Run docker ps without sudo to check if it can be used without
+# Run docker ps without sudo to check if it can be used without
 def check_docker_can_run():
     return subprocess.call(
-    ["docker", "ps"],
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-    timeout=30
+        ["docker", "ps"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=30,
     )
+
 
 def current_user_in_group(group_name):
     try:
@@ -48,6 +53,7 @@ def current_user_in_group(group_name):
         return current_user in grp.getgrnam(group_name).gr_mem
     except KeyError:
         return False
+
 
 use_sudo = args.sudo
 if not args.sudo:
@@ -57,10 +63,12 @@ if not args.sudo:
 
 print("Running commands with sudo {}".format(use_sudo))
 
+
 def add_sudo(cmd_list):
     if use_sudo:
         cmd_list.insert(0, "sudo")
     return cmd_list
+
 
 if not os.path.exists("node_modules"):
     print("Node modules have not been installed yet, doing so now")
@@ -69,13 +77,13 @@ if not os.path.exists("node_modules"):
 print("Stopping {} container (if running)".format(CONTAINER_NAME))
 remove_container_cmd = ["docker", "rm", "--force", CONTAINER_NAME]
 subprocess.call(
-    add_sudo(remove_container_cmd),
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.STDOUT,
+    add_sudo(remove_container_cmd), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
 )
 
 print("Building container")
 build_container_cmd = ["docker", "build", ".", "-t", IMAGE_NAME]
+if not args.cache:
+    build_container_cmd.append("--no-cache")
 subprocess.check_call(add_sudo(build_container_cmd))
 
 print("Starting container")

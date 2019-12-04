@@ -12,7 +12,7 @@ MIN_PASSWORD_LENGTH = 8
 
 
 def _random_string_of_length(length):
-    return ''.join(choice(ascii_uppercase) for _ in range(length))
+    return "".join(choice(ascii_uppercase) for _ in range(length))
 
 
 class TestUser:
@@ -20,32 +20,26 @@ class TestUser:
         print("If a new user Bob signs up", end="")
         bob = helper.given_new_user(self, "bob")
 
-        print(
-            "Then Bob should able to log in with his username in 'username' API field"
-        )
+        print("Then Bob should able to log in with his username in 'username' API field")
         helper.login_as(bob.username)
 
-        print(
-            "And Bob should able to log in with his username in 'emailOrUsername' API field"
-        )
+        print("And Bob should able to log in with his username in 'emailOrUsername' API field")
         helper.login_with_name_or_email(bob.username, bob.username)
 
         print("And Bob should able to log in with his email in 'email' API field")
         helper.login_with_email(bob.username, bob.email)
 
-        print(
-            "And Bob should able to log in with his email in 'emailOrUsername' API field"
-        )
+        print("And Bob should able to log in with his email in 'emailOrUsername' API field")
         helper.login_with_name_or_email(bob.username, bob.email)
 
         print("And Bob should be able to see his details include user id. ")
         helper.admin_user().get_user_details(helper.admin_user())
         bobs_user_details = bob.get_user_details(bob)
-        assert bobs_user_details['userData']['id']
+        assert bobs_user_details["userData"]["id"]
         admins_user_details = bob.get_user_details(helper.admin_user())
-        assert admins_user_details['userData']['id']
+        assert admins_user_details["userData"]["id"]
 
-        print("Bob's user id is {}".format(bobs_user_details['userData']['id']))
+        print("Bob's user id is {}".format(bobs_user_details["userData"]["id"]))
 
     def test_create_duplicate_user(self, helper):
         # Ensure the user exists
@@ -62,11 +56,8 @@ class TestUser:
         error_string = str(excinfo.value)
         print("There should be a JSON object in the error message that can be parsed")
         parsed_json = json.loads(error_string)
-        assert parsed_json['errorType'] == "validation"
-        assert (
-                "'Username in use" in parsed_json['message']
-                or "Email in use" in parsed_json['message']
-        )
+        assert parsed_json["errorType"] == "validation"
+        assert "'Username in use" in parsed_json["message"] or "Email in use" in parsed_json["message"]
 
     def test_register_username_password_length_requirements(self, helper):
         short_username = _random_string_of_length(MIN_USERNAME_LENGTH - 1)

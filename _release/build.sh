@@ -29,6 +29,10 @@ cp _release/* ${build_dir}/_release  # makes things easier while developing rele
 
 cd ${build_dir}
 
+# cron doesn't like it when cron.d files are writeable by anyone other than the
+# owner.
+chmod 644 _release/{cacophony-api-prune-objects,cacophony-api-remove-dups}
+
 echo "Setting versions..."
 perl -pi -e "s/^version:.+/version: \"${version}\"/" _release/nfpm.yaml
 json -I -f package.json -e "this.version=\"${version}\""

@@ -17,7 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 module.exports = function(sequelize, DataTypes) {
-  var Track = sequelize.define("Track", {
+  const { ClientError } = require("../api/customErrors");
+
+  const Track = sequelize.define("Track", {
     data: DataTypes.JSONB,
     archivedAt: DataTypes.DATE
   });
@@ -34,13 +36,48 @@ module.exports = function(sequelize, DataTypes) {
     models.Track.hasMany(models.TrackTag);
   };
 
-  var models = sequelize.models;
+  const models = sequelize.models;
 
   Track.apiSettableFields = Object.freeze(["algorithm", "data", "archivedAt"]);
 
   Track.userGetAttributes = Object.freeze(
     Track.apiSettableFields.concat(["id"])
   );
+
+  //add or replace a tag, such that this track only has 1 animal tag by this user
+  //and no duplicate tags
+  Track.replaceTag = async function(trackId, tag) {
+    const track = await Track.findByPk(trackId);
+    if (!track) {
+      throw new ClientError("No track found for " + trackId);
+    }
+    return sequelize.transaction(async function(t) {
+      const trackTags = await models.TrackTag.findAll({
+        where: {
+          UserId: tag.UserId,
+          automatic: tag.automatic,
+          TrackId: trackId
+        },
+        transaction: t
+      });
+
+      const existingTag = trackTags.find(function(uTag) {
+        return uTag.what == tag.what;
+      });
+      if (existingTag) {
+        return;
+      } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
+        const existingAnimalTags = trackTags.filter(function(uTag) {
+          return !uTag.isAdditionalTag();
+        });
+
+        for (let i = 0; i < existingAnimalTags.length; i++) {
+          await existingAnimalTags[i].destroy();
+        }
+      }
+      await tag.save();
+    });
+  };
 
   //---------------
   // INSTANCE

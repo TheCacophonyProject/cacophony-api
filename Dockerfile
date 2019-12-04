@@ -9,7 +9,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     apt-utils \
     tzdata \
     curl \
-    wget \
     sudo \
     make \
     build-essential \
@@ -25,9 +24,10 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 
 # https://minio.io/downloads.html#download-server-linux-x64
 # https://docs.minio.io/docs/minio-client-complete-guide
-RUN wget --no-verbose https://dl.minio.io/server/minio/release/linux-amd64/minio \
+RUN curl --location --fail --silent --show-error \
+ --output minio https://dl.minio.io/server/minio/release/linux-amd64/minio \
+ --output mc https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.RELEASE.2019-07-11T19-31-28Z \
  && chmod +x minio \
- && wget --no-verbose https://dl.minio.io/client/mc/release/linux-amd64/mc \
  && chmod +x mc
 
 RUN echo $TZ > /etc/timezone \

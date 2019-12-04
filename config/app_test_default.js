@@ -7,7 +7,8 @@ const server = {
   http: {
     active: true,
     port: 1080
-  }
+  },
+  recording_url_base: "http://test.site/recording"
 };
 
 const s3 = {

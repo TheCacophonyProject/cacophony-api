@@ -17,6 +17,8 @@ echo "---- Setting up Minio ----"
 ./mc config host add myminio http://127.0.0.1:9001 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
 ./mc mb myminio/cacophony
 
+echo "mc done"
+
 if [[ $ISOLATE -eq 1 ]]; then
     cp -r /app app-isolated
     echo "---- Installing npm dependencies ----"

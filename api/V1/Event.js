@@ -23,7 +23,7 @@ const auth = require("../auth");
 const { body, query, oneOf } = require("express-validator/check");
 
 module.exports = function(app, baseUrl) {
-  var apiUrl = baseUrl + "/events";
+  const apiUrl = baseUrl + "/events";
 
   /**
    * @api {post} /api/v1/events Add new events
@@ -64,18 +64,18 @@ module.exports = function(app, baseUrl) {
       )
     ],
     middleware.requestWrapper(async (request, response) => {
-      var detailsId = request.body.eventDetailId;
+      let detailsId = request.body.eventDetailId;
       if (!detailsId) {
-        var description = request.body.description;
-        var detail = await models.DetailSnapshot.getOrCreateMatching(
+        const description = request.body.description;
+        const detail = await models.DetailSnapshot.getOrCreateMatching(
           description.type,
           description.details
         );
         detailsId = detail.id;
       }
 
-      var eventList = [];
-      var count = 0;
+      const eventList = [];
+      let count = 0;
 
       request.body.dateTimes.forEach(function(time) {
         eventList.push({
@@ -147,7 +147,7 @@ module.exports = function(app, baseUrl) {
       query.offset = query.offset || 0;
       query.limit = query.limit || 100;
 
-      var result = await models.Event.query(
+      const result = await models.Event.query(
         request.user,
         query.startTime,
         query.endTime,

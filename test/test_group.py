@@ -4,9 +4,7 @@ from test.testexception import AuthorizationError
 
 
 class TestGroup:
-    def test_group_can_be_created_and_users_added_to_it_and_removed_from_it(
-        self, helper
-    ):
+    def test_group_can_be_created_and_users_added_to_it_and_removed_from_it(self, helper):
         print("If a new user Clare", end="")
         clare = helper.given_new_user(self, "clare")
 
@@ -16,9 +14,7 @@ class TestGroup:
         print("({})".format(claresGroup))
 
         description = "  and there is a new device called 'Terminator' in this group"
-        terminator = helper.given_new_device(
-            self, "Terminator", claresGroup, description=description
-        )
+        terminator = helper.given_new_device(self, "Terminator", claresGroup, description=description)
 
         print("  which has uploaded a recording", end="")
         recording = terminator.upload_recording()

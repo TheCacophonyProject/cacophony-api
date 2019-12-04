@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Validate that input is a valid [latitude, longitude]
 function isLatLon(point) {
-  var val = point.coordinates;
+  const val = point.coordinates;
   if (
     val === null ||
     typeof val !== "object" ||

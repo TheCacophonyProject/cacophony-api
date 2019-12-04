@@ -1,0 +1,4 @@
+#
+# cron.d/cacophony-api-prune-objects
+#
+0 11 * * * root (cd /srv/cacophony/api/ && node prune-objects.js --delete) 2>&1 | logger --tag prune-objects
