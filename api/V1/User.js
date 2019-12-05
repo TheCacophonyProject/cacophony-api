@@ -166,7 +166,7 @@ module.exports = function(app, baseUrl) {
   );
 
   /**
-   * @api {get} api/v1/endUserAgreementVersion Get the latest end user agreement version
+   * @api {get} /api/v1/endUserAgreement/latest Get the latest end user agreement version
    * @apiName EndUserAgreementVersion
    * @apiGroup User
    *
@@ -176,7 +176,7 @@ module.exports = function(app, baseUrl) {
    * @apiUse V1ResponseError
    */
   app.get(
-    baseUrl + "/endUserAgreementVersion",
+    baseUrl + "/endUserAgreement/latest",
     middleware.requestWrapper(async (request, response) => {
       return responseUtil.send(response, {
         statusCode: 200,
