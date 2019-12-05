@@ -104,5 +104,4 @@ run_cmd.extend(["up", "--force-recreate"])
 if args.background:
     run_cmd.append("--detach")
 
-print(run_cmd)
 subprocess.check_call(add_sudo(run_cmd))
