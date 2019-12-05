@@ -69,8 +69,8 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/device/:devicename/group/:groupname? Add a new recording on behalf of device
-   * @apiName PostRecordingOnBehalf
+   * @api {post} /api/v1/recordings/device/:devicename/group/:groupname Add a new recording on behalf of device using group
+   * @apiName PostRecordingOnBehalfUsingGroup
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
    * The user must have permission to view videos from the device or the call will return an
@@ -97,14 +97,14 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/device/:devicename Add a new recording on behalf of device
+   * @api {post} /api/v1/recordings/device/:deviceID Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
    * The user must have permission to view videos from the device or the call will return an
    * error.
    *
-   * @apiParam {String} [devicename] can be name or id of a device
+   * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse RecordingParams
@@ -115,10 +115,10 @@ module.exports = (app, baseUrl) => {
    */
 
   app.post(
-    apiUrl + "/device/:devicename",
+    apiUrl + "/device/:deviceID",
     [
       auth.authenticateUser,
-      middleware.getDevice(param),
+      middleware.getDevice(param, "deviceID"),
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
