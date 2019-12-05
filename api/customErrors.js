@@ -68,16 +68,11 @@ class ValidationError extends CustomError {
     super();
     this.statusCode = 422;
     this.errors = errors;
-
-    const mappedErrors = this.errors.mapped();
-    const errorStrings = [];
-    for (const name in mappedErrors) {
-      const error = mappedErrors[name];
-      if (typeof error.msg == "string") {
-        errorStrings.push(error.msg);
-      }
-    }
-    this.message = errorStrings.join("; ");
+    this.message = this.errors
+      .array()
+      .filter(error => typeof error.msg === "string")
+      .map(error => error.msg)
+      .join("; ");
   }
 
   toJson() {
