@@ -29,10 +29,10 @@ import { TrackStatic } from "./Track";
 import { DetailSnapshotStatic } from "./DetailSnapshot";
 import { FileStatic } from "./File";
 import { EventStatic } from "./Event";
-import {DeviceStatic} from "./Device";
-import {GroupStatic} from "./Group";
-import {GroupUsersStatic} from "./GroupUsers";
-import {DeviceUsersStatic} from "./DeviceUsers";
+import { DeviceStatic } from "./Device";
+import { GroupStatic } from "./Group";
+import { GroupUsersStatic } from "./GroupUsers";
+import { DeviceUsersStatic } from "./DeviceUsers";
 
 const basename = path.basename(module.filename);
 const dbConfig = config.database;

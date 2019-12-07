@@ -17,13 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import Sequelize from "sequelize";
-import {ModelCommon, ModelStaticCommon} from "./index";
-import {GroupId} from "./Group";
-import {UserId} from "./User";
+import { ModelCommon, ModelStaticCommon } from "./index";
+import { GroupId } from "./Group";
+import { UserId } from "./User";
 
-export interface GroupUsers extends Sequelize.Model, ModelCommon<GroupUsers> {
-
-}
+export interface GroupUsers extends Sequelize.Model, ModelCommon<GroupUsers> {}
 export interface GroupUsersStatic extends ModelStaticCommon<GroupUsers> {
   isAdmin: (groupId: GroupId, userId: UserId) => Promise<boolean>;
 }
@@ -38,7 +36,10 @@ export default function(sequelize, DataTypes): GroupUsersStatic {
     }
   };
 
-  const GroupUsers = sequelize.define(name, attributes) as unknown as GroupUsersStatic;
+  const GroupUsers = (sequelize.define(
+    name,
+    attributes
+  ) as unknown) as GroupUsersStatic;
 
   //---------------
   // CLASS METHODS

@@ -200,7 +200,7 @@ export default function(app: Application) {
       middleware.parseJSON("data", body),
       middleware.getDetailSnapshotById(body, "algorithmId")
     ],
-    middleware.requestWrapper(async (request: e.Response, response) => {
+    middleware.requestWrapper(async (request: Request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {

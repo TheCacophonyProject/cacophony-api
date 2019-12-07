@@ -30,7 +30,7 @@ import { User } from "./User";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import Transaction from "sequelize";
 import { AcceptableTag, TagStatic } from "./Tag";
-import {DeviceId as DeviceIdAlias, DeviceStatic} from "./Device";
+import { DeviceId as DeviceIdAlias, DeviceStatic } from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
 import { bool } from "aws-sdk/clients/signer";
 import { Track, TrackId } from "./Track";
@@ -54,8 +54,8 @@ export enum TagMode {
 type AllTagModes = TagMode | AcceptableTag;
 // local
 const validTagModes = new Set([
-  ...Object.keys(TagMode),
-  ...Object.keys(AcceptableTag)
+  ...Object.values(TagMode),
+  ...Object.values(AcceptableTag)
 ]);
 
 export enum RecordingType {
@@ -82,9 +82,9 @@ interface RecordingQueryBuilder {
     where: any,
     tagMode: TagMode,
     tags: string[], // AcceptableTag[]
-    offset: number,
-    limit: number,
-    order: Order
+    offset?: number,
+    limit?: number,
+    order?: Order
   ) => Promise<RecordingQueryBuilderInstance>;
   handleTagMode: (tagMode: TagMode, tagWhatsIn: any) => SqlString;
   recordingTaggedWith: (tagModes: string[], any) => SqlString;
@@ -291,11 +291,11 @@ export default function(
     options: {
       type?: RecordingType;
       filterOptions?: { latLongPrec?: number };
-    }
+    } = {}
   ) {
     //console.dir(user, { depth: null });
     if (!RecordingPermissions.has(permission)) {
-      throw "valid permission must be specified (e.g. models.Recording::Permission.VIEW)";
+      throw "valid permission must be specified (e.g. RecordingPermission.VIEW)";
     }
 
     const query = {
@@ -386,6 +386,9 @@ export default function(
   };
 
   Recording.makeFilterOptions = function(user: User, options: any) {
+    if (!options) {
+      options = {};
+    }
     if (typeof options.latLongPrec !== "number") {
       options.latLongPrec = 100;
     }
@@ -458,7 +461,9 @@ export default function(
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function(): Promise<any> {
+  Recording.prototype.getActiveTracksTagsAndTagger = async function(): Promise<
+    any
+  > {
     return await this.getTracks({
       where: {
         archivedAt: null
@@ -516,7 +521,7 @@ export default function(
 
   // Update additionalMetadata fields with new values supplied.
   Recording.prototype.mergeAdditionalMetadata = function(newValues) {
-    this.additionalMetadata = {...this.additionalMetadata, ...newValues};
+    this.additionalMetadata = { ...this.additionalMetadata, ...newValues };
   };
 
   Recording.prototype.getFileExt = function() {
@@ -604,7 +609,9 @@ export default function(
   };
 
   // Return a specific track for the recording.
-  Recording.prototype.getTrack = async function(trackId: TrackId): Promise<Track | null> {
+  Recording.prototype.getTrack = async function(
+    trackId: TrackId
+  ): Promise<Track | null> {
     // FIXME(jon): Should this throw if not found?
     const track = await models.Track.findByPk(trackId);
     if (!track) {

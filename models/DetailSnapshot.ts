@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import {File, FileStatic} from "./File";
+import { File, FileStatic } from "./File";
 
 const Op = Sequelize.Op;
 export type DetailSnapshotId = number;

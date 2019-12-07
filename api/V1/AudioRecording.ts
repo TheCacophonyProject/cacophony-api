@@ -16,16 +16,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {body, header, param} from "express-validator/check";
+import { body, header, param } from "express-validator/check";
 import moment from "moment";
-import {format} from "util";
+import { format } from "util";
 import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import recordingUtil from "./recordingUtil";
 import responseUtil from "./responseUtil";
-import {Application} from "express";
-import {RecordingType} from "../../models/Recording";
+import { Application } from "express";
+import { RecordingType } from "../../models/Recording";
 
 export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/audiorecordings`;

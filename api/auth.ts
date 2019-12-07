@@ -27,7 +27,11 @@ import models, { ModelCommon } from "../models";
 /*
  * Create a new JWT for a user or device.
  */
-function createEntityJWT<T>(entity: ModelCommon<T>, options?, access?: {}): string {
+function createEntityJWT<T>(
+  entity: ModelCommon<T>,
+  options?,
+  access?: {}
+): string {
   const payload: {
     id: string;
     _type: string;

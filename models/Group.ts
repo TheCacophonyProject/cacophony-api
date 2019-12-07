@@ -16,26 +16,36 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 import Sequelize from "sequelize";
-import {ModelCommon, ModelStaticCommon} from "./index";
-import {User} from "./User";
+import { ModelCommon, ModelStaticCommon } from "./index";
+import { User } from "./User";
 
 const { AuthorizationError } = require("../api/customErrors");
 export type GroupId = number;
 
 export interface Group extends Sequelize.Model, ModelCommon<Group> {
   id: GroupId;
-  addUser: (userToAdd: User, through: any) => Promise<void>,
-  getUsers: (options: any) => Promise<User[]>,
-  userPermissions: (user: User) => Promise<{
-    canAddUsers: boolean,
-    canRemoveUsers: boolean
+  addUser: (userToAdd: User, through: any) => Promise<void>;
+  getUsers: (options: any) => Promise<User[]>;
+  userPermissions: (
+    user: User
+  ) => Promise<{
+    canAddUsers: boolean;
+    canRemoveUsers: boolean;
   }>;
 }
 export interface GroupStatic extends ModelStaticCommon<Group> {
-  addUserToGroup: (authUser: User, group: Group, userToAdd: User, admin: boolean) => Promise<void>;
-  removeUserFromGroup: (authUser: User, group: Group, userToRemove: User) => Promise<void>;
+  addUserToGroup: (
+    authUser: User,
+    group: Group,
+    userToAdd: User,
+    admin: boolean
+  ) => Promise<void>;
+  removeUserFromGroup: (
+    authUser: User,
+    group: Group,
+    userToRemove: User
+  ) => Promise<void>;
   query: (where: any, user: User) => Promise<Group[]>;
   getFromId: (id: GroupId) => Promise<Group>;
   freeGroupname: (groupname: string) => Promise<boolean>;
@@ -52,7 +62,7 @@ export default function(sequelize, DataTypes): GroupStatic {
     }
   };
 
-  const Group = sequelize.define(name, attributes) as unknown as GroupStatic;
+  const Group = (sequelize.define(name, attributes) as unknown) as GroupStatic;
 
   Group.apiSettableFields = [];
 
@@ -125,63 +135,27 @@ export default function(sequelize, DataTypes): GroupStatic {
     if (user.hasGlobalRead()) {
       userWhere = null;
     }
-    return await models.Group.findAll({
+    return models.Group.findAll({
       where: where,
+      attributes: ["id", "groupname"],
       include: [
         {
           model: models.User,
-          attributes: ["id", "username"],
+          attributes: [],
           where: userWhere
         },
         {
           model: models.Device,
-          attributes: ["id", "devicename"]
+          // NOTE: It'd be nice not to pull in deviceIds to our return payload,
+          //  but they're currently used for the "Your groups" section on the
+          //  homepage, to query recordings for each device of each group the
+          //  user belongs to, just to get back a count of new recordings in the
+          //  past 24 hours.
+          // TODO(jon): Remove this once we have updated the front-end to use
+          //  QueryRecordingsCount for the devices home page.
+          attributes: ["id"]
         }
       ]
-    }).then(groups => {
-      // TODO: Review the following with a mind to combining with the groups.findAll query to improve efficiency
-      const augmentGroupData = new Promise((resolve, reject) => {
-        try {
-          const groupsPromises = groups.map(group => {
-            return models.User.findAll({
-              attributes: ["username", "id"],
-              include: [
-                {
-                  model: models.Group,
-                  where: {
-                    id: group.id
-                  },
-                  attributes: []
-                }
-              ]
-            }).then(async groupUsers => {
-              const setAdminPromises = groupUsers.map(groupUser => {
-                //console.log('USER', groupUser);
-                return models.GroupUsers.isAdmin(group.id, groupUser.id).then(
-                  value => {
-                    groupUser.setDataValue("isAdmin", value);
-                  }
-                );
-              });
-
-              await Promise.all(setAdminPromises);
-
-              group.setDataValue("GroupUsers", groupUsers);
-              return group;
-            });
-          });
-
-          Promise.all(groupsPromises).then(data => {
-            resolve(data);
-          });
-        } catch (e) {
-          reject(e);
-        }
-      });
-
-      return augmentGroupData.then(groupData => {
-        return groupData;
-      });
     });
   };
 

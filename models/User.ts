@@ -28,7 +28,7 @@ import log from "../logging";
 import { bool } from "aws-sdk/clients/signer";
 import Model from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import {Group} from "../models/Group";
+import { Group } from "../models/Group";
 
 const Op = Sequelize.Op;
 
@@ -82,7 +82,7 @@ export interface UserStatic extends ModelStaticCommon<User> {
   getFromEmail: (email: string) => Promise<User | null>;
   freeEmail: (email: string) => Promise<boolean>;
   getFromId: (id: number) => Promise<User | null>;
-  ["GLOBAL_PERMISSIONS"]: string[],
+  ["GLOBAL_PERMISSIONS"]: string[];
 }
 
 interface UserData {

@@ -20,17 +20,23 @@ import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
 import moment from "moment";
 import urljoin from "url-join";
-import {ClientError} from "../customErrors";
+import { ClientError } from "../customErrors";
 import config from "../../config";
 import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import {Response} from "express";
-import {Recording, RecordingId, RecordingPermission, RecordingType, TagMode} from "../../models/Recording";
-import {Event} from "../../models/Event";
-import {Order} from "sequelize";
-import {FileId} from "../../models/File";
+import { Response } from "express";
+import {
+  Recording,
+  RecordingId,
+  RecordingPermission,
+  RecordingType,
+  TagMode
+} from "../../models/Recording";
+import { Event } from "../../models/Event";
+import { Order } from "sequelize";
+import { FileId } from "../../models/File";
 
 export interface RecordingQuery {
   user: any;
@@ -67,7 +73,10 @@ function makeUploadHandler(mungeData?: (any) => any) {
 
 // Returns a promise for the recordings query specified in the
 // request.
-async function query(request: RecordingQuery, type?): Promise<{rows: Recording[], count: number}> {
+async function query(
+  request: RecordingQuery,
+  type?
+): Promise<{ rows: Recording[]; count: number }> {
   if (type) {
     request.query.where.type = type;
   }
@@ -123,7 +132,10 @@ async function report(request) {
 
   // Our DB schema doesn't allow us to easily get from a audio event
   // recording to a audio file name so do some work first to look these up.
-  const audioEvents: Map<RecordingId, {timestamp: Date, volume: number, fileId: FileId}> = new Map();
+  const audioEvents: Map<
+    RecordingId,
+    { timestamp: Date; volume: number; fileId: FileId }
+  > = new Map();
   const audioFileIds: Set<number> = new Set();
   for (const r of result) {
     const event = findLatestEvent(r.Device.Events);

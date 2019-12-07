@@ -16,17 +16,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import e, {Application} from "express";
+import e, { Application } from "express";
 import middleware from "../middleware";
 import auth from "../auth";
-import recordingUtil, {RecordingQuery} from "./recordingUtil";
+import recordingUtil, { RecordingQuery } from "./recordingUtil";
 import responseUtil from "./responseUtil";
 import models from "../../models";
 import csv from "fast-csv";
-import {body, param, query} from "express-validator/check";
-import {RecordingPermission, TagMode} from "../../models/Recording";
-import {TrackTag} from "../../models/TrackTag";
-import {Track} from "../../models/Track";
+import { body, param, query } from "express-validator/check";
+import { RecordingPermission, TagMode } from "../../models/Recording";
+import { TrackTag } from "../../models/TrackTag";
+import { Track } from "../../models/Track";
+import Sequelize, { Op } from "sequelize";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
@@ -188,53 +189,114 @@ export default (app: Application, baseUrl: string) => {
   app.get(
     apiUrl,
     [auth.authenticateUser, ...queryValidators],
-    middleware.requestWrapper(async (request: e.Request, response: e.Response) => {
-      const result = await recordingUtil.query(request as unknown as RecordingQuery);
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Completed query."],
-        limit: request.query.limit,
-        offset: request.query.offset,
-        count: result.count,
-        rows: result.rows
-      });
-    })
+    middleware.requestWrapper(
+      async (request: e.Request, response: e.Response) => {
+        const result = await recordingUtil.query(
+          (request as unknown) as RecordingQuery
+        );
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          limit: request.query.limit,
+          offset: request.query.offset,
+          count: result.count,
+          rows: result.rows
+        });
+      }
+    )
   );
 
-  // TODO(jon): Bulk tagging recordings interface:
+  /**
+   * @api {get} /api/v1/recordings/count Query available recording count
+   * @apiName QueryRecordingsCount
+   * @apiGroup Recordings
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiUse BaseQueryParams
+   * @apiUse MoreQueryParams
+   * @apiUse FilterOptions
+   * @apiUse V1ResponseSuccessQuery
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/count`,
+    [auth.authenticateUser, ...queryValidators],
+    middleware.requestWrapper(
+      async (request: RecordingQuery, response: e.Response) => {
+        const user = request.user;
+        const countQuery = {
+          where: {
+            [Op.and]: [
+              request.query.where // User query
+            ]
+          },
+          include: [
+            {
+              model: models.Group,
+              include: [
+                {
+                  model: models.User,
+                  where: {
+                    [Op.and]: [{ id: user.id }]
+                  }
+                }
+              ],
+              required: true
+            }
+          ]
+        };
+        if (user.hasGlobalRead()) {
+          // Dont' filter on user if the user has global read permissons.
+          delete countQuery.include[0].include;
+        }
+        const count = await models.Recording.count(countQuery);
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          count
+        });
+      }
+    )
+  );
+
   app.get(
     `${apiUrl}/recordings-to-tag`,
     [auth.authenticateUser],
-    middleware.requestWrapper(async (request: e.Request, response: e.Response) => {
-
-      // TODO(jon): Where there are Tracks
-      const result = await recordingUtil.query({
-          filterOptions: {},
-          query: {
-              distinct: true,
-              limit: 0,
-              offset: 0,
-              order: [['!!!columnName', 'DESC']],
-              tagMode: TagMode.NoHuman,
-              tags: [],
-              where: {
-
-              }
-          },
-          user: request.body.user
-      });
-
-      // Do some randomisation of the items.
-
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Completed query."],
-        limit: request.query.limit,
-        offset: request.query.offset,
-        count: result.count,
-        rows: result.rows
-      });
-    })
+    middleware.requestWrapper(
+      async (request: RecordingQuery, response: e.Response) => {
+        // TODO(jon): What other fields we need to play back a recording.
+        //  Generate a short-lived JWT token for each recording we return.
+        //  Maybe only return a single recording at a time?
+        //  For each recording returned, we also want to be able to
+        //  not include the tracks that have already been tagged by humans, to
+        //  streamline things.
+        const [result, extra] = await models.sequelize.query(
+          `select id, "DeviceId" from "Recordings" inner join 
+(
+  (select distinct("RecordingId") from "Tracks" inner join 
+    (select t as "TrackId" from
+      (
+        -- TrackTags for Tracks that have *only* TrackTags that were automatically set.
+        (select distinct("TrackId") as t from "TrackTags" where automatic is true) as "a"
+        left outer join 
+        (select distinct("TrackId") from "TrackTags" where automatic is false) as "b" 
+        on a.t = b."TrackId"
+      ) as "c" where "c"."TrackId" is null
+    ) as "d" on "d"."TrackId" = "Tracks".id)
+union all
+  -- All the recordings that have Tracks but no TrackTags 
+  (select "RecordingId" from "Tracks" left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" where "TrackTags".id is null)
+) as "u" on "u"."RecordingId" = "Recordings".id order by "DeviceId";`
+        );
+        // Do some randomisation of the items?
+        // Order by device?  Then take users to a different device?
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          rows: result
+        });
+      }
+    )
   );
 
   /**

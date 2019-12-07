@@ -17,18 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import Sequelize from "sequelize";
-import {ModelCommon, ModelStaticCommon} from "./index";
-import {UserId} from "./User";
-import {DeviceId} from "./Device";
+import { ModelCommon, ModelStaticCommon } from "./index";
+import { UserId } from "./User";
+import { DeviceId } from "./Device";
 
-export interface DeviceUsers extends Sequelize.Model, ModelCommon<DeviceUsers> {
-
-}
+export interface DeviceUsers
+  extends Sequelize.Model,
+    ModelCommon<DeviceUsers> {}
 export interface DeviceUsersStatic extends ModelStaticCommon<DeviceUsers> {
   isAdmin: (deviceId: DeviceId, userId: UserId) => Promise<boolean>;
 }
 
-export default function(sequelize: Sequelize.Sequelize, DataTypes): DeviceUsersStatic {
+export default function(
+  sequelize: Sequelize.Sequelize,
+  DataTypes
+): DeviceUsersStatic {
   const name = "DeviceUsers";
 
   const attributes = {
@@ -38,7 +41,10 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): DeviceUsersS
     }
   };
 
-  const DeviceUsers = sequelize.define(name, attributes) as unknown as DeviceUsersStatic;
+  const DeviceUsers = (sequelize.define(
+    name,
+    attributes
+  ) as unknown) as DeviceUsersStatic;
 
   //---------------
   // CLASS METHODS
