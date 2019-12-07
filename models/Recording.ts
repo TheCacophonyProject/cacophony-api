@@ -86,11 +86,11 @@ interface RecordingQueryBuilder {
     limit?: number,
     order?: Order
   ) => Promise<RecordingQueryBuilderInstance>;
-  handleTagMode: (tagMode: TagMode, tagWhatsIn: any) => SqlString;
+  handleTagMode: (tagMode: TagMode, tagWhatsIn: string[]) => SqlString;
   recordingTaggedWith: (tagModes: string[], any) => SqlString;
-  trackTaggedWith: (tags: string[], b) => SqlString;
-  notTagOfType: (a, b) => SqlString;
-  tagOfType: (a, b) => SqlString;
+  trackTaggedWith: (tags: string[], sql: SqlString) => SqlString;
+  notTagOfType: (tags: string[], sql: SqlString) => SqlString;
+  tagOfType: (tags: string[], sql: SqlString) => SqlString;
   selectByTagWhat: (
     tags: string[],
     whatName: string,
