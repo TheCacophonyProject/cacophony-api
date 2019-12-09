@@ -40,3 +40,4 @@ function checkDatabaseConfigAvailable(config) {
 exports.timeZone = timeZone;
 exports.loadConfig = loadConfig;
 exports.server = server;
+exports.euaVersion = 3;
