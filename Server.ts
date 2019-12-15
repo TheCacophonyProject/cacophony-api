@@ -34,7 +34,7 @@ app.all("*", function(req, res, next) {
   );
   res.header(
     "Access-Control-Allow-Headers",
-    "where, offset, limit, Authorization"
+    "where, offset, limit, Authorization, Origin, X-Requested-With, Content-Type, Accept"
   );
   next();
 });

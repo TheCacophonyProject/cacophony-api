@@ -112,7 +112,6 @@ const authenticate = function(
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
-    console.log(reqAccess, jwtDecoded);
     const hasAccess = await checkAccess(reqAccess, jwtDecoded);
     if (!hasAccess) {
       res.status(401).json({ messages: ["JWT does not have access."] });

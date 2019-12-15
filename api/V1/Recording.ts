@@ -28,6 +28,8 @@ import { RecordingPermission, TagMode } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
 import { Op } from "sequelize";
+import jwt from "jsonwebtoken";
+import config from "../../config";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
@@ -667,19 +669,22 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      // If there's a tagJWT, then we don't need to check the users' recording
-      // view permissions.
-      //auth.signedUrl,
-      if (request.tagJwt) {
-        console.log(request.tagJWT);
+      let track;
+      if (request.body.tagJWT) {
+        // If there's a tagJWT, then we don't need to check the users' recording
+        // update permissions.
+        track = await loadTrackForTagJWT(request, response);
+      } else {
+        // Otherwise, just check that the user can update this track.
+        track = await loadTrack(request, response);
+        if (!track) {
+          responseUtil.send(response, {
+            statusCode: 401,
+            messages: ["Track not found"]
+          });
+          return;
+        }
       }
-      const track = await loadTrack(request, response);
-      if (!track) {
-        return;
-      }
-
-      /*
-      // FIXME(jon): This function doesn't exist (actually it does, it's just an undocumented sequelize addition)
       const tag = await track.createTrackTag({
         what: request.body.what,
         confidence: request.body.confidence,
@@ -687,11 +692,10 @@ export default (app: Application, baseUrl: string) => {
         data: request.body.data ? request.body.data : "",
         UserId: request.user.id
       });
-      */
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
-        trackTagId: 100 //tag.id
+        trackTagId: tag.id
       });
     })
   );
@@ -718,12 +722,27 @@ export default (app: Application, baseUrl: string) => {
         .toInt(),
       param("trackTagId")
         .isInt()
-        .toInt()
+        .toInt(),
+      query("tagJWT")
+        .isString()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const track = await loadTrack(request, response);
-      if (!track) {
-        return;
+      let track;
+      if (request.body.tagJWT) {
+        // If there's a tagJWT, then we don't need to check the users' recording
+        // update permissions.
+        track = await loadTrackForTagJWT(request, response);
+      } else {
+        // Otherwise, just check that the user can update this track.
+        track = await loadTrack(request, response);
+        if (!track) {
+          responseUtil.send(response, {
+            statusCode: 401,
+            messages: ["Track not found"]
+          });
+          return;
+        }
       }
 
       const tag = await track.getTrackTag(request.params.trackTagId);
@@ -743,6 +762,50 @@ export default (app: Application, baseUrl: string) => {
       });
     })
   );
+
+  async function loadTrackForTagJWT(request, response): Promise<Track> {
+    let jwtDecoded;
+    try {
+      jwtDecoded = jwt.verify(
+        request.body.tagJWT,
+        config.server.passportSecret
+      );
+      if (
+        jwtDecoded._type === "tagPermission" &&
+        jwtDecoded.recordingId === request.params.id
+      ) {
+        const track = await models.Track.findByPk(request.params.trackId);
+        if (!track) {
+          responseUtil.send(response, {
+            statusCode: 401,
+            messages: ["Track does not exist"]
+          });
+          return;
+        }
+        // Ensure track belongs to this recording.
+        if (track.RecordingId !== request.params.id) {
+          responseUtil.send(response, {
+            statusCode: 401,
+            messages: ["Track does not belong to recording"]
+          });
+          return;
+        }
+        return track;
+      } else {
+        responseUtil.send(response, {
+          statusCode: 401,
+          messages: ["JWT does not have permissions to tag this recording"]
+        });
+        return;
+      }
+    } catch (e) {
+      responseUtil.send(response, {
+        statusCode: 401,
+        messages: ["Failed to verify JWT."]
+      });
+      return;
+    }
+  }
 
   async function loadTrack(request, response): Promise<Track> {
     const recording = await models.Recording.get(

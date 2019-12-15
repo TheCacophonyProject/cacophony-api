@@ -529,12 +529,18 @@ as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer joi
       config.server.passportSecret,
       { expiresIn: 60 * 10 } // Ten minutes
     );
-
-    // TODO(jon): Also create JWT tokens for tagging this recording.
+    const tagJWT = jsonwebtoken.sign(
+      {
+        _type: "tagPermission",
+        recordingId: flattenedResult.RecordingId
+      },
+      config.server.passportSecret,
+      { expiresIn: 60 * 10 }
+    );
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return [{ ...flattenedResult, recordingJWT }];
+    return [{ ...flattenedResult, recordingJWT, tagJWT }];
   };
 
   //------------------
