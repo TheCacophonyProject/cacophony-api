@@ -131,4 +131,6 @@ const AllModels = {
   Sequelize
 };
 
+//console.dir(AllModels, { depth: null });
+
 export default AllModels;

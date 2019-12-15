@@ -23,11 +23,11 @@ import recordingUtil, { RecordingQuery } from "./recordingUtil";
 import responseUtil from "./responseUtil";
 import models from "../../models";
 import csv from "fast-csv";
-import { body, param, query } from "express-validator/check";
+import { body, oneOf, param, query } from "express-validator/check";
 import { RecordingPermission, TagMode } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
-import Sequelize, { Op } from "sequelize";
+import { Op } from "sequelize";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
@@ -260,7 +260,7 @@ export default (app: Application, baseUrl: string) => {
   );
 
   app.get(
-    `${apiUrl}/recordings-to-tag`,
+    `${apiUrl}/needs-tag`,
     [auth.authenticateUser],
     middleware.requestWrapper(
       async (request: RecordingQuery, response: e.Response) => {
@@ -270,24 +270,7 @@ export default (app: Application, baseUrl: string) => {
         //  For each recording returned, we also want to be able to
         //  not include the tracks that have already been tagged by humans, to
         //  streamline things.
-        const [result, extra] = await models.sequelize.query(
-          `select id, "DeviceId" from "Recordings" inner join 
-(
-  (select distinct("RecordingId") from "Tracks" inner join 
-    (select t as "TrackId" from
-      (
-        -- TrackTags for Tracks that have *only* TrackTags that were automatically set.
-        (select distinct("TrackId") as t from "TrackTags" where automatic is true) as "a"
-        left outer join 
-        (select distinct("TrackId") from "TrackTags" where automatic is false) as "b" 
-        on a.t = b."TrackId"
-      ) as "c" where "c"."TrackId" is null
-    ) as "d" on "d"."TrackId" = "Tracks".id)
-union all
-  -- All the recordings that have Tracks but no TrackTags 
-  (select "RecordingId" from "Tracks" left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" where "TrackTags".id is null)
-) as "u" on "u"."RecordingId" = "Recordings".id order by "DeviceId";`
-        );
+        const result = await models.Recording.getRecordingWithUntaggedTracks();
         // Do some randomisation of the items?
         // Order by device?  Then take users to a different device?
         responseUtil.send(response, {
@@ -678,15 +661,25 @@ union all
       body("automatic")
         .isBoolean()
         .toBoolean(),
+      body("tagJWT")
+        .optional()
+        .isString(),
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
+      // If there's a tagJWT, then we don't need to check the users' recording
+      // view permissions.
+      //auth.signedUrl,
+      if (request.tagJwt) {
+        console.log(request.tagJWT);
+      }
       const track = await loadTrack(request, response);
       if (!track) {
         return;
       }
 
-      // FIXME(jon): This function doesn't exist.
+      /*
+      // FIXME(jon): This function doesn't exist (actually it does, it's just an undocumented sequelize addition)
       const tag = await track.createTrackTag({
         what: request.body.what,
         confidence: request.body.confidence,
@@ -694,10 +687,11 @@ union all
         data: request.body.data ? request.body.data : "",
         UserId: request.user.id
       });
+      */
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
-        trackTagId: tag.id
+        trackTagId: 100 //tag.id
       });
     })
   );

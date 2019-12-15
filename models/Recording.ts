@@ -15,7 +15,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+import log from "../logging";
 import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
@@ -28,12 +28,11 @@ import { AuthorizationError } from "../api/customErrors";
 import _ from "lodash";
 import { User } from "./User";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import Transaction from "sequelize";
 import { AcceptableTag, TagStatic } from "./Tag";
-import { DeviceId as DeviceIdAlias, DeviceStatic } from "./Device";
+import { DeviceId, DeviceId as DeviceIdAlias, DeviceStatic } from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
-import { bool } from "aws-sdk/clients/signer";
 import { Track, TrackId } from "./Track";
+import jsonwebtoken from "jsonwebtoken";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -150,6 +149,12 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
   updateOne: (user: User, id: RecordingId, updates: any) => Promise<boolean>;
   makeFilterOptions: (user: User, options?: { latLongPrec?: number }) => any;
   deleteOne: (user: User, id: RecordingId) => Promise<boolean>;
+  getRecordingWithUntaggedTracks: (
+    biasDeviceId?: DeviceId
+  ) => Promise<{
+    recordingId: RecordingId;
+    deviceId: DeviceId;
+  }>;
   get: (
     user: User,
     id: RecordingId,
@@ -422,6 +427,114 @@ export default function(
         }
       ]
     };
+  };
+
+  Recording.getRecordingWithUntaggedTracks = async (biasDeviceId: DeviceId) => {
+    // If a device id is supplied, try to bias the returned recording to that device.
+    // If the requested device has no more recordings, pick another random recording.
+    const [result, extra] = await sequelize.query(`
+select 
+   g."RId" as "RecordingId", 
+   g."DeviceId", 
+   g."TrackData", 
+   g."TId" as "TrackId",
+   g."TaggedBy",
+   g."fileKey",
+   g."fileMimeType",
+   g."recordingDateTime"
+from (select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
+    select id as "RId", "DeviceId", "fileKey", "fileMimeType", "recordingDateTime" from "Recordings" inner join
+(
+  (select distinct("RecordingId") from "Tracks" inner join
+    (select tId as "TrackId" from
+     (
+       -- TrackTags for Tracks that have *only* TrackTags that were automatically set.
+       (select distinct("TrackId") as tId from "TrackTags" where automatic is true) as a
+           left outer join
+               (select distinct("TrackId") from "TrackTags" where automatic is false) as b
+           on a.tId = b."TrackId"
+     ) as c where c."TrackId" is null
+    ) as d on d."TrackId" = "Tracks".id)
+    union all
+    -- All the recordings that have Tracks but no TrackTags 
+  (select "RecordingId" from "Tracks" left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" where "TrackTags".id is null)
+) as e on e."RecordingId" = "Recordings".id ${
+      biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
+    }  order by RANDOM() limit 1)
+as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id) as g;`);
+
+    // NOTE: We bundle everything we need into this one specialised request.
+    const flattenedResult = result.reduce(
+      (acc, item) => {
+        acc.RecordingId = item.RecordingId;
+        acc.DeviceId = item.DeviceId;
+        acc.fileKey = item.fileKey;
+        acc.fileMimeType = item.fileMimeType;
+        acc.recordingDateTime = item.recordingDateTime;
+        acc.tracks.push({
+          TrackId: item.TrackId,
+          data: {
+            start_s: item.TrackData.start_s,
+            end_s: item.TrackData.end_s,
+            positions: item.TrackData.positions,
+            num_frames: item.TrackData.num_frames
+          },
+          needsTagging: item.TaggedBy !== false
+        });
+        return acc;
+      },
+      {
+        RecordingId: 0,
+        DeviceId: 0,
+        tracks: [],
+        fileKey: "",
+        fileMimeType: "",
+        recordingDateTime: ""
+      }
+    );
+    // Sort tracks by time, so that the front-end doesn't have to.
+    flattenedResult.tracks.sort((a, b) => a.data.start_s - b.data.start_s);
+    // We need to retrive the content length of the media file in order to sign
+    // the JWT token for it.
+    let ContentLength = 0;
+    try {
+      const s3 = util.openS3();
+      const s3Data = await s3
+        .headObject({
+          Bucket: config.s3.bucket,
+          Key: flattenedResult.fileKey
+        })
+        .promise();
+      ContentLength = s3Data.ContentLength;
+    } catch (err) {
+      log.warn(
+        "Error retrieving S3 Object for recording",
+        err.message,
+        flattenedResult.fileKey
+      );
+    }
+    const fileName = moment(new Date(flattenedResult.recordingDateTime))
+      .tz(config.timeZone)
+      .format("YYYYMMDD-HHmmss");
+
+    const downloadFileData = {
+      _type: "fileDownload",
+      key: flattenedResult.fileKey,
+      filename: `${fileName}.mp4`,
+      mimeType: flattenedResult.fileMimeType
+    };
+
+    const recordingJWT = jsonwebtoken.sign(
+      downloadFileData,
+      config.server.passportSecret,
+      { expiresIn: 60 * 10 } // Ten minutes
+    );
+
+    // TODO(jon): Also create JWT tokens for tagging this recording.
+    delete flattenedResult.fileKey;
+    delete flattenedResult.fileMimeType;
+    delete flattenedResult.recordingDateTime;
+    return [{ ...flattenedResult, recordingJWT }];
   };
 
   //------------------
