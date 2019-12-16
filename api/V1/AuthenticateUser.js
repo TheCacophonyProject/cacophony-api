@@ -97,7 +97,7 @@ module.exports = function(app) {
     middleware.requestWrapper(async (request, response) => {
       let expiry = ttlTypes[request.body.ttl];
       if (!expiry) {
-        expiry = ttlTypes["medium"];
+        expiry = ttlTypes["short"];
       }
       const token = auth.createEntityJWT(
         request.user,
