@@ -217,6 +217,10 @@ module.exports = (app, baseUrl) => {
     apiUrl + "/report",
     [auth.paramOrHeader].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
+      // 10 minute timeout because the query can take a while to run
+      // when the result set is large.
+      // See also: ttps://trello.com/c/KYnPlpYq/287-query-for-csv-export-is-slow
+      request.setTimeout(10 * 60 * 1000);
       const rows = await recordingUtil.report(request);
       response.status(200).set({
         "Content-Type": "text/csv",
