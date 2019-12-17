@@ -95,21 +95,6 @@ module.exports = function(app, baseUrl) {
     apiUrl,
     [
       auth.authenticateUser,
-      (req, _, next) => {
-        // Deprecated, legacy support until consumers migrated see #199 on GitHub
-        if (typeof req.body.data === "string") {
-          try {
-            const json = JSON.parse(req.body.data);
-            req.body.email = json.email;
-            req.body.username = json.username;
-            req.body.password = json.password;
-            req.body.endUserAgreement = json.endUserAgreement;
-          } catch (e) {
-            throw new ClientError("Could not parse JSON in data field.");
-          }
-        }
-        next();
-      },
       middleware
         .checkNewName("username")
         .custom(value => {
