@@ -133,15 +133,11 @@ module.exports = (app, baseUrl) => {
         key: file.fileKey
       };
 
-      const s3Data = await util.getS3Object(file.fileKey).catch(err => {
-        return responseUtil.serverError(response, err);
-      });
-
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         file: file,
-        fileSize: s3Data.ContentLength,
+        fileSize: await util.getS3ObjectFileSize(file.fileKey),
         jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
           expiresIn: 60 * 10
         })

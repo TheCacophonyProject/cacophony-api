@@ -50,6 +50,9 @@ class TestUser:
     def get_recording(self, recording, params=None):
         return self._userapi.get_recording(recording.id_, params)
 
+    def get_recording_response(self, recording, params=None):
+        return self._userapi.get_recording_response(recording.id_, params)
+
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 

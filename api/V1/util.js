@@ -128,5 +128,15 @@ function getS3Object(fileKey) {
   return s3.headObject(params).promise();
 }
 
+async function getS3ObjectFileSize(fileKey) {
+  try {
+    const s3Ojb = await getS3Object(fileKey);
+    return s3Ojb.ContentLength;
+  } catch (err) {
+    log.warn(`Error retrieving S3 Object for with fileKey: ${fileKey}. Error was: ${err.message}`);
+  }
+}
+
 exports.getS3Object = getS3Object;
+exports.getS3ObjectFileSize = getS3ObjectFileSize;
 exports.multipartUpload = multipartUpload;
