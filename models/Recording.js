@@ -198,14 +198,15 @@ module.exports = function(sequelize, DataTypes) {
 
   /**
    * Deletes a single recording if the user has permission to do so.
+   * @returns {Promise<Recording|null>} Returns the recording object if deleted, otherwise null.
    */
   Recording.deleteOne = async function(user, id) {
     const recording = await Recording.get(user, id, Recording.Perms.DELETE);
     if (!recording) {
-      return false;
+      return null;
     }
     await recording.destroy();
-    return true;
+    return recording;
   };
 
   /**

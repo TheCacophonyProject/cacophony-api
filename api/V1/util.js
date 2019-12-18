@@ -137,6 +137,16 @@ async function getS3ObjectFileSize(fileKey) {
   }
 }
 
+async function deleteS3Object(fileKey) {
+  const s3 = modelsUtil.openS3();
+  const params = {
+    Bucket: config.s3.bucket,
+    Key: fileKey
+  };
+  return s3.deleteObject(params).promise();
+}
+
 exports.getS3Object = getS3Object;
 exports.getS3ObjectFileSize = getS3ObjectFileSize;
+exports.deleteS3Object = deleteS3Object;
 exports.multipartUpload = multipartUpload;

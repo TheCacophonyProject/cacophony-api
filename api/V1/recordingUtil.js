@@ -23,6 +23,7 @@ const urljoin = require("url-join");
 
 const { ClientError } = require("../customErrors");
 const config = require("../../config");
+const log = require("../../logging");
 const models = require("../../models");
 const responseUtil = require("./responseUtil");
 const util = require("./util");
@@ -283,17 +284,24 @@ async function delete_(request, response) {
     request.user,
     request.params.id
   );
-  if (deleted) {
-    responseUtil.send(response, {
-      statusCode: 200,
-      messages: ["Deleted recording."]
-    });
-  } else {
-    responseUtil.send(response, {
+  if (deleted === null) {
+    return responseUtil.send(response, {
       statusCode: 400,
       messages: ["Failed to delete recording."]
     });
   }
+  if (deleted.rawFileKey) {
+    util.deleteS3Object(deleted.rawFileKey)
+      .catch(err => { log.warn(err); });
+  }
+  if (deleted.fileKey) {
+    util.deleteS3Object(deleted.fileKey)
+      .catch(err => { log.warn(err); });
+  }
+  responseUtil.send(response, {
+    statusCode: 200,
+    messages: ["Deleted recording."]
+  });
 }
 
 function guessRawMimeType(type, filename) {
