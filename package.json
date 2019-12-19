@@ -10,6 +10,7 @@
     "@types/express": "^4.17.2",
     "@types/express-validator": "^3.0.0",
     "@types/jsonwebtoken": "^8.3.5",
+    "@types/moment-timezone": "^0.5.12",
     "apidoc": "^0.17.7",
     "aws-sdk": "^2.514.0",
     "bcrypt": "^3.0.7",

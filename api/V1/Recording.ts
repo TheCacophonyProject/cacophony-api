@@ -278,7 +278,7 @@ export default (app: Application, baseUrl: string) => {
         responseUtil.send(response, {
           statusCode: 200,
           messages: ["Completed query."],
-          rows: result
+          rows: [result]
         });
       }
     )

@@ -33,6 +33,8 @@ import { DeviceId, DeviceId as DeviceIdAlias, DeviceStatic } from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
+import { TrackTag } from "./TrackTag";
+import { DetailSnapshotId } from "./DetailSnapshot";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -70,7 +72,6 @@ export enum RecordingPermission {
 }
 
 export enum RecordingProcessingState {}
-
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
 
 interface RecordingQueryBuilder {
@@ -121,17 +122,44 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   rawFileKey: string;
   rawMimeType: string;
   reprocess: (user: User) => Promise<Recording>;
-  getTrack: (id: TrackId) => Promise<Track>;
-  getTracks: (options: FindOptions) => Promise<Track[]>;
   mergeUpdate: (updates: any) => void;
-
   DeviceId: DeviceIdAlias;
   GroupId: GroupIdAlias;
   processingState: RecordingProcessingState;
   public: boolean;
+
+  // NOTE: Implicitly created by sequelize associations (along with other
+  //  potentially undocumented extension methods).
+  getTrack: (id: TrackId) => Promise<Track>;
+  getTracks: (options: FindOptions) => Promise<Track[]>;
+  createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
+}
+type Mp4File = "string";
+type CptvFile = "string";
+type JwtToken<T> = string;
+type Seconds = number;
+type Rectangle = [number, number, number, number];
+export interface LimitedTrack {
+  TrackId: TrackId;
+  data: {
+    start_s: number;
+    end_s: number;
+    positions: [Seconds, Rectangle][];
+    num_frames: number;
+  };
+  tags: string[];
+  needsTagging: boolean;
 }
 
-export interface RecordingStatic extends ModelStaticCommon<Recording> {
+interface TagLimitedRecording {
+  RecordingId: RecordingId;
+  DeviceId: DeviceId;
+  tracks: LimitedTrack[];
+  recordingJWT: JwtToken<Mp4File>;
+  tagJWT: JwtToken<TrackTag>;
+}
+
+interface RecordingStatic extends ModelStaticCommon<Recording> {
   buildSafely: (fields: Record<string, any>) => Recording;
   isValidTagMode: (mode: TagMode) => boolean;
   processingAttributes: string[];
@@ -151,10 +179,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
   deleteOne: (user: User, id: RecordingId) => Promise<boolean>;
   getRecordingWithUntaggedTracks: (
     biasDeviceId?: DeviceId
-  ) => Promise<{
-    recordingId: RecordingId;
-    deviceId: DeviceId;
-  }>;
+  ) => Promise<TagLimitedRecording>;
   get: (
     user: User,
     id: RecordingId,
@@ -429,7 +454,9 @@ export default function(
     };
   };
 
-  Recording.getRecordingWithUntaggedTracks = async (biasDeviceId: DeviceId) => {
+  Recording.getRecordingWithUntaggedTracks = async (
+    biasDeviceId: DeviceId
+  ): Promise<TagLimitedRecording> => {
     // If a device id is supplied, try to bias the returned recording to that device.
     // If the requested device has no more recordings, pick another random recording.
     const [result, extra] = await sequelize.query(`
@@ -540,7 +567,7 @@ as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer joi
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return [{ ...flattenedResult, recordingJWT, tagJWT }];
+    return { ...flattenedResult, recordingJWT, tagJWT };
   };
 
   //------------------

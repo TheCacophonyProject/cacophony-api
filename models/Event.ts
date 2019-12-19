@@ -20,11 +20,15 @@ import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { DeviceId } from "./Device";
 import { User } from "./User";
+import { DetailSnapShot } from "./DetailSnapshot";
 
 const Op = Sequelize.Op;
 
 export interface Event extends Sequelize.Model, ModelCommon<Event> {
   dateTime: Date;
+  EventDetailId: number;
+  EventDetail: DetailSnapShot;
+  DeviceId: DeviceId;
 }
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (

@@ -122,8 +122,9 @@ async function report(request) {
     .addColumn("comment")
     .addAudioEvents();
 
-  // NOTE(jon): Not really a recording, since it's extended with other comments
-  const result: Recording[] = await models.Recording.findAll(builder.get());
+  // NOTE: Not even going to try to attempt to add typing info to this bundle
+  //  of properties...
+  const result: any[] = await models.Recording.findAll(builder.get());
 
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
@@ -246,7 +247,7 @@ async function report(request) {
   return out;
 }
 
-function findLatestEvent(events: Event[]) {
+function findLatestEvent(events: Event[]): Event {
   if (!events) {
     return null;
   }
