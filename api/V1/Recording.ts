@@ -261,20 +261,46 @@ export default (app: Application, baseUrl: string) => {
     )
   );
 
+  /**
+   * @api {get} /api/v1/recordings/needs-tag Get a random recording that needs
+   * human tagging applied.
+   * @apiName NeedsTag
+   * @apiGroup Recordings
+   * @apiDescription Parameters are as per GET /api/V1/recordings. On
+   * success (status 200), the response body will contain CSV
+   * formatted details of the selected recordings.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiParam {number} [deviceId] Optional deviceId to bias returned recording to.
+   * @apiUse V1ResponseError
+   */
   app.get(
     `${apiUrl}/needs-tag`,
-    [auth.authenticateUser],
+    [
+      auth.authenticateUser,
+      query("deviceId")
+        .isInt()
+        .toInt()
+        .optional()
+    ],
     middleware.requestWrapper(
-      async (request: RecordingQuery, response: e.Response) => {
-        // TODO(jon): What other fields we need to play back a recording.
-        //  Generate a short-lived JWT token for each recording we return.
-        //  Maybe only return a single recording at a time?
-        //  For each recording returned, we also want to be able to
-        //  not include the tracks that have already been tagged by humans, to
-        //  streamline things.
-        const result = await models.Recording.getRecordingWithUntaggedTracks();
-        // Do some randomisation of the items?
-        // Order by device?  Then take users to a different device?
+      async (request: e.Request, response: e.Response) => {
+        // NOTE: We only return the minimum set of fields we need to play back
+        //  a recording, show tracks in the UI, and have the user add a tag.
+        //  Generate a short-lived JWT token for each recording we return, keyed
+        //  to that recording.  Only return a single recording at a time.
+        //
+        let result;
+        if (request.query.deviceId) {
+          result = await models.Recording.getRecordingWithUntaggedTracks();
+        } else {
+          // NOTE: Optionally, the returned recordings can be biased to be from
+          //  a preferred deviceId, to handle the case where we'd like a series
+          //  of random recordings to tag constrained to a single device.
+          result = await models.Recording.getRecordingWithUntaggedTracks(
+            request.query.deviceId
+          );
+        }
         responseUtil.send(response, {
           statusCode: 200,
           messages: ["Completed query."],
@@ -477,7 +503,6 @@ export default (app: Application, baseUrl: string) => {
         algorithm
       );
 
-      // FIXME(jon): This function does not exist!
       const track = await recording.createTrack({
         data: request.body.data,
         AlgorithmId: algorithmDetail.id

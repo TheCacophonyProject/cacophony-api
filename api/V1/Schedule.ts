@@ -22,6 +22,7 @@ import { body, param } from "express-validator/check";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import { Application, Response } from "express";
+import { Device } from "../../models/Device";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/schedules`;
@@ -117,8 +118,7 @@ export default (app: Application, baseUrl: string) => {
   );
 };
 
-async function getSchedule(device, response: Response, user = null) {
-  // TODO(jon): Type of Device
+async function getSchedule(device: any, response: Response, user = null) {
   let schedule = { schedule: {} };
 
   if (device.ScheduleId) {
@@ -133,7 +133,7 @@ async function getSchedule(device, response: Response, user = null) {
   }
 
   // get all the users devices that are also associated with this same schedule
-  let devices = [];
+  let devices: { rows: Device[]; count: number };
   if (user && device.ScheduleId) {
     devices = await models.Device.onlyUsersDevicesMatching(user, {
       ScheduleId: device.ScheduleId
@@ -148,7 +148,6 @@ async function getSchedule(device, response: Response, user = null) {
   return responseUtil.send(response, {
     statusCode: 200,
     messages: [],
-    // TODO(jon): Can this be a single type, instead of either an object or an array?
     devices,
     schedule: schedule.schedule
   });

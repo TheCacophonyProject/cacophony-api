@@ -130,7 +130,7 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
       beforeCreate: beforeModify,
       beforeUpdate: beforeModify,
 
-      // FIXME(jon): beforeUpsert? - Doesn't exist on typings.
+      // NOTE: Doesn't exist on publicly available typings, so ignore
       // @ts-ignore
       beforeUpsert: beforeModify
     }

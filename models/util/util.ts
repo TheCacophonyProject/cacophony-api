@@ -88,8 +88,7 @@ function findAllWithUser<T extends ModelStaticCommon<T>>(
   });
 }
 
-/*
-NOTE(jon): Currently unused by anyone
+//NOTE: Currently unused by anyone
 function getFileData<T extends ModelStaticCommon<T>>(
   model: T,
   id: number,
@@ -116,7 +115,6 @@ function getFileData<T extends ModelStaticCommon<T>>(
       });
   });
 }
-*/
 
 function getFileName(model) {
   let fileName;

@@ -27,6 +27,8 @@ export default function(app: Application) {
       return response.status(204).json();
     } else {
       return response.status(200).json({
+        // FIXME(jon): Test that dataValues is even a thing.  It's not a publicly
+        //  documented sequelize property.
         recording: recording.dataValues
       });
     }
@@ -306,7 +308,6 @@ export default function(app: Application) {
         return;
       }
 
-      // FIXME(jon): This function doesn't exist.
       const tag = await track.createTrackTag({
         what: request.body.what,
         confidence: request.body.confidence,

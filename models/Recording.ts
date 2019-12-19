@@ -130,7 +130,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   // NOTE: Implicitly created by sequelize associations (along with other
   //  potentially undocumented extension methods).
-  getTrack: (id: TrackId) => Promise<Track>;
+  getTrack: (id: TrackId) => Promise<Track | null>;
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
 }
@@ -159,7 +159,7 @@ interface TagLimitedRecording {
   tagJWT: JwtToken<TrackTag>;
 }
 
-interface RecordingStatic extends ModelStaticCommon<Recording> {
+export interface RecordingStatic extends ModelStaticCommon<Recording> {
   buildSafely: (fields: Record<string, any>) => Recording;
   isValidTagMode: (mode: TagMode) => boolean;
   processingAttributes: string[];
@@ -633,9 +633,7 @@ as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer joi
   /* eslint-enable indent */
 
   /**
-   * Returns JSON describing what the user can do to the recording. // NOTE(jon): Not really JSON, it's an array of strings.
-   * Permission types: DELETE, TAG, VIEW, UPDATE
-   * //TODO This will be edited in the future when recordings can be public.
+   * TODO This will be edited in the future when recordings can be public.
    */
   Recording.prototype.getUserPermissions = async function(
     user: User
@@ -758,7 +756,6 @@ as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer joi
   Recording.prototype.getTrack = async function(
     trackId: TrackId
   ): Promise<Track | null> {
-    // FIXME(jon): Should this throw if not found?
     const track = await models.Track.findByPk(trackId);
     if (!track) {
       return null;

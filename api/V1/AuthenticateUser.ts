@@ -43,9 +43,6 @@ export default function(app: Application) {
   app.post(
     "/authenticate_user",
     [
-      // NOTE(jon): oneOf validation functions just return a boolean if they
-      //  succeeded, but as a side effect of success they stuff the value they
-      //  found in the body for later use.  Hmmm.
       oneOf(
         [
           middleware.getUserByName(body),
@@ -102,8 +99,6 @@ export default function(app: Application) {
       if (!expiry) {
         expiry = ttlTypes["short"];
       }
-      // FIXME(jon): Understand what can be passed to access? {"devices":"r"}
-      // How is that access authenticated?
       const token = auth.createEntityJWT(
         request.user,
         { expiresIn: expiry },

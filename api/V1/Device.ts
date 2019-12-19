@@ -23,6 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
+import { ClientError } from "../customErrors";
 
 const Op = Sequelize.Op;
 
@@ -268,18 +269,25 @@ export default function(app: Application, baseUrl: string) {
       middleware.checkNewPassword("newPassword")
     ],
     middleware.requestWrapper(async function(request, response) {
-      const device = await request.device.reregister(
-        request.body.newName,
-        request.body.group,
-        request.body.newPassword
-      );
-
-      return responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Registered the device again."],
-        id: device.id,
-        token: "JWT " + auth.createEntityJWT(device)
-      });
+      try {
+        const device = await request.device.reregister(
+          request.body.newName,
+          request.body.group,
+          request.body.newPassword
+        );
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Registered the device again."],
+          id: device.id,
+          token: "JWT " + auth.createEntityJWT(device)
+        });
+        return;
+      } catch (e) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          messages: [e.message]
+        });
+      }
     })
   );
 

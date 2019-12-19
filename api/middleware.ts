@@ -51,7 +51,6 @@ const getModelByName = function<T>(
   fieldName: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
-  // NOTE(jon): This is super suspect code IMHO.
   return checkFunc(fieldName).custom(async (val, { req }) => {
     const model: T = await modelType.getFromName(val);
     if (model === null) {

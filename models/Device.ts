@@ -22,13 +22,18 @@ import { User, UserId } from "./User";
 import { Group, GroupStatic } from "./Group";
 import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
+import { ScheduleId } from "./Schedule";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
-
+type UserDevicePermissions = {
+  canListUsers: boolean;
+  canAddUsers: boolean;
+  canRemoveUsers: boolean;
+};
 export interface Device extends Sequelize.Model, ModelCommon<Device> {
   id: DeviceId;
-  userPermissions: (user: User) => any; // TODO(jon): What is this?
+  userPermissions: (user: User) => UserDevicePermissions;
   addUser: (userId: UserId, options: any) => any;
   devicename: string;
   groupname: string;
@@ -38,7 +43,7 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
     devicename: string,
     group: Group,
     newPassword: string
-  ) => Promise<Device>; // FIXME(jon): Needs to throw if fails
+  ) => Promise<Device>;
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {
@@ -55,18 +60,13 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     user: User
   ) => Promise<boolean>;
   onlyUsersDevicesMatching: (
-    user: User,
-    conditions: any,
-    includeData: any
+    user?: User,
+    conditions?: any,
+    ScheduleId?: ScheduleId,
+    includeData?: any
   ) => Promise<{ rows: Device[]; count: number }>;
   freeDevicename: (name: string) => Promise<boolean>;
-  newUserPermissions: (
-    enabled: boolean
-  ) => {
-    canListUsers: boolean;
-    canAddUsers: boolean;
-    canRemoveUsers: boolean;
-  };
+  newUserPermissions: (enabled: boolean) => UserDevicePermissions;
   getFromId: (id: DeviceId) => Promise<Device>;
   findDevice: (
     deviceID?: DeviceId,

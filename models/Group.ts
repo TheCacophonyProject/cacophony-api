@@ -49,7 +49,7 @@ export interface GroupStatic extends ModelStaticCommon<Group> {
   query: (where: any, user: User) => Promise<Group[]>;
   getFromId: (id: GroupId) => Promise<Group>;
   freeGroupname: (groupname: string) => Promise<boolean>;
-  getIdFromName: (groupname: string) => Promise<GroupId>;
+  getIdFromName: (groupname: string) => Promise<GroupId | null>;
 }
 
 export default function(sequelize, DataTypes): GroupStatic {
@@ -175,19 +175,15 @@ export default function(sequelize, DataTypes): GroupStatic {
     return true;
   };
 
-  Group.getIdFromName = function(name) {
+  // NOTE: It doesn't seem that there are any consumers of this function right now.
+  Group.getIdFromName = async function(name): Promise<GroupId | null> {
     const Group = this;
-    return new Promise(function(resolve) {
-      Group.findOne({ where: { groupname: name } }).then(function(group) {
-        if (!group) {
-          // FIXME(jon): Should this resolve false, or throw an error?
-          //  At least reject the promise!
-          resolve(false);
-        } else {
-          resolve(group.getDataValue("id"));
-        }
-      });
-    });
+    const group = await Group.findOne({ where: { groupname: name } });
+    if (group == null) {
+      return null;
+    } else {
+      group.getDataValue("id");
+    }
   };
 
   //------------------

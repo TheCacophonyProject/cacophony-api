@@ -146,7 +146,6 @@ const authenticateUser: AuthenticateMiddleware = authenticate("user");
 const authenticateDevice: AuthenticateMiddleware = authenticate("device");
 const authenticateAny: AuthenticateMiddleware = authenticate(null);
 
-// FIXME(jon): Check r/w types
 const authenticateAccess = function(
   type: string,
   access: Record<string, "r" | "w">

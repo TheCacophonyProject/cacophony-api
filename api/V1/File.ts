@@ -82,7 +82,8 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("order", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      // NOTE(jon): This is a bug, but what will fixing it do?
+      // FIXME(jon): This is a bug, but what will fixing it do?
+      //  The second, check against null can never succeed.
       if (request.query.offset == null) {
         request.query.offset = "0";
       }

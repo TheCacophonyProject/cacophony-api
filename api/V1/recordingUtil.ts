@@ -268,8 +268,6 @@ function formatTags(tags) {
 }
 
 async function get(request, type?: RecordingType) {
-  // TODO(jon): Check type of `request`
-  // TODO(jon): Check what `type` can be here.
   const recording = await models.Recording.get(
     request.user,
     request.params.id,

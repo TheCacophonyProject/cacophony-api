@@ -33,6 +33,7 @@ import { DeviceStatic } from "./Device";
 import { GroupStatic } from "./Group";
 import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
+import { ScheduleStatic } from "./Schedule";
 
 const basename = path.basename(module.filename);
 const dbConfig = config.database;
@@ -84,7 +85,6 @@ const sequelize = new Sequelize(
   }
 );
 
-// TODO(jon): can we generate typings file for this based on actual model?
 const db: Record<string, any> = {};
 
 fs.readdirSync(__dirname)
@@ -111,6 +111,7 @@ export interface ModelStaticCommon<T> extends Sequelize.ModelCtor<any> {
   apiSettableFields: readonly string[];
   addAssociations: (models: Record<string, ModelStaticCommon<any>>) => void;
   userGetAttributes: readonly string[];
+  getDataValue: (fieldName: string) => any;
 }
 
 const AllModels = {
@@ -127,6 +128,7 @@ const AllModels = {
   Group: db.Group as GroupStatic,
   GroupUsers: db.GroupUsers as GroupUsersStatic,
   DeviceUsers: db.DeviceUsers as DeviceUsersStatic,
+  Schedule: db.Schedule as ScheduleStatic,
   sequelize,
   Sequelize
 };

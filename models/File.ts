@@ -29,7 +29,7 @@ export interface File extends Sequelize.Model, ModelCommon<File> {
   UserId: UserIdAlias;
   details: any;
   type: any;
-  fileKey: string; // TODO(jon): JwtToken?
+  fileKey: string;
 }
 export interface FileStatic extends ModelStaticCommon<File> {
   buildSafely: (fields: Record<string, any>) => File;
