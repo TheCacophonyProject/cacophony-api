@@ -29,7 +29,7 @@ export default function(app: Application) {
       return response.status(200).json({
         // FIXME(jon): Test that dataValues is even a thing.  It's not a publicly
         //  documented sequelize property.
-        recording: recording.dataValues
+        recording: (recording as any).dataValues
       });
     }
   });

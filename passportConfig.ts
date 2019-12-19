@@ -1,6 +1,8 @@
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import AnonymousStrategy from "passport-anonymous";
 import models from "./models";
+
+// @ts-ignore - Assume that this references some out of repo config?
 import config from "../../config";
 
 export default function(passport) {
