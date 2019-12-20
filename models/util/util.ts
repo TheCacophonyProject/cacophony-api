@@ -16,24 +16,23 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import config from "../../config";
 import AWS from "aws-sdk";
 import log from "../../logging";
 import fs from "fs";
 import mime from "mime";
+import config from "../../config";
 import Sequelize from "sequelize";
 import { User } from "../User";
 import { ModelStaticCommon } from "../index";
 
 const Op = Sequelize.Op;
-
 interface QueryResult<T> {
   rows: null | T[];
   limit: number;
   offset: number;
 }
 
-function findAllWithUser<T extends ModelStaticCommon<T>>(
+export function findAllWithUser<T extends ModelStaticCommon<T>>(
   model: T,
   user,
   queryParams
@@ -89,7 +88,7 @@ function findAllWithUser<T extends ModelStaticCommon<T>>(
 }
 
 //NOTE: Currently unused by anyone
-function getFileData<T extends ModelStaticCommon<T>>(
+export function getFileData<T extends ModelStaticCommon<T>>(
   model: T,
   id: number,
   user: User
@@ -116,7 +115,7 @@ function getFileData<T extends ModelStaticCommon<T>>(
   });
 }
 
-function getFileName(model) {
+export function getFileName(model) {
   let fileName;
   const dateStr = model.getDataValue("recordingDateTime");
   if (dateStr) {
@@ -135,7 +134,7 @@ function getFileName(model) {
   return fileName;
 }
 
-function geometrySetter(val) {
+export function geometrySetter(val) {
   // Put here so old apps that send location in a string still work.
   // TODO remove this when nobody is using the old app that sends a string.
   if (typeof val === "string") {
@@ -144,7 +143,12 @@ function geometrySetter(val) {
   this.setDataValue("location", { type: "Point", coordinates: val });
 }
 
-function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
+export function migrationAddBelongsTo(
+  queryInterface,
+  childTable,
+  parentTable,
+  opts
+) {
   if (!opts) {
     opts = {};
   }
@@ -189,7 +193,7 @@ function migrationAddBelongsTo(queryInterface, childTable, parentTable, opts) {
   });
 }
 
-function renameTableAndIdSeq(queryInterface, oldName, newName) {
+export function renameTableAndIdSeq(queryInterface, oldName, newName) {
   return Promise.all([
     queryInterface.sequelize.query(
       `ALTER TABLE "${oldName}" RENAME TO "${newName}";`
@@ -200,7 +204,7 @@ function renameTableAndIdSeq(queryInterface, oldName, newName) {
   ]);
 }
 
-function migrationRemoveBelongsTo(
+export function migrationRemoveBelongsTo(
   queryInterface,
   childTable,
   parentTable,
@@ -215,7 +219,7 @@ function migrationRemoveBelongsTo(
   );
 }
 
-function belongsToMany(queryInterface, viaTable, table1, table2) {
+export function belongsToMany(queryInterface, viaTable, table1, table2) {
   const columnName1 = `${table1.substring(0, table1.length - 1)}Id`;
   const constraintName1 = `${viaTable}_${columnName1}_fkey`;
   const columnName2 = `${table2.substring(0, table2.length - 1)}Id`;
@@ -246,13 +250,13 @@ function belongsToMany(queryInterface, viaTable, table1, table2) {
   });
 }
 
-function addSerial(queryInterface, tableName) {
+export function addSerial(queryInterface, tableName) {
   return queryInterface.sequelize.query(
     `ALTER TABLE "${tableName}" ADD COLUMN id SERIAL PRIMARY KEY;`
   );
 }
 
-function getFromId(id: number, user: User, attributes) {
+export function getFromId(id: number, user: User, attributes) {
   const modelClass = this;
   return new Promise(resolve => {
     // Get just public models if no user was given
@@ -286,7 +290,7 @@ function getFromId(id: number, user: User, attributes) {
  * A promise is returned that will resolve if successful and reject if failed
  * to delete the file and modelInstance.
  */
-function deleteModelInstance(id, user) {
+export function deleteModelInstance(id, user) {
   const modelClass = this;
   let modelInstance = null;
   return new Promise((resolve, reject) => {
@@ -306,7 +310,7 @@ function deleteModelInstance(id, user) {
   });
 }
 
-function userCanEdit(id, user) {
+export function userCanEdit(id, user) {
   const modelClass = this;
   return new Promise(resolve => {
     //models.User.where
@@ -320,7 +324,7 @@ function userCanEdit(id, user) {
   });
 }
 
-function openS3() {
+export function openS3() {
   return new AWS.S3({
     endpoint: config.s3.endpoint,
     accessKeyId: config.s3.publicKey,
@@ -329,7 +333,7 @@ function openS3() {
   });
 }
 
-function saveFile(file /* model.File */) {
+export function saveFile(file /* model.File */) {
   const model = this;
   return new Promise(function(resolve, reject) {
     // Gets date object set to recordingDateTime field or now if field not set.
@@ -374,7 +378,7 @@ function saveFile(file /* model.File */) {
   });
 }
 
-function deleteFile(fileKey) {
+export function deleteFile(fileKey) {
   return new Promise((resolve, reject) => {
     const s3 = openS3();
     const params = {
@@ -394,7 +398,7 @@ function deleteFile(fileKey) {
 export default {
   geometrySetter,
   findAllWithUser,
-  //getFileData,
+  getFileData,
   migrationAddBelongsTo,
   migrationRemoveBelongsTo,
   belongsToMany,

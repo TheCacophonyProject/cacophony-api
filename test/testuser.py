@@ -50,6 +50,12 @@ class TestUser:
     def get_recording(self, recording, params=None):
         return self._userapi.get_recording(recording.id_, params)
 
+    def get_recording_by_id(self, recording_id, params=None):
+        return self._userapi.get_recording(recording_id, params)
+
+    def get_recording_needs_tag(self, device_id=None):
+        return self._userapi.get_recording_needs_tag(device_id=device_id)
+
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 
@@ -415,6 +421,22 @@ class TestUser:
 
     def tag_track(self, track, what):
         self._tag_track_as(track, what, False)
+
+    def tag_track_as_unauthorised_user(self, recording_id, track_id, what, tag_jwt):
+        return self._userapi.add_track_tag(
+            recording_id=recording_id,
+            track_id=track_id,
+            what=what,
+            confidence=0.7,
+            automatic=False,
+            data={},
+            tag_jwt=tag_jwt
+        )
+
+    def delete_track_tag_as_unauthorised_user(self, recording_id, track_id, track_tag_id, tag_jwt):
+        self._userapi.delete_track_tag(
+            recording_id=recording_id, track_id=track_id, track_tag_id=track_tag_id, tag_jwt=tag_jwt
+        )
 
     def tag_track_as_AI(self, track, what):
         self._tag_track_as(track, what, True)

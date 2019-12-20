@@ -271,7 +271,7 @@ export default function(
    */
   Recording.getOneForProcessing = async function(type, state) {
     return sequelize
-      .transaction(function(t: Sequelize.Transaction) {
+      .transaction(function(transaction) {
         return Recording.findOne({
           where: {
             type: type,
@@ -283,8 +283,8 @@ export default function(
           order: [["recordingDateTime", "DESC"]],
           // @ts-ignore
           skipLocked: true,
-          lock: Sequelize.Transaction.LOCK.UPDATE,
-          transaction: t
+          lock: (transaction as any).LOCK.UPDATE,
+          transaction
         }).then(async function(recording) {
           const date = new Date();
           recording.set(
@@ -293,11 +293,11 @@ export default function(
               processingStartTime: date.toISOString()
             },
             {
-              transaction: t
+              transaction
             }
           );
           recording.save({
-            transaction: t
+            transaction
           });
           return recording;
         });
@@ -355,12 +355,9 @@ export default function(
         "The user does not have permission to view this file"
       );
     }
-
-    if (options.filterOptions) {
-      recording.filterData(
-        Recording.makeFilterOptions(user, options.filterOptions)
-      );
-    }
+    recording.filterData(
+      Recording.makeFilterOptions(user, options.filterOptions)
+    );
     return recording;
   };
 

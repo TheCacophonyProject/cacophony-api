@@ -96,7 +96,7 @@ export default function(app: Application) {
       log.info("Complete is " + complete);
       if (complete) {
         recording.set("jobKey", null);
-        recording.set("processingState", recording.processingState + ".failed");
+        recording.set("processingStartTime", null);
       }
 
       // Process extra data from file processing
@@ -167,7 +167,7 @@ export default function(app: Application) {
    *
    */
   app.post(
-    apiUrl + "/metadata",
+    `${apiUrl}/metadata`,
     [middleware.getRecordingById(body), middleware.parseJSON("metadata", body)],
     middleware.requestWrapper(async request => {
       // FIXME(jon): This function does not exist!

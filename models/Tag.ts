@@ -21,7 +21,10 @@ import { ModelCommon, ModelStaticCommon } from "./index";
 import { User, UserId } from "./User";
 import Sequelize from "sequelize";
 import util from "./util/util";
-import { RecordingId as RecordingIdAlias } from "./Recording";
+import {
+  RecordingId as RecordingIdAlias,
+  RecordingPermission
+} from "./Recording";
 
 export type TagId = number;
 export interface Tag extends Sequelize.Model, ModelCommon<Tag> {
@@ -48,7 +51,7 @@ export enum AcceptableTag {
 
 export const AcceptableTags = new Set(Object.values(AcceptableTag));
 
-export default function(sequelize, DataTypes) {
+export default function(sequelize, DataTypes): TagStatic {
   const name = "Tag";
   const attributes = {
     what: {
@@ -114,7 +117,7 @@ export default function(sequelize, DataTypes) {
     const recording = await Recording.get(
       user,
       tag.RecordingId,
-      Recording.Perms.TAG
+      RecordingPermission.TAG
     );
 
     if (recording == null) {

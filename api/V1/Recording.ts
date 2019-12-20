@@ -292,7 +292,7 @@ export default (app: Application, baseUrl: string) => {
         //  to that recording.  Only return a single recording at a time.
         //
         let result;
-        if (request.query.deviceId) {
+        if (!request.query.deviceId) {
           result = await models.Recording.getRecordingWithUntaggedTracks();
         } else {
           // NOTE: Optionally, the returned recordings can be biased to be from
@@ -760,7 +760,7 @@ export default (app: Application, baseUrl: string) => {
     ],
     middleware.requestWrapper(async (request, response) => {
       let track;
-      if (request.body.tagJWT) {
+      if (request.query.tagJWT) {
         // If there's a tagJWT, then we don't need to check the users' recording
         // update permissions.
         track = await loadTrackForTagJWT(request, response);
@@ -796,11 +796,10 @@ export default (app: Application, baseUrl: string) => {
 
   async function loadTrackForTagJWT(request, response): Promise<Track> {
     let jwtDecoded;
+    const tagJWT = request.body.tagJWT || request.query.tagJWT;
+    console.log(`!!! ${jwt}`);
     try {
-      jwtDecoded = jwt.verify(
-        request.body.tagJWT,
-        config.server.passportSecret
-      );
+      jwtDecoded = jwt.verify(tagJWT, config.server.passportSecret);
       if (
         jwtDecoded._type === "tagPermission" &&
         jwtDecoded.recordingId === request.params.id
@@ -830,6 +829,7 @@ export default (app: Application, baseUrl: string) => {
         return;
       }
     } catch (e) {
+      console.log(e, jwtDecoded);
       responseUtil.send(response, {
         statusCode: 401,
         messages: ["Failed to verify JWT."]
