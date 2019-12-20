@@ -121,6 +121,9 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
       type: DataTypes.ENUM,
       values: PERMISSIONS as string[],
       defaultValue: PERMISSION_OFF
+    },
+    endUserAgreement: {
+      type: DataTypes.INTEGER
     }
   };
 
@@ -145,7 +148,12 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
 
   User.publicFields = Object.freeze(["id", "username"]);
 
-  User.apiSettableFields = Object.freeze(["firstName", "lastName", "email"]);
+  User.apiSettableFields = Object.freeze([
+    "firstName",
+    "lastName",
+    "email",
+    "endUserAgreement"
+  ]);
 
   Object.defineProperty(User, "GLOBAL_PERMISSIONS", {
     value: PERMISSIONS,
@@ -267,7 +275,8 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
           lastName: user.getDataValue("lastName"),
           email: user.getDataValue("email"),
           groups: groups,
-          globalPermission: user.getDataValue("globalPermission")
+          globalPermission: user.getDataValue("globalPermission"),
+          endUserAgreement: user.getDataValue("endUserAgreement")
         });
       });
     });

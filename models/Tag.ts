@@ -136,7 +136,8 @@ export default function(sequelize, DataTypes) {
     "duration",
     "automatic",
     "version",
-    "createdAt"
+    "createdAt",
+    "taggerId"
   ]);
 
   Tag.apiSettableFields = Object.freeze([

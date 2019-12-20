@@ -96,7 +96,7 @@ export default function(app: Application) {
       log.info("Complete is " + complete);
       if (complete) {
         recording.set("jobKey", null);
-        recording.set("processingStartTime", null);
+        recording.set("processingState", recording.processingState + ".failed");
       }
 
       // Process extra data from file processing
@@ -107,7 +107,7 @@ export default function(app: Application) {
       await recording.save();
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
-      recording.set("processingStartTime", null);
+      recording.set("processingState", recording.processingState + ".failed");
       recording.set("jobKey", null);
       await recording.save();
       return response.status(200).json({

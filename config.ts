@@ -46,5 +46,6 @@ export default {
   timeZone,
   server,
   loadConfig,
+  euaVersion: 3,
   ...loadConfig(configPath)
 };

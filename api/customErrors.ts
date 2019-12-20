@@ -72,15 +72,11 @@ class CustomError extends Error {
 class ValidationError extends CustomError {
   errors: Record<string, any>;
   constructor(errors) {
-    const mappedErrors = errors.mapped();
-    const errorStrings = [];
-    for (const name in mappedErrors) {
-      const error = mappedErrors[name];
-      if (typeof error.msg == "string") {
-        errorStrings.push(error.msg);
-      }
-    }
-    const message = errorStrings.join("; ");
+    const message = errors
+      .array()
+      .filter(error => typeof error.msg === "string")
+      .map(error => error.msg)
+      .join("; ");
     super(message, 422);
     this.errors = errors;
   }

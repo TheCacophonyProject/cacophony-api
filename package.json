@@ -33,9 +33,8 @@
     "multiparty": "^4.1.3",
     "nan": "^2.14.0",
     "node-cmd": "^1.1.1",
-    "node-gyp": "^6.0.1",
-    "node-pre-gyp": "^0.14.0",
-    "npm": "^6.10.0",
+    "node-gyp": "^4.0.0",
+    "node-pre-gyp": "^0.10.2",
     "passport": "^0.3.2",
     "passport-anonymous": "^1.0.1",
     "passport-jwt": "^4.0.0",
@@ -59,6 +58,7 @@
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",
+    "lint:fix": "eslint --fix --ignore-path .gitignore .",
     "apidoc": "apidoc -i api/V1/ -o apidoc/",
     "db-migrate": "sequelize db:migrate",
     "new-migration": "sequelize migration:generate --name"

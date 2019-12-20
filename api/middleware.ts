@@ -151,27 +151,28 @@ function setGroupName(checkFunc: ValidationChainBuilder): ValidationChain {
   });
 }
 
-function getDevice(checkFunc: ValidationChainBuilder): ValidationChain {
-  return checkFunc("devicename", "deviceID").custom(
-    async (deviceName, { req }) => {
-      const password = req.body["password"];
-      const groupName = req.body["groupname"];
-      const deviceID = req.body["deviceID"];
-      const model = await models.Device.findDevice(
-        deviceID,
-        deviceName,
-        groupName,
-        password
+function getDevice(
+  checkFunc: ValidationChainBuilder,
+  paramName: string = "devicename"
+) {
+  return checkFunc(paramName).custom(async (deviceName, { req }) => {
+    const password = req.body["password"];
+    const groupName = req.body["groupname"];
+    const deviceID = req.body["deviceID"];
+    const model = await models.Device.findDevice(
+      deviceID,
+      deviceName,
+      groupName,
+      password
+    );
+    if (model == null) {
+      throw new Error(
+        format("Could not find device %s in group %s.", deviceName, groupName)
       );
-      if (model == null) {
-        throw new Error(
-          format("Could not find device %s in group %s.", deviceName, groupName)
-        );
-      }
-      req.body["device"] = model;
-      return true;
     }
-  );
+    req.body["device"] = model;
+    return true;
+  });
 }
 
 function getDetailSnapshotById(
@@ -201,25 +202,46 @@ const checkNewPassword = function(field: string): ValidationChain {
   });
 };
 
+/**
+ * Extract and decode a JSON object from the request object.
+ * If the entry is a string, it will be converted to a proper object,
+ * if it is already an object, it will stay the same. Either is acceptable,
+ * however clients should migrate to sending objects directly if it's in the body.
+ * @param field The field in the JSON object to get
+ * @param checkFunc The express-validator function, typically `body` or `query`
+ */
 const parseJSON = function(
   field: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
   return checkFunc(field).custom((value, { req, location, path }) => {
-    try {
-      req[location][path] = JSON.parse(value);
-      return true;
-    } catch (e) {
-      throw new Error(format("Could not parse JSON field %s.", path));
+    if (typeof req[location][path] === "string") {
+      try {
+        req[location][path] = JSON.parse(value);
+      } catch (e) {
+        throw new Error(format("Could not parse JSON field %s.", path));
+      }
     }
+    return req[location][path] !== undefined;
   });
 };
 
+/**
+ * Extract and decode an array from the request object.
+ * If the entry is a string, it will be converted to a proper array,
+ * if it is already an array, it will stay the same. Either is acceptable,
+ * however clients should migrate to sending arrays directly if it's in the body.
+ * @param field The field in the JSON object to get
+ * @param checkFunc The express-validator function, typically `body` or `query`
+ */
 const parseArray = function(
   field: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
   return checkFunc(field).custom((value, { req, location, path }) => {
+    if (Array.isArray(value)) {
+      return true;
+    }
     let arr;
     try {
       arr = JSON.parse(value);
