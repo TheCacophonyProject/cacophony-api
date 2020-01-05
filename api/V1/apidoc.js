@@ -37,9 +37,13 @@
  * to match { "details": {"name": "sample"}}.  Note: Only some embeded keys will work.
  * @apiParam {Number} [offset] Zero-based page number. Use '0' to get the first page.  Each page has 'limit' number of records.
  * @apiParam {Number} [limit] Max number of records to be returned.
- * @apiParam {JSON} [order] Sorting order for records.
- * * For example, ["dateTime"] or [["dateTime", "ASC"]].
  */
+
+/**
+  * @apiDefine RecordingOrder
+  * @apiParam {JSON} [order] Sorting order for records.
+  * * For example, ["recordingDateTime"] or [["recordingDateTime", "ASC"]].
+*/
 
 /**
  * @apiDefine MoreQueryParams

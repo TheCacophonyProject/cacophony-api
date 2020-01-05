@@ -58,7 +58,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.ENUM,
       values: PERMISSIONS,
       defaultValue: PERMISSION_OFF
-    }
+    },
+    endUserAgreement: {
+      type: DataTypes.INTEGER,
+    },
   };
 
   const options = {
@@ -75,7 +78,7 @@ module.exports = function(sequelize, DataTypes) {
 
   User.publicFields = Object.freeze(["id", "username"]);
 
-  User.apiSettableFields = Object.freeze(["firstName", "lastName", "email"]);
+  User.apiSettableFields = Object.freeze(["firstName", "lastName", "email", "endUserAgreement"]);
 
   Object.defineProperty(User, "GLOBAL_PERMISSIONS", {
     value: PERMISSIONS,
@@ -195,7 +198,8 @@ module.exports = function(sequelize, DataTypes) {
           lastName: user.getDataValue("lastName"),
           email: user.getDataValue("email"),
           groups: groups,
-          globalPermission: user.getDataValue("globalPermission")
+          globalPermission: user.getDataValue("globalPermission"),
+          endUserAgreement: user.getDataValue("endUserAgreement"),
         });
       });
     });

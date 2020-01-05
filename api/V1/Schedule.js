@@ -130,23 +130,16 @@ async function getSchedule(device, response, user = null) {
     }
   }
 
-  // get all the users devices that are also associated with this same schedule
-  let devices = [];
-  if (user && device.ScheduleId) {
-    devices = await models.Device.onlyUsersDevicesMatching(user, {
-      ScheduleId: device.ScheduleId
-    });
-  } else {
-    devices = {
-      count: 1,
-      rows: [device]
-    };
-  }
-
-  return responseUtil.send(response, {
+  const resData = {
     statusCode: 200,
     messages: [],
-    devices: devices,
     schedule: schedule.schedule
-  });
+  };
+  // get all the users devices that are also associated with this same schedule
+  if (user && device.ScheduleId) {
+    resData.devices = await models.Device.onlyUsersDevicesMatching(user, {
+      ScheduleId: device.ScheduleId
+    });
+  }
+  return responseUtil.send(response, resData);
 }

@@ -30,7 +30,6 @@
     "node-cmd": "^1.1.1",
     "node-gyp": "^4.0.0",
     "node-pre-gyp": "^0.10.2",
-    "npm": "^6.13.1",
     "passport": "^0.3.2",
     "passport-anonymous": "^1.0.1",
     "passport-jwt": "^4.0.0",
@@ -53,6 +52,7 @@
   },
   "scripts": {
     "lint": "eslint --ignore-path .gitignore .",
+    "lint:fix": "eslint --fix --ignore-path .gitignore .",
     "apidoc": "apidoc -i api/V1/ -o apidoc/",
     "db-migrate": "sequelize db:migrate",
     "new-migration": "sequelize migration:generate --name"

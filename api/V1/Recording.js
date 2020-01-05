@@ -69,8 +69,8 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/device/:devicename/group/:groupname? Add a new recording on behalf of device
-   * @apiName PostRecordingOnBehalf
+   * @api {post} /api/v1/recordings/device/:devicename/group/:groupname Add a new recording on behalf of device using group
+   * @apiName PostRecordingOnBehalfUsingGroup
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
    * The user must have permission to view videos from the device or the call will return an
@@ -97,14 +97,14 @@ module.exports = (app, baseUrl) => {
   );
 
   /**
-   * @api {post} /api/v1/recordings/device/:devicename Add a new recording on behalf of device
+   * @api {post} /api/v1/recordings/device/:deviceID Add a new recording on behalf of device
    * @apiName PostRecordingOnBehalf
    * @apiGroup Recordings
    * @apiDescription Called by a user to upload raw thermal video on behalf of a device.
    * The user must have permission to view videos from the device or the call will return an
    * error.
    *
-   * @apiParam {String} [devicename] can be name or id of a device
+   * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse RecordingParams
@@ -115,10 +115,10 @@ module.exports = (app, baseUrl) => {
    */
 
   app.post(
-    apiUrl + "/device/:devicename",
+    apiUrl + "/device/:deviceID",
     [
       auth.authenticateUser,
-      middleware.getDevice(param),
+      middleware.getDevice(param, "deviceID"),
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
@@ -177,6 +177,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
    * @apiUse V1ResponseSuccessQuery
@@ -209,6 +210,7 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1UserAuthorizationHeader
    * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
    * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
    * @apiUse V1ResponseError
@@ -217,6 +219,10 @@ module.exports = (app, baseUrl) => {
     apiUrl + "/report",
     [auth.paramOrHeader].concat(queryValidators),
     middleware.requestWrapper(async (request, response) => {
+      // 10 minute timeout because the query can take a while to run
+      // when the result set is large.
+      // See also: ttps://trello.com/c/KYnPlpYq/287-query-for-csv-export-is-slow
+      request.setTimeout(10 * 60 * 1000);
       const rows = await recordingUtil.report(request);
       response.status(200).set({
         "Content-Type": "text/csv",
