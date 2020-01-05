@@ -184,13 +184,7 @@ async function report(request) {
       audioBaitVolume = audioEvent.volume;
     }
 
-    let cacophonyIndex = null;
-    if (r.additionalMetadata && r.additionalMetadata.analysis) {
-      cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
-      if (cacophonyIndex) {
-        cacophonyIndex = cacophonyIndex.map(val => val.index_percent);
-      }
-    }
+    const cacophonyIndex = getCacophonyIndex(r);
 
     out.push([
       r.id,
@@ -221,6 +215,17 @@ async function report(request) {
     ]);
   }
   return out;
+}
+
+function getCacophonyIndex(r) {
+  let cacophonyIndex = null;
+  if (r.additionalMetadata && r.additionalMetadata.analysis) {
+    cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
+    if (cacophonyIndex) {
+      cacophonyIndex = cacophonyIndex.map(val => val.index_percent).join(";");
+    }
+  }
+  return cacophonyIndex;
 }
 
 function findLatestEvent(events) {

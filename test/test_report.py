@@ -119,7 +119,7 @@ class ReportChecker:
         index = rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index")
         if index:
             percents = [str(period["index_percent"]) for period in index]
-            assert line["Cacophony Index"] == ",".join(percents)
+            assert line["Cacophony Index"] == ";".join(percents)
         else:
             assert line["Cacophony Index"] == ""
 
