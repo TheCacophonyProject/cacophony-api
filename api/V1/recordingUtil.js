@@ -292,6 +292,9 @@ async function get(request, type) {
     data.rawSize = await util.getS3ObjectFileSize(recording.rawFileKey);
   }
 
+  delete data.recording.rawFileKey;
+  delete data.recording.fileKey;
+
   return data;
 }
 
