@@ -90,6 +90,7 @@ async function report(request) {
     request.query.order
   ))
     .addColumn("comment")
+    .addColumn("additionalMetadata")
     .addAudioEvents();
 
   const result = await models.Recording.findAll(builder.get());
@@ -145,7 +146,8 @@ async function report(request) {
       "Audio Bait Time",
       "Mins Since Audio Bait",
       "Audio Bait Volume",
-      "URL"
+      "URL",
+      "Cacophony Index"
     ]
   ];
 
@@ -182,6 +184,8 @@ async function report(request) {
       audioBaitVolume = audioEvent.volume;
     }
 
+    const cacophonyIndex = getCacophonyIndex(r);
+
     out.push([
       r.id,
       r.type,
@@ -206,10 +210,22 @@ async function report(request) {
       audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
       audioBaitDelta,
       audioBaitVolume,
-      urljoin(recording_url_base, r.id.toString())
+      urljoin(recording_url_base, r.id.toString()),
+      cacophonyIndex
     ]);
   }
   return out;
+}
+
+function getCacophonyIndex(r) {
+  let cacophonyIndex = null;
+  if (r.additionalMetadata && r.additionalMetadata.analysis) {
+    cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
+    if (cacophonyIndex) {
+      cacophonyIndex = cacophonyIndex.map(val => val.index_percent).join(";");
+    }
+  }
+  return cacophonyIndex;
 }
 
 function findLatestEvent(events) {

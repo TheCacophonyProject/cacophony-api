@@ -177,6 +177,7 @@ module.exports = (app, baseUrl) => {
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
    * @apiUse V1ResponseSuccessQuery
@@ -209,6 +210,7 @@ module.exports = (app, baseUrl) => {
    * @apiUse V1UserAuthorizationHeader
    * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
    * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
    * @apiUse FilterOptions
    * @apiUse V1ResponseError

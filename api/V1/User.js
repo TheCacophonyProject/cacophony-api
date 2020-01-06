@@ -56,14 +56,16 @@ module.exports = function(app, baseUrl) {
           return models.User.freeEmail(value);
         }),
       middleware.checkNewPassword("password"),
-      body("endUserAgreement").isInt().optional(),
+      body("endUserAgreement")
+        .isInt()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const user = await models.User.create({
         username: request.body.username,
         password: request.body.password,
         email: request.body.email,
-        endUserAgreement: request.body.endUserAgreement,
+        endUserAgreement: request.body.endUserAgreement
       });
 
       const userData = await user.getDataValues();
@@ -108,7 +110,9 @@ module.exports = function(app, baseUrl) {
         })
         .optional(),
       middleware.checkNewPassword("password").optional(),
-      body("endUserAgreement").isInt().optional(),
+      body("endUserAgreement")
+        .isInt()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const validData = matchedData(request);
@@ -166,7 +170,7 @@ module.exports = function(app, baseUrl) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        euaVersion: config.euaVersion,
+        euaVersion: config.euaVersion
       });
     })
   );

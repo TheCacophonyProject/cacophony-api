@@ -38,6 +38,8 @@ class TestReport:
         # Add a recording for device1
         rec2 = device1.upload_recording()
 
+        rec3 = device1.upload_audio_recording()
+
         # Add recording tag to 1st recording.
         rec0.is_tagged_as(what="cool").by(user)
 
@@ -52,6 +54,7 @@ class TestReport:
         report.check_line(rec0, device0, exp_audio_bait_name, exp_audio_bait_time)
         report.check_line(rec1, device0, exp_audio_bait_name, exp_audio_bait_time)
         report.check_line(rec2, device1)
+        report.check_line(rec3, device1)
 
     def test_report_jwt_arg(self, helper):
         user = helper.admin_user()
@@ -113,6 +116,12 @@ class ReportChecker:
             assert line["Audio Bait Volume"] == ""
 
         assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
+        index = rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index")
+        if index:
+            percents = [str(period["index_percent"]) for period in index]
+            assert line["Cacophony Index"] == ";".join(percents)
+        else:
+            assert line["Cacophony Index"] == ""
 
 
 def format_tags(items):
