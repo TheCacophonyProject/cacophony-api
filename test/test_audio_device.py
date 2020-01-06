@@ -15,7 +15,7 @@ class TestAudioDevice:
         user.can_download_correct_recording(recording)
 
     def test_can_only_set_user_settable_fields(self, helper):
-        UNSETTABLE_FIELD = "fileKey"
+        UNSETTABLE_FIELD = "GroupId"
         UNSETTABLE_INPUT_VALUE = "test_value"
 
         description = "If a new device 'Listener' signs up"

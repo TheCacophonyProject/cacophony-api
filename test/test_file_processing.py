@@ -254,7 +254,7 @@ class TestFileProcessing:
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(admin, recording, processingState="FINISHED", fileKey="some_key")
+        check_recording(admin, recording, processingState="FINISHED")
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         admin.can_see_track(track)
