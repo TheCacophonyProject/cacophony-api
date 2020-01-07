@@ -11,6 +11,7 @@ class TestFileProcessing:
         if recording is not None:
             assert recording["processingState"] == "getMetadata"
             assert recording["processingStartTime"] is not None
+            assert recording["rawFileKey"] is not None
 
         return recording
 
@@ -254,7 +255,10 @@ class TestFileProcessing:
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(admin, recording, processingState="FINISHED")
+        query_result = admin.query_recordings(
+            where={"id": recording.id_, "fileKey": "some_key", "processingState": "FINISHED"}
+        )
+        assert len(query_result) == 1
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         admin.can_see_track(track)

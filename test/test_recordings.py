@@ -30,5 +30,6 @@ class TestRecordings:
         print("And then fetches it")
         recording_response = bob.get_recording(recording)
 
-        print("  The recording response should not contain the rawFileKey")
+        print("  The recording response should not contain the fileKeys")
         assert "rawFileKey" not in recording_response
+        assert "fileKey" not in recording_response
