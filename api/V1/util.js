@@ -128,5 +128,25 @@ function getS3Object(fileKey) {
   return s3.headObject(params).promise();
 }
 
+async function getS3ObjectFileSize(fileKey) {
+  try {
+    const s3Ojb = await getS3Object(fileKey);
+    return s3Ojb.ContentLength;
+  } catch (err) {
+    log.warn(`Error retrieving S3 Object for with fileKey: ${fileKey}. Error was: ${err.message}`);
+  }
+}
+
+async function deleteS3Object(fileKey) {
+  const s3 = modelsUtil.openS3();
+  const params = {
+    Bucket: config.s3.bucket,
+    Key: fileKey
+  };
+  return s3.deleteObject(params).promise();
+}
+
 exports.getS3Object = getS3Object;
+exports.getS3ObjectFileSize = getS3ObjectFileSize;
+exports.deleteS3Object = deleteS3Object;
 exports.multipartUpload = multipartUpload;

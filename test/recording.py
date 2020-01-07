@@ -19,6 +19,9 @@ class Recording:
     def __setitem__(self, name, value):
         self.props[name] = value
 
+    def __iter__(self):
+        return iter(self.props)
+
     def is_tagged_as(self, **data):
         return TagPromise(self, data)
 

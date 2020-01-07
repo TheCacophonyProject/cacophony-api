@@ -50,6 +50,9 @@ class TestUser:
     def get_recording(self, recording, params=None):
         return self._userapi.get_recording(recording.id_, params)
 
+    def get_recording_response(self, recording, params=None):
+        return self._userapi.get_recording_response(recording.id_, params)
+
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 
@@ -159,10 +162,8 @@ class TestUser:
         del recv_props["Tags"]
         del recv_props["GroupId"]
         del recv_props["location"]
-        del recv_props["rawFileKey"]
         if "rawMimeType" not in props:
             del recv_props["rawMimeType"]
-        del recv_props["fileKey"]
         del recv_props["fileMimeType"]
         if "type" not in props:
             recv_props.pop("type", None)
