@@ -11,7 +11,8 @@ class TestFileProcessing:
         if recording is not None:
             assert recording["processingState"] == "getMetadata"
             assert recording["processingStartTime"] is not None
-            assert recording["rawFileKey"] is not None
+            assert "rawFileKey" in recording
+            assert "fileKey" in recording
 
         return recording
 
