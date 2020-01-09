@@ -19,7 +19,6 @@ RUN echo "host all all ::/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
-RUN npm install -g nodemon
 
 # https://minio.io/downloads.html#download-server-linux-x64
 RUN curl --location --fail --silent --show-error --remote-name https://dl.minio.io/server/minio/release/linux-amd64/minio
