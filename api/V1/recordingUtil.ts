@@ -120,6 +120,7 @@ async function report(request) {
     )
   )
     .addColumn("comment")
+    .addColumn("additionalMetadata")
     .addAudioEvents();
 
   // NOTE: Not even going to try to attempt to add typing info to this bundle
@@ -180,7 +181,8 @@ async function report(request) {
       "Audio Bait Time",
       "Mins Since Audio Bait",
       "Audio Bait Volume",
-      "URL"
+      "URL",
+      "Cacophony Index"
     ]
   ];
 
@@ -217,6 +219,8 @@ async function report(request) {
       audioBaitVolume = audioEvent.volume;
     }
 
+    const cacophonyIndex = getCacophonyIndex(r);
+
     out.push([
       r.id,
       r.type,
@@ -241,10 +245,22 @@ async function report(request) {
       audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
       audioBaitDelta,
       audioBaitVolume,
-      urljoin(recording_url_base, r.id.toString())
+      urljoin(recording_url_base, r.id.toString()),
+      cacophonyIndex
     ]);
   }
   return out;
+}
+
+function getCacophonyIndex(r) {
+  let cacophonyIndex = null;
+  if (r.additionalMetadata && r.additionalMetadata.analysis) {
+    cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
+    if (cacophonyIndex) {
+      cacophonyIndex = cacophonyIndex.map(val => val.index_percent).join(";");
+    }
+  }
+  return cacophonyIndex;
 }
 
 function findLatestEvent(events: Event[]): Event {
@@ -281,85 +297,65 @@ async function get(request, type?: RecordingType) {
     throw new ClientError("No file found with given datapoint.");
   }
 
-  const downloadFileData = {
-    _type: "fileDownload",
-    key: recording.fileKey,
-    filename: recording.getFileName(),
-    mimeType: recording.fileMimeType
+  const data: any = {
+    recording: handleLegacyTagFieldsForGetOnRecording(recording)
   };
 
-  const downloadRawData = {
-    _type: "fileDownload",
-    key: recording.rawFileKey,
-    filename: recording.getRawFileName(),
-    mimeType: recording.rawMimeType
-  };
-
-  let rawSize = null;
-  if (recording.rawFileKey) {
-    await util
-      .getS3Object(recording.rawFileKey)
-      .then(rawS3Data => {
-        rawSize = rawS3Data.ContentLength;
-      })
-      .catch(err => {
-        log.warn(
-          "Error retrieving S3 Object for recording",
-          err.message,
-          recording.rawFileKey
-        );
-      });
-  }
-
-  let cookedSize = null;
   if (recording.fileKey) {
-    await util
-      .getS3Object(recording.fileKey)
-      .then(s3Data => {
-        cookedSize = s3Data.ContentLength;
-      })
-      .catch(err => {
-        log.warn(
-          "Error retrieving S3 Object for recording",
-          err.message,
-          recording.fileKey
-        );
-      });
+    data.cookedJWT = jsonwebtoken.sign({
+      _type: "fileDownload",
+      key: recording.fileKey,
+      filename: recording.getFileName(),
+      mimeType: recording.fileMimeType
+    },
+    config.server.passportSecret,
+    { expiresIn: 60 * 10 }
+    );
+    data.cookedSize = await util.getS3ObjectFileSize(recording.fileKey);
   }
 
-  delete recording.rawFileKey;
+  if (recording.rawFileKey) {
+    data.rawJWT = jsonwebtoken.sign({
+      _type: "fileDownload",
+      key: recording.rawFileKey,
+      filename: recording.getRawFileName(),
+      mimeType: recording.rawMimeType
+    },
+    config.server.passportSecret,
+    { expiresIn: 60 * 10 }
+    );
+    data.rawSize = await util.getS3ObjectFileSize(recording.rawFileKey);
+  }
 
-  return {
-    recording: handleLegacyTagFieldsForGetOnRecording(recording),
-    cookedSize: cookedSize,
-    cookedJWT: jsonwebtoken.sign(
-      downloadFileData,
-      config.server.passportSecret,
-      { expiresIn: 60 * 10 }
-    ),
-    rawSize: rawSize,
-    rawJWT: jsonwebtoken.sign(downloadRawData, config.server.passportSecret, {
-      expiresIn: 60 * 10
-    })
-  };
+  delete data.recording.rawFileKey;
+  delete data.recording.fileKey;
+
+  return data;
 }
 
 async function delete_(request, response) {
-  const deleted = await models.Recording.deleteOne(
+  const deleted: Recording = await models.Recording.deleteOne(
     request.user,
     request.params.id
   );
-  if (deleted) {
-    responseUtil.send(response, {
-      statusCode: 200,
-      messages: ["Deleted recording."]
-    });
-  } else {
-    responseUtil.send(response, {
+  if (deleted === null) {
+    return responseUtil.send(response, {
       statusCode: 400,
       messages: ["Failed to delete recording."]
     });
   }
+  if (deleted.rawFileKey) {
+    util.deleteS3Object(deleted.rawFileKey)
+      .catch(err => { log.warn(err); });
+  }
+  if (deleted.fileKey) {
+    util.deleteS3Object(deleted.fileKey)
+      .catch(err => { log.warn(err); });
+  }
+  responseUtil.send(response, {
+    statusCode: 200,
+    messages: ["Deleted recording."]
+  });
 }
 
 function guessRawMimeType(type, filename) {

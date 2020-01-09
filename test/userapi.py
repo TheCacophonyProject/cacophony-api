@@ -55,8 +55,10 @@ class UserAPI(APIBase):
         filterOptions=None,
         deviceIds=None,
         return_json=False,
+        where=None,
     ):
-        where = defaultdict(dict)
+        if where is None:
+            where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
         if startDate is not None:
             where["recordingDateTime"]["$gte"] = startDate.isoformat()

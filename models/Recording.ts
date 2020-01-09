@@ -363,14 +363,15 @@ export default function(
 
   /**
    * Deletes a single recording if the user has permission to do so.
+   * @returns {Promise<Recording|null>} Returns the recording object if deleted, otherwise null.
    */
   Recording.deleteOne = async function(user: User, id: RecordingId) {
     const recording = await Recording.get(user, id, RecordingPermission.DELETE);
     if (!recording) {
-      return false;
+      return null;
     }
     await recording.destroy();
-    return true;
+    return recording;
   };
 
   /**

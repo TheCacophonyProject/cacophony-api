@@ -25,7 +25,6 @@ import config from "../../config";
 import jsonwebtoken from "jsonwebtoken";
 import { param, query } from "express-validator/check";
 import { Application } from "express";
-import { S3 } from "aws-sdk";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/files`;
@@ -135,15 +134,11 @@ export default (app: Application, baseUrl: string) => {
         key: file.fileKey
       };
 
-      const s3Data = await util.getS3Object(file.fileKey).catch(err => {
-        return responseUtil.serverError(response, err);
-      });
-
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
         file: file,
-        fileSize: (s3Data as S3.Types.HeadObjectOutput).ContentLength,
+        fileSize: await util.getS3ObjectFileSize(file.fileKey),
         jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
           expiresIn: 60 * 10
         })

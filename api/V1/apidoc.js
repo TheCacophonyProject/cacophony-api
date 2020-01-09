@@ -40,10 +40,10 @@
  */
 
 /**
-  * @apiDefine RecordingOrder
-  * @apiParam {JSON} [order] Sorting order for records.
-  * * For example, ["recordingDateTime"] or [["recordingDateTime", "ASC"]].
-*/
+ * @apiDefine RecordingOrder
+ * @apiParam {JSON} [order] Sorting order for records.
+ * * For example, ["recordingDateTime"] or [["recordingDateTime", "ASC"]].
+ */
 
 /**
  * @apiDefine MoreQueryParams
