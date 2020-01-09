@@ -407,7 +407,9 @@ class UserAPI(APIBase):
         )
         return self._check_response(response)["messages"]
 
-    def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data, replace=False, tag_jwt=None):
+    def add_track_tag(
+        self, recording_id, track_id, what, confidence, automatic, data, replace=False, tag_jwt=None
+    ):
         url = "/api/v1/recordings/{}/tracks/{}/"
         if replace:
             url += "replaceTag"
@@ -432,18 +434,12 @@ class UserAPI(APIBase):
     def delete_track_tag(self, recording_id, track_id, track_tag_id, tag_jwt=None):
         if tag_jwt is not None:
             url = "/api/v1/recordings/{}/tracks/{}/tags/{}?tagJWT={}".format(
-                recording_id,
-                track_id,
-                track_tag_id,
-                tag_jwt
+                recording_id, track_id, track_tag_id, tag_jwt
             )
         else:
             url = "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id)
 
-        response = requests.delete(
-            urljoin(self._baseurl, url),
-            headers=self._auth_header,
-        )
+        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header,)
         return self._check_response(response)["messages"]
 
 

@@ -431,7 +431,7 @@ class TestUser:
             confidence=0.7,
             automatic=False,
             data={},
-            tag_jwt=tag_jwt
+            tag_jwt=tag_jwt,
         )
 
     def delete_track_tag_as_unauthorised_user(self, recording_id, track_id, track_tag_id, tag_jwt):
