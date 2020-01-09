@@ -82,13 +82,11 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("order", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      // FIXME(jon): This is a bug, but what will fixing it do?
-      //  The second, check against null can never succeed.
       if (request.query.offset == null) {
         request.query.offset = "0";
       }
 
-      if (request.query.offset == null) {
+      if (request.query.limit == null) {
         request.query.limit = "100";
       }
 

@@ -513,6 +513,10 @@ async function reprocess(request, response: Response) {
   responseUtil.send(response, responseInfo);
 }
 
+async function updateMetadata(recording: any, metadata: any) {
+  throw new Error("recordingUtil.updateMetadata is unimplemented!");
+}
+
 export default {
   makeUploadHandler,
   query,
@@ -521,5 +525,6 @@ export default {
   delete_,
   addTag,
   reprocess,
-  reprocessAll
+  reprocessAll,
+  updateMetadata
 };

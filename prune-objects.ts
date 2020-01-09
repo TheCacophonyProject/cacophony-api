@@ -23,7 +23,6 @@ async function main() {
     ...config.loadConfig(args.config)
   };
 
-
   if (!args.delete) {
     console.log("NOTE: no objects will be removed without --delete");
   }
@@ -31,7 +30,10 @@ async function main() {
   const pgClient = await pgConnect();
   const s3 = modelsUtil.openS3();
 
-  const bucketKeys = await loadAllBucketKeys(s3, keyTypes.map(x => x.prefix));
+  const bucketKeys = await loadAllBucketKeys(
+    s3,
+    keyTypes.map(x => x.prefix)
+  );
   console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
   const dbKeys = await loadAllDBKeys(pgClient, keyTypes);
@@ -55,7 +57,7 @@ async function loadAllBucketKeys(s3, prefixes) {
 }
 
 async function loadBucketKeys(s3, bucket, prefix) {
-  const params = {
+  const params: any = {
     Bucket: bucket,
     Prefix: prefix
   };
@@ -110,11 +112,11 @@ async function loadDBKeys(client, table, column) {
 }
 
 async function collectKeys(promises) {
-  const results = await Promise.all(promises);
+  const results: Array<string[]> = await Promise.all(promises);
 
   const allKeys = new Set();
-  for (const i in results) {
-    for (const key of results[i]) {
+  for (const result of results) {
+    for (const key of result) {
       allKeys.add(key);
     }
   }
@@ -122,7 +124,7 @@ async function collectKeys(promises) {
 }
 
 async function deleteObjects(s3, bucket, keys) {
-  const params = {
+  const params: any = {
     Bucket: bucket
   };
 

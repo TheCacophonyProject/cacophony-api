@@ -29,7 +29,6 @@ export default function(app: Application) {
     "apidoc.js"
   ];
   // Filter out files that are not added to app directly, and filter out typescript versions of files.
-  // TODO(jon): This could be a great place to transpile any typescript files?
   const apiRoutes = fs
     .readdirSync(__dirname)
     .filter(file => file.endsWith(".js") && !excludedFiles.includes(file));

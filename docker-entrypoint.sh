@@ -36,4 +36,4 @@ sudo -i -u postgres psql cacophonytest -f /app/test/db-seed.sql
 
 echo "alias psqltest='sudo -i -u postgres psql cacophonytest'" > ~/.bashrc
 
-$NODE_BIN Server.js --config=config/app_test_default.js
+./node_modules/.bin/tsc-watch --onSuccess "node Server.js --config=config/app_test_default.js"

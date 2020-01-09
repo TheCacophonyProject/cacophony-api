@@ -170,8 +170,7 @@ export default function(app: Application) {
     `${apiUrl}/metadata`,
     [middleware.getRecordingById(body), middleware.parseJSON("metadata", body)],
     middleware.requestWrapper(async request => {
-      // FIXME(jon): This function does not exist!
-      recordingUtil.updateMetadata(
+      await recordingUtil.updateMetadata(
         request.body.recording,
         request.body.metadata
       );

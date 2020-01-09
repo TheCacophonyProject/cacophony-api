@@ -113,17 +113,9 @@ if args.isolate:
             "ISOLATE=1",  # copy code to a separate location & run "npm install"
             "--volume",
             "/app/node_modules",  # don't pass node_modules directory through
-            "-e",
-            "NODE_BIN=node",  # use node to run the server
         ]
     )
-else:
-    run_cmd.extend(
-        [
-            "-e",
-            "NODE_BIN=nodemon",  # use nodemon to restart the server when the code changes
-        ]
-    )
+
 run_cmd.append(IMAGE_NAME)
 subprocess.check_call(add_sudo(run_cmd))
 
