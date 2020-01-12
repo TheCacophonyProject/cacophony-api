@@ -91,7 +91,6 @@ run_cmd = [
     "docker",
     "run",
     "-td",
-    "--rm",
     "--name",
     CONTAINER_NAME,
     "-p",
