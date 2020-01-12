@@ -30,12 +30,14 @@ export const database = {
   host: "localhost",
   dialect: "postgres"
 };
+
+// This is needed because Sequelize looks for development by default
+// when using db:migrate
+export const development = database;
+
 export default {
   server,
   s3,
   fileProcessing,
   database,
-  // This is needed because Sequelize looks for development by default
-// when using db:migrate
-  development: database,
 }
