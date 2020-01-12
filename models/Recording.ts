@@ -175,7 +175,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
   queryBuilder: RecordingQueryBuilder;
   updateOne: (user: User, id: RecordingId, updates: any) => Promise<boolean>;
   makeFilterOptions: (user: User, options?: { latLongPrec?: number }) => any;
-  deleteOne: (user: User, id: RecordingId) => Promise<boolean>;
+  deleteOne: (user: User, id: RecordingId) => Promise<Recording|null>;
   getRecordingWithUntaggedTracks: (
     biasDeviceId?: DeviceId
   ) => Promise<TagLimitedRecording>;
