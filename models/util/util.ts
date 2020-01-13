@@ -24,6 +24,7 @@ import config from "../../config";
 import Sequelize from "sequelize";
 import { User } from "../User";
 import { ModelStaticCommon } from "../index";
+import { ClientError } from "../../api/customErrors";
 
 const Op = Sequelize.Op;
 interface QueryResult<T> {
@@ -299,7 +300,7 @@ export function deleteModelInstance(id, user) {
       .then(mi => {
         modelInstance = mi;
         if (modelInstance === null) {
-          throw { badRequest: "No file found" };
+          throw new ClientError("No file found");
         }
         return modelInstance.fileKey;
       })
