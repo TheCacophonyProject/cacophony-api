@@ -23,9 +23,14 @@ build_dir=${root}/dist/build
 rm -rf ${build_dir}
 mkdir -p ${build_dir}
 
-echo "Extracting source tree..."
-git archive HEAD | tar -x -C ${build_dir}
-cp _release/* ${build_dir}/_release  # makes things easier while developing release process
+echo "Installing dependencies for build..."
+rm -rf node_modules
+npm install
+
+echo "Compiling TypeScript..."
+./node_modules/.bin/tsc --outDir ${build_dir}
+cp -a package.json package-lock.json README.md LICENSE _release test migrations ${build_dir}
+cp -a config/*.js ${build_dir}/config
 
 cd ${build_dir}
 
