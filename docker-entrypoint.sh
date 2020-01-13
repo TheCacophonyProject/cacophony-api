@@ -29,6 +29,8 @@ else
     cd /app
 fi
 
+echo "---- Compiling TypeScript ----"
+node_modules/.bin/tsc
 
 echo "---- Migrating database ----"
 node_modules/.bin/sequelize db:migrate --config config/app_test_default.js
