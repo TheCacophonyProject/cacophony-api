@@ -6,7 +6,6 @@ import process from "process";
 import http from "http";
 import config from "./config";
 import models from "./models";
-
 import log from "./logging";
 import customErrors from "./api/customErrors";
 import modelsUtil from "./models/util/util";
@@ -14,6 +13,8 @@ import api from "./api/V1";
 import fileProcessingApi from "./api/fileProcessing";
 
 log.info("Starting Full Noise.");
+config.loadConfigFromArgs(true);
+
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false, limit: "2Mb" }));
 app.use(bodyParser.json());

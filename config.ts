@@ -8,16 +8,26 @@ const server = {
 
 const timeZone = "Pacific/Auckland";
 
-let configPath = "./config/app.js";
-process.argv.forEach((val, index) => {
-  if (index > 1) {
-    if (val.toLowerCase().startsWith("--config=")) {
+function loadConfigFromArgs(strict: boolean = false) {
+  return loadConfig(getConfigPathFromArgs(strict));
+}
+
+function getConfigPathFromArgs(strict: boolean = false): string {
+  let configPath = "./config/app.js";
+
+  for (let i = 2; i < process.argv.length; i++) {
+    const val = process.argv[i];
+    if (val.startsWith("--config=")) {
       configPath = val.split("=")[1];
-    } else {
+    } else if (val == "--config") {
+      i++;
+      configPath = process.argv[i];
+    } else if (strict) {
       throw `Cannot parse '${val}'.  The only accepted parameter is --config=<path-to-config-file> `;
     }
   }
-});
+  return configPath;
+}
 
 function loadConfig(configPath) {
   configPath = path.resolve(configPath);
@@ -43,9 +53,11 @@ function checkDatabaseConfigAvailable(config) {
 }
 
 export default {
+  getConfigPathFromArgs,
+  loadConfigFromArgs,
+  loadConfig,
   timeZone,
   server,
-  loadConfig,
   euaVersion: 3,
-  ...loadConfig(configPath)
+  ...loadConfigFromArgs()
 };
