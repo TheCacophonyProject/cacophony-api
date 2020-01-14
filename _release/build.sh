@@ -23,19 +23,28 @@ build_dir=${root}/dist/build
 rm -rf ${build_dir}
 mkdir -p ${build_dir}
 
+echo "Extracting source tree..."
+git archive HEAD | tar -x -C ${build_dir}
+cp _release/* ${build_dir}/_release  # makes things easier while developing release process
+
+cd ${build_dir}
+
 echo "Installing dependencies for build..."
 rm -rf node_modules
 npm install
 
 echo "Compiling TypeScript..."
-./node_modules/.bin/tsc --outDir ${build_dir}
-cp -a package.json package-lock.json README.md LICENSE _release test migrations ${build_dir}
-cp -a config/*.js ${build_dir}/config
+./node_modules/.bin/tsc
 
-cd ${build_dir}
+echo "Removing external dependencies..."
+rm -rf node_modules
+
+echo "Removing TypeScript files..."
+find -name '*.ts' -print0 | xargs -0 rm
 
 # cron doesn't like it when cron.d files are writeable by anyone other than the
 # owner.
+echo "Fixing perms..."
 chmod 644 _release/{cacophony-api-prune-objects,cacophony-api-remove-dups}
 
 echo "Setting versions..."
