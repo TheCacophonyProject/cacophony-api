@@ -139,7 +139,9 @@ async function getS3ObjectFileSize(fileKey) {
     const s3Ojb = await getS3Object(fileKey);
     return s3Ojb.ContentLength;
   } catch (err) {
-    log.warn(`Error retrieving S3 Object for with fileKey: ${fileKey}. Error was: ${err.message}`);
+    log.warn(
+      `Error retrieving S3 Object for with fileKey: ${fileKey}. Error was: ${err.message}`
+    );
   }
 }
 

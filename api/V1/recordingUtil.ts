@@ -302,27 +302,29 @@ async function get(request, type?: RecordingType) {
   };
 
   if (recording.fileKey) {
-    data.cookedJWT = jsonwebtoken.sign({
-      _type: "fileDownload",
-      key: recording.fileKey,
-      filename: recording.getFileName(),
-      mimeType: recording.fileMimeType
-    },
-    config.server.passportSecret,
-    { expiresIn: 60 * 10 }
+    data.cookedJWT = jsonwebtoken.sign(
+      {
+        _type: "fileDownload",
+        key: recording.fileKey,
+        filename: recording.getFileName(),
+        mimeType: recording.fileMimeType
+      },
+      config.server.passportSecret,
+      { expiresIn: 60 * 10 }
     );
     data.cookedSize = await util.getS3ObjectFileSize(recording.fileKey);
   }
 
   if (recording.rawFileKey) {
-    data.rawJWT = jsonwebtoken.sign({
-      _type: "fileDownload",
-      key: recording.rawFileKey,
-      filename: recording.getRawFileName(),
-      mimeType: recording.rawMimeType
-    },
-    config.server.passportSecret,
-    { expiresIn: 60 * 10 }
+    data.rawJWT = jsonwebtoken.sign(
+      {
+        _type: "fileDownload",
+        key: recording.rawFileKey,
+        filename: recording.getRawFileName(),
+        mimeType: recording.rawMimeType
+      },
+      config.server.passportSecret,
+      { expiresIn: 60 * 10 }
     );
     data.rawSize = await util.getS3ObjectFileSize(recording.rawFileKey);
   }
@@ -345,12 +347,14 @@ async function delete_(request, response) {
     });
   }
   if (deleted.rawFileKey) {
-    util.deleteS3Object(deleted.rawFileKey)
-      .catch(err => { log.warn(err); });
+    util.deleteS3Object(deleted.rawFileKey).catch(err => {
+      log.warn(err);
+    });
   }
   if (deleted.fileKey) {
-    util.deleteS3Object(deleted.fileKey)
-      .catch(err => { log.warn(err); });
+    util.deleteS3Object(deleted.fileKey).catch(err => {
+      log.warn(err);
+    });
   }
   responseUtil.send(response, {
     statusCode: 200,
