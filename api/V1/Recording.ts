@@ -302,7 +302,6 @@ export default (app: Application, baseUrl: string) => {
             request.query.deviceId
           );
         }
-        console.dir(result, {depth: null});
         responseUtil.send(response, {
           statusCode: 200,
           messages: ["Completed query."],

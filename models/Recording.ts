@@ -322,7 +322,6 @@ export default function(
       filterOptions?: { latLongPrec?: number };
     } = {}
   ) {
-    //console.dir(user, { depth: null });
     if (!RecordingPermissions.has(permission)) {
       throw "valid permission must be specified (e.g. RecordingPermission.VIEW)";
     }
