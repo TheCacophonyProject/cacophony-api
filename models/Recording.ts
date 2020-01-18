@@ -322,7 +322,6 @@ export default function(
       filterOptions?: { latLongPrec?: number };
     } = {}
   ) {
-    //console.dir(user, { depth: null });
     if (!RecordingPermissions.has(permission)) {
       throw "valid permission must be specified (e.g. RecordingPermission.VIEW)";
     }
@@ -441,35 +440,40 @@ export default function(
     // If a device id is supplied, try to bias the returned recording to that device.
     // If the requested device has no more recordings, pick another random recording.
     const [result, extra] = await sequelize.query(`
-select 
-   g."RId" as "RecordingId", 
-   g."DeviceId", 
-   g."TrackData", 
-   g."TId" as "TrackId",
-   g."TaggedBy",
-   g."fileKey",
-   g."fileMimeType",
-   g."recordingDateTime"
-from (select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
-    select id as "RId", "DeviceId", "fileKey", "fileMimeType", "recordingDateTime" from "Recordings" inner join
-(
-  (select distinct("RecordingId") from "Tracks" inner join
-    (select tId as "TrackId" from
-     (
-       -- TrackTags for Tracks that have *only* TrackTags that were automatically set.
-       (select distinct("TrackId") as tId from "TrackTags" where automatic is true) as a
-           left outer join
+select
+  g."RId" as "RecordingId",
+  g."DeviceId",
+  g."TrackData",
+  g."TId" as "TrackId",
+  g."TaggedBy",
+  g."fileKey",
+  g."fileMimeType",
+  g."recordingDateTime"
+from (
+  select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
+    select id as "RId", "DeviceId", "fileKey", "fileMimeType", "recordingDateTime" from "Recordings" inner join (
+      (select distinct("RecordingId") from "Tracks" inner join
+        (select tId as "TrackId" from
+          (
+           -- TrackTags for Tracks that have *only* TrackTags that were automatically set.
+           (select distinct("TrackId") as tId from "TrackTags" where automatic is true) as a
+             left outer join
                (select distinct("TrackId") from "TrackTags" where automatic is false) as b
-           on a.tId = b."TrackId"
-     ) as c where c."TrackId" is null
-    ) as d on d."TrackId" = "Tracks".id)
-    union all
-    -- All the recordings that have Tracks but no TrackTags 
-  (select "RecordingId" from "Tracks" left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" where "TrackTags".id is null)
-) as e on e."RecordingId" = "Recordings".id ${
-      biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
-    }  order by RANDOM() limit 1)
-as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id) as g;`);
+             on a.tId = b."TrackId"
+          ) as c where c."TrackId" is null
+        ) as d on d."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null)
+      union all
+      -- All the recordings that have Tracks but no TrackTags
+      (select "RecordingId" from "Tracks" 
+        left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" 
+        where "TrackTags".id is null and "Tracks"."archivedAt" is null
+      )
+    ) as e on e."RecordingId" = "Recordings".id ${
+        biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
+    } order by RANDOM() limit 1)
+  as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" and "Tracks"."archivedAt" is null 
+  left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null
+) as g;`);
 
     // NOTE: We bundle everything we need into this one specialised request.
     const flattenedResult = result.reduce(

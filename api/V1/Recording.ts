@@ -797,7 +797,6 @@ export default (app: Application, baseUrl: string) => {
   async function loadTrackForTagJWT(request, response): Promise<Track> {
     let jwtDecoded;
     const tagJWT = request.body.tagJWT || request.query.tagJWT;
-    console.log(`!!! ${jwt}`);
     try {
       jwtDecoded = jwt.verify(tagJWT, config.server.passportSecret);
       if (
