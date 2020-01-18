@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // A real test configuration
 // @todo: consider reading from env vars
 exports.server = {
