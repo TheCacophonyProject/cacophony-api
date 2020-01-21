@@ -141,6 +141,10 @@ export default function(sequelize, DataTypes): GroupStatic {
       include: [
         {
           model: models.User,
+          // NOTE(jon): This adds GroupUsers to the group, which is currently required
+          // by the groups admin view to add new users to groups.  As per
+          // https://github.com/TheCacophonyProject/cacophony-api/issues/279
+          // we'd like to split this out into separate requests probably.
           attributes: ['id', 'username'],
           where: userWhere
         },
