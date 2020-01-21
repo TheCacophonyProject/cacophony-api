@@ -141,7 +141,7 @@ export default function(sequelize, DataTypes): GroupStatic {
       include: [
         {
           model: models.User,
-          attributes: [],
+          attributes: ['id', 'username'],
           where: userWhere
         },
         {
