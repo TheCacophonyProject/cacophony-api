@@ -145,7 +145,7 @@ export default function(sequelize, DataTypes): GroupStatic {
           // by the groups admin view to add new users to groups.  As per
           // https://github.com/TheCacophonyProject/cacophony-api/issues/279
           // we'd like to split this out into separate requests probably.
-          attributes: ['id', 'username'],
+          attributes: ["id", "username"],
           where: userWhere
         },
         {
@@ -157,7 +157,7 @@ export default function(sequelize, DataTypes): GroupStatic {
           //  past 24 hours.
           // TODO(jon): Remove this once we have updated the front-end to use
           //  QueryRecordingsCount for the devices home page.
-          attributes: ["id"]
+          attributes: ["id", "devicename"]
         }
       ]
     }).then(groups => {
