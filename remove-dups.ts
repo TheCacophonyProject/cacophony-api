@@ -24,6 +24,9 @@ async function main() {
   // recordingDateTime). The recording with the lowest id will be
   // kept. Recordings with an updatedAt timestamp within the last 30
   // mins are ignored.
+  //
+  // Recordings with a NULL recordingDateTime are also ignored as
+  // these are typically recent uploads that are awaiting processing.
   await client.query("BEGIN");
   const res = await client.query(
     `DELETE FROM "Recordings"
@@ -33,16 +36,15 @@ async function main() {
                 ROW_NUMBER() OVER (PARTITION BY "DeviceId", "recordingDateTime" ORDER BY id) as rownum
          FROM "Recordings"
          WHERE "updatedAt" < now() - INTERVAL '30 minutes'
+         AND "recordingDateTime" IS NOT NULL
        ) d
        WHERE d.rownum > 1
-     ) RETURNING id, "DeviceId", "recordingDateTime"
+     ) RETURNING id, "DeviceId", "type", "recordingDateTime"
     `
   );
   for (const row of res.rows) {
-    const ts = row.recordingDateTime
-      ? row.recordingDateTime.toISOString()
-      : "null";
-    console.log(`deleted ${row.id}: device=${row.DeviceId} ts=${ts}`);
+    const ts = row.recordingDateTime!.toISOString()
+    console.log(`deleted ${row.id}: device=${row.DeviceId} type=${row.type} ts=${ts}`);
   }
   if (args.delete) {
     await client.query("COMMIT");
