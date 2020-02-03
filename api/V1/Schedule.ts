@@ -142,6 +142,10 @@ async function getSchedule(device: any, response: Response, user = null) {
     resData.devices = await models.Device.onlyUsersDevicesMatching(user, {
       ScheduleId: device.ScheduleId
     });
+  } else if (user) {
+    resData.devices = await models.Device.onlyUsersDevicesMatching(user, {
+      id: device.id
+    });
   }
   return responseUtil.send(response, resData);
 }
