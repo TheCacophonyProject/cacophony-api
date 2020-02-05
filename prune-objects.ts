@@ -19,8 +19,8 @@ async function main() {
     .parse(process.argv);
 
   Config = {
-    ...config,
-    ...config.loadConfig(args.config)
+    ...config.default,
+    ...config.default.loadConfig(args.config)
   };
 
   if (!args.delete) {

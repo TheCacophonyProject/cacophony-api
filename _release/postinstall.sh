@@ -39,4 +39,4 @@ npm run apidoc
 section "Restarting API server"
 systemctl daemon-reload
 systemctl start cacophony-api
-systemctl status cacophony-api
+systemctl --no-pager status cacophony-api
