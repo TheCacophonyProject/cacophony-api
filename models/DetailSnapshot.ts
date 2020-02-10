@@ -27,7 +27,7 @@ export interface DetailSnapShot
     ModelCommon<DetailSnapShot> {
   getFile: () => Promise<File>;
   id: DetailSnapshotId;
-  type: "algorithm" | "throttle" | "audioBait";
+  type: "algorithm" | "throttle" | "audioBait" | "systemError";
   details: any; // JSON
 }
 
@@ -79,7 +79,9 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
     const existing = await this.findOne({
       where: {
         type: searchType,
-        details: searchDetails
+        details: {
+          [Op.eq]: searchDetails,   // Need to specify the equal operator as it's a JSONB
+        },
       }
     });
 
