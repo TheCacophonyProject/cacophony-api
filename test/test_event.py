@@ -28,11 +28,11 @@ class TestEvent:
     def test_can_upload_event_for_device(self, helper):
         data_collector, device = helper.given_new_user_with_device(self, "data_collector")
 
-        #check there are no events on this device
+        # check there are no events on this device
         data_collector.cannot_see_events()
 
         print("   and data_collector uploads a event on behalf of the device")
-        eventid = data_collector.record_event(device, "test", {"foo":"bar"})
+        eventid = data_collector.record_event(device, "test", {"foo": "bar"})
 
         print("Then 'data_collector' should be able to see that the device has an event")
         assert len(data_collector.can_see_events()) == 1
@@ -46,7 +46,7 @@ class TestEvent:
 
         print("And should not be able to upload events for a device")
         with pytest.raises(AuthorizationError):
-            user_without_device.record_event(device, "test2", {"foo2":"bar2"})
+            user_without_device.record_event(device, "test2", {"foo2": "bar2"})
 
     def test_devices_share_events(self, helper):
         shaker = helper.given_new_device(self, "The Shaker")

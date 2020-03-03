@@ -450,11 +450,12 @@ class UserAPI(APIBase):
         if times is None:
             times = [datetime.now()]
         eventData["dateTimes"] = [t.isoformat() for t in times]
-        url = urljoin(self._baseurl, "/api/v1/events/device/"+str(device._id))
+        url = urljoin(self._baseurl, "/api/v1/events/device/" + str(device._id))
 
         response = requests.post(url, headers=self._auth_header, json=eventData)
         response_data = self._check_response(response)
         return response_data["eventsAdded"], response_data["eventDetailId"]
+
 
 def serialise_params(params):
     out = {}
