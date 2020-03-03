@@ -86,7 +86,7 @@
  * </ul>
  */
 
- /**
-  * @apiDefine EventParams
-  * @apiParam {JSON} data Metadata about the recording (see above).
-  */
+/**
+ * @apiDefine EventParams
+ * @apiParam {JSON} data Metadata about the recording (see above).
+ */
