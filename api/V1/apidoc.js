@@ -85,3 +85,19 @@
  * <li>latLongPrec: Maximum precision of latitude longitude coordinates in meters. Minimum 100m
  * </ul>
  */
+
+/**
+ * @apiDefine EventDetailsDescription
+ * `Either eventDetailId or description is required`
+ * - eventDetailsId: id
+ * - description:
+ *   - type:
+ *   - details: {JSON}
+ * - datetimes: REQUIRED: array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
+ */
+
+
+ /**
+  * @apiDefine EventParams
+  * @apiParam {JSON} data Metadata about the recording (see above).
+  */

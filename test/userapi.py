@@ -442,6 +442,19 @@ class UserAPI(APIBase):
         response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header,)
         return self._check_response(response)["messages"]
 
+    def record_event(self, device, type_, details, times=None):
+        data = {"description": {"type": type_, "details": details}}
+        return self.record_event_data(device, data, times)
+
+    def record_event_data(self, device, eventData, times=None):
+        if times is None:
+            times = [datetime.now()]
+        eventData["dateTimes"] = [t.isoformat() for t in times]
+        url = urljoin(self._baseurl, "/api/v1/events/device/"+str(device._id))
+
+        response = requests.post(url, headers=self._auth_header, json=eventData)
+        response_data = self._check_response(response)
+        return response_data["eventsAdded"], response_data["eventDetailId"]
 
 def serialise_params(params):
     out = {}

@@ -1,4 +1,7 @@
+import pytest
+
 from datetime import datetime, timedelta, timezone
+from test.testexception import AuthorizationError
 
 
 class TestEvent:
@@ -21,6 +24,29 @@ class TestEvent:
 
         print("Then the event with no details should should have a different eventDetailId.")
         assert screech != no_lure_id, "Events with no details should link to different eventDetailId."
+
+    def test_can_upload_event_for_device(self, helper):
+        data_collector, device = helper.given_new_user_with_device(self, "data_collector")
+
+        #check there are no events on this device
+        data_collector.cannot_see_events()
+
+        print("   and data_collector uploads a event on behalf of the device")
+        eventid = data_collector.record_event(device, "test", {"foo":"bar"})
+
+        print("Then 'data_collector' should be able to see that the device has an event")
+        assert len(data_collector.can_see_events()) == 1
+
+        print("And super users should be able to see that the device has an event")
+        assert len(helper.admin_user().can_see_events(device)) == 1
+
+        print("But a new user shouldn't see any device events")
+        user_without_device = helper.given_new_user(self, "grant")
+        user_without_device.cannot_see_events()
+
+        print("And should not be able to upload events for a device")
+        with pytest.raises(AuthorizationError):
+            user_without_device.record_event(device, "test2", {"foo2":"bar2"})
 
     def test_devices_share_events(self, helper):
         shaker = helper.given_new_device(self, "The Shaker")
