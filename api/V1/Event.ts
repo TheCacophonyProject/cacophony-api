@@ -74,7 +74,6 @@ export default function(app: Application, baseUrl: string) {
    *   - type:
    *   - details: {JSON}
    * - datetimes: REQUIRED: array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
-   * @apiUse EventDetailsDescription
    *
    * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
