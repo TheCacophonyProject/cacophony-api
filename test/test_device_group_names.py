@@ -12,7 +12,11 @@ class TestDeviceGroupNames:
         assert c_terminator.get_id() is not None
 
         helper.login_as_device(c_terminator.devicename, clares_group)
-        helper.login_as_device(c_terminator.devicename.upper(), clares_group.upper(), password=helper._make_password(c_terminator.devicename))
+        helper.login_as_device(
+            c_terminator.devicename.upper(),
+            clares_group.upper(),
+            password=helper._make_password(c_terminator.devicename),
+        )
         helper.login_as_device(c_terminator.get_id(), None, helper._make_password(c_terminator.devicename))
 
         # can upload with device or device + group and with just unique device id
@@ -90,4 +94,4 @@ class TestDeviceGroupNames:
 
         with pytest.raises(UnprocessableError):
             print("pat can't make another '{}' group\n".format(pats_group))
-            pat.create_group(pats_group,)
+            pat.create_group(pats_group)
