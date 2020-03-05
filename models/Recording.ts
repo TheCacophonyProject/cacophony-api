@@ -175,7 +175,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
   queryBuilder: RecordingQueryBuilder;
   updateOne: (user: User, id: RecordingId, updates: any) => Promise<boolean>;
   makeFilterOptions: (user: User, options?: { latLongPrec?: number }) => any;
-  deleteOne: (user: User, id: RecordingId) => Promise<Recording|null>;
+  deleteOne: (user: User, id: RecordingId) => Promise<Recording | null>;
   getRecordingWithUntaggedTracks: (
     biasDeviceId?: DeviceId
   ) => Promise<TagLimitedRecording>;
@@ -469,7 +469,7 @@ from (
         where "TrackTags".id is null and "Tracks"."archivedAt" is null
       )
     ) as e on e."RecordingId" = "Recordings".id ${
-        biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
+      biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
     } order by RANDOM() limit 1)
   as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" and "Tracks"."archivedAt" is null 
   left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null

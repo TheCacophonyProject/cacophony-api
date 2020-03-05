@@ -12,7 +12,7 @@ class TestDeviceGroupNames:
         assert c_terminator.get_id() is not None
 
         helper.login_as_device(c_terminator.devicename, clares_group)
-        helper.login_as_device(c_terminator.devicename, clares_group)
+        helper.login_as_device(c_terminator.devicename.upper(), clares_group.upper(), password=helper._make_password(c_terminator.devicename))
         helper.login_as_device(c_terminator.get_id(), None, helper._make_password(c_terminator.devicename))
 
         # can upload with device or device + group and with just unique device id
@@ -29,7 +29,6 @@ class TestDeviceGroupNames:
                 description="and devicename 1234 fails, for it must containt alpha char",
             )
 
-    @pytest.mark.skip(reason="Use to test device+group index when implmeneted")
     def test_unique_authentication(self, helper):
         clare = helper.given_new_user(self, "clare")
         clares_group = helper.make_unique_group_name(self, "clares_group")
@@ -51,7 +50,6 @@ class TestDeviceGroupNames:
 
         helper.login_as_device(c_terminator.get_id(), None, helper._make_password(c_terminator.devicename))
 
-    @pytest.mark.skip(reason="Use to test device+group index when implmeneted")
     def test_unique_names(self, helper):
         print("If a new user Clare", end="")
         clare = helper.given_new_user(self, "clare")
@@ -65,10 +63,12 @@ class TestDeviceGroupNames:
         c_terminator = helper.given_new_device(self, "Terminator", clares_group, description=description)
 
         recording = c_terminator.has_recording()
-        return
         with pytest.raises(UnprocessableError):
-            description = "  clare can't make another 'Terminator' in this group\n"
+            description = "  clare can't make another 'Terminator' of any case in this group\n"
             helper.given_new_device(None, c_terminator.devicename, clares_group, description=description)
+            helper.given_new_device(
+                None, c_terminator.devicename.lower(), clares_group, description=description
+            )
 
         print("If a new user Pat", end="")
         pat = helper.given_new_user(self, "Pat")
@@ -87,3 +87,7 @@ class TestDeviceGroupNames:
         assert devices == [p_terminator.get_id()]
         devices = clare.get_devices_as_ids()
         assert devices == [c_terminator.get_id()]
+
+        with pytest.raises(UnprocessableError):
+            print("pat can't make another '{}' group\n".format(pats_group))
+            pat.create_group(pats_group,)

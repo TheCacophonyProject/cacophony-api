@@ -30,14 +30,13 @@ async function main() {
   const pgClient = await pgConnect();
   const s3 = modelsUtil.openS3();
 
-  const bucketKeys = await loadAllBucketKeys(
-    s3,
-    keyTypes.map(x => x.prefix)
-  );
+  const bucketKeys = await loadAllBucketKeys(s3, keyTypes.map(x => x.prefix));
   console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
-  console.log("waiting 20 minutes before getting keys from database to give uploading recordings time to finish");
-  await new Promise(r => setTimeout(r, 1000*60*20)); // Sleep 20 minutes
+  console.log(
+    "waiting 20 minutes before getting keys from database to give uploading recordings time to finish"
+  );
+  await new Promise(r => setTimeout(r, 1000 * 60 * 20)); // Sleep 20 minutes
   console.log("getting keys from the database");
   const dbKeys = await loadAllDBKeys(pgClient, keyTypes);
   console.log(`${dbKeys.size} keys loaded from the database`);
