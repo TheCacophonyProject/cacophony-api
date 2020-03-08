@@ -37,6 +37,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
 # Run docker ps without sudo to check if it can be used without
 def check_docker_can_run():
     return subprocess.call(

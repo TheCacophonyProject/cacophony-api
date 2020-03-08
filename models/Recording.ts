@@ -104,9 +104,102 @@ interface RecordingQueryBuilderInstance {
   query: any;
 }
 
+export interface SpeciesClassification {
+  end_s: number;
+  begin_s: number;
+  species: string;
+}
+
+export interface CacophonyIndex {
+  end_s: number;
+  begin_s: number;
+  index_percent: number;
+}
+
+export interface AudioRecordingMetadata {
+  ["SIM IMEI"]: string;
+  ["SIM state"]: string;
+  ["Phone model"]: string;
+  amplification: number;
+  SimOperatorName: string;
+  ["Android API Level"]: number;
+  ["Phone manufacturer"]: string;
+  ["App has root access"]: boolean;
+  analysis: {
+    cacophony_index: CacophonyIndex[];
+    species_identify: SpeciesClassification[];
+    cacophony_index_version: string;
+    processing_time_seconds: number;
+    species_identify_version: string;
+    speech_detection: boolean;
+    speech_detection_version: string;
+  };
+}
+
+export interface VideoRecordingMetadata {
+  algorithm: number;
+  previewSecs: number;
+  oldTags?: {
+    id: number;
+    what: string;
+    detail: string;
+    version: number;
+    duration: null | number;
+    taggerId: null | number;
+    automatic: boolean;
+    createdAt: string;
+    startTime: string | null;
+    updatedAt: string;
+    confidence: number;
+    RecordingId: number;
+  }[];
+  tracks?: {
+    start_s: number;
+    end_s: number;
+    label: string;
+    clarity: number;
+    confidence: number;
+    max_novelty: number;
+    average_novelty: number;
+    all_class_confidences: Record<string, number>;
+  };
+}
+
+export interface RecordingProcessingMetadata {
+  // Only set during recording processing?
+}
+
+// TODO(jon): Express audio and video recordings differently.  Recording<Audio>, Recording<Video>
 export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
+  // Recording columns.
   id: RecordingId;
-  type?: RecordingType;
+  type: RecordingType;
+  duration: number;
+  recordingDateTime: string;
+  location: { coordinates: [number, number] };
+  relativeToDawn: number;
+  relativeToDusk: number;
+  version: string;
+  additionalMetadata: AudioRecordingMetadata | VideoRecordingMetadata;
+  comment: string;
+  public: boolean;
+  rawFileKey: string;
+  rawMimeType: string;
+  fileKey: string;
+  fileMimeType: string;
+  processingStartTime: string;
+  processingMeta: RecordingProcessingMetadata;
+  processingState: RecordingProcessingState;
+  passedFilter: boolean;
+  jobKey: string;
+  batteryLevel: number;
+  batteryCharging: "NOT_CHARGING" | "CHARGING" | "FULL" | "DISCHARGING";
+  airplaneModeOn: boolean;
+
+  DeviceId: DeviceIdAlias;
+  GroupId: GroupIdAlias;
+  // Recording columns end
+
   getFileBaseName: () => string;
   getRawFileName: () => string;
   getFileName: () => string;
@@ -115,18 +208,10 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getActiveTracks: () => Promise<Track[]>;
   getActiveTracksTagsAndTagger: () => Promise<any>;
   getUserPermissions: (user: User) => Promise<RecordingPermission[]>;
-  recordingDateTime: string;
-  fileKey: string;
-  fileMimeType: string;
-  rawFileKey: string;
-  rawMimeType: string;
+
   reprocess: (user: User) => Promise<Recording>;
   mergeUpdate: (updates: any) => void;
-  DeviceId: DeviceIdAlias;
-  GroupId: GroupIdAlias;
-  processingState: RecordingProcessingState;
-  public: boolean;
-
+  filterData: (options: any) => void;
   // NOTE: Implicitly created by sequelize associations (along with other
   //  potentially undocumented extension methods).
   getTrack: (id: TrackId) => Promise<Track | null>;
@@ -175,7 +260,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
   queryBuilder: RecordingQueryBuilder;
   updateOne: (user: User, id: RecordingId, updates: any) => Promise<boolean>;
   makeFilterOptions: (user: User, options?: { latLongPrec?: number }) => any;
-  deleteOne: (user: User, id: RecordingId) => Promise<Recording|null>;
+  deleteOne: (user: User, id: RecordingId) => Promise<Recording | null>;
   getRecordingWithUntaggedTracks: (
     biasDeviceId?: DeviceId
   ) => Promise<TagLimitedRecording>;
@@ -469,7 +554,7 @@ from (
         where "TrackTags".id is null and "Tracks"."archivedAt" is null
       )
     ) as e on e."RecordingId" = "Recordings".id ${
-        biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
+      biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
     } order by RANDOM() limit 1)
   as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" and "Tracks"."archivedAt" is null 
   left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null
@@ -664,7 +749,7 @@ from (
     return "";
   };
 
-  Recording.prototype.filterData = function(options) {
+  Recording.prototype.filterData = function(options: { latLongPrec: any }) {
     if (this.location) {
       this.location.coordinates = reduceLatLonPrecision(
         this.location.coordinates,

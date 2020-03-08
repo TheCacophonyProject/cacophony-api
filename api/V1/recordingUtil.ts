@@ -28,10 +28,12 @@ import responseUtil from "./responseUtil";
 import util from "./util";
 import { Response } from "express";
 import {
+  AudioRecordingMetadata,
   Recording,
   RecordingId,
   RecordingPermission,
   RecordingType,
+  SpeciesClassification,
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
@@ -220,6 +222,7 @@ async function report(request) {
     }
 
     const cacophonyIndex = getCacophonyIndex(r);
+    const speciesClassifications = getSpeciesIdentification(r);
 
     out.push([
       r.id,
@@ -246,21 +249,25 @@ async function report(request) {
       audioBaitDelta,
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString()),
-      cacophonyIndex
+      cacophonyIndex,
+      speciesClassifications
     ]);
   }
   return out;
 }
 
-function getCacophonyIndex(r) {
-  let cacophonyIndex = null;
-  if (r.additionalMetadata && r.additionalMetadata.analysis) {
-    cacophonyIndex = r.additionalMetadata.analysis.cacophony_index;
-    if (cacophonyIndex) {
-      cacophonyIndex = cacophonyIndex.map(val => val.index_percent).join(";");
-    }
-  }
-  return cacophonyIndex;
+function getCacophonyIndex(recording: Recording): string | null {
+  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
+    ?.map(val => val.index_percent)
+    .join(";");
+}
+
+function getSpeciesIdentification(recording: Recording): string | null {
+  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
+    .map(
+      classification => `${classification.species}, ${classification.begin_s}`
+    )
+    .join(";");
 }
 
 function findLatestEvent(events: Event[]): Event {

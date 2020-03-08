@@ -80,8 +80,8 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
       where: {
         type: searchType,
         details: {
-          [Op.eq]: searchDetails,   // Need to specify the equal operator as it's a JSONB
-        },
+          [Op.eq]: searchDetails // Need to specify the equal operator as it's a JSONB
+        }
       }
     });
 
