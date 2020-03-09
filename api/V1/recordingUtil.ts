@@ -184,7 +184,8 @@ async function report(request) {
       "Mins Since Audio Bait",
       "Audio Bait Volume",
       "URL",
-      "Cacophony Index"
+      "Cacophony Index",
+      "Species Classification"
     ]
   ];
 
@@ -264,7 +265,7 @@ function getCacophonyIndex(recording: Recording): string | null {
 
 function getSpeciesIdentification(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
-    .map(
+    ?.map(
       classification => `${classification.species}, ${classification.begin_s}`
     )
     .join(";");
