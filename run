@@ -4,7 +4,22 @@ import argparse
 import os
 import subprocess
 import getpass
-import grp
+
+try:
+    # unix specific
+    import grp
+
+
+    def current_user_in_group(group_name):
+        try:
+            current_user = getpass.getuser()
+            return current_user in grp.getgrnam(group_name).gr_mem
+        except KeyError:
+            return False
+except ImportError:
+    # We're on windows, and can ignore this.
+    def current_user_in_group(group_name):
+        return True
 
 IMAGE_NAME = "cacophony-api"
 CONTAINER_NAME = "cacophony-api"
@@ -46,14 +61,6 @@ def check_docker_can_run():
         stderr=subprocess.DEVNULL,
         timeout=30,
     )
-
-
-def current_user_in_group(group_name):
-    try:
-        current_user = getpass.getuser()
-        return current_user in grp.getgrnam(group_name).gr_mem
-    except KeyError:
-        return False
 
 
 use_sudo = args.sudo
@@ -118,11 +125,12 @@ if args.isolate:
 
 run_cmd.append(IMAGE_NAME)
 subprocess.check_call(add_sudo(run_cmd))
-
 if not args.background:
     print("\nShowing container logs")
     try:
         docker_logs_cmd = ["docker", "logs", "--follow", CONTAINER_NAME]
-        subprocess.call(add_sudo(docker_logs_cmd))
+        cmd_list = add_sudo(docker_logs_cmd)
+        print(cmd_list)
+        subprocess.call(cmd_list)
     except (KeyboardInterrupt, PermissionError):
-        pass
+        print("Err")
