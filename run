@@ -129,8 +129,6 @@ if not args.background:
     print("\nShowing container logs")
     try:
         docker_logs_cmd = ["docker", "logs", "--follow", CONTAINER_NAME]
-        cmd_list = add_sudo(docker_logs_cmd)
-        print(cmd_list)
-        subprocess.call(cmd_list)
+        subprocess.call(add_sudo(docker_logs_cmd))
     except (KeyboardInterrupt, PermissionError):
-        print("Err")
+        pass
