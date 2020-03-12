@@ -217,12 +217,15 @@ const parseJSON = function(
   return checkFunc(field).custom((value, { req, location, path }) => {
     if (typeof req[location][path] === "string") {
       let result = value;
-      while (typeof result !== "object") {
+      while (typeof result === "string") {
         try {
           result = JSON.parse(result);
         } catch (e) {
           throw new Error(format("Could not parse JSON field %s.", path));
         }
+      }
+      if (typeof result !== 'object') {
+        throw new Error(format("JSON field %s is not an object", path));
       }
       req[location][path] = result;
     }
