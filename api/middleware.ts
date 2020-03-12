@@ -216,11 +216,15 @@ const parseJSON = function(
 ): ValidationChain {
   return checkFunc(field).custom((value, { req, location, path }) => {
     if (typeof req[location][path] === "string") {
-      try {
-        req[location][path] = JSON.parse(value);
-      } catch (e) {
-        throw new Error(format("Could not parse JSON field %s.", path));
+      let result = value;
+      while (typeof result !== "object") {
+        try {
+          result = JSON.parse(result);
+        } catch (e) {
+          throw new Error(format("Could not parse JSON field %s.", path));
+        }
       }
+      req[location][path] = result;
     }
     return req[location][path] !== undefined;
   });
