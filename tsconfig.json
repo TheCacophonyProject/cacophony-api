@@ -11,5 +11,9 @@
         "./models/**/*",
         "./api/**/*",
         "./**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "test"
     ]
 }
