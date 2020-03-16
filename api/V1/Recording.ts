@@ -268,7 +268,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiName NeedsTag
    * @apiGroup Recordings
    * @apiDescription Parameters are as per GET /api/V1/recordings. On
-   * success (status 200), the response body will contain CSV
+   * success (status 200), the response body will contain JSON
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
