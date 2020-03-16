@@ -26,6 +26,7 @@ export default function(app: Application) {
     "util.js",
     "responseUtil.js",
     "recordingUtil.js",
+    "eventUtil.js",
     "apidoc.js"
   ];
   // Filter out files that are not added to app directly, and filter out typescript versions of files.
