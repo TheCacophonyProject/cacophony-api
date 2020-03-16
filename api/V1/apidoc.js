@@ -88,5 +88,30 @@
 
 /**
  * @apiDefine EventParams
- * @apiParam {JSON} data Metadata about the recording (see above).
+ * @apiParam {JSON} [description] JSON of the event. Must be used if the if you don't give the eventDetailId
+ * @apiParam {String} [description.type] Name of the type of event.
+ * @apiParam {JSON} [description.details] Metadata of the event.
+ * @apiParam {JSON} [eventDetailId] ID of the event details if known.
+ * @apiParam {Array} dateTimes Array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
  */
+
+/**
+ * @apiDefine EventExampleDescription
+ * @apiParamExample {json} Using description:
+ *  {
+ *    "description": {
+ *      "type": "example"
+ *      "details": {"foo": "bar"},
+ *    },
+ *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
+ *  }
+*/
+
+/**
+ * @apiDefine EventExampleEventDetailId
+ * @apiParamExample {json} Using eventDetailId:
+ *  {
+ *    "eventDetailId": 1,
+ *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
+ *  }
+*/

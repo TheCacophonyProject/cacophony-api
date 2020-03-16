@@ -31,20 +31,16 @@ export default function(app: Application, baseUrl: string) {
    * @api {post} /api/v1/events Add new events
    * @apiName Add Event
    * @apiGroup Events
-   * @apiDescription This call is used to upload new events.   Events
-   * details are decided by user and can be specified by JSON or using an
-   * existing id.
+   * @apiDescription This call is used to upload new events.
+   * The event can be described by specifying an existing eventDetailId or by
+   * the 'description' parameter.
    *
    * `Either eventDetailId or description is required`
-   * - eventDetailsId: id
-   * - description:
-   *   - type:
-   *   - details: {JSON}
-   * - datetimes: REQUIRED: array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
-   *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {JSON} data Metadata about the recording (see above).
+   * @apiUse EventParams
+   * @apiUse EventExampleDescription
+   * @apiUse EventExampleEventDetailId
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Integer} eventsAdded Number of events added
@@ -65,20 +61,16 @@ export default function(app: Application, baseUrl: string) {
    * @apiName AddEventOnBehalf
    * @apiGroup Events
    * @apiDescription This call is used to upload new events on behalf of a device.
-   * Events details are decided by user and can be specified by JSON or using an
-   * existing id.
+   * The event can be described by specifying an existing eventDetailId or by
+   * the 'description' parameter.
    *
    * `Either eventDetailId or description is required`
-   * - eventDetailsId: id
-   * - description:
-   *   - type:
-   *   - details: {JSON}
-   * - datetimes: REQUIRED: array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
-   *
    * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse EventParams
+   * @apiUse EventExampleDescription
+   * @apiUse EventExampleEventDetailId
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Integer} eventsAdded Number of events added
