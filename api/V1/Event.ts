@@ -20,8 +20,9 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import { body, oneOf, query } from "express-validator/check";
+import { param, body, oneOf, query } from "express-validator/check";
 import { Application } from "express";
+import eventUtil from "./eventUtil";
 
 export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/events`;
@@ -30,20 +31,16 @@ export default function(app: Application, baseUrl: string) {
    * @api {post} /api/v1/events Add new events
    * @apiName Add Event
    * @apiGroup Events
-   * @apiDescription This call is used to upload new events.   Events
-   * details are decided by user and can be specified by JSON or using an
-   * existing id.
+   * @apiDescription This call is used to upload new events.
+   * The event can be described by specifying an existing eventDetailId or by
+   * the 'description' parameter.
    *
    * `Either eventDetailId or description is required`
-   * - eventDetailsId: id
-   * - description:
-   *   - type:
-   *   - details: {JSON}
-   * - datetimes: REQUIRED: array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
-   *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {JSON} data Metadata about the recording (see above).
+   * @apiUse EventParams
+   * @apiUse EventExampleDescription
+   * @apiUse EventExampleEventDetailId
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Integer} eventsAdded Number of events added
@@ -54,55 +51,41 @@ export default function(app: Application, baseUrl: string) {
     apiUrl,
     [
       auth.authenticateDevice,
-      middleware.getDetailSnapshotById(body, "eventDetailId").optional(),
-      middleware.isDateArray(
-        "dateTimes",
-        "List of times event occured is required."
-      ),
-      oneOf(
-        [body("eventDetailId").exists(), body("description.type").exists()],
-        "Either 'eventDetailId' or 'description.type' must be specified."
-      )
+      ...eventUtil.eventAuth
     ],
-    middleware.requestWrapper(async (request, response) => {
-      let detailsId = request.body.eventDetailId;
-      if (!detailsId) {
-        const description = request.body.description;
-        const detail = await models.DetailSnapshot.getOrCreateMatching(
-          description.type,
-          description.details
-        );
-        detailsId = detail.id;
-      }
+    middleware.requestWrapper(eventUtil.uploadEvent)
+  );
 
-      const eventList = [];
-      let count = 0;
-
-      request.body.dateTimes.forEach(function(time) {
-        eventList.push({
-          DeviceId: request.device.id,
-          EventDetailId: detailsId,
-          dateTime: time
-        });
-        count++;
-      });
-
-      try {
-        await models.Event.bulkCreate(eventList);
-      } catch (exception) {
-        return responseUtil.send(response, {
-          statusCode: 500,
-          messages: ["Failed to record events.", exception.message]
-        });
-      }
-
-      return responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Added events."],
-        eventsAdded: count,
-        eventDetailId: detailsId
-      });
-    })
+  /**
+   * @api {post} /api/v1/events/device/:deviceID Add new events on behalf of device
+   * @apiName AddEventOnBehalf
+   * @apiGroup Events
+   * @apiDescription This call is used to upload new events on behalf of a device.
+   * The event can be described by specifying an existing eventDetailId or by
+   * the 'description' parameter.
+   *
+   * `Either eventDetailId or description is required`
+   * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse EventParams
+   * @apiUse EventExampleDescription
+   * @apiUse EventExampleEventDetailId
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Integer} eventsAdded Number of events added
+   * @apiSuccess {Integer} eventDetailId Id of the Event Detail record used.  May be existing or newly created
+   * @apiuse V1ResponseError
+   */
+  app.post(
+    apiUrl+"/device/:deviceID",
+    [
+      auth.authenticateUser,
+      middleware.getDevice(param, "deviceID"),
+      auth.userCanAccessDevices,
+      ...eventUtil.eventAuth,
+    ],
+    middleware.requestWrapper(eventUtil.uploadEvent)
   );
 
   /**
