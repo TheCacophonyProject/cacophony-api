@@ -65,7 +65,7 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     ScheduleId?: ScheduleId,
     includeData?: any
   ) => Promise<{ rows: Device[]; count: number }>;
-  freeDevicename: (name: string) => Promise<boolean>;
+  freeDevicename: (name: string, id: number) => Promise<boolean>;
   newUserPermissions: (enabled: boolean) => UserDevicePermissions;
   getFromId: (id: DeviceId) => Promise<Device>;
   findDevice: (
@@ -258,8 +258,10 @@ export default function(
     };
   };
 
-  Device.freeDevicename = async function(devicename) {
-    const device = await this.findOne({ where: { devicename: devicename } });
+  Device.freeDevicename = async function(devicename, groupId) {
+    const device = await this.findOne({
+      where: { devicename: devicename, GroupId: groupId }
+    });
     if (device != null) {
       return false;
     }

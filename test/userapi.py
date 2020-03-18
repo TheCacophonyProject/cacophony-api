@@ -439,7 +439,7 @@ class UserAPI(APIBase):
         else:
             url = "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id)
 
-        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header,)
+        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header)
         return self._check_response(response)["messages"]
 
     def record_event(self, device, type_, details, times=None):
