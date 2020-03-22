@@ -224,7 +224,7 @@ const parseJSON = function(
           throw new Error(format("Could not parse JSON field %s.", path));
         }
       }
-      if (typeof result !== "object") {
+      if (typeof result !== 'object') {
         throw new Error(format("JSON field %s is not an object", path));
       }
       req[location][path] = result;

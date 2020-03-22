@@ -30,10 +30,7 @@ async function main() {
   const pgClient = await pgConnect();
   const s3 = modelsUtil.openS3();
 
-  const bucketKeys = await loadAllBucketKeys(
-    s3,
-    keyTypes.map(x => x.prefix)
-  );
+  const bucketKeys = await loadAllBucketKeys(s3, keyTypes.map(x => x.prefix));
   console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
   console.log(

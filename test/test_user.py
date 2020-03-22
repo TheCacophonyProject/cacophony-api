@@ -52,7 +52,7 @@ class TestUser:
         # Now try to create the same user again
         with pytest.raises(UnprocessableError) as excinfo:
             print("DuplicateBob should not get created multiple times and returns a 422 error message")
-            helper.given_new_fixed_user("DuplicateBob")
+            helper.given_new_fixed_user("duplicateBob")
         error_string = str(excinfo.value)
         print("There should be a JSON object in the error message that can be parsed")
         parsed_json = json.loads(error_string)

@@ -336,6 +336,9 @@ class TestUser:
 
         return Recording(recording_id, props, filename)
 
+    def record_event(self, device, type_, details, times=None):
+        return self._userapi.record_event(device, type_, details, times)
+
     def set_global_permission(self, user, permission):
         self._userapi.set_global_permission(user, permission)
 

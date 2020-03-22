@@ -52,7 +52,12 @@ export default function(app: Application, baseUrl: string) {
       middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
-      if (!(await models.Device.freeDevicename(request.body.devicename))) {
+      if (
+        !(await models.Device.freeDevicename(
+          request.body.devicename,
+          request.body.group.id
+        ))
+      ) {
         return responseUtil.send(response, {
           statusCode: 422,
           messages: ["Device name in use."]
