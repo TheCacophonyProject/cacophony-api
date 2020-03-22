@@ -355,9 +355,10 @@ export default function(app: Application, baseUrl: string) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {string} from ISO8601 date string
+   * @apiParam {Integer} deviceId ID of the device.
+   * @apiParam {String} from ISO8601 date string
    * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
-   * @apiSuccess {number} cacophonyIndex A number representing the average index over the period `from` - `window-size`
+   * @apiSuccess {Float} cacophonyIndex A number representing the average index over the period `from` minus `window-size`
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
@@ -402,9 +403,10 @@ export default function(app: Application, baseUrl: string) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {string} from ISO8601 date string
+   * @apiParam {Integer} deviceId ID of the device.
+   * @apiParam {String} from ISO8601 date string
    * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
-   * @apiSuccess {Object} cacophonyIndex in the format [{hour: number, index: number}, ...]
+   * @apiSuccess {Object} cacophonyIndex in the format `[{hour: number, index: number}, ...]`
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
