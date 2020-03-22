@@ -20,7 +20,7 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import { body, query } from "express-validator/check";
+import { body, param, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
 import { ClientError } from "../customErrors";
@@ -336,6 +336,68 @@ export default function(app: Application, baseUrl: string) {
         devices: devices.devices,
         nameMatches: devices.nameMatches,
         messages: ["Completed get devices query."]
+      });
+    })
+  );
+
+  app.get(
+    `${apiUrl}/:deviceId/cacophony-index`,
+    [
+      param("deviceId")
+        .isInt()
+        .toInt(),
+      query("from")
+        .isISO8601()
+        .toDate()
+        .optional(),
+      query("window-size")
+        .isInt()
+        .toInt()
+        .optional(),
+      auth.authenticateUser
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const cacophonyIndex = await models.Device.getCacophonyIndex(
+        request.user,
+        request.params.deviceId,
+        request.query.from || new Date(), // Get the current cacophony index
+        request.query["window-size"] || 2160 // Default to a three month rolling window
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        cacophonyIndex,
+        messages: []
+      });
+    })
+  );
+
+  app.get(
+    `${apiUrl}/:deviceId/cacophony-index-histogram`,
+    [
+      param("deviceId")
+        .isInt()
+        .toInt(),
+      query("from")
+        .isISO8601()
+        .toDate()
+        .optional(),
+      query("window-size")
+        .isInt()
+        .toInt()
+        .optional(),
+      auth.authenticateUser
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const cacophonyIndex = await models.Device.getCacophonyIndexHistogram(
+        request.user,
+        request.params.deviceId,
+        request.query.from || new Date(), // Get the current cacophony index
+        request.query["window-size"] || 2160 // Default to a three month rolling window
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        cacophonyIndex,
+        messages: []
       });
     })
   );

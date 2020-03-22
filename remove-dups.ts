@@ -43,8 +43,10 @@ async function main() {
     `
   );
   for (const row of res.rows) {
-    const ts = row.recordingDateTime!.toISOString()
-    console.log(`deleted ${row.id}: device=${row.DeviceId} type=${row.type} ts=${ts}`);
+    const ts = row.recordingDateTime!.toISOString();
+    console.log(
+      `deleted ${row.id}: device=${row.DeviceId} type=${row.type} ts=${ts}`
+    );
   }
   if (args.delete) {
     await client.query("COMMIT");

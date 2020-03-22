@@ -87,6 +87,18 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     groupNames: string[],
     operator: any
   ) => Promise<{ devices: Device[]; nameMatches: string }>;
+  getCacophonyIndex: (
+    authUser: User,
+    deviceId: DeviceId,
+    from: Date,
+    windowSize: number
+  ) => Promise<number>;
+  getCacophonyIndexHistogram: (
+    authUser: User,
+    deviceId: DeviceId,
+    from: Date,
+    windowSize: number
+  ) => Promise<{ hour: number; index: number }>;
 }
 
 export default function(
@@ -267,7 +279,7 @@ export default function(
   };
 
   Device.getFromId = async function(id) {
-    return await this.findById(id);
+    return this.findByPk(id);
   };
 
   Device.findDevice = async function(
@@ -347,6 +359,72 @@ export default function(
         }
       ]
     });
+  };
+
+  Device.getCacophonyIndex = async function(
+    authUser,
+    deviceId,
+    from,
+    windowSize
+  ) {
+    windowSize = Math.abs(windowSize);
+    const date = Math.round(from.getTime() / 1000);
+
+    // Make sure the user can see the device:
+    await authUser.checkUserControlsDevices([deviceId]);
+    const [
+      result,
+      _extra
+    ] = await sequelize.query(`select round((avg(cacophony_index.scores))::numeric, 2) as cacophony_index from
+(select
+	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
+from
+	"Recordings"
+where
+	"DeviceId" = ${deviceId} 
+	and "type" = 'audio'
+	and "recordingDateTime" > to_timestamp(${date}) - interval '${windowSize} hours') as cacophony_index;`);
+    const index = result[0].cacophony_index;
+    if (index !== null) {
+      return Number(index);
+    }
+    return index;
+  };
+
+  Device.getCacophonyIndexHistogram = async function(
+    authUser,
+    deviceId,
+    from,
+    windowSize
+  ) {
+    windowSize = Math.abs(windowSize);
+    const date = Math.round(from.getTime() / 1000);
+    // Make sure the user can see the device:
+    await authUser.checkUserControlsDevices([deviceId]);
+    // Get a spread of 24 results with each result falling into an hour bucket.
+    const [results, extra] = await sequelize.query(`select 
+	hour,
+	round((avg(scores))::numeric, 2) as index 
+from
+(select 
+	date_part('hour', "recordingDateTime") as hour,
+	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
+from
+	"Recordings"
+where
+	"DeviceId" = ${deviceId}
+	and "type" = 'audio'
+	and "recordingDateTime" > to_timestamp(${date}) - interval '${windowSize} hours'
+) as cacophony_index
+group by hour
+order by hour;
+`);
+    // TODO(jon): Do we want to validate that there is enough data in a given hour
+    //  to get a reasonable index histogram?
+    return results.map(item => ({
+      hour: Number(item.hour),
+      index: Number(item.index)
+    }));
   };
 
   /**
@@ -562,7 +640,6 @@ async function addUserAccessQuery(authUser, whereQuery) {
   if (authUser.hasGlobalRead()) {
     return whereQuery;
   }
-
   const deviceIds = await authUser.getDeviceIds();
   const userGroupIds = await authUser.getGroupsIds();
 
