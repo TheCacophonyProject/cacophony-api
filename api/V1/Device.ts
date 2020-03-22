@@ -345,6 +345,22 @@ export default function(app: Application, baseUrl: string) {
     })
   );
 
+  /**
+   * @api {get} /api/v1/devices/{:deviceId}/cacophony-index Get the cacophony index for a device
+   * @apiName cacophony-index
+   * @apiGroup Device
+   * @apiDescription Get a single number Cacophony Index
+   * for a given device.  This number is the average of all the Cacophony Index values from a
+   * given time (defaulting to 'Now'), within a given timespan (defaulting to 3 months)
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {string} from ISO8601 date string
+   * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
+   * @apiSuccess {number} cacophonyIndex A number representing the average index over the period `from` - `window-size`
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.get(
     `${apiUrl}/:deviceId/cacophony-index`,
     [
@@ -376,6 +392,22 @@ export default function(app: Application, baseUrl: string) {
     })
   );
 
+  /**
+   * @api {get} /api/v1/devices/{:deviceId}/cacophony-index-histogram Get the cacophony index 24hr histogram for a device
+   * @apiName cacophony-index-histogram
+   * @apiGroup Device
+   * @apiDescription Get a histogram of the Cacophony Index
+   * for a given device, bucketed by hour of the day.  These buckets are the average of all the Cacophony Index values
+   * for each hour of the day, taken from a given time (defaulting to 'Now'), within a given timespan (defaulting to 3 months)
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {string} from ISO8601 date string
+   * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
+   * @apiSuccess {Object} cacophonyIndex in the format [{hour: number, index: number}, ...]
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.get(
     `${apiUrl}/:deviceId/cacophony-index-histogram`,
     [
