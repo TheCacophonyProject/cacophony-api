@@ -401,7 +401,7 @@ where
   ) {
     windowSize = Math.abs(windowSize);
     // We need to take the time down to the previous hour, so remove 1 second
-    const date = Math.floor(from.getTime() / 1000);
+    const date = Math.floor(from.getTime() / 1000) - 1;
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -418,7 +418,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) - interval '${windowSize} hours'
+	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) at time zone '${serverTimezone}' - interval '${windowSize} hours'
 ) as cacophony_index
 group by hour
 order by hour;
