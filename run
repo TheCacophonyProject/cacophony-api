@@ -61,15 +61,6 @@ def check_docker_can_run():
         timeout=30,
     )
 
-
-def current_user_in_group(group_name):
-    try:
-        current_user = getpass.getuser()
-        return current_user in grp.getgrnam(group_name).gr_mem
-    except KeyError:
-        return False
-
-
 use_sudo = args.sudo
 if not args.sudo:
     if not current_user_in_group("docker"):
@@ -132,6 +123,7 @@ if args.isolate:
     )
 
 run_cmd.append(IMAGE_NAME)
+
 subprocess.check_call(add_sudo(run_cmd))
 
 if not args.background:

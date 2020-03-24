@@ -370,7 +370,7 @@ export default function(
     windowSize
   ) {
     windowSize = Math.abs(windowSize);
-    const date = Math.round(from.getTime() / 1000);
+    const date = Math.ceil(from.getTime() / 1000);
 
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
@@ -385,7 +385,7 @@ from
 where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
-	and "recordingDateTime" > to_timestamp(${date}) - interval '${windowSize} hours') as cacophony_index;`);
+	and "recordingDateTime" at time zone 'UTC' >= to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') as cacophony_index;`);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);
@@ -400,7 +400,8 @@ where
     windowSize
   ) {
     windowSize = Math.abs(windowSize);
-    const date = Math.round(from.getTime() / 1000);
+    // We need to take the time down to the previous hour, so remove 1 second
+    const date = Math.floor(from.getTime() / 1000) - 1;
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     // Get a spread of 24 results with each result falling into an hour bucket.
@@ -416,7 +417,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" > to_timestamp(${date}) - interval '${windowSize} hours'
+	and "recordingDateTime" at time zone 'UTC' >= to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours'
 ) as cacophony_index
 group by hour
 order by hour;

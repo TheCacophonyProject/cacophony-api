@@ -456,6 +456,18 @@ class UserAPI(APIBase):
         response_data = self._check_response(response)
         return response_data["eventsAdded"], response_data["eventDetailId"]
 
+    def get_cacophony_index(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index")
+        response = requests.get(url, headers=self._auth_header, params={"from": from_time, "window-size": window_size})
+        self._check_response(response)
+        return response.json()
+
+    def get_cacophony_index_histogram(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index-histogram")
+        response = requests.get(url, headers=self._auth_header, params={"from": from_time, "window-size": window_size})
+        self._check_response(response)
+        return response.json()
+
 
 def serialise_params(params):
     out = {}

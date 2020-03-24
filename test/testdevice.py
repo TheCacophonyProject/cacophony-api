@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
-
+from .deviceapi import DeviceAPI
 from .recording import Recording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi, helper, group=None, location=None):
+    def __init__(self, devicename, deviceapi: DeviceAPI, helper, group=None, location=None):
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
