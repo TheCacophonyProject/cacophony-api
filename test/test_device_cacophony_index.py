@@ -58,20 +58,28 @@ class TestDeviceCacophonyIndex:
         assert cacophony_index_admin["cacophonyIndex"] == 33.63
 
         # We only have 1 day of index values in the DB, so get only a window of 12 hours
+        print(
+            f"Get cacophony index from now ({js_iso_format_with_utc(datetime.utcnow())}), going back 12 hours"
+        )
         cacophony_index_twelve_hours = johnny.get_cacophony_index_for_device(
             self.get_device(), js_iso_format_with_utc(datetime.utcnow()), 12
         )
         assert cacophony_index_twelve_hours["cacophonyIndex"] == 33.51
 
+        print(
+            f"Get cacophony index from now ({js_iso_format_with_utc(datetime.utcnow())}), going back 0 hours"
+        )
         cacophony_index_zero_window = johnny.get_cacophony_index_for_device(
             self.get_device(), js_iso_format_with_utc(datetime.utcnow()), 0
         )
         assert cacophony_index_zero_window["cacophonyIndex"] is None
 
+        now_minus_twelve_hours = js_iso_format_with_utc(
+            datetime.utcfromtimestamp(datetime.now().timestamp() - (60 * 60 * 12))
+        )
+        print(f"Get cacophony index from 12 hours ago ({now_minus_twelve_hours}), going back 12 hours")
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_for_device(
-            self.get_device(),
-            js_iso_format_with_utc(datetime.utcfromtimestamp(datetime.now().timestamp() - (60 * 60 * 12))),
-            12,
+            self.get_device(), now_minus_twelve_hours, 12,
         )
         assert cacophony_index_from_twelve_hours_ago["cacophonyIndex"] == 33.63
 
