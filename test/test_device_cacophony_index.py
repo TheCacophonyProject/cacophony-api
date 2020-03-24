@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from .helper import Helper
 from test.testexception import AuthorizationError
 
@@ -80,7 +80,7 @@ class TestDeviceCacophonyIndex:
         assert cacophony_index_zero_window["cacophonyIndex"] is None
 
         now_minus_twelve_hours = js_iso_format_with_utc(
-            datetime.fromtimestamp(now.timestamp() - (60 * 60 * 12), timezone.utc)
+            now - timedelta(hours=12)
         )
         print(f"Get cacophony index from 12 hours ago ({now_minus_twelve_hours}), going back 12 hours")
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_for_device(
@@ -89,11 +89,11 @@ class TestDeviceCacophonyIndex:
         assert cacophony_index_from_twelve_hours_ago["cacophonyIndex"] == 33.63
 
         # Make sure only the correct users can see the device cacophony-index.
-        # random_user = helper.given_new_user(self, "dis_random_guy")
-        # try:
-        #     random_user.get_cacophony_index_for_device(self.get_device())
-        # except AuthorizationError:
-        #     pass
+        random_user = helper.given_new_user(self, "dis_random_guy")
+        try:
+            random_user.get_cacophony_index_for_device(self.get_device())
+        except AuthorizationError:
+            pass
 
     def test_get_cacophony_index_histogram(self, helper):
         admin = helper.admin_user()
@@ -106,7 +106,7 @@ class TestDeviceCacophonyIndex:
         now = self.now()
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_histogram_for_device(
             self.get_device(),
-            js_iso_format_with_utc(datetime.fromtimestamp(now.timestamp() - (60 * 60 * 12), timezone.utc)),
+            js_iso_format_with_utc(datetime.now() - timedelta(hours=12)),
             12,
         )
         assert len(cacophony_index_from_twelve_hours_ago["cacophonyIndex"]) == 12
