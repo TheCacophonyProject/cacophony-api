@@ -418,7 +418,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours'
+	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) - interval '${windowSize} hours'
 ) as cacophony_index
 group by hour
 order by hour;
