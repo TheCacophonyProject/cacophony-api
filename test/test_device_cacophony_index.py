@@ -106,17 +106,17 @@ class TestDeviceCacophonyIndex:
         now = self.now()
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_histogram_for_device(
             self.get_device(),
-            js_iso_format_with_utc(datetime.now() - timedelta(hours=12)),
+            js_iso_format_with_utc(now - timedelta(hours=12)),
             12,
         )
         assert len(cacophony_index_from_twelve_hours_ago["cacophonyIndex"]) == 12
 
         # Make sure only the correct users can see the device cacophony-index.
-        # random_user = helper.given_new_user(self, "dis_random_guy")
-        # try:
-        #     random_user.get_cacophony_index_histogram_for_device(self.get_device())
-        # except AuthorizationError:
-        #     pass
+        random_user = helper.given_new_user(self, "dis_random_guy")
+        try:
+            random_user.get_cacophony_index_histogram_for_device(self.get_device())
+        except AuthorizationError:
+            pass
 
 
 def js_iso_format_with_utc(timestamp_utc):
