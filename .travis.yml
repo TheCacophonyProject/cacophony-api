@@ -11,6 +11,7 @@ python:
 
 install:
  - ./run --isolate --background
+ - node test-datetime.js
  - npm install -g apidoc
  - npm run apidoc
  - npm install -g eslint
