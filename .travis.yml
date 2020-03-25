@@ -25,6 +25,10 @@ script:
  - docker exec -it cacophony-api date
  - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate:undo --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
  - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
+# We need to run the python tests with this image in the correct local timezone
+ - apt-get install -y tzdata
+ - echo "Pacific/Auckland" > /etc/timezone
+ - ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
  - cd test
  - pytest --log-api-on-fail
 
