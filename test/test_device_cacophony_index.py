@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from .helper import Helper
 from test.testexception import AuthorizationError
 
@@ -22,7 +22,7 @@ class TestDeviceCacophonyIndex:
                 ts = now - timedelta(hours=hour, days=day)
                 recording = device.upload_audio_recording(
                     {
-                        "recordingDateTime": ts.isoformat(),
+                        "recordingDateTime": py_iso_format(ts),
                         "recordingTime": ts.strftime("%H:%M:%S"),
                         "duration": 60,
                         "additionalMetadata": {
@@ -35,10 +35,10 @@ class TestDeviceCacophonyIndex:
                         },
                     }
                 )
-                js_timestamp = js_iso_format_with_utc(
-                    now - timedelta(hours=hour, days=day)
+                js_timestamp = js_iso_format_with_utc(now - timedelta(hours=hour, days=day))
+                print(
+                    f"added a recording at {js_timestamp} '{recording.id_}' with cacophony index data {hour + (day * 24)}"
                 )
-                print(f"added a recording at {js_timestamp} '{recording.id_}' with cacophony index data {hour + (day * 24)}")
 
     def now(self):
         return self._now
@@ -107,6 +107,8 @@ class TestDeviceCacophonyIndex:
         except AuthorizationError:
             pass
 
+def py_iso_format(timestamp_utc):
+    return timestamp_utc.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 def js_iso_format_with_utc(timestamp_utc):
     return timestamp_utc.strftime("%Y-%m-%dT%H:%M:%S.%fZ")

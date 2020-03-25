@@ -384,7 +384,7 @@ from
 where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
-	and "recordingDateTime" between (to_timestamp(${date}) - interval '${windowSize} hours') and to_timestamp(${date})) as cacophony_index;`);
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC') as cacophony_index;`);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);
@@ -416,7 +416,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" between (to_timestamp(${date}) - interval '${windowSize} hours') and to_timestamp(${date})
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC'
 ) as cacophony_index
 group by hour
 order by hour;
