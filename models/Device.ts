@@ -371,7 +371,6 @@ export default function(
   ) {
     windowSize = Math.abs(windowSize);
     const date = Math.ceil(from.getTime() / 1000);
-    const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     const [
@@ -385,7 +384,7 @@ from
 where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') as cacophony_index;`);
+	and "recordingDateTime" between (to_timestamp(${date}) - interval '${windowSize} hours') and to_timestamp(${date})) as cacophony_index;`);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);
@@ -401,10 +400,9 @@ where
   ) {
     windowSize = Math.abs(windowSize);
     // We need to take the time down to the previous hour, so remove 1 second
-    const date = Math.floor(from.getTime() / 1000) - 1;
+    const date = Math.floor(from.getTime() / 1000);
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
-    const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     // Get a spread of 24 results with each result falling into an hour bucket.
     const [results, extra] = await sequelize.query(`select 
 	hour,
@@ -418,7 +416,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone '${serverTimezone}' >= to_timestamp(${date}) at time zone '${serverTimezone}' - interval '${windowSize} hours'
+	and "recordingDateTime" between (to_timestamp(${date}) - interval '${windowSize} hours') and to_timestamp(${date})
 ) as cacophony_index
 group by hour
 order by hour;

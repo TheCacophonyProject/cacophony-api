@@ -11,7 +11,6 @@ python:
 
 install:
  - ./run --isolate --background
- - node test-datetime.js
  - npm install -g apidoc
  - npm run apidoc
  - npm install -g eslint
@@ -20,7 +19,6 @@ install:
 script:
  - npm run lint
  - black --diff --check ./test
- - docker exec -it cacophony-api node /app-isolated/test-datetime.js
  - ./wait-for-api || { docker ps; docker logs cacophony-api; exit 1; }
 # Apply migration undo and redo to test undo migration
  - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate:undo --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
