@@ -400,7 +400,7 @@ where
   ) {
     windowSize = Math.abs(windowSize);
     // We need to take the time down to the previous hour, so remove 1 second
-    const date = Math.floor(from.getTime() / 1000);
+    const date = Math.ceil(from.getTime() / 1000);
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     // Get a spread of 24 results with each result falling into an hour bucket.
