@@ -107,8 +107,10 @@ class TestDeviceCacophonyIndex:
         except AuthorizationError:
             pass
 
+
 def py_iso_format(timestamp_utc):
     return timestamp_utc.strftime("%Y-%m-%d %H:%M:%S.%f")
+
 
 def js_iso_format_with_utc(timestamp_utc):
     return timestamp_utc.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
