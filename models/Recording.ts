@@ -194,7 +194,7 @@ export default function(
   DataTypes
 ): RecordingStatic {
   const name = "Recording";
-  const maxQueryResults = 100000;
+  const maxQueryResults = 10000;
 
   const attributes = {
     // recording metadata.

@@ -37,6 +37,7 @@ import {
 import { Event } from "../../models/Event";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
+import { DeviceVisits, VisitEvent, DeviceVisitMap, Visit } from "./Visits";
 
 export interface RecordingQuery {
   user: any;
@@ -104,6 +105,7 @@ async function query(
   });
   return result;
 }
+
 
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
@@ -515,6 +517,61 @@ async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
 
+
+// Returns a promise for the recordings query specified in the
+// request.
+async function queryVisits(
+  request: RecordingQuery,
+  type?
+): Promise<{ rows: any[]; count: number }> {
+  if (type) {
+    request.query.where.type = type;
+  }
+
+  const builder = await new models.Recording.queryBuilder().init(
+    request.user,
+    request.query.where,
+    request.query.tagMode,
+    request.query.tags,
+    request.query.offset,
+    request.query.limit,
+    request.query.order
+  );
+  builder.query.distinct = true;
+  const result  = await models.Recording.findAndCountAll(builder.get());
+  // This gives less location precision if the user isn't admin.
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+  result.rows = result.rows.map(rec => {
+    rec.filterData(filterOptions);
+    return handleLegacyTagFieldsForGetOnRecording(rec);
+  });
+  const visits = calculateVisits(request.user.id, result.rows)
+
+  return result;
+}
+
+function calculateVisits(userID: number, recordings: any[]): DeviceVisitMap {
+  // let visits = [];
+  const deviceMap: DeviceVisitMap = {};
+  for (const rec of recordings) {
+    let devVisits = deviceMap[rec.DeviceId];
+    if (!devVisits) {
+      devVisits = new DeviceVisits(
+        rec.Device.devicename,
+        rec.DeviceId,
+        userID
+      );
+      deviceMap[rec.DeviceId] = devVisits;
+    }
+    const newVisits = devVisits.calculateTrackVisits(rec);
+    // visits.push(...newVisits);
+  }
+  return deviceMap;
+}
+
 export default {
   makeUploadHandler,
   query,
@@ -524,5 +581,6 @@ export default {
   addTag,
   reprocess,
   reprocessAll,
-  updateMetadata
+  updateMetadata,
+  queryVisits
 };
