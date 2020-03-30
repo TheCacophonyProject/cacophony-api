@@ -3,13 +3,14 @@ import {
 } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
-import { allLabels } from "../../models/TrackTagLabels";
 import { Moment } from 'moment';
 import moment from 'moment';
 
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Original";
+const unidentified = "unidentified";
+
 interface AnimalMap {
   [key: string]: VisitSummary;
 }
@@ -82,7 +83,7 @@ class DeviceVisits {
       return;
     }
     const trackPeriod = new TrackStartEnd(rec, track);
-    if (tag.what == allLabels.unidentified.value) {
+    if (tag.what == unidentified) {
       if (
         this.lastVisit &&
         this.lastVisit.isPartOfVisit(trackPeriod.trackEnd)
@@ -126,7 +127,7 @@ class DeviceVisits {
     }
     const visit = visitSummary.addVisit(rec, track, tag);
 
-    if (tag.what != allLabels.unidentified.value) {
+    if (tag.what != unidentified) {
       this.recheckUnidentified(visit);
     }
     this.lastVisit = visit;
@@ -135,7 +136,7 @@ class DeviceVisits {
 
   recheckUnidentified(visit: Visit) {
     const unVisit = this.lastVisit;
-    if (unVisit && unVisit.what == allLabels.unidentified.value) {
+    if (unVisit && unVisit.what == unidentified) {
       let unEvent = unVisit.events[0];
       let insertIndex = 1;
       while (unEvent && visit.isPartOfVisit(unEvent.end)) {
@@ -148,10 +149,10 @@ class DeviceVisits {
       }
 
       if (unVisit.events.length == 0) {
-        const unVisitSummary = this.animals[allLabels.unidentified.value];
+        const unVisitSummary = this.animals[unidentified];
         unVisitSummary.removeVisitAtIndex(0);
         if (unVisitSummary.visits.length == 0) {
-          delete this.animals[allLabels.unidentified.value];
+          delete this.animals[unidentified];
         }
       }
     }
@@ -265,7 +266,7 @@ class VisitEvent {
     this.recID = rec.id;
     this.recStart = trackTimes.recStart;
     this.trackID = track.id;
-    if (tag.what != allLabels.unidentified.value) {
+    if (tag.what != unidentified) {
       this.confidence = Math.round(tag.confidence * 100);
     } else {
       this.confidence = 0;

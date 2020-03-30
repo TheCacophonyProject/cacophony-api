@@ -176,38 +176,38 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
   );
 
-  // /**
-  //  * @api {get} /api/v1/recordings/visits Query available recordings
-  //  * @apiName QueryRecordings
-  //  * @apiGroup Recordings
-  //  *
-  //  * @apiUse V1UserAuthorizationHeader
-  //  * @apiUse BaseQueryParams
-  //  * @apiUse RecordingOrder
-  //  * @apiUse MoreQueryParams
-  //  * @apiUse FilterOptions
-  //  * @apiUse V1ResponseSuccessQuery
-  //  * @apiUse V1ResponseError
-  //  */
-  // app.get(
-  //   apiUrl+"/visits",
-  //   [auth.authenticateUser, ...queryValidators],
-  //   middleware.requestWrapper(
-  //     async (request: e.Request, response: e.Response) => {
-  //       const result = await recordingUtil.queryVisits(
-  //         (request as unknown) as RecordingQuery
-  //       );
-  //       responseUtil.send(response, {
-  //         statusCode: 200,
-  //         messages: ["Completed query."],
-  //         limit: request.query.limit,
-  //         offset: request.query.offset,
-  //         count: result.count,
-  //         rows: result.rows
-  //       });
-  //     }
-  //   )
-  // );
+  /**
+   * @api {get} /api/v1/recordings/visits Query available recordings
+   * @apiName QueryRecordings
+   * @apiGroup Recordings
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
+   * @apiUse MoreQueryParams
+   * @apiUse FilterOptions
+   * @apiUse V1ResponseSuccessQuery
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl+"/visits",
+    [auth.authenticateUser, ...queryValidators],
+    middleware.requestWrapper(
+      async (request: e.Request, response: e.Response) => {
+        const result = await recordingUtil.queryVisits(
+          (request as unknown) as RecordingQuery
+        );
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          limit: request.query.limit,
+          offset: request.query.offset,
+          count: result.count,
+          rows: result.rows
+        });
+      }
+    )
+  );
 
   /**
    * @api {get} /api/v1/recordings Query available recordings
