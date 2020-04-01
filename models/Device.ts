@@ -47,7 +47,6 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
   ) => Promise<Device>;
 
   getEvents: (options: FindOptions) => Promise<Event[]>;
-
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {

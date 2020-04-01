@@ -98,7 +98,10 @@ interface RecordingQueryBuilder {
 }
 
 interface RecordingQueryBuilderInstance {
-  addAudioEvents: (before?:string, after?:string) => RecordingQueryBuilderInstance;
+  addAudioEvents: (
+    before?: string,
+    after?: string
+  ) => RecordingQueryBuilderInstance;
   get: () => FindOptions;
   addColumn: (name: string) => RecordingQueryBuilderInstance;
   query: any;
@@ -1069,11 +1072,14 @@ from (
   };
 
   // Include details of recent audio bait events in the query output.
-  Recording.queryBuilder.prototype.addAudioEvents = function(after?: string, before?: string) {
-    if (!after ){
+  Recording.queryBuilder.prototype.addAudioEvents = function(
+    after?: string,
+    before?: string
+  ) {
+    if (!after) {
       after = '"Recording"."recordingDateTime" - interval \'30 minutes\'';
     }
-    if (!before ){
+    if (!before) {
       before = '"Recording"."recordingDateTime"';
     }
     const deviceInclude = this.findInclude(models.Device as DeviceStatic);
@@ -1087,10 +1093,7 @@ from (
         required: false,
         where: {
           dateTime: {
-            [Op.between]: [
-              Sequelize.literal(after),
-              Sequelize.literal(before)
-            ]
+            [Op.between]: [Sequelize.literal(after), Sequelize.literal(before)]
           }
         },
         include: [

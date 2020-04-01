@@ -106,7 +106,6 @@ async function query(
   return result;
 }
 
-
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request) {
@@ -517,14 +516,13 @@ async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
 
-
 // Returns a promise for the recordings query specified in the
 // request.
 async function queryVisits(
   request: RecordingQuery,
   type?
 ): Promise<{ rows: DeviceVisitMap; count: number }> {
-  const builder = (await new models.Recording.queryBuilder().init(
+  const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -532,9 +530,12 @@ async function queryVisits(
     request.query.offset,
     request.query.limit,
     request.query.order
-  ))
+  );
 
-  builder.addAudioEvents('"Recording"."recordingDateTime" - interval \'1 day\'', '"Recording"."recordingDateTime" + interval \'1 day\'');
+  builder.addAudioEvents(
+    '"Recording"."recordingDateTime" - interval \'1 day\'',
+    '"Recording"."recordingDateTime" + interval \'1 day\''
+  );
 
   const result = await models.Recording.findAndCountAll(builder.get());
   const recordings = result.rows;
@@ -559,9 +560,9 @@ async function queryVisits(
     }
     const newVisits = devVisits.calculateTrackVisits(rec);
     visits.splice(visits.length, 0, ...newVisits);
-    
-    for(const visit of newVisits){
-      for(const audioEvent of visit.audioBaitEvents){
+
+    for (const visit of newVisits) {
+      for (const audioEvent of visit.audioBaitEvents) {
         audioFileIds.add(audioEvent.EventDetail.details.fileId);
       }
     }
@@ -573,12 +574,13 @@ async function queryVisits(
     audioFileNames[f.id] = f.details.name;
   }
 
-  for(const visit of visits){
-    for(const audioEvent of visit.audioBaitEvents){
-      audioEvent.dataValues.fileName = audioFileNames[audioEvent.EventDetail.details.fileId];
+  for (const visit of visits) {
+    for (const audioEvent of visit.audioBaitEvents) {
+      audioEvent.dataValues.fileName =
+        audioFileNames[audioEvent.EventDetail.details.fileId];
     }
   }
-  return {"rows":deviceMap, "count": visits.length};
+  return { rows: deviceMap, count: visits.length };
 }
 
 export default {

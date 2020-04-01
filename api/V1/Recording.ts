@@ -190,7 +190,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse V1ResponseError
    */
   app.get(
-    apiUrl+"/visits",
+    apiUrl + "/visits",
     [auth.authenticateUser, ...queryValidators],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
