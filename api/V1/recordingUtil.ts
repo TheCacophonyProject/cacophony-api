@@ -523,12 +523,8 @@ async function updateMetadata(recording: any, metadata: any) {
 async function queryVisits(
   request: RecordingQuery,
   type?
-): Promise<{ rows: any[]; count: number }> {
-  if (type) {
-    request.query.where.type = type;
-  }
-
-  const builder = await new models.Recording.queryBuilder().init(
+): Promise<{ rows: DeviceVisitMap; count: number }> {
+  const builder = (await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
     request.query.tagMode,
@@ -536,40 +532,53 @@ async function queryVisits(
     request.query.offset,
     request.query.limit,
     request.query.order
-  );
-  builder.query.distinct = true;
-  const result  = await models.Recording.findAndCountAll(builder.get());
-  // This gives less location precision if the user isn't admin.
+  ))
+
+  builder.addAudioEvents('"Recording"."recordingDateTime" - interval \'1 day\'', '"Recording"."recordingDateTime" + interval \'1 day\'');
+
+  const result = await models.Recording.findAndCountAll(builder.get());
+  const recordings = result.rows;
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
   );
-  result.rows = result.rows.map(rec => {
-    rec.filterData(filterOptions);
-    return handleLegacyTagFieldsForGetOnRecording(rec);
-  });
-  const visits = calculateVisits(request.user.id, result.rows)
-
-  return result;
-}
-
-function calculateVisits(userID: number, recordings: any[]): DeviceVisitMap {
-  // let visits = [];
   const deviceMap: DeviceVisitMap = {};
+  let visits = [];
+  const audioFileIds: Set<number> = new Set();
+
   for (const rec of recordings) {
+    rec.filterData(filterOptions);
     let devVisits = deviceMap[rec.DeviceId];
     if (!devVisits) {
       devVisits = new DeviceVisits(
         rec.Device.devicename,
         rec.DeviceId,
-        userID
+        request.user.id
       );
       deviceMap[rec.DeviceId] = devVisits;
     }
     const newVisits = devVisits.calculateTrackVisits(rec);
-    // visits.push(...newVisits);
+    visits.splice(visits.length, 0, ...newVisits);
+    
+    for(const visit of newVisits){
+      for(const audioEvent of visit.audioBaitEvents){
+        audioFileIds.add(audioEvent.EventDetail.details.fileId);
+      }
+    }
   }
-  return deviceMap;
+
+  // Bulk look up file details of played audio events.
+  const audioFileNames = new Map();
+  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+    audioFileNames[f.id] = f.details.name;
+  }
+
+  for(const visit of visits){
+    for(const audioEvent of visit.audioBaitEvents){
+      audioEvent.dataValues.fileName = audioFileNames[audioEvent.EventDetail.details.fileId];
+    }
+  }
+  return {"rows":deviceMap, "count": visits.length};
 }
 
 export default {

@@ -78,6 +78,40 @@ class UserAPI(APIBase):
             return_json=return_json,
         )
 
+    def query_visits(
+        self,
+        startDate=None,
+        endDate=None,
+        min_secs=0,
+        limit=100,
+        offset=0,
+        tagmode=None,
+        tags=None,
+        filterOptions=None,
+        deviceIds=None,
+        return_json=True,
+        where=None,
+    ):
+        if where is None:
+            where = defaultdict(dict)
+        where["duration"] = {"$gte": min_secs}
+        if startDate is not None:
+            where["recordingDateTime"]["$gte"] = startDate.isoformat()
+        if endDate is not None:
+            where["recordingDateTime"]["$lte"] = endDate.isoformat()
+        if deviceIds is not None:
+            where["DeviceId"] = deviceIds
+        return self._query(
+            "recordings/visits",
+            where=where,
+            limit=limit,
+            offset=offset,
+            tagMode=tagmode,
+            tags=tags,
+            filterOptions=filterOptions,
+            return_json=return_json,
+        )
+
     def report(
         self,
         startDate=None,
@@ -296,7 +330,6 @@ class UserAPI(APIBase):
 
     def _query(self, queryname, **params):
         url = urljoin(self._baseurl, "/api/v1/" + queryname)
-
         params.setdefault("limit", 100)
         params.setdefault("offset", 0)
         return_json = params.pop("return_json", False)

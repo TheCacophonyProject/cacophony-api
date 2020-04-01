@@ -62,6 +62,9 @@ class TestUser:
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 
+    def query_visits(self, **options):
+        return self._userapi.query_visits(**options)
+
     def can_see_recordings(self, *expected_recordings):
         self._can_see_recordings_with_query({}, *expected_recordings)
 
@@ -364,8 +367,8 @@ class TestUser:
         users = self._userapi.list_device_users(device.get_id())
         return {u["username"] for u in users if u["relation"] == relation}
 
-    def can_add_track_to_recording(self, recording):
-        track = Track.create(recording)
+    def can_add_track_to_recording(self, recording, start_s=None):
+        track = Track.create(recording, start_s)
         track.id_ = self._userapi.add_track(recording.id_, track.data)
         recording.tracks.append(track)
         return track
