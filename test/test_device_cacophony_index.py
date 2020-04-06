@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from dateutil import tz
-import time
 from .helper import Helper
 from test.testexception import AuthorizationError
 
@@ -19,7 +18,7 @@ class TestDeviceCacophonyIndex:
 
         # NOTE: This needs to be a timestamp in 'Auckland/Pacific' timezone, since that's what
         #  the database is going to interpret it as.  This should either be documented or fixed.
-        local_tz = tz.gettz('Pacific/Auckland')
+        local_tz = tz.gettz("Pacific/Auckland")
         offset = local_tz.utcoffset(datetime.now())
         now = datetime.utcnow()
         cls._now = now
