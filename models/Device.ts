@@ -373,6 +373,12 @@ export default function(
     const date = Math.ceil(from.getTime() / 1000);
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
+
+    // FIXME(jon): So the problem is that we're inserting recordings into the databases without
+    //  saying how to interpret the timestamps, so they are interpreted as being NZ time when they come in.
+    //  This happens to work when both the inserter and the DB are in the same timezone, but otherwise will
+    //  lead to spurious values.  Need to standardize input time.
+
     const [
       result,
       _extra
@@ -385,6 +391,7 @@ where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
 	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC') as cacophony_index;`);
+    console.log("result", result);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);

@@ -1,4 +1,6 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
+from dateutil import tz
+import time
 from .helper import Helper
 from test.testexception import AuthorizationError
 
@@ -14,15 +16,22 @@ class TestDeviceCacophonyIndex:
         # upload a series of recordings for the device, attributed to different times of day
         # and to different days over the past n days.
         # Make the cacophony index start high, and get progressively lower.
-        now = datetime.now()
+
+        # NOTE: This needs to be a timestamp in 'Auckland/Pacific' timezone, since that's what
+        #  the database is going to interpret it as.  This should either be documented or fixed.
+        local_tz = tz.gettz('Pacific/Auckland')
+        offset = local_tz.utcoffset(datetime.now())
+        now = datetime.utcnow()
         cls._now = now
+        now = now + offset
         num_days = 1
+
         for day in range(0, num_days):
             for hour in range(0, 24):
                 ts = now - timedelta(hours=hour, days=day)
                 recording = device.upload_audio_recording(
                     {
-                        "recordingDateTime": py_iso_format(ts),
+                        "recordingDateTime": ts.isoformat(),
                         "recordingTime": ts.strftime("%H:%M:%S"),
                         "duration": 60,
                         "additionalMetadata": {
@@ -58,9 +67,9 @@ class TestDeviceCacophonyIndex:
         cacophony_index_admin = admin.get_cacophony_index_for_device(self.get_device())
         assert cacophony_index_admin["cacophonyIndex"] == 11.5
 
-        now = datetime.utcnow()
+        now = self.now()
         # We only have 1 day of index values in the DB, so get only a window of 12 hours
-        print(f"Get cacophony index from now ({js_iso_format_with_utc(now)}), going back 12 hours")
+        print(f"Get cacophony index from now ({js_iso_format_with_utc(now)}, {now}), going back 12 hours")
         cacophony_index_twelve_hours = johnny.get_cacophony_index_for_device(
             self.get_device(), js_iso_format_with_utc(now), 12
         )
@@ -94,7 +103,7 @@ class TestDeviceCacophonyIndex:
         cacophony_index_admin = admin.get_cacophony_index_histogram_for_device(self.get_device())
         assert len(cacophony_index_admin["cacophonyIndex"]) == 24
 
-        now = datetime.utcnow()
+        now = self.now()
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_histogram_for_device(
             self.get_device(), js_iso_format_with_utc(now - timedelta(hours=12)), 12,
         )
