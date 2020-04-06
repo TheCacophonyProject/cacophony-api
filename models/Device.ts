@@ -391,7 +391,6 @@ where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
 	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC') as cacophony_index;`);
-    console.log("result", result);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);
