@@ -12,11 +12,6 @@ python:
 install:
  - ./run --isolate --background
  - npm install -g apidoc
- - date
- # We need to run the python tests with this image in the correct local timezone
- - apt-get install -y tzdata
- - echo "Pacific/Auckland" > /etc/timezone
- - ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
  - npm run apidoc
  - npm install -g eslint
  - pip install -r test/requirements.txt
