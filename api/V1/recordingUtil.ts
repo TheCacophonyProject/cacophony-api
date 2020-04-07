@@ -553,7 +553,6 @@ function generateVisits(
       );
       deviceMap[rec.DeviceId] = devVisits;
     }
-
     const newVisits = devVisits.calculateNewVisits(
       rec,
       queryOffset + i,
@@ -635,7 +634,7 @@ async function queryVisits(
       deviceMap,
       recordings,
       filterOptions,
-      request.query.offset,
+      request.query.offset || 0,
       request.user.id,
       gotAllRecordings
     );
