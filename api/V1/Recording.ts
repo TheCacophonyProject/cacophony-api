@@ -179,8 +179,8 @@ export default (app: Application, baseUrl: string) => {
   );
 
   /**
-   * @api {get} /api/v1/recordings/visits Query available recordings
-   * @apiName QueryRecordings
+   * @api {get} /api/v1/recordings/visits Query available recordings and generate visits
+   * @apiName QueryVisits
    * @apiGroup Recordings
    *
    * @apiUse V1UserAuthorizationHeader
