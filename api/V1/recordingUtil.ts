@@ -529,13 +529,14 @@ async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
 
-function generateRecVisits(
-  deviceMap,
-  recordings,
+// generates new visits and returns a tuple of completeVisits and incompleteVisits
+function generateVisits(
+  deviceMap: DeviceVisitMap,
+  recordings: any[],
   filterOptions,
-  queryOffset,
-  userId,
-  gotAllRecordings
+  queryOffset: number,
+  userId: number,
+  gotAllRecordings: boolean
 ): [Visit[], Visit[]] {
   let visits = [];
   let incompleteVisits = [];
@@ -630,7 +631,7 @@ async function queryVisits(
       break;
     }
 
-    const [newVisits, newIncomplete] = generateRecVisits(
+    const [newVisits, newIncomplete] = generateVisits(
       deviceMap,
       recordings,
       filterOptions,
