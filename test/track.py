@@ -11,7 +11,7 @@ class Track:
     tags = attr.ib(factory=list)
 
     @classmethod
-    def create(cls, recording, start_s):
+    def create(cls, recording, start_s=10):
         "Make a TestTrack with some plausible data."
         if start_s is None:
             start_s = 10
