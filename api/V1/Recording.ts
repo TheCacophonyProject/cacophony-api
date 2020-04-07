@@ -134,9 +134,11 @@ export default (app: Application, baseUrl: string) => {
     middleware.parseJSON("where", query).optional(),
     query("offset")
       .isInt()
+      .toInt()
       .optional(),
     query("limit")
       .isInt()
+      .toInt()
       .optional(),
     middleware.parseJSON("order", query).optional(),
     middleware.parseArray("tags", query).optional(),
@@ -202,7 +204,11 @@ export default (app: Application, baseUrl: string) => {
           messages: ["Completed query."],
           limit: request.query.limit,
           offset: request.query.offset,
-          count: result.count,
+          numRecordings: result.numRecordings,
+          numVisits: result.numVisits,
+          queryOffset: result.queryOffset,
+          totalRecordings: result.totalRecordings,
+          hasMoreVisits: result.hasMoreVisits,
           rows: result.rows
         });
       }
@@ -354,6 +360,7 @@ export default (app: Application, baseUrl: string) => {
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
+   * @apiParam {string} [type] Optional type of report either recordings or visits. Recordings is default.
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
@@ -362,7 +369,14 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/report`,
-    [auth.paramOrHeader, ...queryValidators],
+    [
+      auth.paramOrHeader,
+      query("type")
+        .isString()
+        .optional()
+        .isIn(["recordings", "visits"]),
+      ...queryValidators
+    ],
     middleware.requestWrapper(async (request, response) => {
       // 10 minute timeout because the query can take a while to run
       // when the result set is large.

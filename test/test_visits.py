@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import dateutil.parser
 from dateutil.parser import parse as parsedate
-import dateutil.tz as tz
 
 
 class TestVisits:
@@ -16,6 +15,7 @@ class TestVisits:
         return rec
 
     def test_report(self, helper):
+        # init device and sounds
         admin = helper.admin_user()
         sound1_name = "rodent-scream"
         sound1 = admin.upload_audio_bait({"name": sound1_name})
@@ -29,7 +29,11 @@ class TestVisits:
         now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
 
         # visit 1
-        self.upload_recording_with_tag(device, admin, "cat", time=now, duration=90)
+        # unidentified gets grouped with cat
+        rec = self.upload_recording_with_tag(
+            device, admin, "unidentified", time=now - timedelta(minutes=4), duration=90
+        )
+        self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=1), duration=90)
 
         # visit 2
         self.upload_recording_with_tag(
@@ -39,7 +43,7 @@ class TestVisits:
         # visit 3
         device.record_event("audioBait", {"fileId": sound1}, [now - timedelta(minutes=9)])
         rec = self.upload_recording_with_tag(device, admin, "possum", time=now, duration=90)
-        device.record_event("audioBait", {"fileId": sound2}, [now + timedelta(seconds=40)])
+        device.record_event("audioBait", {"fileId": sound2, "volume": 9}, [now + timedelta(seconds=40)])
         track = admin.can_add_track_to_recording(rec, start_s=80)
         admin.can_tag_track(track, what="possum")
 
@@ -47,14 +51,14 @@ class TestVisits:
         device.record_event("audioBait", {"fileId": sound2}, [now + timedelta(days=1, seconds=1)])
 
         response = cosmo.query_visits(return_json=True)
-        assert response["count"] == 3
+        assert response["numVisits"] == 3
 
         device_map = response["rows"][str(device.get_id())]
         distinct_animals = set(device_map["animals"].keys())
         assert distinct_animals == set(["possum", "cat"])
-        possum_visits = device_map["animals"]["possum"]["visits"]
 
-        print("second visit starts more than 10 minutes after the first visit ends")
+        possum_visits = device_map["animals"]["possum"]["visits"]
+        print("second visit starts more thatn 10 minutes after the first visit ends")
         second_visit_end = parsedate(possum_visits[1]["end"]) + timedelta(
             seconds=TestVisits.VISIT_INTERVAL_SECONDS
         )
