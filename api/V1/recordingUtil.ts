@@ -266,7 +266,7 @@ function getCacophonyIndex(recording: Recording): string | null {
 function getSpeciesIdentification(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
     ?.map(
-      classification => `${classification.species}, ${classification.begin_s}`
+      classification => `${classification.species}: ${classification.begin_s}`
     )
     .join(";");
 }
