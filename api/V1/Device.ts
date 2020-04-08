@@ -383,7 +383,9 @@ export default function(app: Application, baseUrl: string) {
         request.user,
         request.params.deviceId,
         request.query.from || new Date(), // Get the current cacophony index
-        request.query["window-size"] || 2160 // Default to a three month rolling window
+        typeof request.query["window-size"] === "number"
+          ? request.query["window-size"]
+          : 2160 // Default to a three month rolling window
       );
       return responseUtil.send(response, {
         statusCode: 200,
@@ -431,7 +433,9 @@ export default function(app: Application, baseUrl: string) {
         request.user,
         request.params.deviceId,
         request.query.from || new Date(), // Get the current cacophony index
-        request.query["window-size"] || 2160 // Default to a three month rolling window
+        typeof request.query["window-size"] === "number"
+          ? request.query["window-size"]
+          : 2160 // Default to a three month rolling window
       );
       return responseUtil.send(response, {
         statusCode: 200,
