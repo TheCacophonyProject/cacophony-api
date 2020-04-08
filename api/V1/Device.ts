@@ -407,7 +407,7 @@ export default function(app: Application, baseUrl: string) {
    *
    * @apiParam {Integer} deviceId ID of the device.
    * @apiParam {String} from ISO8601 date string
-   * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
+   * @apiParam {Integer} window-size length of window in hours going backwards in time from the `from` param.  Default is 2160 (90 days)
    * @apiSuccess {Object} cacophonyIndex in the format `[{hour: number, index: number}, ...]`
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError

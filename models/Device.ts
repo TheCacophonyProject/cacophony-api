@@ -367,10 +367,10 @@ export default function(
     authUser,
     deviceId,
     from,
-    windowSize
+    windowSizeInHours
   ) {
-    windowSize = Math.abs(windowSize);
-    const date = Math.ceil(from.getTime() / 1000);
+    windowSizeInHours = Math.abs(windowSizeInHours);
+    const windowEndTimestampUtc = Math.ceil(from.getTime() / 1000);
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
 
@@ -390,7 +390,7 @@ from
 where
 	"DeviceId" = ${deviceId} 
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC') as cacophony_index;`);
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC' - interval '${windowSizeInHours} hours') and to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC') as cacophony_index;`);
     const index = result[0].cacophony_index;
     if (index !== null) {
       return Number(index);
@@ -402,11 +402,11 @@ where
     authUser,
     deviceId,
     from,
-    windowSize
+    windowSizeInHours
   ) {
-    windowSize = Math.abs(windowSize);
+    windowSizeInHours = Math.abs(windowSizeInHours);
     // We need to take the time down to the previous hour, so remove 1 second
-    const date = Math.ceil(from.getTime() / 1000);
+    const windowEndTimestampUtc = Math.ceil(from.getTime() / 1000);
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     // Get a spread of 24 results with each result falling into an hour bucket.
@@ -422,7 +422,7 @@ from
 where
 	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
-	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${date}) at time zone 'UTC' - interval '${windowSize} hours') and to_timestamp(${date}) at time zone 'UTC'
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC' - interval '${windowSizeInHours} hours') and to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC'
 ) as cacophony_index
 group by hour
 order by hour;
