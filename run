@@ -52,6 +52,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
 # Run docker ps without sudo to check if it can be used without
 def check_docker_can_run():
     return subprocess.call(
@@ -125,7 +126,6 @@ if args.isolate:
 run_cmd.append(IMAGE_NAME)
 
 subprocess.check_call(add_sudo(run_cmd))
-
 if not args.background:
     print("\nShowing container logs")
     try:
