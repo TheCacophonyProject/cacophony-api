@@ -95,10 +95,7 @@ export default function(app: Application) {
     "/token",
     [body("ttl").optional(), body("access").optional(), auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      let expiry = ttlTypes[request.body.ttl];
-      if (!expiry) {
-        expiry = ttlTypes["short"];
-      }
+      const expiry = ttlTypes[request.body.ttl] || ttlTypes["short"];
       const token = auth.createEntityJWT(
         request.user,
         { expiresIn: expiry },

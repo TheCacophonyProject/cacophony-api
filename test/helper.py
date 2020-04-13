@@ -36,20 +36,20 @@ class Helper:
         api.name_or_email_login(nameOrEmail)
         return TestUser(username, api)
 
-    def login_as_device(self, devicename, groupname=None, password=None):
+    def login_as_device(self, devicename, groupname=None, password=None) -> TestDevice:
         if not password:
             password = self._make_password(devicename)
         device = DeviceAPI(self.config.api_url, devicename, password, groupname).login()
         return TestDevice(devicename, device, self, group=groupname)
 
-    def given_new_user_with_device(self, testClass, username_base):
+    def given_new_user_with_device(self, testClass, username_base) -> (TestUser, TestDevice):
         self._print_description("Given a new user {}".format(username_base))
         user = self.given_new_user(testClass, username_base)
         devicename = user.username + "s_device"
         device = self.given_new_device(
             None, devicename, group=user.get_own_group(), description="    with a device"
         )
-        return (user, device)
+        return user, device
 
     def given_new_user(self, testClass, username, email=None):
         if not email:
@@ -142,7 +142,7 @@ class Helper:
     def _make_password(self, loginname):
         return "p{}".format(loginname)
 
-    def admin_user(self):
+    def admin_user(self) -> TestUser:
         return TestUser(self.config.admin_username, self._get_admin())
 
     def _get_admin(self):

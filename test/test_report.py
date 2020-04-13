@@ -38,7 +38,7 @@ class TestReport:
         # Add a recording for device1
         rec2 = device1.upload_recording()
 
-        rec3 = device1.upload_audio_recording()
+        rec3 = device1.upload_audio_recording_deprecated()
 
         # Add recording tag to 1st recording.
         rec0.is_tagged_as(what="cool").by(user)

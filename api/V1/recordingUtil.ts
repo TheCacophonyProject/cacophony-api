@@ -108,15 +108,17 @@ async function query(
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request) {
-  const builder = (await new models.Recording.queryBuilder().init(
-    request.user,
-    request.query.where,
-    request.query.tagMode,
-    request.query.tags,
-    request.query.offset,
-    request.query.limit,
-    request.query.order
-  ))
+  const builder = (
+    await new models.Recording.queryBuilder().init(
+      request.user,
+      request.query.where,
+      request.query.tagMode,
+      request.query.tags,
+      request.query.offset,
+      request.query.limit,
+      request.query.order
+    )
+  )
     .addColumn("comment")
     .addColumn("additionalMetadata")
     .addAudioEvents();

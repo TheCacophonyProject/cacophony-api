@@ -20,7 +20,7 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import { body, query } from "express-validator/check";
+import { body, param, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
 import { ClientError } from "../customErrors";
@@ -341,6 +341,106 @@ export default function(app: Application, baseUrl: string) {
         devices: devices.devices,
         nameMatches: devices.nameMatches,
         messages: ["Completed get devices query."]
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/devices/{:deviceId}/cacophony-index Get the cacophony index for a device
+   * @apiName cacophony-index
+   * @apiGroup Device
+   * @apiDescription Get a single number Cacophony Index
+   * for a given device.  This number is the average of all the Cacophony Index values from a
+   * given time (defaulting to 'Now'), within a given timespan (defaulting to 3 months)
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Integer} deviceId ID of the device.
+   * @apiParam {String} from ISO8601 date string
+   * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
+   * @apiSuccess {Float} cacophonyIndex A number representing the average index over the period `from` minus `window-size`
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:deviceId/cacophony-index`,
+    [
+      param("deviceId")
+        .isInt()
+        .toInt(),
+      query("from")
+        .isISO8601()
+        .toDate()
+        .optional(),
+      query("window-size")
+        .isInt()
+        .toInt()
+        .optional(),
+      auth.authenticateUser
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const cacophonyIndex = await models.Device.getCacophonyIndex(
+        request.user,
+        request.params.deviceId,
+        request.query.from || new Date(), // Get the current cacophony index
+        typeof request.query["window-size"] === "number"
+          ? request.query["window-size"]
+          : 2160 // Default to a three month rolling window
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        cacophonyIndex,
+        messages: []
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/devices/{:deviceId}/cacophony-index-histogram Get the cacophony index 24hr histogram for a device
+   * @apiName cacophony-index-histogram
+   * @apiGroup Device
+   * @apiDescription Get a histogram of the Cacophony Index
+   * for a given device, bucketed by hour of the day.  These buckets are the average of all the Cacophony Index values
+   * for each hour of the day, taken from a given time (defaulting to 'Now'), within a given timespan (defaulting to 3 months)
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Integer} deviceId ID of the device.
+   * @apiParam {String} from ISO8601 date string
+   * @apiParam {Integer} window-size length of window in hours going backwards in time from the `from` param.  Default is 2160 (90 days)
+   * @apiSuccess {Object} cacophonyIndex in the format `[{hour: number, index: number}, ...]`
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:deviceId/cacophony-index-histogram`,
+    [
+      param("deviceId")
+        .isInt()
+        .toInt(),
+      query("from")
+        .isISO8601()
+        .toDate()
+        .optional(),
+      query("window-size")
+        .isInt()
+        .toInt()
+        .optional(),
+      auth.authenticateUser
+    ],
+    middleware.requestWrapper(async function(request, response) {
+      const cacophonyIndex = await models.Device.getCacophonyIndexHistogram(
+        request.user,
+        request.params.deviceId,
+        request.query.from || new Date(), // Get the current cacophony index
+        typeof request.query["window-size"] === "number"
+          ? request.query["window-size"]
+          : 2160 // Default to a three month rolling window
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        cacophonyIndex,
+        messages: []
       });
     })
   );

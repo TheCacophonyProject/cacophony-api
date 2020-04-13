@@ -49,10 +49,7 @@ export default function(app: Application, baseUrl: string) {
    */
   app.post(
     apiUrl,
-    [
-      auth.authenticateDevice,
-      ...eventUtil.eventAuth
-    ],
+    [auth.authenticateDevice, ...eventUtil.eventAuth],
     middleware.requestWrapper(eventUtil.uploadEvent)
   );
 
@@ -78,12 +75,12 @@ export default function(app: Application, baseUrl: string) {
    * @apiuse V1ResponseError
    */
   app.post(
-    apiUrl+"/device/:deviceID",
+    apiUrl + "/device/:deviceID",
     [
       auth.authenticateUser,
       middleware.getDevice(param, "deviceID"),
       auth.userCanAccessDevices,
-      ...eventUtil.eventAuth,
+      ...eventUtil.eventAuth
     ],
     middleware.requestWrapper(eventUtil.uploadEvent)
   );

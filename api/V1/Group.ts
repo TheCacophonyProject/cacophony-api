@@ -79,6 +79,7 @@ export default function(app: Application, baseUrl: string) {
     apiUrl,
     [auth.authenticateUser, middleware.parseJSON("where", query)],
     middleware.requestWrapper(async (request, response) => {
+
       const groups = await models.Group.query(
         request.query.where,
         request.user
@@ -86,7 +87,7 @@ export default function(app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        groups: groups
+        groups
       });
     })
   );

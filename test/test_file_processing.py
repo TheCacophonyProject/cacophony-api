@@ -269,7 +269,7 @@ class TestFileProcessing:
         listener = helper.given_new_device(self, "Listener", description="reprocess test")
 
         # processed audio recording
-        recording = listener.upload_audio_recording()
+        recording = listener.upload_audio_recording_deprecated()
 
         recording = file_processing.get("audio", "toMp3")
         file_processing.put(recording, success=True, complete=True)

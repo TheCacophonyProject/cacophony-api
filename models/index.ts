@@ -58,6 +58,7 @@ const sequelize = new Sequelize(
   dbConfig.password,
   {
     ...dbConfig,
+    logQueryParameters: true,
     operatorsAliases: {
       $eq: Op.eq,
       $ne: Op.ne,
