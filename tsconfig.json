@@ -8,8 +8,12 @@
         "allowSyntheticDefaultImports": true
     },
     "include": [
-        "./models/**/*",
-        "./api/**/*",
-        "./**/*"
+        "./models/**/*.ts",
+        "./api/**/*.ts",
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "./node_modules/*",
+        "./test/*"
     ]
 }

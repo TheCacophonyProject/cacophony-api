@@ -892,7 +892,6 @@ from (
       offset: offset,
       attributes: Recording.queryGetAttributes
     };
-
     return this;
   };
 

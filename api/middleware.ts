@@ -224,7 +224,7 @@ const parseJSON = function(
           throw new Error(format("Could not parse JSON field %s.", path));
         }
       }
-      if (typeof result !== 'object') {
+      if (typeof result !== "object") {
         throw new Error(format("JSON field %s is not an object", path));
       }
       req[location][path] = result;
@@ -238,6 +238,8 @@ const parseJSON = function(
  * If the entry is a string, it will be converted to a proper array,
  * if it is already an array, it will stay the same. Either is acceptable,
  * however clients should migrate to sending arrays directly if it's in the body.
+ * NOTE: We need to keep parsing the JSON string until it is an object;
+ *  a double-stringified object parsed once is still a string!
  * @param field The field in the JSON object to get
  * @param checkFunc The express-validator function, typically `body` or `query`
  */

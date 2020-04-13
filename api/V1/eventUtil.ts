@@ -52,10 +52,10 @@ const eventAuth = [
   oneOf(
     [body("eventDetailId").exists(), body("description.type").exists()],
     "Either 'eventDetailId' or 'description.type' must be specified."
-  ),
+  )
 ];
 
 export default {
   eventAuth,
-  uploadEvent,
+  uploadEvent
 };

@@ -439,7 +439,7 @@ class UserAPI(APIBase):
         else:
             url = "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id)
 
-        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header,)
+        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header)
         return self._check_response(response)["messages"]
 
     def record_event(self, device, type_, details, times=None):
@@ -455,6 +455,22 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, json=eventData)
         response_data = self._check_response(response)
         return response_data["eventsAdded"], response_data["eventDetailId"]
+
+    def get_cacophony_index(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index")
+        response = requests.get(
+            url, headers=self._auth_header, params={"from": from_time, "window-size": window_size}
+        )
+        self._check_response(response)
+        return response.json()
+
+    def get_cacophony_index_histogram(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index-histogram")
+        response = requests.get(
+            url, headers=self._auth_header, params={"from": from_time, "window-size": window_size}
+        )
+        self._check_response(response)
+        return response.json()
 
 
 def serialise_params(params):

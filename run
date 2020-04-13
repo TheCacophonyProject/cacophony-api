@@ -62,7 +62,6 @@ def check_docker_can_run():
         timeout=30,
     )
 
-
 use_sudo = args.sudo
 if not args.sudo:
     if not current_user_in_group("docker"):
@@ -113,6 +112,7 @@ run_cmd = [
     os.getcwd() + ":/app",
 ]
 
+
 if args.isolate:
     run_cmd.extend(
         [
@@ -124,6 +124,7 @@ if args.isolate:
     )
 
 run_cmd.append(IMAGE_NAME)
+
 subprocess.check_call(add_sudo(run_cmd))
 if not args.background:
     print("\nShowing container logs")

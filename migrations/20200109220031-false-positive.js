@@ -6,6 +6,5 @@ module.exports = {
       `UPDATE "TrackTags" set "what"='false-positive' where "what" = 'false positive'`
     );
   },
-  down: async () => {
-  }
+  down: async () => {}
 };

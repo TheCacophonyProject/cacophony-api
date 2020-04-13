@@ -33,5 +33,5 @@ exports.default = {
   server: exports.server,
   s3: exports.s3,
   fileProcessing: exports.fileProcessing,
-  database: exports.database,
+  database: exports.database
 };

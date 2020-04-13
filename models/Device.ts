@@ -65,7 +65,7 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     ScheduleId?: ScheduleId,
     includeData?: any
   ) => Promise<{ rows: Device[]; count: number }>;
-  freeDevicename: (name: string) => Promise<boolean>;
+  freeDevicename: (name: string, id: number) => Promise<boolean>;
   newUserPermissions: (enabled: boolean) => UserDevicePermissions;
   getFromId: (id: DeviceId) => Promise<Device>;
   findDevice: (
@@ -87,6 +87,18 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     groupNames: string[],
     operator: any
   ) => Promise<{ devices: Device[]; nameMatches: string }>;
+  getCacophonyIndex: (
+    authUser: User,
+    deviceId: DeviceId,
+    from: Date,
+    windowSize: number
+  ) => Promise<number>;
+  getCacophonyIndexHistogram: (
+    authUser: User,
+    deviceId: DeviceId,
+    from: Date,
+    windowSize: number
+  ) => Promise<{ hour: number; index: number }>;
 }
 
 export default function(
@@ -258,8 +270,10 @@ export default function(
     };
   };
 
-  Device.freeDevicename = async function(devicename) {
-    const device = await this.findOne({ where: { devicename: devicename } });
+  Device.freeDevicename = async function(devicename, groupId) {
+    const device = await this.findOne({
+      where: { devicename: devicename, GroupId: groupId }
+    });
     if (device != null) {
       return false;
     }
@@ -267,7 +281,7 @@ export default function(
   };
 
   Device.getFromId = async function(id) {
-    return await this.findById(id);
+    return this.findByPk(id);
   };
 
   Device.findDevice = async function(
@@ -347,6 +361,78 @@ export default function(
         }
       ]
     });
+  };
+
+  Device.getCacophonyIndex = async function(
+    authUser,
+    deviceId,
+    from,
+    windowSizeInHours
+  ) {
+    windowSizeInHours = Math.abs(windowSizeInHours);
+    const windowEndTimestampUtc = Math.ceil(from.getTime() / 1000);
+    // Make sure the user can see the device:
+    await authUser.checkUserControlsDevices([deviceId]);
+
+    // FIXME(jon): So the problem is that we're inserting recordings into the databases without
+    //  saying how to interpret the timestamps, so they are interpreted as being NZ time when they come in.
+    //  This happens to work when both the inserter and the DB are in the same timezone, but otherwise will
+    //  lead to spurious values.  Need to standardize input time.
+
+    const [
+      result,
+      _extra
+    ] = await sequelize.query(`select round((avg(cacophony_index.scores))::numeric, 2) as cacophony_index from
+(select
+	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
+from
+	"Recordings"
+where
+	"DeviceId" = ${deviceId} 
+	and "type" = 'audio'
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC' - interval '${windowSizeInHours} hours') and to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC') as cacophony_index;`);
+    const index = result[0].cacophony_index;
+    if (index !== null) {
+      return Number(index);
+    }
+    return index;
+  };
+
+  Device.getCacophonyIndexHistogram = async function(
+    authUser,
+    deviceId,
+    from,
+    windowSizeInHours
+  ) {
+    windowSizeInHours = Math.abs(windowSizeInHours);
+    // We need to take the time down to the previous hour, so remove 1 second
+    const windowEndTimestampUtc = Math.ceil(from.getTime() / 1000);
+    // Make sure the user can see the device:
+    await authUser.checkUserControlsDevices([deviceId]);
+    // Get a spread of 24 results with each result falling into an hour bucket.
+    const [results, extra] = await sequelize.query(`select 
+	hour,
+	round((avg(scores))::numeric, 2) as index 
+from
+(select 
+	date_part('hour', "recordingDateTime") as hour,
+	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
+from
+	"Recordings"
+where
+	"DeviceId" = ${deviceId}
+	and "type" = 'audio'
+	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC' - interval '${windowSizeInHours} hours') and to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC'
+) as cacophony_index
+group by hour
+order by hour;
+`);
+    // TODO(jon): Do we want to validate that there is enough data in a given hour
+    //  to get a reasonable index histogram?
+    return results.map(item => ({
+      hour: Number(item.hour),
+      index: Number(item.index)
+    }));
   };
 
   /**
@@ -562,7 +648,6 @@ async function addUserAccessQuery(authUser, whereQuery) {
   if (authUser.hasGlobalRead()) {
     return whereQuery;
   }
-
   const deviceIds = await authUser.getDeviceIds();
   const userGroupIds = await authUser.getGroupsIds();
 
