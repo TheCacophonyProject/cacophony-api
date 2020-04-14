@@ -58,7 +58,7 @@ const getVerifiedJWT = req => {
 /**
  * check requested auth access exists in jwt access object
  */
-async function checkAccess(reqAccess, jwtDecoded) {
+function checkAccess(reqAccess, jwtDecoded) {
   if (!reqAccess && jwtDecoded.access) {
     return false;
   }
@@ -112,7 +112,7 @@ const authenticate = function(
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
-    const hasAccess = await checkAccess(reqAccess, jwtDecoded);
+    const hasAccess = checkAccess(reqAccess, jwtDecoded);
     if (!hasAccess) {
       res.status(401).json({ messages: ["JWT does not have access."] });
       return;

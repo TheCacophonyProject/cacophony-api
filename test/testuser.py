@@ -490,6 +490,12 @@ class TestUser:
     def get_tracks(self, recording_id):
         return self._userapi.get_tracks(recording_id)
 
+    def get_cacophony_index_for_device(self, device: TestDevice, from_time=None, window_size=None):
+        return self._userapi.get_cacophony_index(device.get_id(), from_time, window_size)
+
+    def get_cacophony_index_histogram_for_device(self, device: TestDevice, from_time=None, window_size=None):
+        return self._userapi.get_cacophony_index_histogram(device.get_id(), from_time, window_size)
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser):

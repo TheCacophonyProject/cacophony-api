@@ -22,7 +22,8 @@ import auth from "../auth";
 import recordingUtil, { RecordingQuery } from "./recordingUtil";
 import responseUtil from "./responseUtil";
 import models from "../../models";
-import csv from "fast-csv";
+// @ts-ignore
+import * as csv from "fast-csv";
 import { body, oneOf, param, query } from "express-validator/check";
 import { RecordingPermission, TagMode } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
@@ -307,7 +308,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiName NeedsTag
    * @apiGroup Recordings
    * @apiDescription Parameters are as per GET /api/V1/recordings. On
-   * success (status 200), the response body will contain CSV
+   * success (status 200), the response body will contain JSON
    * formatted details of the selected recordings.
    *
    * @apiUse V1UserAuthorizationHeader
@@ -380,7 +381,6 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(async (request, response) => {
       // 10 minute timeout because the query can take a while to run
       // when the result set is large.
-      // See also: ttps://trello.com/c/KYnPlpYq/287-query-for-csv-export-is-slow
       request.setTimeout(10 * 60 * 1000);
       const rows = await recordingUtil.report(request);
       response.status(200).set({

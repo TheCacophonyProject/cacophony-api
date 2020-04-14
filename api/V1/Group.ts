@@ -86,7 +86,7 @@ export default function(app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        groups: groups
+        groups
       });
     })
   );
