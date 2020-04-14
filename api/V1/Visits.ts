@@ -1,3 +1,16 @@
+/*
+This handles creation of Visits from recordings
+
+A visit is a grouping of many viewings of the same species (animal, insect ...). As long as 
+they are seen again within eventMaxTimeSeconds of the last viewing
+
+A Visit is made up of many VisitEvents.
+VisitEvents are distinct viewings of a species, defined by a TrackTag
+
+Unidentified tags may be assumed to be another species e.g. Possum if they occur within 
+eventMaxTimeSeconds of a defined species 
+*/
+
 import { Recording } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
@@ -13,7 +26,7 @@ interface AnimalMap {
   [key: string]: VisitSummary;
 }
 
-// gets a track tag, in order of precedence
+// getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
 function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag {
   if (!trackTags || trackTags.length == 0) {
@@ -493,21 +506,6 @@ export function isWithinVisitInterval(
 
 function isVisit(item: any) {
   return item.hasOwnProperty("events");
-}
-
-function findLatestAudioEvent(rec: any): Event {
-  const events = rec.Device.Events;
-  if (!events) {
-    return null;
-  }
-
-  let latest = events[0];
-  for (const event of events) {
-    if (event.dateTime > latest.dateTime) {
-      latest = event;
-    }
-  }
-  return latest;
 }
 
 export interface DeviceVisitMap {
