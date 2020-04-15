@@ -54,7 +54,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
 
 class DeviceVisits {
   animals: AnimalMap;
-  firstVisit: any;
+  firstVisit: Visit;
   startTime: Moment;
   endTime: Moment;
   audioFileIds: Set<number>;
@@ -116,14 +116,17 @@ class DeviceVisits {
 
     const tracks = rec.Tracks;
     this.sortTracks(tracks);
-    for (const trackKey in tracks) {
-      const track = tracks[trackKey];
-      const visit = this.calculateTrackTagVisit(rec, track);
-      this.updateSummary(visit);
-      if (isVisit(visit)) {
-        visit.incomplete = !complete;
-        visit.queryOffset = queryOffset;
-        visits.push(visit);
+    for (const track of tracks) {
+      const event = this.calculateTrackTagEvent(rec, track);
+      if (event == null) {
+        continue;
+      }
+      this.updateSummary(event);
+      if (isVisit(event)) {
+        const newVisit = event as Visit;
+        newVisit.incomplete = !complete;
+        newVisit.queryOffset = queryOffset;
+        visits.push(newVisit);
       }
     }
     return visits;
@@ -145,10 +148,15 @@ class DeviceVisits {
     });
   }
 
-  calculateTrackTagVisit(rec: Recording, track: any): Visit {
+  // calculateTrackTagEvent returns a newvisit if the track doesn't belong to any existing visits
+  // otherwise it will add an event to an existing visit and return the new event
+  calculateTrackTagEvent(
+    rec: Recording,
+    track: any
+  ): null | Visit | VisitEvent {
     const tag = getTrackTag(track.TrackTags, this.userID);
     if (!tag) {
-      return;
+      return null;
     }
 
     const trackPeriod = new TrackStartEnd(rec, track);
@@ -183,7 +191,7 @@ class DeviceVisits {
     track: Track,
     tag: TrackTag,
     trackPeriod: TrackStartEnd
-  ): any {
+  ): Visit | VisitEvent {
     let visitSummary = this.animals[tag.what];
     if (!visitSummary) {
       visitSummary = new VisitSummary(tag.what);
@@ -193,16 +201,16 @@ class DeviceVisits {
     this.addAudioFileIds(newItem);
 
     if (isVisit(newItem)) {
-      this.firstVisit = newItem;
+      this.firstVisit = newItem as Visit;
       if (tag.what != unidentified) {
-        this.recheckUnidentified(newItem);
+        this.recheckUnidentified(this.firstVisit);
       }
     }
     return newItem;
   }
 
   // as we get new visits previous unidentified events may need to be added to this visit
-  recheckUnidentified(visit: any) {
+  recheckUnidentified(visit: Visit) {
     const unVisit = this.firstVisit;
 
     if (unVisit && unVisit.what == unidentified) {
@@ -257,7 +265,7 @@ class VisitSummary {
     track: Track,
     tag: TrackTag,
     trackPeriod: TrackStartEnd
-  ) {
+  ): Visit | VisitEvent {
     if (this.isPartOfFirstVisit(trackPeriod.trackEnd)) {
       const newEvent = this.addEventToFirstVisit(rec, track, tag);
       return newEvent;

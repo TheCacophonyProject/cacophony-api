@@ -6,12 +6,15 @@ from dateutil.parser import parse as parsedate
 class TestVisits:
     VISIT_INTERVAL_SECONDS = 600
 
-    def upload_recording_with_tag(self, device, user, what, time, duration=30):
+    def upload_recording_with_track(self, device, user, time, duration=30):
         now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
-
         rec = device.upload_recording({"recordingDateTime": "{}".format(time), "duration": duration})
         track = user.can_add_track_to_recording(rec)
-        user.can_tag_track(track, what=what)
+        return rec, track
+
+    def upload_recording_with_tag(self, device, user, what, time, duration=30):
+        rec, track = self.upload_recording_with_track(device, user, time, duration=30)
+        tag = user.can_tag_track(track, what=what)
         return rec
 
     def test_report(self, helper):
@@ -28,9 +31,12 @@ class TestVisits:
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
         now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
 
+        # no tag no visit
+        self.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
+
         # visit 1
         # unidentified gets grouped with cat
-        rec = self.upload_recording_with_tag(
+        self.upload_recording_with_tag(
             device, admin, "unidentified", time=now - timedelta(minutes=4), duration=90
         )
         self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=1), duration=90)
