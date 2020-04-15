@@ -54,7 +54,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
 
 class DeviceVisits {
   animals: AnimalMap;
-  firstVisit: Visit;
+  firstVisit: Visit | null;
   startTime: Moment;
   endTime: Moment;
   audioFileIds: Set<number>;
@@ -93,7 +93,7 @@ class DeviceVisits {
       this.eventCount += 1;
     }
 
-    if (!this.startTime) {
+    if (!this.startTime || !this.endTime) {
       this.startTime = visit.start;
       this.endTime = visit.end;
     } else {
@@ -112,7 +112,7 @@ class DeviceVisits {
     queryOffset: number,
     complete: boolean = false
   ): Visit[] {
-    const visits = [];
+    const visits: Visit[] = [];
 
     const tracks = rec.Tracks;
     this.sortTracks(tracks);
@@ -167,7 +167,15 @@ class DeviceVisits {
     return this.handleTag(rec, track, tag, trackPeriod);
   }
 
-  addEventToPreviousVisit(rec: Recording, track: Track, tag: TrackTag) {
+  addEventToPreviousVisit(
+    rec: Recording,
+    track: Track,
+    tag: TrackTag
+  ): VisitEvent | null {
+    if (this.firstVisit == null) {
+      return null;
+    }
+
     const newEvent = this.firstVisit.addEvent(
       rec,
       track,
@@ -181,7 +189,7 @@ class DeviceVisits {
   unkownIsPartOfPreviousVisit(tag: TrackTag, end: Moment): boolean {
     return (
       tag.what == unidentified &&
-      this.firstVisit &&
+      this.firstVisit != null &&
       this.firstVisit.isPartOfVisit(end)
     );
   }
@@ -191,7 +199,7 @@ class DeviceVisits {
     track: Track,
     tag: TrackTag,
     trackPeriod: TrackStartEnd
-  ): Visit | VisitEvent {
+  ): Visit | VisitEvent | null {
     let visitSummary = this.animals[tag.what];
     if (!visitSummary) {
       visitSummary = new VisitSummary(tag.what);
@@ -251,12 +259,10 @@ class VisitSummary {
   }
 
   updateStartEnd() {
-    if (this.visits.length > 0) {
-      this.start = this.firstVisit().start;
-      this.end = this.lastVisit().end;
-    } else {
-      this.start = null;
-      this.end = null;
+    const firstVisit = this.firstVisit();
+    if (firstVisit != null) {
+      this.start = firstVisit.start;
+      this.end = firstVisit.end;
     }
   }
 
@@ -265,7 +271,7 @@ class VisitSummary {
     track: Track,
     tag: TrackTag,
     trackPeriod: TrackStartEnd
-  ): Visit | VisitEvent {
+  ): Visit | VisitEvent | null {
     if (this.isPartOfFirstVisit(trackPeriod.trackEnd)) {
       const newEvent = this.addEventToFirstVisit(rec, track, tag);
       return newEvent;
@@ -275,27 +281,29 @@ class VisitSummary {
     return visit;
   }
   isPartOfFirstVisit(time: Moment): boolean {
-    if (this.visits.length == 0) {
+    const firstVisit = this.firstVisit();
+    if (firstVisit == null) {
       return false;
     }
-    return this.firstVisit().isPartOfVisit(time);
+    return firstVisit.isPartOfVisit(time);
   }
   removeFirstVisit() {
-    if (this.visits.length > 0) {
+    const firstVisit = this.firstVisit();
+
+    if (firstVisit != null) {
       this.visits.splice(0, 1);
-      if (this.firstVisit()) {
-        this.start = this.firstVisit().start;
-      }
+      this.start = firstVisit.start;
     }
   }
 
-  lastVisit(): Visit {
+  lastVisit(): Visit | null {
     if (this.visits.length == 0) {
       return null;
     }
     return this.visits[this.visits.length - 1];
   }
-  firstVisit(): Visit {
+
+  firstVisit(): Visit | null {
     if (this.visits.length == 0) {
       return null;
     }
@@ -307,9 +315,12 @@ class VisitSummary {
     track: Track,
     tag: TrackTag,
     wasUnidentified: boolean = false
-  ): VisitEvent {
+  ): VisitEvent | null {
     //add event to current visit
     const firstVisit = this.firstVisit();
+    if (firstVisit == null) {
+      return null;
+    }
     const event = firstVisit.addEvent(rec, track, tag, wasUnidentified);
     if (!wasUnidentified) {
       this.start = event.start;
@@ -345,7 +356,7 @@ class Visit {
 
   audioBaitDay: boolean;
   audioBaitVisit: boolean;
-  audioBaitEvents: any[];
+  audioBaitEvents: Event[];
   incomplete: boolean;
   constructor(rec: any, track: Track, tag: TrackTag, public visitID: number) {
     const event = new VisitEvent(rec, track, tag);

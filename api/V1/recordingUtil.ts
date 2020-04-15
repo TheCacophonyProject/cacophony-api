@@ -284,7 +284,7 @@ function getSpeciesIdentification(recording: Recording): string | null {
     .join(";");
 }
 
-function findLatestEvent(events: Event[]): Event {
+function findLatestEvent(events: Event[]): Event | null {
   if (!events) {
     return null;
   }
@@ -547,8 +547,8 @@ function generateVisits(
   userId: number,
   gotAllRecordings: boolean
 ): [Visit[], Visit[]] {
-  let visits = [];
-  let incompleteVisits = [];
+  let visits : Visit[] = [];
+  let incompleteVisits: Visit[] = [];
   for (const [i, rec] of recordings.entries()) {
     rec.filterData(filterOptions);
 
@@ -590,8 +590,9 @@ async function queryVisits(
   numRecordings: number;
   numVisits: number;
 }> {
-  const maxVisitQueryResults = 5000;
 
+  const maxVisitQueryResults = 5000;
+  const requestVisits = request.query.limit == null ?  maxVisitQueryResults : request.query.limit as number;
   let queryMax = maxVisitQueryResults * 2;
   let queryLimit = queryMax;
   if (request.query.limit) {
@@ -614,14 +615,14 @@ async function queryVisits(
 
   const audioFileIds: Set<number> = new Set();
   const deviceMap: DeviceVisitMap = {};
-  let visits = [];
+  let visits: Visit[] = [];
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
   );
   let numRecordings = 0;
-  let remainingVisits = request.query.limit;
-  let incompleteVisits = [];
+  let remainingVisits = requestVisits;
+  let incompleteVisits:Visit[] = [];
   let totalCount, recordings, gotAllRecordings;
 
   while (gotAllRecordings || remainingVisits > 0) {
@@ -662,7 +663,7 @@ async function queryVisits(
       );
     }
 
-    remainingVisits = request.query.limit - visits.length;
+    remainingVisits = requestVisits - visits.length;
     builder.query.limit = Math.min(remainingVisits * 2, queryMax);
     builder.query.offset += recordings.length;
   }
@@ -740,7 +741,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
   ];
   const eventSum = (accumulator, visit) => accumulator + visit.events.length;
   for (const deviceId in deviceMap) {
-    const deviceVisits = deviceMap[deviceId];
+    const deviceVisits = deviceMap[deviceId];  
     device_summary_out.push([
       deviceId,
       deviceVisits.deviceName,
@@ -905,8 +906,8 @@ function checkForCompleteVisits(
   visits: Visit[],
   incompleteVisits: Visit[],
   firstStart: Moment
-) {
-  let stillIncomplete = [];
+):Visit[] {
+  let stillIncomplete: Visit[] = [];
   for (const newVisit of incompleteVisits) {
     if (isWithinVisitInterval(newVisit.start, firstStart)) {
       stillIncomplete.push(newVisit);
