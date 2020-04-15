@@ -28,8 +28,8 @@ interface AnimalMap {
 
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
-function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag {
-  if (!trackTags || trackTags.length == 0) {
+function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
+  if (trackTags.length == 0) {
     return null;
   }
   const manualTags = trackTags.filter(tag => tag.automatic == false);
@@ -45,7 +45,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag {
   const originalTags = trackTags.filter(
     tag => tag.data == null || tag.data.name == aiName
   );
-  if (originalTags) {
+  if (originalTags.length > 0) {
     return originalTags[0];
   } else {
     return null;
@@ -75,7 +75,7 @@ class DeviceVisits {
   }
 
   removeIncompleteVisits() {
-    for (const animal in this.animals) {
+    for (const [animal, visitSumary] of Object.entries(this.animals)) {
       const visitSummary = this.animals[animal];
       visitSummary.removeIncomplete();
       if (visitSummary.visits.length == 0) {

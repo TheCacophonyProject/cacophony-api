@@ -367,7 +367,7 @@ class TestUser:
         users = self._userapi.list_device_users(device.get_id())
         return {u["username"] for u in users if u["relation"] == relation}
 
-    def can_add_track_to_recording(self, recording, start_s=None):
+    def can_add_track_to_recording(self, recording, start_s=10):
         track = Track.create(recording, start_s)
         track.id_ = self._userapi.add_track(recording.id_, track.data)
         recording.tracks.append(track)

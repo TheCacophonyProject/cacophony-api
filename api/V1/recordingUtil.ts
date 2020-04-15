@@ -37,6 +37,7 @@ import {
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
+import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
@@ -48,17 +49,17 @@ import {
 } from "./Visits";
 
 export interface RecordingQuery {
-  user: any;
+  user: User;
   query: {
-    where: any;
-    tagMode: TagMode;
-    tags: string[];
-    offset: number;
-    limit: number;
-    order: Order;
+    where: null | any;
+    tagMode: null | TagMode;
+    tags: null | string[];
+    offset: null | number;
+    limit: null | number;
+    order: null |Order;
     distinct: boolean;
   };
-  filterOptions: any;
+  filterOptions: null | any;
 }
 
 function makeUploadHandler(mungeData?: (any) => any) {
@@ -673,7 +674,7 @@ async function queryVisits(
       elem.incomplete = false;
     });
 
-    visits.splice(visits.length, 0, ...incompleteVisits);
+    visits.push(...incompleteVisits);
     incompleteVisits = [];
   }
 
@@ -828,8 +829,8 @@ async function reportVisits(request) {
     if (audioEvent) {
       audioEvents.push(audioEvent);
     }
-    for (let i = audioEvents.length - 1; i >= 0; i--) {
-      addAudioBaitRow(out, visit, audioEvents[i]);
+    for (const audioEvent of audioEvents.reverse()) {
+      addAudioBaitRow(out, visit, audioEvent);
     }
   }
   return out;
@@ -898,7 +899,7 @@ function addAudioBaitRow(out, visit, audioBait) {
   ]);
 }
 
-// any visits whcih have started more than the visit interval from firstStart are marked as complted
+// any visits which have started more than the visit interval from firstStart are marked as completed
 // any remaining incomplete visits are returned
 function checkForCompleteVisits(
   visits: Visit[],
