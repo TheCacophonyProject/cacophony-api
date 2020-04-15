@@ -72,6 +72,7 @@ class DeviceVisits {
     this.audioFileIds = new Set();
     this.visitCount = 0;
     this.eventCount = 0;
+    this.audioBait = false;
   }
 
   removeIncompleteVisits() {
@@ -86,7 +87,7 @@ class DeviceVisits {
 
   updateSummary(visit) {
     this.audioBait = this.audioBait || visit.audioBaitDay;
-    if (isVisit(visit)) {
+    if (visit instanceof Visit) {
       this.visitCount += 1;
       this.eventCount += 1;
     } else {
@@ -122,7 +123,7 @@ class DeviceVisits {
         continue;
       }
       this.updateSummary(event);
-      if (isVisit(event)) {
+      if (event instanceof Visit) {
         const newVisit = event as Visit;
         newVisit.incomplete = !complete;
         newVisit.queryOffset = queryOffset;
@@ -208,7 +209,7 @@ class DeviceVisits {
     const newItem = visitSummary.addTrackTag(rec, track, tag, trackPeriod);
     this.addAudioFileIds(newItem);
 
-    if (isVisit(newItem)) {
+    if (newItem instanceof Visit) {
       this.firstVisit = newItem as Visit;
       if (tag.what != unidentified) {
         this.recheckUnidentified(this.firstVisit);
@@ -368,6 +369,7 @@ class Visit {
     this.groupName = rec.Group.groupname;
     this.audioBaitEvents = [];
     this.audioBaitVisit = false;
+    this.audioBaitDay = false;
     this.setAudioBaitEvents(rec);
   }
 
@@ -456,7 +458,8 @@ class VisitEvent {
   what: string;
   constructor(rec: Recording, track: Track, tag: TrackTag) {
     const trackTimes = new TrackStartEnd(rec, track);
-
+    this.audioBaitDay = false;
+    this.audioBaitVisit = false;
     this.wasUnidentified = false;
     this.recID = rec.id;
     this.audioBaitEvents = [];
@@ -521,10 +524,6 @@ export function isWithinVisitInterval(
 ): boolean {
   const secondsDiff = Math.abs(firstTime.diff(secondTime, "seconds"));
   return secondsDiff <= eventMaxTimeSeconds;
-}
-
-function isVisit(item: any) {
-  return item.hasOwnProperty("events");
 }
 
 export interface DeviceVisitMap {

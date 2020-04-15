@@ -681,10 +681,14 @@ async function queryVisits(
 
   // remove incomplete visits and get all audio file ids
   for (const device in deviceMap) {
-    deviceMap[device].audioFileIds.forEach(id => audioFileIds.add(id));
+    const deviceVisits = deviceMap[device];
+    deviceVisits.audioFileIds.forEach(id => audioFileIds.add(id));
     if (!gotAllRecordings) {
-      deviceMap[device].removeIncompleteVisits();
+      deviceVisits.removeIncompleteVisits();
     }
+   if (deviceVisits.visitCount == 0){
+     delete deviceMap[device]
+   }
   }
 
   // get the offset to use for future queries
