@@ -124,6 +124,7 @@ class UserAPI(APIBase):
         filterOptions=None,
         deviceIds=None,
         jwt=None,
+        report_type=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -143,6 +144,9 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
+
+        if report_type:
+            params["type"] = report_type
 
         if jwt:
             params["jwt"] = jwt

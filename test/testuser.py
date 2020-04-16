@@ -146,8 +146,10 @@ class TestUser:
                 )
             )
 
-    def get_report(self, **args):
+    def get_report(self, raw=False, **args):
         text = self._userapi.report(**args)
+        if raw:
+            return text.splitlines()
         return csv.DictReader(text.splitlines())
 
     def can_download_correct_recording(self, recording):
