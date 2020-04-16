@@ -7,6 +7,7 @@ from dateutil.parser import parse as parsedate
 
 class TestVisits:
     VISIT_INTERVAL_SECONDS = 600
+    TIMEZONE = "Pacific/Auckland"
 
     def upload_recording_with_track(self, device, user, time, duration=30):
         rec = device.upload_recording({"recordingDateTime": time.isoformat(), "duration": duration})
@@ -30,7 +31,7 @@ class TestVisits:
         cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
+        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
 
         # no tag no visit
         self.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
@@ -108,7 +109,7 @@ class TestVisits:
         cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        now = datetime.now(dateutil.tz.tzlocal()).replace(microsecond=0)
+        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
 
         animals_summary = []
         animals_summary.append({"what": "possum", "visits": 2, "audiobait": True, "events": []})
