@@ -480,7 +480,7 @@ export default (app: Application, baseUrl: string) => {
   app.post(
     `${apiUrl}/:id/tracks`,
     [
-      auth.authenticateUser,
+      auth.authenticateAccess(["user", "device"], null),
       param("id")
         .isInt()
         .toInt(),
@@ -489,7 +489,7 @@ export default (app: Application, baseUrl: string) => {
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.get(
-        request.user,
+        request.user ? request.user : request.device,
         request.params.id,
         RecordingPermission.UPDATE
       );
@@ -516,7 +516,8 @@ export default (app: Application, baseUrl: string) => {
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track added."],
-        trackId: track.id
+        trackId: track.id,
+        algorithmId: track.AlgorithmId
       });
     })
   );
@@ -680,7 +681,7 @@ export default (app: Application, baseUrl: string) => {
   app.post(
     `${apiUrl}/:id/tracks/:trackId/tags`,
     [
-      auth.authenticateUser,
+      auth.authenticateAccess(["user", "device"], null),
       param("id")
         .isInt()
         .toInt(),
@@ -721,7 +722,7 @@ export default (app: Application, baseUrl: string) => {
         confidence: request.body.confidence,
         automatic: request.body.automatic,
         data: request.body.data ? request.body.data : "",
-        UserId: request.user.id
+        UserId: request.user ? request.user.id : null
       });
       responseUtil.send(response, {
         statusCode: 200,
@@ -839,7 +840,7 @@ export default (app: Application, baseUrl: string) => {
 
   async function loadTrack(request, response): Promise<Track> {
     const recording = await models.Recording.get(
-      request.user,
+      request.user ? request.user : request.device,
       request.params.id,
       RecordingPermission.UPDATE
     );

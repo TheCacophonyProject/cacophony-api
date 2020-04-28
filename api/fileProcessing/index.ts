@@ -35,6 +35,52 @@ export default function(app: Application) {
   });
 
   /**
+   * @api {get} /api/fileProcessing/:id/tracks Get tracks for recording
+   * @apiName GetTracks
+   * @apiGroup Tracks
+   * @apiDescription Get all tracks for a given recording and their tags.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} tracks Array with elements containing id,
+   * algorithm, data and tags fields.
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:id/tracks`,
+    [
+      param("id")
+        .isInt()
+        .toInt()
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const recording = await models.Recording.findByPk(request.params.id);
+
+      if (!recording) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such recording."]
+        });
+        return;
+      }
+      console.log("found rec getting tracks", recording.id);
+      const tracks = await recording.getActiveTracksTagsAndTagger();
+      console.log("got tracks", recording.id);
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["OK."],
+        tracks: tracks.map(t => {
+          delete t.dataValues.RecordingId;
+          return t;
+        })
+      });
+    })
+  );
+
+  /**
    * @api {put} /api/fileProcessing Finished a file processing job
    * @apiName finishedFileProcessingJob
    * @apiGroup FileProcessing

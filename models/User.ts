@@ -83,6 +83,7 @@ export interface UserStatic extends ModelStaticCommon<User> {
   freeEmail: (email: string) => Promise<boolean>;
   getFromId: (id: number) => Promise<User | null>;
   ["GLOBAL_PERMISSIONS"]: string[];
+  isUser: (modelObj: any) => boolean;
 }
 
 interface UserData {
@@ -164,6 +165,10 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
   // CLASS METHODS
   //---------------
   const models = sequelize.models;
+
+  User.isUser = function(modelObj: any): modelObj is User {
+    return (modelObj as User).username !== undefined;
+  };
 
   User.addAssociations = function(models) {
     models.User.belongsToMany(models.Group, {

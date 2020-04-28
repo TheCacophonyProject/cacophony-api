@@ -26,10 +26,15 @@ import util from "./util/util";
 import validation from "./util/validation";
 import { AuthorizationError } from "../api/customErrors";
 import _ from "lodash";
-import { User } from "./User";
+import { User, UserStatic } from "./User";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { AcceptableTag, TagStatic } from "./Tag";
-import { DeviceId, DeviceId as DeviceIdAlias, DeviceStatic } from "./Device";
+import {
+  Device,
+  DeviceId,
+  DeviceId as DeviceIdAlias,
+  DeviceStatic
+} from "./Device";
 import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
@@ -243,6 +248,10 @@ interface TagLimitedRecording {
   tagJWT: JwtToken<TrackTag>;
 }
 
+type getOptions = {
+  type?: RecordingType;
+  filterOptions?: { latLongPrec?: number };
+};
 export interface RecordingStatic extends ModelStaticCommon<Recording> {
   buildSafely: (fields: Record<string, any>) => Recording;
   isValidTagMode: (mode: TagMode) => boolean;
@@ -265,10 +274,21 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     biasDeviceId?: DeviceId
   ) => Promise<TagLimitedRecording>;
   get: (
+    user: User | Device,
+    id: RecordingId,
+    permission: RecordingPermission,
+    options?: getOptions
+  ) => Promise<Recording>;
+  getForUser: (
     user: User,
     id: RecordingId,
     permission: RecordingPermission,
-    options?: { type: RecordingType; filterOptions: any }
+    options?: getOptions
+  ) => Promise<Recording>;
+  getForDevice: (
+    device: Device,
+    id: RecordingId,
+    options?: getOptions
   ) => Promise<Recording>;
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
@@ -395,17 +415,37 @@ export default function(
       });
   };
 
+  function isUser(modelObj: any): modelObj is User {
+    return (modelObj as User).username !== undefined;
+  }
+  function isDevice(modelObj: any): modelObj is Device {
+    return (modelObj as Device).devicename !== undefined;
+  }
+  /**
+   * Return a single recording for a user/device.
+   */
+  Recording.get = async function(
+    modelObj: User | Device,
+    id,
+    permission,
+    options: getOptions = {}
+  ) {
+    if (isUser(modelObj)) {
+      return Recording.getForUser(modelObj as User, id, permission, options);
+    } else if (isDevice(modelObj)) {
+      return Recording.getForDevice(modelObj as Device, id, options);
+    }
+    return null;
+  };
+
   /**
    * Return a single recording for a user.
    */
-  Recording.get = async function(
+  Recording.getForUser = async function(
     user: User,
     id,
     permission,
-    options: {
-      type?: RecordingType;
-      filterOptions?: { latLongPrec?: number };
-    } = {}
+    options: getOptions = {}
   ) {
     if (!RecordingPermissions.has(permission)) {
       throw "valid permission must be specified (e.g. RecordingPermission.VIEW)";
@@ -441,6 +481,44 @@ export default function(
     }
     recording.filterData(
       Recording.makeFilterOptions(user, options.filterOptions)
+    );
+    return recording;
+  };
+
+  /**
+   * Return a single recording for a devce.
+   */
+  Recording.getForDevice = async function(
+    device: Device,
+    id,
+    options: getOptions = {}
+  ) {
+    const query = {
+      where: {
+        [Op.and]: [
+          {
+            id: id,
+            DeviceId: device.id
+          }
+        ]
+      },
+      include: getRecordingInclude(),
+      attributes: this.userGetAttributes.concat(["rawFileKey"])
+    };
+
+    if (options.type) {
+      (query.where[Op.and] as any[]).push({
+        type: options.type
+      });
+    }
+
+    const recording = await this.findOne(query);
+    if (!recording) {
+      return null;
+    }
+
+    recording.filterData(
+      Recording.makeFilterOptions(null, options.filterOptions)
     );
     return recording;
   };
@@ -487,9 +565,8 @@ export default function(
     if (typeof options.latLongPrec !== "number") {
       options.latLongPrec = 100;
     }
-    if (!user.hasGlobalWrite()) {
-      options.latLongPrec = Math.max(options.latLongPrec, 100);
-    }
+
+    options.latLongPrec = Math.max(options.latLongPrec, 100);
     return options;
   };
 

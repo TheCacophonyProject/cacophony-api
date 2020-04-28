@@ -79,7 +79,6 @@ export default function(app: Application, baseUrl: string) {
     apiUrl,
     [auth.authenticateUser, middleware.parseJSON("where", query)],
     middleware.requestWrapper(async (request, response) => {
-
       const groups = await models.Group.query(
         request.query.where,
         request.user

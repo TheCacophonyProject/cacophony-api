@@ -23,6 +23,7 @@ export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {
   getTrackTag: (trackTagId: TrackTagId) => Promise<TrackTag>;
   id: TrackId;
+  AlgorithmId: number | null;
   // NOTE: Implicitly created by sequelize associations.
   createTrackTag: ({
     what,
