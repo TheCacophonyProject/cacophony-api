@@ -453,7 +453,7 @@ class VisitEvent {
   start: Moment;
   end: Moment;
   audioBaitDay: boolean;
-  audioBaitEvents: any[];
+  audioBaitEvents: Event[];
   audioBaitVisit: boolean;
   what: string;
   constructor(rec: Recording, track: Track, tag: TrackTag) {
