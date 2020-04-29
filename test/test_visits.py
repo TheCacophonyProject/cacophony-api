@@ -66,7 +66,7 @@ class TestVisits:
         assert distinct_animals == set(["possum", "cat"])
 
         possum_visits = device_map["animals"]["possum"]["visits"]
-        print("second visit starts more thatn 10 minutes after the first visit ends")
+        print("second visit starts more than 10 minutes after the first visit ends")
         second_visit_end = parsedate(possum_visits[1]["end"]) + timedelta(
             seconds=TestVisits.VISIT_INTERVAL_SECONDS
         )

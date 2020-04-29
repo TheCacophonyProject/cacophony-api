@@ -292,7 +292,7 @@ class VisitSummary {
     const firstVisit = this.firstVisit();
 
     if (firstVisit != null) {
-      this.visits.splice(0, 1);
+      this.visits.shift();
       this.start = firstVisit.start;
     }
   }
@@ -336,7 +336,7 @@ class VisitSummary {
   addVisit(rec: Recording, track: Track, tag: TrackTag): Visit {
     visitID += 1;
     const visit = new Visit(rec, track, tag, visitID);
-    this.visits.splice(this.visits.length, 0, visit);
+    this.visits.push(visit);
     this.start = visit.end;
     if (this.visits.length == 1) {
       this.end = visit.start;
@@ -437,7 +437,7 @@ class Visit {
     this.updateAudioEvent(event);
 
     event.wasUnidentified = wasUnidentified;
-    this.events.splice(this.events.length, 0, event);
+    this.events.push(event);
     this.updateStartTime(event);
 
     return event;
