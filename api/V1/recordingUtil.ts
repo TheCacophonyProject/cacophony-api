@@ -59,13 +59,12 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (mungeData) {
       data = mungeData(data);
     }
-
     const recording = models.Recording.buildSafely(data);
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
-    recording.processingState = models.Recording.processingStates[data.type][0];
+    recording.processingState = data.state ? data.state : models.Recording.uploadedState(RecordingType.ThermalRaw);
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }

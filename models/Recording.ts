@@ -75,7 +75,14 @@ export enum RecordingPermission {
   UPDATE = "update"
 }
 
-export enum RecordingProcessingState {}
+export enum RecordingProcessingState {
+  UploadCameraMeta = "uploadCameraMeta",
+  GetMetadata = "getMetadata",
+  ToMp4 = "toMp4",
+  Finished = "FINISHED",
+  ToMp3 = "toMp3",
+  Analyse = "analyse"
+}
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
 
 interface RecordingQueryBuilder {
@@ -260,6 +267,8 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     [RecordingType.ThermalRaw]: string[];
     [RecordingType.Audio]: string[];
   };
+  uploadedState: (type: RecordingType) => RecordingProcessingState;
+
   getOneForProcessing: (
     type: RecordingType,
     state: RecordingProcessingState
@@ -1336,8 +1345,16 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
+    thermalRaw: ["uploadCameraMeta","getMetadata", "toMp4", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
+  };
+
+  Recording.uploadedState = function(type: RecordingType){
+    if (type == RecordingType.Audio) {
+       return RecordingProcessingState.ToMp3;
+    }else{
+       return RecordingProcessingState.GetMetadata;
+    }
   };
 
   Recording.processingAttributes = [
