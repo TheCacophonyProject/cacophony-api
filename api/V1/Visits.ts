@@ -161,7 +161,7 @@ class DeviceVisits {
     }
 
     const trackPeriod = new TrackStartEnd(rec, track);
-    if (this.unkownIsPartOfPreviousVisit(tag, trackPeriod.trackEnd)) {
+    if (this.unknownIsPartOfPreviousVisit(tag, trackPeriod.trackEnd)) {
       return this.addEventToPreviousVisit(rec, track, tag);
     }
 
@@ -187,7 +187,7 @@ class DeviceVisits {
     return newEvent;
   }
 
-  unkownIsPartOfPreviousVisit(tag: TrackTag, end: Moment): boolean {
+  unknownIsPartOfPreviousVisit(tag: TrackTag, end: Moment): boolean {
     return (
       tag.what == unidentified &&
       this.firstVisit != null &&
