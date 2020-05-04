@@ -107,7 +107,6 @@ const authenticate = function(
     } catch (e) {
       return res.status(401).json({ messages: [e.message] });
     }
-    console.log(types, jwtDecoded._type, types.includes(jwtDecoded._type));
 
     if (types && !types.includes(jwtDecoded._type)) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
