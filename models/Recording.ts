@@ -635,14 +635,14 @@ from (
         ) as d on d."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null)
       union all
       -- All the recordings that have Tracks but no TrackTags
-      (select "RecordingId" from "Tracks" 
-        left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId" 
+      (select "RecordingId" from "Tracks"
+        left outer join "TrackTags" on "Tracks".id = "TrackTags"."TrackId"
         where "TrackTags".id is null and "Tracks"."archivedAt" is null
       )
     ) as e on e."RecordingId" = "Recordings".id ${
       biasDeviceId !== undefined ? ` where "DeviceId" = ${biasDeviceId}` : ""
     } order by RANDOM() limit 1)
-  as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" and "Tracks"."archivedAt" is null 
+  as f left outer join "Tracks" on f."RId" = "Tracks"."RecordingId" and "Tracks"."archivedAt" is null
   left outer join "TrackTags" on "TrackTags"."TrackId" = "Tracks".id and "Tracks"."archivedAt" is null
 ) as g;`);
 
@@ -1345,15 +1345,15 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["uploadCameraMeta","getMetadata", "toMp4", "FINISHED"],
+    thermalRaw: ["uploadCameraMeta", "getMetadata", "toMp4", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 
-  Recording.uploadedState = function(type: RecordingType){
+  Recording.uploadedState = function(type: RecordingType) {
     if (type == RecordingType.Audio) {
-       return RecordingProcessingState.ToMp3;
-    }else{
-       return RecordingProcessingState.GetMetadata;
+      return RecordingProcessingState.ToMp3;
+    } else {
+      return RecordingProcessingState.GetMetadata;
     }
   };
 

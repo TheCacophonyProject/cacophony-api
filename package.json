@@ -43,6 +43,7 @@
     "pg-hstore": "^2.3.3",
     "pg-native": "^3.0.0",
     "pg-types": "^1.x",
+    "prettier": "^2.0.3",
     "sequelize": "^5.21.6",
     "sequelize-cli": "^5.5.1",
     "tar": "^4.4.13",
@@ -53,7 +54,6 @@
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-utils": "^2.0.0",
-    "prettier": "^2.0.3",
     "tsc-watch": "^4.2.3",
     "typescript": "^3.8.3"
   },
