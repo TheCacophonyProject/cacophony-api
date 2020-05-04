@@ -69,10 +69,12 @@ function makeUploadHandler(mungeData?: (any) => any) {
     }
     await recording.validate();
     await recording.save();
-    if (data.metadata){
+    if (data.metadata) {
       const sucesss = await tracksFromMeta(recording, data.metadata);
     }
-    recording.processingState = data.state ? data.state : models.Recording.uploadedState(RecordingType.ThermalRaw);
+    recording.processingState = data.state
+      ? data.state
+      : models.Recording.uploadedState(RecordingType.ThermalRaw);
 
     return recording;
   });
@@ -527,37 +529,38 @@ async function reprocess(request, response: Response) {
 }
 
 async function tracksFromMeta(recording: Recording, metadata: any) {
-
-      if ( !("tracks" in metadata)){
-        return
-      }
-      try{
-
-      const algorithmDetail =  await models.DetailSnapshot.getOrCreateMatching(
-        "algorithm",
-        metadata["algorithm"]
-      );
-      let model = {
-        "model": metadata["model"],
-        "algorithmId": algorithmDetail.id
-      }
-      if ("model_name" in metadata["algorithm"]){
-          model["name"] = metadata["algorithm"]["model_name"]
-        }
-      for (const trackMeta of metadata["tracks"]){
-        const track = await recording.createTrack({data: trackMeta,AlgorithmId: algorithmDetail.id});
-        if ("confident_tag" in trackMeta){
-          model["all_class_confidences"] = trackMeta["all_class_confidences"];
-          await track.createTrackTag({
-            what:  trackMeta["confident_tag"],
-            confidence: trackMeta["confidence"],
-            automatic: true,
-            data: model
-          });
-        }
+  if (!("tracks" in metadata)) {
+    return;
+  }
+  try {
+    const algorithmDetail = await models.DetailSnapshot.getOrCreateMatching(
+      "algorithm",
+      metadata["algorithm"]
+    );
+    let model = {
+      model: metadata["model"],
+      algorithmId: algorithmDetail.id
+    };
+    if ("model_name" in metadata["algorithm"]) {
+      model["name"] = metadata["algorithm"]["model_name"];
     }
-  } catch(err){
-    log.error("Error creating recording tracks from metadata",err);
+    for (const trackMeta of metadata["tracks"]) {
+      const track = await recording.createTrack({
+        data: trackMeta,
+        AlgorithmId: algorithmDetail.id
+      });
+      if ("confident_tag" in trackMeta) {
+        model["all_class_confidences"] = trackMeta["all_class_confidences"];
+        await track.createTrackTag({
+          what: trackMeta["confident_tag"],
+          confidence: trackMeta["confidence"],
+          automatic: true,
+          data: model
+        });
+      }
+    }
+  } catch (err) {
+    log.error("Error creating recording tracks from metadata", err);
   }
 }
 
