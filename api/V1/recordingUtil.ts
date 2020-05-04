@@ -70,12 +70,11 @@ function makeUploadHandler(mungeData?: (any) => any) {
     await recording.validate();
     await recording.save();
     if (data.metadata) {
-      const sucesss = await tracksFromMeta(recording, data.metadata);
+      await tracksFromMeta(recording, data.metadata);
     }
-    recording.processingState = data.state
-      ? data.state
-      : models.Recording.uploadedState(RecordingType.ThermalRaw);
-
+    recording.processingState = models.Recording.uploadedState(
+      RecordingType.ThermalRaw
+    );
     return recording;
   });
 }
