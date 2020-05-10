@@ -71,3 +71,60 @@ class TestTagging:
 
         assert tag["detail"] == "bar"
         assert tag["event"] == "bar"  # alias for "detail"
+
+    def test_bulk_tagging(self, helper):
+        # NOTE: This test relies on other tests preceding it having left some human-untagged tracks in the database
+        admin = helper.admin_user()
+        joe_public = helper.given_new_user(self, "could_be_anyone")
+        # Get a random recording as joe public
+        result = joe_public.get_recording_needs_tag()
+        assert result is not None
+        assert len(result["rows"]) == 1
+        result = result["rows"][0]
+        tracks = result["tracks"]
+        assert len(tracks) > 0
+        recording_id = result["RecordingId"]
+        device_id = result["DeviceId"]
+        track_id = tracks[0]["TrackId"]
+        # Test ability to add a tag to recording
+        track_tag_id = joe_public.tag_track_as_unauthorised_user(
+            recording_id=recording_id, track_id=track_id, what="moa", tag_jwt=result["tagJWT"]
+        )
+        assert track_tag_id is not None
+
+        # Make sure the tag got added to the track
+        recording_props = admin.get_recording_by_id(recording_id)
+        r_tracks = [track for track in recording_props["Tracks"] if track["id"] == track_id]
+        assert len(r_tracks) > 0
+        track = r_tracks[0]
+        track_tags = [
+            track_tags
+            for track_tags in track["TrackTags"]
+            if track_tags["what"] == "moa" and track_tags["automatic"] is False
+        ]
+        assert len(track_tags) == 1
+
+        # Test ability to remove a tag from recording
+        joe_public.delete_track_tag_as_unauthorised_user(
+            recording_id=recording_id, track_id=track_id, track_tag_id=track_tag_id, tag_jwt=result["tagJWT"]
+        )
+
+        # Make sure the tag got removed again
+        recording_props = admin.get_recording_by_id(recording_id)
+        r_tracks = [track for track in recording_props["Tracks"] if track["id"] == track_id]
+        assert len(r_tracks) > 0
+        track = r_tracks[0]
+        track_tags = [
+            track_tags
+            for track_tags in track["TrackTags"]
+            if track_tags["what"] == "moa" and track_tags["automatic"] is False
+        ]
+        assert len(track_tags) == 0
+
+        # Test ability to get another random recording from the same device (could be the same recording in testing,
+        # since there are not many eligible recordings)
+        result = joe_public.get_recording_needs_tag(device_id)
+        assert result is not None
+        assert len(result["rows"]) == 1
+        result = result["rows"][0]
+        assert result["DeviceId"] == device_id

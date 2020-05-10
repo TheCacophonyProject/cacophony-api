@@ -1,7 +1,6 @@
 // A real test configuration
 // @todo: consider reading from env vars
-
-const server = {
+exports.server = {
   passportSecret: "something",
   loggerLevel: "debug",
   http: {
@@ -10,32 +9,29 @@ const server = {
   },
   recording_url_base: "http://test.site/recording"
 };
-
-const s3 = {
+exports.s3 = {
   publicKey: "minio",
   privateKey: "miniostorage",
   bucket: "cacophony",
   endpoint: "http://s3:9001"
 };
-
-const fileProcessing = {
+exports.fileProcessing = {
   port: 2008
 };
-
 // ======= Database settings =======
-const database = {
+exports.database = {
   username: "test",
   password: "test",
   database: "cacophonytest",
   host: "db",
   dialect: "postgres"
 };
-
-exports.server = server;
-exports.s3 = s3;
-exports.fileProcessing = fileProcessing;
-exports.database = database;
-
 // This is needed because Sequelize looks for development by default
 // when using db:migrate
-exports.development = database;
+exports.development = exports.database;
+exports.default = {
+  server: exports.server,
+  s3: exports.s3,
+  fileProcessing: exports.fileProcessing,
+  database: exports.database
+};

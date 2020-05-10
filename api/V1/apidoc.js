@@ -37,8 +37,12 @@
  * to match { "details": {"name": "sample"}}.  Note: Only some embeded keys will work.
  * @apiParam {Number} [offset] Zero-based page number. Use '0' to get the first page.  Each page has 'limit' number of records.
  * @apiParam {Number} [limit] Max number of records to be returned.
+ */
+
+/**
+ * @apiDefine RecordingOrder
  * @apiParam {JSON} [order] Sorting order for records.
- * * For example, ["dateTime"] or [["dateTime", "ASC"]].
+ * * For example, ["recordingDateTime"] or [["recordingDateTime", "ASC"]].
  */
 
 /**
@@ -81,3 +85,33 @@
  * <li>latLongPrec: Maximum precision of latitude longitude coordinates in meters. Minimum 100m
  * </ul>
  */
+
+/**
+ * @apiDefine EventParams
+ * @apiParam {JSON} [description] JSON of the event. Must be used if the if you don't give the eventDetailId
+ * @apiParam {String} [description.type] Name of the type of event.
+ * @apiParam {JSON} [description.details] Metadata of the event.
+ * @apiParam {JSON} [eventDetailId] ID of the event details if known.
+ * @apiParam {Array} dateTimes Array of event times in ISO standard format, eg ["2017-11-13T00:47:51.160Z"]
+ */
+
+/**
+ * @apiDefine EventExampleDescription
+ * @apiParamExample {json} Using description:
+ *  {
+ *    "description": {
+ *      "type": "example"
+ *      "details": {"foo": "bar"},
+ *    },
+ *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
+ *  }
+*/
+
+/**
+ * @apiDefine EventExampleEventDetailId
+ * @apiParamExample {json} Using eventDetailId:
+ *  {
+ *    "eventDetailId": 1,
+ *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
+ *  }
+*/

@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
-
+from .deviceapi import DeviceAPI
 from .recording import Recording
 
 
 class TestDevice:
-    def __init__(self, devicename, deviceapi, helper, group=None, location=None):
+    def __init__(self, devicename, deviceapi: DeviceAPI, helper, group=None, location=None):
         self._deviceapi = deviceapi
         self.devicename = devicename
         self._helper = helper
@@ -21,7 +21,7 @@ class TestDevice:
 
     def has_audio_recording(self):
         self._print_description("    and '{}' has an audio recording ".format(self.devicename))
-        return self.upload_audio_recording()
+        return self.upload_audio_recording_deprecated()
 
     def upload_recording(self, properties=None):
         props = self.get_new_recording_props()
@@ -55,16 +55,57 @@ class TestDevice:
     def upload_audio_recording(self, extraProps={}):
         ts = _new_timestamp()
         props = {
+            "type": "audio",
             "recordingDateTime": ts.isoformat(),
             "recordingTime": ts.strftime("%H:%M:%S"),
             "duration": 2,
-            "batteryLevel": 99,
+            "batteryLevel": 98,
+            "batteryCharging": "FULL",
+            "airplaneModeOn": False,
+            "comment": "a comment",
+            "version": "323",
+            "additionalMetadata": {
+                "foo": "bar",
+                "analysis": {
+                    "cacophony_index": [
+                        {"end_s": 20, "begin_s": 0, "index_percent": 83.3},
+                        {"end_s": 41, "begin_s": 21, "index_percent": 93.3},
+                    ]
+                },
+            },
+        }
+        if self.location:
+            props["location"] = self.location
+        if extraProps:
+            props.update(extraProps)
+        filename = "files/small.mp3"
+        recording_id = self._deviceapi.upload_recording(filename, props)
+        props["rawMimeType"] = "audio/mpeg"
+        return Recording(recording_id, props, filename)
+
+    def upload_audio_recording_deprecated(self, extraProps={}):
+        ts = _new_timestamp()
+        props = {
+            "type": "audio",
+            "comment": "hmmm",
+            "recordingDateTime": ts.isoformat(),
+            "recordingTime": ts.strftime("%H:%M:%S"),
+            "duration": 2,
+            "batteryLevel": 98,
             "batteryCharging": "FULL",
             "airplaneModeOn": False,
             "relativeToDawn": 9877,
             "relativeToDusk": -6543,
             "version": "123",
-            "additionalMetadata": {"foo": "bar"},
+            "additionalMetadata": {
+                "foo": "bar",
+                "analysis": {
+                    "cacophony_index": [
+                        {"end_s": 20, "begin_s": 0, "index_percent": 83.3},
+                        {"end_s": 41, "begin_s": 21, "index_percent": 93.3},
+                    ]
+                },
+            },
         }
         if self.location:
             props["location"] = self.location

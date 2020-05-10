@@ -11,6 +11,8 @@ class TestFileProcessing:
         if recording is not None:
             assert recording["processingState"] == "getMetadata"
             assert recording["processingStartTime"] is not None
+            assert "rawFileKey" in recording
+            assert "fileKey" in recording
 
         return recording
 
@@ -254,7 +256,10 @@ class TestFileProcessing:
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
-        check_recording(admin, recording, processingState="FINISHED", fileKey="some_key")
+        query_result = admin.query_recordings(
+            where={"id": recording.id_, "fileKey": "some_key", "processingState": "FINISHED"}
+        )
+        assert len(query_result) == 1
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
         admin.can_see_track(track)
@@ -264,7 +269,7 @@ class TestFileProcessing:
         listener = helper.given_new_device(self, "Listener", description="reprocess test")
 
         # processed audio recording
-        recording = listener.upload_audio_recording()
+        recording = listener.upload_audio_recording_deprecated()
 
         recording = file_processing.get("audio", "toMp3")
         file_processing.put(recording, success=True, complete=True)

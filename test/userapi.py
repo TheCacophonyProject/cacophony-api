@@ -55,8 +55,10 @@ class UserAPI(APIBase):
         filterOptions=None,
         deviceIds=None,
         return_json=False,
+        where=None,
     ):
-        where = defaultdict(dict)
+        if where is None:
+            where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
         if startDate is not None:
             where["recordingDateTime"]["$gte"] = startDate.isoformat()
@@ -126,6 +128,15 @@ class UserAPI(APIBase):
 
     def get_recording(self, recording_id, params=None):
         return self.get_recording_response(recording_id, params)["recording"]
+
+    def get_recording_needs_tag(self, device_id=None):
+        if device_id is not None:
+            request = "/api/v1/recordings/needs-tag?deviceId={}".format(device_id)
+        else:
+            request = "/api/v1/recordings/needs-tag"
+        url = urljoin(self._baseurl, request)
+        r = requests.get(url, headers=self._auth_header, params=None)
+        return self._check_response(r)
 
     def get_recording_response(self, recording_id, params=None):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(recording_id))
@@ -396,33 +407,70 @@ class UserAPI(APIBase):
         )
         return self._check_response(response)["messages"]
 
-    def add_track_tag(self, recording_id, track_id, what, confidence, automatic, data, replace=False):
+    def add_track_tag(
+        self, recording_id, track_id, what, confidence, automatic, data, replace=False, tag_jwt=None
+    ):
         url = "/api/v1/recordings/{}/tracks/{}/"
         if replace:
             url += "replaceTag"
         else:
             url += "tags"
+        tag_data = {
+            "what": what,
+            "confidence": confidence,
+            "automatic": "true" if automatic else "false",
+            "data": json.dumps(data),
+        }
+        if tag_jwt is not None:
+            tag_data["tagJWT"] = tag_jwt
+
         response = requests.post(
             urljoin(self._baseurl, url.format(recording_id, track_id)),
             headers=self._auth_header,
-            data={
-                "what": what,
-                "confidence": confidence,
-                "automatic": "true" if automatic else "false",
-                "data": json.dumps(data),
-            },
+            data=tag_data,
         )
         return self._check_response(response)["trackTagId"]
 
-    def delete_track_tag(self, recording_id, track_id, track_tag_id):
-        response = requests.delete(
-            urljoin(
-                self._baseurl,
-                "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id),
-            ),
-            headers=self._auth_header,
-        )
+    def delete_track_tag(self, recording_id, track_id, track_tag_id, tag_jwt=None):
+        if tag_jwt is not None:
+            url = "/api/v1/recordings/{}/tracks/{}/tags/{}?tagJWT={}".format(
+                recording_id, track_id, track_tag_id, tag_jwt
+            )
+        else:
+            url = "/api/v1/recordings/{}/tracks/{}/tags/{}".format(recording_id, track_id, track_tag_id)
+
+        response = requests.delete(urljoin(self._baseurl, url), headers=self._auth_header)
         return self._check_response(response)["messages"]
+
+    def record_event(self, device, type_, details, times=None):
+        data = {"description": {"type": type_, "details": details}}
+        return self.record_event_data(device, data, times)
+
+    def record_event_data(self, device, eventData, times=None):
+        if times is None:
+            times = [datetime.now()]
+        eventData["dateTimes"] = [t.isoformat() for t in times]
+        url = urljoin(self._baseurl, "/api/v1/events/device/" + str(device._id))
+
+        response = requests.post(url, headers=self._auth_header, json=eventData)
+        response_data = self._check_response(response)
+        return response_data["eventsAdded"], response_data["eventDetailId"]
+
+    def get_cacophony_index(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index")
+        response = requests.get(
+            url, headers=self._auth_header, params={"from": from_time, "window-size": window_size}
+        )
+        self._check_response(response)
+        return response.json()
+
+    def get_cacophony_index_histogram(self, device_id, from_time=None, window_size=None):
+        url = urljoin(self._baseurl, f"/api/v1/devices/{device_id}/cacophony-index-histogram")
+        response = requests.get(
+            url, headers=self._auth_header, params={"from": from_time, "window-size": window_size}
+        )
+        self._check_response(response)
+        return response.json()
 
 
 def serialise_params(params):

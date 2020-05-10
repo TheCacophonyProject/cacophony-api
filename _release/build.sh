@@ -29,8 +29,22 @@ cp _release/* ${build_dir}/_release  # makes things easier while developing rele
 
 cd ${build_dir}
 
+echo "Installing dependencies for build..."
+rm -rf node_modules
+npm install
+
+echo "Compiling TypeScript..."
+./node_modules/.bin/tsc
+
+echo "Removing external dependencies..."
+rm -rf node_modules
+
+echo "Removing TypeScript files..."
+find -name '*.ts' -print0 | xargs -0 rm
+
 # cron doesn't like it when cron.d files are writeable by anyone other than the
 # owner.
+echo "Fixing perms..."
 chmod 644 _release/{cacophony-api-prune-objects,cacophony-api-remove-dups}
 
 echo "Setting versions..."
