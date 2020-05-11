@@ -29,7 +29,7 @@ module.exports = {
           additionalMetadata: Sequelize.JSONB,
           tags: Sequelize.JSONB,
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("Devices", {
           devicename: { type: Sequelize.STRING, unique: true },
@@ -40,17 +40,17 @@ module.exports = {
           currentConfig: Sequelize.JSONB,
           newConfig: Sequelize.JSONB,
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("Groups", {
           groupname: Sequelize.STRING,
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("GroupUsers", {
           admin: { type: Sequelize.BOOLEAN, defaultValue: false },
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("IrVideoRecordings", {
           // Fields for a file.
@@ -76,7 +76,7 @@ module.exports = {
           additionalMetadata: Sequelize.JSONB,
           tags: Sequelize.JSONB,
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("ThermalVideoRecordings", {
           // Fields for a file.
@@ -102,7 +102,7 @@ module.exports = {
           additionalMetadata: Sequelize.JSONB,
           tags: Sequelize.JSONB,
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         }),
         queryInterface.createTable("Users", {
           username: { type: Sequelize.STRING, unique: true },
@@ -111,8 +111,8 @@ module.exports = {
           email: Sequelize.STRING,
           password: { type: Sequelize.STRING, allowNull: false },
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
-        }),
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
+        })
       ])
         .then(() => {
           console.log("Adding Serial ID to colums.");
@@ -123,7 +123,7 @@ module.exports = {
             util.addSerial(queryInterface, "GroupUsers"),
             util.addSerial(queryInterface, "IrVideoRecordings"),
             util.addSerial(queryInterface, "ThermalVideoRecordings"),
-            util.addSerial(queryInterface, "Users"),
+            util.addSerial(queryInterface, "Users")
           ]);
         })
         .then(() => {
@@ -162,7 +162,7 @@ module.exports = {
             ),
             util.migrationAddBelongsTo(queryInterface, "Devices", "Groups"),
             util.migrationAddBelongsTo(queryInterface, "Devices", "Users"),
-            util.belongsToMany(queryInterface, "GroupUsers", "Groups", "Users"),
+            util.belongsToMany(queryInterface, "GroupUsers", "Groups", "Users")
           ]);
         })
         .then(() => {
@@ -182,5 +182,5 @@ module.exports = {
       console.log("Can not undo init migration.");
       reject("Can not undo init migration.");
     });
-  },
+  }
 };

@@ -9,5 +9,5 @@ module.exports = {
 
   down: async (queryInterface) => {
     await queryInterface.sequelize.query(`DROP INDEX events_datetime;`);
-  },
+  }
 };

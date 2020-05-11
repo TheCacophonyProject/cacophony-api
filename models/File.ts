@@ -48,7 +48,7 @@ export default function (sequelize, DataTypes) {
   const attributes = {
     type: DataTypes.STRING,
     fileKey: DataTypes.STRING,
-    details: DataTypes.JSONB,
+    details: DataTypes.JSONB
   };
 
   const File = (sequelize.define(name, attributes) as unknown) as FileStatic;
@@ -81,7 +81,7 @@ export default function (sequelize, DataTypes) {
       order: order,
       attributes: { exclude: ["updatedAt", "fileKey"] },
       limit: limit,
-      offset: offset,
+      offset: offset
     };
     return this.findAndCountAll(q);
   };
@@ -99,9 +99,9 @@ export default function (sequelize, DataTypes) {
     return this.findAll({
       where: {
         id: {
-          [Op.in]: ids,
-        },
-      },
+          [Op.in]: ids
+        }
+      }
     });
   };
 

@@ -48,11 +48,11 @@ export default function (app: Application) {
           middleware.getUserByName(body),
           middleware.getUserByName(body, "nameOrEmail"),
           middleware.getUserByEmail(body),
-          middleware.getUserByEmail(body, "nameOrEmail"),
+          middleware.getUserByEmail(body, "nameOrEmail")
         ],
         "could not find a user with the given username or email"
       ),
-      body("password").exists(),
+      body("password").exists()
     ],
     middleware.requestWrapper(async (request, response) => {
       const passwordMatch = await request.body.user.comparePassword(
@@ -65,12 +65,12 @@ export default function (app: Application) {
           statusCode: 200,
           messages: ["Successful login."],
           token: "JWT " + token,
-          userData: userData,
+          userData: userData
         });
       } else {
         responseUtil.send(response, {
           statusCode: 401,
-          messages: ["Wrong password or username."],
+          messages: ["Wrong password or username."]
         });
       }
     })
@@ -105,7 +105,7 @@ export default function (app: Application) {
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Token generated."],
-        token: token,
+        token: token
       });
     })
   );

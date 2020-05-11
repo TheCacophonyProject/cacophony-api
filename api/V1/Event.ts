@@ -80,7 +80,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getDevice(param, "deviceID"),
       auth.userCanAccessDevices,
-      ...eventUtil.eventAuth,
+      ...eventUtil.eventAuth
     ],
     middleware.requestWrapper(eventUtil.uploadEvent)
   );
@@ -114,7 +114,7 @@ export default function (app: Application, baseUrl: string) {
         .optional(),
       query("deviceId").isInt().optional().toInt(),
       query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt(),
+      query("limit").isInt().optional().toInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
@@ -136,7 +136,7 @@ export default function (app: Application, baseUrl: string) {
         limit: query.limit,
         offset: query.offset,
         count: result.count,
-        rows: result.rows,
+        rows: result.rows
       });
     })
   );
@@ -170,7 +170,7 @@ export default function (app: Application, baseUrl: string) {
         .optional(),
       query("deviceId").isInt().optional().toInt(),
       query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt(),
+      query("limit").isInt().optional().toInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
@@ -183,7 +183,7 @@ export default function (app: Application, baseUrl: string) {
         messages: ["Completed query."],
         limit: query.limit,
         offset: query.offset,
-        rows: result,
+        rows: result
       });
     })
   );

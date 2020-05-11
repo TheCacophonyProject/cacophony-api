@@ -120,7 +120,7 @@ const authenticate = function (
     const result = await lookupEntity(jwtDecoded);
     if (!result) {
       res.status(401).json({
-        messages: ["Could not find entity referenced by JWT."],
+        messages: ["Could not find entity referenced by JWT."]
       });
       return;
     }
@@ -272,5 +272,5 @@ export default {
   authenticateAdmin,
   paramOrHeader,
   signedUrl,
-  userCanAccessDevices,
+  userCanAccessDevices
 };

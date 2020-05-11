@@ -17,5 +17,5 @@ module.exports = {
   down: async function (queryInterface) {
     await queryInterface.removeColumn("Recordings", "relativeToDawn");
     await queryInterface.removeColumn("Recordings", "relativeToDusk");
-  },
+  }
 };

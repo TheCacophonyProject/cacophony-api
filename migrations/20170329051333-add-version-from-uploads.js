@@ -13,7 +13,7 @@ module.exports = {
         "ThermalVideoRecordings",
         "version",
         Sequelize.STRING
-      ),
+      )
     ]);
   },
 
@@ -21,7 +21,7 @@ module.exports = {
     return Promise.all([
       queryInterface.removeColumn("AudioRecordings", "version"),
       queryInterface.removeColumn("IrVideoRecordings", "version"),
-      queryInterface.removeColumn("ThermalVideoRecordings", "version"),
+      queryInterface.removeColumn("ThermalVideoRecordings", "version")
     ]);
-  },
+  }
 };

@@ -9,7 +9,7 @@ module.exports = {
       .addColumn("Users", "globalPermission", {
         type: Sequelize.ENUM,
         values: ["off", "read", "write"],
-        defaultValue: "off",
+        defaultValue: "off"
       })
       .then(() =>
         queryInterface.sequelize.query(
@@ -25,7 +25,7 @@ module.exports = {
     return queryInterface
       .addColumn("Users", "superuser", {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,
+        defaultValue: false
       })
       .then(() =>
         queryInterface.sequelize.query(
@@ -38,5 +38,5 @@ module.exports = {
           'drop type "enum_Users_globalPermission"'
         )
       );
-  },
+  }
 };

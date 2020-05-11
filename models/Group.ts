@@ -58,8 +58,8 @@ export default function (sequelize, DataTypes): GroupStatic {
   const attributes = {
     groupname: {
       type: DataTypes.STRING,
-      unique: true,
-    },
+      unique: true
+    }
   };
 
   const Group = (sequelize.define(name, attributes) as unknown) as GroupStatic;
@@ -92,8 +92,8 @@ export default function (sequelize, DataTypes): GroupStatic {
     const groupUser = await models.GroupUsers.findOne({
       where: {
         GroupId: group.id,
-        UserId: userToAdd.id,
-      },
+        UserId: userToAdd.id
+      }
     });
     if (groupUser != null) {
       groupUser.admin = admin; // Update admin value.
@@ -118,8 +118,8 @@ export default function (sequelize, DataTypes): GroupStatic {
     const groupUsers = await models.GroupUsers.findAll({
       where: {
         GroupId: group.id,
-        UserId: userToRemove.id,
-      },
+        UserId: userToRemove.id
+      }
     });
     for (const groupUser of groupUsers) {
       await groupUser.destroy();
@@ -146,7 +146,7 @@ export default function (sequelize, DataTypes): GroupStatic {
           // https://github.com/TheCacophonyProject/cacophony-api/issues/279
           // we'd like to split this out into separate requests probably.
           attributes: ["id", "username"],
-          where: userWhere,
+          where: userWhere
         },
         {
           model: models.Device,
@@ -157,9 +157,9 @@ export default function (sequelize, DataTypes): GroupStatic {
           //  past 24 hours.
           // TODO(jon): Remove this once we have updated the front-end to use
           //  QueryRecordingsCount for the devices home page.
-          attributes: ["id", "devicename"],
-        },
-      ],
+          attributes: ["id", "devicename"]
+        }
+      ]
     }).then((groups) => {
       // TODO: Review the following with a mind to combining with the groups.findAll query to improve efficiency
       const augmentGroupData = new Promise((resolve, reject) => {
@@ -171,11 +171,11 @@ export default function (sequelize, DataTypes): GroupStatic {
                 {
                   model: models.Group,
                   where: {
-                    id: group.id,
+                    id: group.id
                   },
-                  attributes: [],
-                },
-              ],
+                  attributes: []
+                }
+              ]
             }).then(async (groupUsers) => {
               const setAdminPromises = groupUsers.map((groupUser) => {
                 return models.GroupUsers.isAdmin(group.id, groupUser.id).then(
@@ -249,7 +249,7 @@ export default function (sequelize, DataTypes): GroupStatic {
   const newUserPermissions = function (enabled) {
     return {
       canAddUsers: enabled,
-      canRemoveUsers: enabled,
+      canRemoveUsers: enabled
     };
   };
 

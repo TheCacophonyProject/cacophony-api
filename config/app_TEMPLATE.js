@@ -6,14 +6,14 @@ const server = {
   loggerLevel: "debug", // REQUIRED, one of ('debug', 'warning', 'info', 'error')
   http: {
     active: true,
-    port: 80,
+    port: 80
   },
-  recording_url_base: "http://localhost/recording",
+  recording_url_base: "http://localhost/recording"
 };
 
 const fileProcessing = {
   // File processing API settings (runs on different port)
-  port: 2002,
+  port: 2002
 };
 
 const database = {
@@ -21,7 +21,7 @@ const database = {
   password: "",
   database: "cacophony",
   host: "localhost",
-  dialect: "postgres",
+  dialect: "postgres"
 };
 
 const s3 = {
@@ -29,15 +29,15 @@ const s3 = {
   publicKey: "", // REQUIRED, String:
   privateKey: "", // REQUIRED, String
   bucket: "cacophony", // REQUIRED, String
-  endpoint: "http://localhost:9000", // REQUIRED, URL
+  endpoint: "http://localhost:9000" // REQUIRED, URL
 };
 
 const smtpDetails = {
   service: "gmail",
   auth: {
     user: "noinfo@cacophony.org.nz",
-    pass: "thesecretpassword",
-  },
+    pass: "thesecretpassword"
+  }
 };
 
 exports.smtpDetails = smtpDetails;

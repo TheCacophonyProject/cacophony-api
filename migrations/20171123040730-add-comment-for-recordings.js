@@ -11,5 +11,5 @@ module.exports = {
 
   down: async function (queryInterface) {
     return await queryInterface.removeColumn("Recordings", "comment");
-  },
+  }
 };

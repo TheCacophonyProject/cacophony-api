@@ -17,5 +17,5 @@ module.exports = {
     await queryInterface.sequelize.query(
       `UPDATE "TrackTags" set "what"='unidentified' where "what" = 'unknown'`
     );
-  },
+  }
 };

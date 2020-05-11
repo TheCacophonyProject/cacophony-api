@@ -47,7 +47,7 @@ async function uploadEvent(request, response) {
     eventList.push({
       DeviceId: request.device.id,
       EventDetailId: detailsId,
-      dateTime: time,
+      dateTime: time
     });
     count++;
   });
@@ -57,7 +57,7 @@ async function uploadEvent(request, response) {
   } catch (exception) {
     return responseUtil.send(response, {
       statusCode: 500,
-      messages: ["Failed to record events.", exception.message],
+      messages: ["Failed to record events.", exception.message]
     });
   }
 
@@ -65,7 +65,7 @@ async function uploadEvent(request, response) {
     statusCode: 200,
     messages: ["Added events."],
     eventsAdded: count,
-    eventDetailId: detailsId,
+    eventDetailId: detailsId
   });
 }
 
@@ -78,11 +78,11 @@ const eventAuth = [
   oneOf(
     [body("eventDetailId").exists(), body("description.type").exists()],
     "Either 'eventDetailId' or 'description.type' must be specified."
-  ),
+  )
 ];
 
 export default {
   eventAuth,
   uploadEvent,
-  errors,
+  errors
 };

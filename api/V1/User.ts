@@ -58,14 +58,14 @@ export default function (app: Application, baseUrl: string) {
           return models.User.freeEmail(value);
         }),
       middleware.checkNewPassword("password"),
-      body("endUserAgreement").isInt().optional(),
+      body("endUserAgreement").isInt().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const user: User = await models.User.create({
         username: request.body.username,
         password: request.body.password,
         email: request.body.email,
-        endUserAgreement: request.body.endUserAgreement,
+        endUserAgreement: request.body.endUserAgreement
       });
 
       const userData = await user.getDataValues();
@@ -74,7 +74,7 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: ["Created new user."],
         token: "JWT " + auth.createEntityJWT(user),
-        userData: userData,
+        userData: userData
       });
     })
   );
@@ -110,7 +110,7 @@ export default function (app: Application, baseUrl: string) {
         })
         .optional(),
       middleware.checkNewPassword("password").optional(),
-      body("endUserAgreement").isInt().optional(),
+      body("endUserAgreement").isInt().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const validData = matchedData(request);
@@ -122,11 +122,11 @@ export default function (app: Application, baseUrl: string) {
       const user: UserStatic = request.user;
       await user.update(validData, {
         where: {},
-        fields: user.apiSettableFields as string[],
+        fields: user.apiSettableFields as string[]
       });
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Updated user."],
+        messages: ["Updated user."]
       });
     })
   );
@@ -150,7 +150,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        userData: await request.body.user.getDataValues(),
+        userData: await request.body.user.getDataValues()
       });
     })
   );
@@ -171,7 +171,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        euaVersion: config.euaVersion,
+        euaVersion: config.euaVersion
       });
     })
   );

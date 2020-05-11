@@ -16,5 +16,5 @@ module.exports = {
 
   down: async function (queryInterface) {
     await queryInterface.removeColumn("Recordings", "rawMimeType");
-  },
+  }
 };

@@ -49,7 +49,7 @@ export default function (app: Application, baseUrl: string) {
     [
       middleware.getGroupByName(body),
       middleware.checkNewName("devicename"),
-      middleware.checkNewPassword("password"),
+      middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
       if (
@@ -60,24 +60,24 @@ export default function (app: Application, baseUrl: string) {
       ) {
         return responseUtil.send(response, {
           statusCode: 422,
-          messages: ["Device name in use."],
+          messages: ["Device name in use."]
         });
       }
       const device = await models.Device.create({
         devicename: request.body.devicename,
         password: request.body.password,
-        GroupId: request.body.group.id,
+        GroupId: request.body.group.id
       });
 
       await device.update({
-        saltId: device.id,
+        saltId: device.id
       });
 
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
         id: device.id,
-        token: "JWT " + auth.createEntityJWT(device),
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );
@@ -106,7 +106,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,
-        messages: ["Completed get devices query."],
+        messages: ["Completed get devices query."]
       });
     })
   );
@@ -154,7 +154,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
-        rows: users,
+        rows: users
       });
     })
   );
@@ -182,7 +182,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getUserByNameOrId(body),
       middleware.getDeviceById(body),
-      body("admin").isIn(["true", "false"]),
+      body("admin").isIn(["true", "false"])
     ],
     middleware.requestWrapper(async (request, response) => {
       const added = await models.Device.addUserToDevice(
@@ -195,12 +195,12 @@ export default function (app: Application, baseUrl: string) {
       if (added) {
         return responseUtil.send(response, {
           statusCode: 200,
-          messages: ["Added user to device."],
+          messages: ["Added user to device."]
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          messages: ["Failed to add user to device."],
+          messages: ["Failed to add user to device."]
         });
       }
     })
@@ -227,7 +227,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware.getDeviceById(body),
-      middleware.getUserByNameOrId(body),
+      middleware.getUserByNameOrId(body)
     ],
     middleware.requestWrapper(async function (request, response) {
       const removed = await models.Device.removeUserFromDevice(
@@ -239,12 +239,12 @@ export default function (app: Application, baseUrl: string) {
       if (removed) {
         return responseUtil.send(response, {
           statusCode: 200,
-          messages: ["Removed user from the device."],
+          messages: ["Removed user from the device."]
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          messages: ["Failed to remove user from the device."],
+          messages: ["Failed to remove user from the device."]
         });
       }
     })
@@ -271,7 +271,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateDevice,
       middleware.getGroupByName(body, "newGroup"),
       middleware.checkNewName("newName"),
-      middleware.checkNewPassword("newPassword"),
+      middleware.checkNewPassword("newPassword")
     ],
     middleware.requestWrapper(async function (request, response) {
       const device = await request.device.reregister(
@@ -283,7 +283,7 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: ["Registered the device again."],
         id: device.id,
-        token: "JWT " + auth.createEntityJWT(device),
+        token: "JWT " + auth.createEntityJWT(device)
       });
     })
   );
@@ -316,7 +316,7 @@ export default function (app: Application, baseUrl: string) {
       middleware.parseJSON("devices", query).optional(),
       middleware.parseArray("groups", query).optional(),
       query("operator").isIn(["or", "and", "OR", "AND"]).optional(),
-      auth.authenticateAccess("user", { devices: "r" }),
+      auth.authenticateAccess("user", { devices: "r" })
     ],
     middleware.requestWrapper(async function (request, response) {
       if (
@@ -338,7 +338,7 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         devices: devices.devices,
         nameMatches: devices.nameMatches,
-        messages: ["Completed get devices query."],
+        messages: ["Completed get devices query."]
       });
     })
   );
@@ -366,7 +366,7 @@ export default function (app: Application, baseUrl: string) {
       param("deviceId").isInt().toInt(),
       query("from").isISO8601().toDate().optional(),
       query("window-size").isInt().toInt().optional(),
-      auth.authenticateUser,
+      auth.authenticateUser
     ],
     middleware.requestWrapper(async function (request, response) {
       const cacophonyIndex = await models.Device.getCacophonyIndex(
@@ -380,7 +380,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         cacophonyIndex,
-        messages: [],
+        messages: []
       });
     })
   );
@@ -408,7 +408,7 @@ export default function (app: Application, baseUrl: string) {
       param("deviceId").isInt().toInt(),
       query("from").isISO8601().toDate().optional(),
       query("window-size").isInt().toInt().optional(),
-      auth.authenticateUser,
+      auth.authenticateUser
     ],
     middleware.requestWrapper(async function (request, response) {
       const cacophonyIndex = await models.Device.getCacophonyIndexHistogram(
@@ -422,7 +422,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         cacophonyIndex,
-        messages: [],
+        messages: []
       });
     })
   );

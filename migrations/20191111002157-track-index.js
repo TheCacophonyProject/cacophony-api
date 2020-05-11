@@ -8,5 +8,5 @@ module.exports = {
   down: async function (queryInterface) {
     await queryInterface.removeIndex("Tracks", ["RecordingId"]);
     await queryInterface.removeIndex("TrackTags", ["TrackId"]);
-  },
+  }
 };

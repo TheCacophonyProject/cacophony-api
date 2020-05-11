@@ -8,19 +8,19 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER
       },
       schedule: {
-        type: Sequelize.JSONB,
+        type: Sequelize.JSONB
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-      },
+        type: Sequelize.DATE
+      }
     });
 
     await util.migrationAddBelongsTo(queryInterface, "Schedules", "Users");
@@ -29,5 +29,5 @@ module.exports = {
   down: async function (queryInterface) {
     await util.migrationRemoveBelongsTo(queryInterface, "Devices", "Schedules");
     await queryInterface.dropTable("Schedules");
-  },
+  }
 };

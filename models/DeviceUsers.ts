@@ -37,8 +37,8 @@ export default function (
   const attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+      defaultValue: false
+    }
   };
 
   const DeviceUsers = (sequelize.define(
@@ -57,8 +57,8 @@ export default function (
       where: {
         DeviceId: deviceId,
         UserId: userId,
-        admin: true,
-      },
+        admin: true
+      }
     });
     return deviceUser != null;
   };

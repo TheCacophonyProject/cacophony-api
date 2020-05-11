@@ -14,14 +14,14 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        allowNull: false,
+        allowNull: false
       },
       data: {
         type: Sequelize.JSONB,
-        allowNull: false,
+        allowNull: false
       },
       createdAt: { type: Sequelize.DATE, allowedNull: false },
-      updatedAt: { type: Sequelize.DATE, allowedNull: false },
+      updatedAt: { type: Sequelize.DATE, allowedNull: false }
     });
     await util.migrationAddBelongsTo(
       queryInterface,
@@ -31,7 +31,7 @@ module.exports = {
     );
     util.migrationAddBelongsTo(queryInterface, "Tracks", "DetailSnapshots", {
       name: "Algorithm",
-      notNull: true,
+      notNull: true
     });
 
     await queryInterface.createTable("TrackTags", {
@@ -39,26 +39,26 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        allowNull: false,
+        allowNull: false
       },
       what: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       confidence: {
         type: Sequelize.FLOAT,
-        allowNull: false,
+        allowNull: false
       },
       automatic: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
+        allowNull: false
       },
       data: {
         type: Sequelize.JSONB,
-        allowNull: false,
+        allowNull: false
       },
       createdAt: { type: Sequelize.DATE, allowedNull: false },
-      updatedAt: { type: Sequelize.DATE, allowedNull: false },
+      updatedAt: { type: Sequelize.DATE, allowedNull: false }
     });
     await util.migrationAddBelongsTo(
       queryInterface,
@@ -88,5 +88,5 @@ module.exports = {
     );
     await util.migrationRemoveBelongsTo(queryInterface, "Tracks", "Recordings");
     await queryInterface.dropTable("Tracks");
-  },
+  }
 };

@@ -42,7 +42,7 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
 
   const attributes = {
     type: DataTypes.STRING,
-    details: DataTypes.JSONB,
+    details: DataTypes.JSONB
   };
 
   const options = {};
@@ -61,7 +61,7 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
 
   DetailSnapshot.addAssociations = function (models) {
     models.DetailSnapshot.hasMany(models.Event, {
-      foreignKey: "EventDetailId",
+      foreignKey: "EventDetailId"
     });
     models.DetailSnapshot.hasMany(models.Track, { foreignKey: "AlgorithmId" });
   };
@@ -72,7 +72,7 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
   ): Promise<DetailSnapShot> {
     if (!searchDetails) {
       searchDetails = {
-        [Op.eq]: null,
+        [Op.eq]: null
       };
     }
 
@@ -80,9 +80,9 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
       where: {
         type: searchType,
         details: {
-          [Op.eq]: searchDetails, // Need to specify the equal operator as it's a JSONB
-        },
-      },
+          [Op.eq]: searchDetails // Need to specify the equal operator as it's a JSONB
+        }
+      }
     });
 
     if (existing) {
@@ -90,7 +90,7 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
     } else {
       return this.create({
         type: searchType,
-        details: searchDetails,
+        details: searchDetails
       });
     }
   };

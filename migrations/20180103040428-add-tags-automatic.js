@@ -5,11 +5,11 @@ module.exports = {
     return await queryInterface.addColumn("Tags", "automatic", {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
-      allowNull: false,
+      allowNull: false
     });
   },
 
   down: async function (queryInterface) {
     return await queryInterface.removeColumn("Tags", "automatic");
-  },
+  }
 };

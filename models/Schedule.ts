@@ -35,7 +35,7 @@ export default function (sequelize, DataTypes): ScheduleStatic {
   const name = "Schedule";
 
   const attributes = {
-    schedule: DataTypes.JSONB,
+    schedule: DataTypes.JSONB
   };
 
   const Schedule = sequelize.define(name, attributes);

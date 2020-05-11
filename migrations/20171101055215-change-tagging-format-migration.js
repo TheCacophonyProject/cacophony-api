@@ -8,7 +8,7 @@ module.exports = {
     await queryInterface.removeColumn("Tags", "killedTime");
     await queryInterface.removeColumn("Tags", "poisionedTime");
     await queryInterface.changeColumn("Tags", "animal", {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING
     });
     await queryInterface.addColumn("Tags", "event", { type: Sequelize.STRING });
     return queryInterface.sequelize.query('DROP TYPE "enum_Tags_animal"');
@@ -16,19 +16,19 @@ module.exports = {
 
   down: async function (queryInterface, Sequelize) {
     await queryInterface.addColumn("Tags", "trapInteractionTime", {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT
     });
     await queryInterface.addColumn("Tags", "trapInteractionDuration", {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT
     });
     await queryInterface.addColumn("Tags", "trappedTime", {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT
     });
     await queryInterface.addColumn("Tags", "killedTime", {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT
     });
     await queryInterface.addColumn("Tags", "poisionedTime", {
-      type: Sequelize.FLOAT,
+      type: Sequelize.FLOAT
     });
     await queryInterface.removeColumn("Tags", "event");
     await queryInterface.removeColumn("Tags", "animal");
@@ -47,7 +47,7 @@ module.exports = {
         "hare",
         "human",
         "bird"
-      ),
+      )
     });
-  },
+  }
 };

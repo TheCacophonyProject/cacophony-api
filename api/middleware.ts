@@ -21,7 +21,7 @@ import {
   oneOf,
   ValidationChain,
   ValidationChainBuilder,
-  validationResult,
+  validationResult
 } from "express-validator/check";
 import models, { ModelStaticCommon } from "../models";
 import { format } from "util";
@@ -198,7 +198,7 @@ const checkNewName = function (field: string): ValidationChain {
 
 const checkNewPassword = function (field: string): ValidationChain {
   return body(field, "Password must be at least 8 characters long").isLength({
-    min: 8,
+    min: 8
   });
 };
 
@@ -320,5 +320,5 @@ export default {
   requestWrapper,
   isDateArray,
   getUserByEmail,
-  setGroupName,
+  setGroupName
 };

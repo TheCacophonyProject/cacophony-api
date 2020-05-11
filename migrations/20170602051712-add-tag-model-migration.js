@@ -23,57 +23,57 @@ module.exports = {
               "hare",
               "human",
               "bird"
-            ),
+            )
           },
           confidence: {
             // 0-Not sure at all, 1-100% positive.
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           startTime: {
             // Start time of the tag in the linked recording in seconds
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           duration: {
             // duration of the tag
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           number: {
             // Number of animals in tag
-            type: Sequelize.INTEGER,
+            type: Sequelize.INTEGER
           },
           trapType: {
-            type: Sequelize.STRING,
+            type: Sequelize.STRING
           },
           // Time in the recording that the pest started interacting with the trap
           trapInteractionTime: {
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           // How long the trap is interacted for before triggering
           trapInteractionDuration: {
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           trappedTime: {
             // If the animal got trapped, time in the recording.
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           killedTime: {
             // If the animal got killed, time in the recording.
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           poisionedTime: {
             // If the animal got poisioned, time in the recording.
-            type: Sequelize.FLOAT,
+            type: Sequelize.FLOAT
           },
           sex: {
             // What sex is the animal, null if don't know.
-            type: Sequelize.ENUM("M", "F"),
+            type: Sequelize.ENUM("M", "F")
           },
           age: {
             // Guessed age in weeks of animal
-            type: Sequelize.INTEGER,
+            type: Sequelize.INTEGER
           },
           createdAt: { type: Sequelize.DATE, allowNull: false },
-          updatedAt: { type: Sequelize.DATE, allowNull: false },
+          updatedAt: { type: Sequelize.DATE, allowNull: false }
         })
         .then(() => {
           return util.addSerial(queryInterface, "Tags");
@@ -96,8 +96,8 @@ module.exports = {
               "ThermalVideoRecordings"
             ),
             util.migrationAddBelongsTo(queryInterface, "Tags", "Users", {
-              name: "tagger",
-            }),
+              name: "tagger"
+            })
           ]);
         })
         .then(() => {
@@ -111,5 +111,5 @@ module.exports = {
 
   down: function (queryInterface) {
     return queryInterface.sequelize.query('DROP TABLE "Tags" CASCADE');
-  },
+  }
 };

@@ -5,18 +5,18 @@ exports.server = {
   loggerLevel: "debug",
   http: {
     active: true,
-    port: 1080,
+    port: 1080
   },
-  recording_url_base: "http://test.site/recording",
+  recording_url_base: "http://test.site/recording"
 };
 exports.s3 = {
   publicKey: "minio",
   privateKey: "miniostorage",
   bucket: "cacophony",
-  endpoint: "http://127.0.0.1:9001",
+  endpoint: "http://127.0.0.1:9001"
 };
 exports.fileProcessing = {
-  port: 2008,
+  port: 2008
 };
 // ======= Database settings =======
 exports.database = {
@@ -24,15 +24,15 @@ exports.database = {
   password: "test",
   database: "cacophonytest",
   host: "localhost",
-  dialect: "postgres",
+  dialect: "postgres"
 };
 
 exports.smtpDetails = {
   service: "gmail",
   auth: {
     user: "noinfo@cacophony.org.nz",
-    pass: "thesecretpassword",
-  },
+    pass: "thesecretpassword"
+  }
 };
 // This is needed because Sequelize looks for development by default
 // when using db:migrate
@@ -42,5 +42,5 @@ exports.default = {
   server: exports.server,
   s3: exports.s3,
   fileProcessing: exports.fileProcessing,
-  database: exports.database,
+  database: exports.database
 };

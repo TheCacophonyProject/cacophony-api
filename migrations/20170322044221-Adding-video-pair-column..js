@@ -10,7 +10,7 @@ module.exports = {
       queryInterface.sequelize.query(
         'ALTER TABLE "IrVideoRecordings" ' +
           ' ADD COLUMN "videoPair" boolean DEFAULT false;'
-      ),
+      )
     ]);
   },
 
@@ -21,7 +21,7 @@ module.exports = {
       ),
       queryInterface.sequelize.query(
         'ALTER TABLE "IrVideoRecordings" ' + ' DROP COLUMN "videoPair";'
-      ),
+      )
     ]);
-  },
+  }
 };

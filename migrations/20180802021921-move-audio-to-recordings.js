@@ -53,5 +53,5 @@ module.exports = {
   },
 
   // Do nothing here. Safer to do manual reversal.
-  down: function () {},
+  down: function () {}
 };

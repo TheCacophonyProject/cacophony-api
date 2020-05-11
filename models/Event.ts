@@ -54,7 +54,7 @@ export default function (sequelize, DataTypes) {
   const name = "Event";
 
   const attributes = {
-    dateTime: DataTypes.DATE,
+    dateTime: DataTypes.DATE
   };
 
   const Event = (sequelize.define(name, attributes) as unknown) as EventStatic;
@@ -67,7 +67,7 @@ export default function (sequelize, DataTypes) {
   Event.addAssociations = function (models) {
     models.Event.belongsTo(models.DetailSnapshot, {
       as: "EventDetail",
-      foreignKey: "EventDetailId",
+      foreignKey: "EventDetailId"
     });
     models.Event.belongsTo(models.Device);
   };
@@ -113,8 +113,8 @@ export default function (sequelize, DataTypes) {
       where: {
         [Op.and]: [
           where, // User query
-          options && options.admin ? "" : await user.getWhereDeviceVisible(), // can only see devices they should
-        ],
+          options && options.admin ? "" : await user.getWhereDeviceVisible() // can only see devices they should
+        ]
       },
       order: ["dateTime"],
       include: [
@@ -122,16 +122,16 @@ export default function (sequelize, DataTypes) {
           model: models.DetailSnapshot,
           as: "EventDetail",
           attributes: ["type", "details"],
-          where: eventWhere,
+          where: eventWhere
         },
         {
           model: models.Device,
-          attributes: ["devicename"],
-        },
+          attributes: ["devicename"]
+        }
       ],
       attributes: { exclude: ["updatedAt", "EventDetailId"] },
       limit: limit,
-      offset: offset,
+      offset: offset
     });
   };
 

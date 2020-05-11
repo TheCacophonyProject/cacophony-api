@@ -8,28 +8,28 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER
       },
       type: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING
       },
       fileKey: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING
       },
       fileSize: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING
       },
       details: {
-        type: Sequelize.JSONB,
+        type: Sequelize.JSONB
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-      },
+        type: Sequelize.DATE
+      }
     });
 
     await util.migrationAddBelongsTo(queryInterface, "Files", "Users");
@@ -37,5 +37,5 @@ module.exports = {
 
   down: function (queryInterface) {
     return queryInterface.dropTable("Files");
-  },
+  }
 };

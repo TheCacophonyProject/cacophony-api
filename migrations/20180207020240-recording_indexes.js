@@ -12,5 +12,5 @@ module.exports = {
     await queryInterface.removeIndex("Recordings", ["public"]);
     await queryInterface.removeIndex("Recordings", ["DeviceId"]);
     await queryInterface.removeIndex("Recordings", ["GroupId"]);
-  },
+  }
 };

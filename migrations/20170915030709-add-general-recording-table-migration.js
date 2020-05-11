@@ -30,7 +30,7 @@ module.exports = {
       public: { type: Sequelize.BOOLEAN, defaultValue: false },
       additionalMetadata: Sequelize.JSONB,
       createdAt: { type: Sequelize.DATE, allowedNull: false },
-      updatedAt: { type: Sequelize.DATE, allowedNull: false },
+      updatedAt: { type: Sequelize.DATE, allowedNull: false }
     });
     await util.addSerial(queryInterface, "Recordings");
     await util.migrationAddBelongsTo(queryInterface, "Recordings", "Groups");
@@ -41,5 +41,5 @@ module.exports = {
   down: async function (queryInterface) {
     await queryInterface.removeColumn("Tags", "RecordingId");
     return queryInterface.dropTable("Recordings");
-  },
+  }
 };

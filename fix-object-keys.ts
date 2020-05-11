@@ -16,7 +16,7 @@ const modelsUtil = require("./models/util/util");
 const keyTypes = Object.freeze([
   { prefix: "f", table: "Files", column: "fileKey" },
   { prefix: "raw", table: "Recordings", column: "rawFileKey" },
-  { prefix: "rec", table: "Recordings", column: "fileKey" },
+  { prefix: "rec", table: "Recordings", column: "fileKey" }
 ]);
 
 let Config;
@@ -29,7 +29,7 @@ async function main() {
 
   Config = {
     ...config,
-    ...config.loadConfig(args.config),
+    ...config.loadConfig(args.config)
   };
 
   const pgClient = await pgConnect();
@@ -65,7 +65,7 @@ async function pgConnect() {
     port: dbconf.port,
     user: dbconf.username,
     password: dbconf.password,
-    database: dbconf.database,
+    database: dbconf.database
   });
   await client.connect();
   return client;
@@ -74,7 +74,7 @@ async function pgConnect() {
 async function loadDBKeys(client, table, column) {
   const res = await client.query({
     text: `select id, "${column}", "createdAt" from "${table}" where "${column}" is not NULL`,
-    rowMode: "array",
+    rowMode: "array"
   });
   return res.rows;
 }
@@ -82,7 +82,7 @@ async function loadDBKeys(client, table, column) {
 async function updateDBKey(client, table, id, column, newKey) {
   await client.query({
     text: `update "${table}" set "${column}"=$2 where id = $1`,
-    values: [id, newKey],
+    values: [id, newKey]
   });
 }
 
@@ -90,7 +90,7 @@ async function copyObject(s3, bucket, srcKey, dstKey) {
   const params = {
     CopySource: bucket + "/" + srcKey,
     Bucket: bucket,
-    Key: dstKey,
+    Key: dstKey
   };
   await s3.copyObject(params).promise();
 }
@@ -98,7 +98,7 @@ async function copyObject(s3, bucket, srcKey, dstKey) {
 async function deleteObject(s3, bucket, key) {
   const params = {
     Bucket: bucket,
-    Key: key,
+    Key: key
   };
   await s3.deleteObject(params).promise();
 }
@@ -109,9 +109,9 @@ const logger = new winston.Logger({
       timestamp: function () {
         return moment().format();
       },
-      colorize: true,
-    }),
-  ],
+      colorize: true
+    })
+  ]
 });
 
 main()

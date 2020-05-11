@@ -21,7 +21,7 @@ import Sequelize, {
   BuildOptions,
   ModelAttributes,
   ModelCtor,
-  ModelOptions,
+  ModelOptions
 } from "sequelize";
 import { AuthorizationError } from "../api/customErrors";
 import log from "../logging";
@@ -39,7 +39,7 @@ type GlobalPermission = "write" | "read" | "off";
 const PERMISSIONS: readonly string[] = Object.freeze([
   PERMISSION_WRITE,
   PERMISSION_READ,
-  PERMISSION_OFF,
+  PERMISSION_OFF
 ]);
 
 export type UserId = number;
@@ -103,31 +103,31 @@ export default function (
   const attributes: ModelAttributes = {
     username: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: true
     },
     firstName: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     lastName: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     email: {
       type: DataTypes.STRING,
       validate: { isEmail: true },
-      unique: true,
+      unique: true
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
     globalPermission: {
       type: DataTypes.ENUM,
       values: PERMISSIONS as string[],
-      defaultValue: PERMISSION_OFF,
+      defaultValue: PERMISSION_OFF
     },
     endUserAgreement: {
-      type: DataTypes.INTEGER,
-    },
+      type: DataTypes.INTEGER
+    }
   };
 
   const options: ModelOptions = {
@@ -138,8 +138,8 @@ export default function (
 
       // NOTE: Doesn't exist on publicly available typings, so ignore
       // @ts-ignore
-      beforeUpsert: beforeModify,
-    },
+      beforeUpsert: beforeModify
+    }
   };
 
   // Define table
@@ -155,12 +155,12 @@ export default function (
     "firstName",
     "lastName",
     "email",
-    "endUserAgreement",
+    "endUserAgreement"
   ]);
 
   Object.defineProperty(User, "GLOBAL_PERMISSIONS", {
     value: PERMISSIONS,
-    writable: false,
+    writable: false
   });
 
   //---------------
@@ -170,7 +170,7 @@ export default function (
 
   User.addAssociations = function (models) {
     models.User.belongsToMany(models.Group, {
-      through: models.GroupUsers,
+      through: models.GroupUsers
     });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
   };
@@ -178,7 +178,7 @@ export default function (
   User.getAll = async function (where) {
     return this.findAll({
       where,
-      attributes: this.publicFields,
+      attributes: this.publicFields
     });
   };
 
@@ -243,7 +243,7 @@ export default function (
     if (groupIds.length > 0) {
       const devices = await models.Device.findAll({
         where: { GroupId: { [Op.in]: groupIds } },
-        attributes: ["id"],
+        attributes: ["id"]
       });
       return devices.map((d) => d.id);
     } else {
@@ -263,7 +263,7 @@ export default function (
   User.prototype.getJwtDataValues = function () {
     return {
       id: this.getDataValue("id"),
-      _type: "user",
+      _type: "user"
     };
   };
 
@@ -279,7 +279,7 @@ export default function (
           email: user.getDataValue("email"),
           groups: groups,
           globalPermission: user.getDataValue("globalPermission"),
-          endUserAgreement: user.getDataValue("endUserAgreement"),
+          endUserAgreement: user.getDataValue("endUserAgreement")
         });
       });
     });

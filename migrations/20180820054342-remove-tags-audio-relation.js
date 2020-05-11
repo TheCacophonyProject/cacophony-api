@@ -12,5 +12,5 @@ module.exports = {
 
   down: async function (queryInterface) {
     await util.migrationAddBelongsTo(queryInterface, "Tags", "AudioRecordings");
-  },
+  }
 };

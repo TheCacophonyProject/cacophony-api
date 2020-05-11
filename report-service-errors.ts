@@ -18,7 +18,7 @@ async function main() {
     endTime: endDate.toDate(),
     startTime: startDate.toDate(),
     offset: null,
-    limit: null,
+    limit: null
   };
   const serviceErrors = await eventUtil.errors({ query: query }, true);
   if (Object.keys(serviceErrors).length == 0) {
@@ -76,7 +76,7 @@ async function sendEmail(html: string) {
     from: "info@cacophony.org.nz",
     to: "	coredev@cacophony.org.nz",
     subject: "Service Errors in the last 24 hours",
-    html: html,
+    html: html
   };
 
   log.info("sending email");
@@ -95,9 +95,9 @@ const log = new winston.Logger({
       timestamp: function () {
         return moment().format();
       },
-      colorize: true,
-    }),
-  ],
+      colorize: true
+    })
+  ]
 });
 
 main()

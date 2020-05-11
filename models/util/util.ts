@@ -55,7 +55,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
           where: { [Op.and]: [queryParams.where, { public: true }] },
           include: [models.Group],
           limit: queryParams.limit,
-          offset: queryParams.offset,
+          offset: queryParams.offset
         })
         .then(function (result: QueryResult<T>) {
           result.limit = queryParams.limit;
@@ -70,12 +70,12 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
           queryParams.where = {
             [Op.and]: [
               queryParams.where,
-              { [Op.or]: [{ public: true }, { GroupId: { [Op.in]: ids } }] },
-            ],
+              { [Op.or]: [{ public: true }, { GroupId: { [Op.in]: ids } }] }
+            ]
           };
           queryParams.include = [
             { model: models.Group },
-            { model: models.Tag },
+            { model: models.Tag }
           ];
           return model.findAndCountAll(queryParams);
         })
@@ -102,7 +102,7 @@ export function getFileData<T extends ModelStaticCommon<T>>(
           const fileData = {
             key: model.getDataValue("fileKey"),
             name: getFileName(model),
-            mimeType: model.getDataValue("mimeType"),
+            mimeType: model.getDataValue("mimeType")
           };
           return resolve(fileData);
         } else {
@@ -156,7 +156,7 @@ export function migrationAddBelongsTo(
   if (opts === "strict") {
     opts = {
       notNull: true,
-      cascade: true,
+      cascade: true
     };
   }
 
@@ -201,7 +201,7 @@ export function renameTableAndIdSeq(queryInterface, oldName, newName) {
     ),
     queryInterface.sequelize.query(
       `ALTER TABLE "${oldName}_id_seq" RENAME TO "${newName}_id_seq";`
-    ),
+    )
   ]);
 }
 
@@ -233,7 +233,7 @@ export function belongsToMany(queryInterface, viaTable, table1, table2) {
       ),
       queryInterface.sequelize.query(
         `ALTER TABLE "${viaTable}" ADD COLUMN "${columnName2}" INTEGER;`
-      ),
+      )
     ])
       .then(() => {
         console.log("Adding belongs to many constraint.");
@@ -243,7 +243,7 @@ export function belongsToMany(queryInterface, viaTable, table1, table2) {
           ),
           queryInterface.sequelize.query(
             `ALTER TABLE "${viaTable}" ADD CONSTRAINT "${constraintName2}" FOREIGN KEY ("${columnName2}") REFERENCES "${table2}" (id) ON DELETE CASCADE ON UPDATE CASCADE;`
-          ),
+          )
         ]);
       })
       .then(() => resolve())
@@ -275,9 +275,9 @@ export function getFromId(id: number, user: User, attributes) {
         const condition = {
           where: {
             id: id,
-            [Op.or]: [{ GroupId: { [Op.in]: ids } }, { public: true }],
+            [Op.or]: [{ GroupId: { [Op.in]: ids } }, { public: true }]
           },
-          attributes,
+          attributes
         };
         return modelClass.findOne(condition);
       })
@@ -330,7 +330,7 @@ export function openS3() {
     endpoint: config.s3.endpoint,
     accessKeyId: config.s3.publicKey,
     secretAccessKey: config.s3.privateKey,
-    s3ForcePathStyle: true, // needed for minio
+    s3ForcePathStyle: true // needed for minio
   });
 }
 
@@ -354,7 +354,7 @@ export function saveFile(file /* model.File */) {
       const params = {
         Bucket: config.s3.bucket,
         Key: key,
-        Body: data,
+        Body: data
       };
       s3.upload(params, function (err) {
         if (err) {
@@ -382,7 +382,7 @@ export function deleteFile(fileKey) {
     const s3 = openS3();
     const params = {
       Bucket: config.s3.bucket,
-      Key: fileKey,
+      Key: fileKey
     };
     s3.deleteObject(params, function (err, data) {
       if (err) {
@@ -407,5 +407,5 @@ export default {
   userCanEdit,
   openS3,
   saveFile,
-  renameTableAndIdSeq,
+  renameTableAndIdSeq
 };

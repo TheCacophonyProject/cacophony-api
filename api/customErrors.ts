@@ -34,7 +34,7 @@ function errorHandler(err, request, response, next) {
   log.error(err);
   response.status(500).json({
     message: "Internal server error: " + err.name + ".",
-    errorType: "server",
+    errorType: "server"
   });
 }
 
@@ -64,7 +64,7 @@ class CustomError extends Error {
   toJson() {
     return {
       message: this.message,
-      errorType: this.getErrorType(),
+      errorType: this.getErrorType()
     };
   }
 }
@@ -85,7 +85,7 @@ class ValidationError extends CustomError {
     return {
       errorType: this.getErrorType(),
       message: this.message,
-      errors: this.errors.mapped(),
+      errors: this.errors.mapped()
     };
   }
 }
@@ -113,5 +113,5 @@ export default {
   AuthenticationError,
   AuthorizationError,
   ClientError,
-  errorHandler,
+  errorHandler
 };

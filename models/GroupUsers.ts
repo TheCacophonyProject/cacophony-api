@@ -32,8 +32,8 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
   const attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+      defaultValue: false
+    }
   };
 
   const GroupUsers = (sequelize.define(
@@ -53,8 +53,8 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
       where: {
         GroupId: groupId,
         UserId: userId,
-        admin: true,
-      },
+        admin: true
+      }
     });
     return groupUsers != null;
   };

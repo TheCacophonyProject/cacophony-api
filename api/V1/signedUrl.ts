@@ -61,7 +61,7 @@ export default function (app: Application, baseUrl: string) {
       const s3 = modelsUtil.openS3();
       const params = {
         Bucket: config.s3.bucket,
-        Key: key,
+        Key: key
       };
 
       s3.getObject(params, function (err, data) {
@@ -93,7 +93,7 @@ export default function (app: Application, baseUrl: string) {
           "Content-Range": "bytes " + start + "-" + end + "/" + total,
           "Content-Length": chunksize,
           "Accept-Ranges": "bytes",
-          "Content-type": mimeType,
+          "Content-type": mimeType
         };
 
         response.writeHead(206, headers);

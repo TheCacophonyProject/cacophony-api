@@ -80,8 +80,8 @@ const sequelize = new Sequelize(
       $and: Op.and,
       $or: Op.or,
       $any: Op.any,
-      $all: Op.all,
-    },
+      $all: Op.all
+    }
   }
 );
 
@@ -130,7 +130,7 @@ const AllModels = {
   DeviceUsers: db.DeviceUsers as DeviceUsersStatic,
   Schedule: db.Schedule as ScheduleStatic,
   sequelize,
-  Sequelize,
+  Sequelize
 };
 
 export default AllModels;

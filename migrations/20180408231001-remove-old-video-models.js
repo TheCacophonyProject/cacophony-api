@@ -12,5 +12,5 @@ module.exports = {
 
   down: async function () {
     // No going back.
-  },
+  }
 };

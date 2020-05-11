@@ -32,7 +32,7 @@ module.exports = {
         "ThermalVideoRecordings",
         "relativeToDusk",
         Sequelize.INTEGER
-      ),
+      )
     ]);
   },
 
@@ -43,7 +43,7 @@ module.exports = {
       queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDawn"),
       queryInterface.removeColumn("AudioRecordings", "relativeToDusk"),
       queryInterface.removeColumn("IrVideoRecordings", "relativeToDusk"),
-      queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDusk"),
+      queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDusk")
     ]);
-  },
+  }
 };

@@ -47,16 +47,16 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.checkNewName("groupname").custom((value) => {
         return models.Group.freeGroupname(value);
-      }),
+      })
     ],
     middleware.requestWrapper(async (request, response) => {
       const newGroup = await models.Group.create({
-        groupname: request.body.groupname,
+        groupname: request.body.groupname
       });
       await newGroup.addUser(request.user.id, { through: { admin: true } });
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Created new group."],
+        messages: ["Created new group."]
       });
     })
   );
@@ -86,7 +86,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        groups,
+        groups
       });
     })
   );
@@ -114,7 +114,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getGroupByNameOrId(body),
       middleware.getUserByNameOrId(body),
-      body("admin").isBoolean(),
+      body("admin").isBoolean()
     ],
     middleware.requestWrapper(async (request, response) => {
       await models.Group.addUserToGroup(
@@ -125,7 +125,7 @@ export default function (app: Application, baseUrl: string) {
       );
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Added user to group."],
+        messages: ["Added user to group."]
       });
     })
   );
@@ -149,7 +149,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware.getUserByNameOrId(body),
-      middleware.getGroupByNameOrId(body),
+      middleware.getGroupByNameOrId(body)
     ],
     middleware.requestWrapper(async (request, response) => {
       await models.Group.removeUserFromGroup(
@@ -159,7 +159,7 @@ export default function (app: Application, baseUrl: string) {
       );
       return responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Removed user from the group."],
+        messages: ["Removed user from the group."]
       });
     })
   );

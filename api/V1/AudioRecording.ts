@@ -93,7 +93,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       param("id").isInt(),
-      middleware.parseJSON("data", body),
+      middleware.parseJSON("data", body)
     ],
     middleware.requestWrapper(async (request, response) => {
       const updated = await models.Recording.updateOne(
@@ -158,7 +158,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.parseJSON("where", header).optional(),
       header("offset").isInt().optional(),
-      header("limit").isInt().optional(),
+      header("limit").isInt().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       // recordingUtil.query expects these as query parameters not
@@ -172,7 +172,7 @@ export default function (app: Application, baseUrl: string) {
         rows: [],
         limit: request.query.limit,
         offset: request.query.offset,
-        count: qresult.count,
+        count: qresult.count
       };
 
       // Just save the front end fields for each model.
@@ -202,7 +202,7 @@ export default function (app: Application, baseUrl: string) {
       deviceId: rec.Device.id,
       groupId: rec.Group.id,
       group: rec.Group.groupname,
-      additionalMetadata: rec.additionalMetadata,
+      additionalMetadata: rec.additionalMetadata
     };
   };
 
@@ -234,7 +234,7 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: [],
         recording: recording,
-        jwt: cookedJWT,
+        jwt: cookedJWT
       });
     })
   );

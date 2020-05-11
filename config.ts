@@ -3,7 +3,7 @@ import fs from "fs";
 import process from "process";
 // Set some default configuration
 const server = {
-  loggerLevel: "info",
+  loggerLevel: "info"
 };
 
 const timeZone = "Pacific/Auckland";
@@ -63,5 +63,5 @@ export default {
   timeZone,
   server,
   euaVersion: 3,
-  ...loadConfigFromArgs(),
+  ...loadConfigFromArgs()
 };
