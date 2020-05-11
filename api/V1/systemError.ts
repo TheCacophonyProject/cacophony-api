@@ -47,8 +47,8 @@ function groupSystemErrors(events: Event[]): ServiceErrorMap {
     }
 
     const log = new Log(
-      "gpgroup",
-      new Date(errorEvent.dateTime),
+      errorEvent.Device.devicename,
+      errorEvent.dateTime,
       details["logs"]
     );
     serviceError.match(log);
