@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async queryInterface => {
+  up: async (queryInterface) => {
     await queryInterface.sequelize.query(
       `UPDATE "TrackTags" set "what"='poor tracking' where "what" = 'bad track'`
     );
@@ -10,12 +10,12 @@ module.exports = {
     );
   },
 
-  down: async queryInterface => {
+  down: async (queryInterface) => {
     await queryInterface.sequelize.query(
       `UPDATE "TrackTags" set "what"='bad track' where "what" = 'poor tracking'`
     );
     await queryInterface.sequelize.query(
       `UPDATE "TrackTags" set "what"='unidentified' where "what" = 'unknown'`
     );
-  }
+  },
 };

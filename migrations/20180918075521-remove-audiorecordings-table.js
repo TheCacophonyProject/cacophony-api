@@ -2,11 +2,11 @@
 const util = require("../models/util/util");
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return queryInterface.dropTable("AudioRecordings");
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function (queryInterface, Sequelize) {
     return queryInterface
       .createTable("AudioRecordings", {
         fileKey: Sequelize.STRING,
@@ -29,7 +29,7 @@ module.exports = {
         updatedAt: { type: Sequelize.DATE, allowNull: false },
         relativeToDawn: Sequelize.INTEGER,
         relativeToDusk: Sequelize.INTEGER,
-        version: Sequelize.STRING
+        version: Sequelize.STRING,
       })
       .then(() => util.addSerial(queryInterface, "AudioRecordings"))
       .then(() =>
@@ -38,5 +38,5 @@ module.exports = {
       .then(() =>
         util.migrationAddBelongsTo(queryInterface, "AudioRecordings", "Devices")
       );
-  }
+  },
 };

@@ -7,21 +7,21 @@ module.exports = {
     await queryInterface.removeConstraint("Devices", "Devices_devicename_key");
 
     await queryInterface.changeColumn("Devices", "devicename", {
-      type: Sequelize.CITEXT
+      type: Sequelize.CITEXT,
     });
     await queryInterface.changeColumn("Groups", "groupname", {
-      type: Sequelize.CITEXT
+      type: Sequelize.CITEXT,
     });
     await queryInterface.changeColumn("Users", "username", {
-      type: Sequelize.CITEXT
+      type: Sequelize.CITEXT,
     });
     await queryInterface.changeColumn("Users", "email", {
-      type: Sequelize.CITEXT
+      type: Sequelize.CITEXT,
     });
     await queryInterface.addConstraint("Devices", {
       fields: ["devicename", "GroupId"],
       type: "unique",
-      name: "Devices_devicename_group_key"
+      name: "Devices_devicename_group_key",
     });
   },
 
@@ -32,19 +32,19 @@ module.exports = {
     );
     await queryInterface.addConstraint("Devices", ["devicename"], {
       type: "unique",
-      name: "Devices_devicename_key"
+      name: "Devices_devicename_key",
     });
     await queryInterface.changeColumn("Devices", "devicename", {
-      type: Sequelize.TEXT
+      type: Sequelize.TEXT,
     });
     await queryInterface.changeColumn("Groups", "groupname", {
-      type: Sequelize.TEXT
+      type: Sequelize.TEXT,
     });
     await queryInterface.changeColumn("Users", "username", {
-      type: Sequelize.TEXT
+      type: Sequelize.TEXT,
     });
     await queryInterface.changeColumn("Users", "email", {
-      type: Sequelize.TEXT
+      type: Sequelize.TEXT,
     });
-  }
+  },
 };

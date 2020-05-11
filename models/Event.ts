@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import { DeviceId } from "./Device";
+import { DeviceId, Device } from "./Device";
 import { User } from "./User";
 import { DetailSnapShot } from "./DetailSnapshot";
 
@@ -29,7 +29,9 @@ export interface Event extends Sequelize.Model, ModelCommon<Event> {
   EventDetailId: number;
   EventDetail: DetailSnapShot;
   DeviceId: DeviceId;
+  Device: Device | null;
 }
+
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (
     user: User,
@@ -37,15 +39,17 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     endTime: string,
     deviceId: DeviceId,
     offset: number,
-    limit: number
+    limit: number,
+    eventType?: string,
+    admin?: boolean
   ) => Promise<{ rows: Event[]; count: number }>;
 }
 
-export default function(sequelize, DataTypes) {
+export default function (sequelize, DataTypes) {
   const name = "Event";
 
   const attributes = {
-    dateTime: DataTypes.DATE
+    dateTime: DataTypes.DATE,
   };
 
   const Event = (sequelize.define(name, attributes) as unknown) as EventStatic;
@@ -55,24 +59,27 @@ export default function(sequelize, DataTypes) {
   //---------------
   const models = sequelize.models;
 
-  Event.addAssociations = function(models) {
+  Event.addAssociations = function (models) {
     models.Event.belongsTo(models.DetailSnapshot, {
       as: "EventDetail",
-      foreignKey: "EventDetailId"
+      foreignKey: "EventDetailId",
     });
+    models.Event.belongsTo(models.Device);
   };
 
   /**
    * Return one or more recordings for a user matching the query
    * arguments given.
    */
-  Event.query = async function(
+  Event.query = async function (
     user,
     startTime,
     endTime,
     deviceId,
     offset,
-    limit
+    limit,
+    eventType?,
+    admin?
   ) {
     const where: any = {};
 
@@ -89,23 +96,33 @@ export default function(sequelize, DataTypes) {
     if (deviceId) {
       where.DeviceId = deviceId;
     }
-
+    const eventWhere: any = {};
+    if (eventType) {
+      eventWhere.type = eventType;
+    }
     return this.findAndCountAll({
       where: {
         [Op.and]: [
           where, // User query
-          await user.getWhereDeviceVisible() // can only see devices they should
-        ]
+          admin ? "" : await user.getWhereDeviceVisible(), // can only see devices they should
+        ],
       },
       order: ["dateTime"],
-      include: {
-        model: models.DetailSnapshot,
-        as: "EventDetail",
-        attributes: ["type", "details"]
-      },
+      include: [
+        {
+          model: models.DetailSnapshot,
+          as: "EventDetail",
+          attributes: ["type", "details"],
+          where: eventWhere,
+        },
+        {
+          model: models.Device,
+          attributes: ["devicename"],
+        },
+      ],
       attributes: { exclude: ["updatedAt", "EventDetailId"] },
       limit: limit,
-      offset: offset
+      offset: offset,
     });
   };
 

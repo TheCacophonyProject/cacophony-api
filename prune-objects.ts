@@ -9,7 +9,7 @@ let Config;
 const keyTypes = Object.freeze([
   { prefix: "f", table: "Files", column: "fileKey" },
   { prefix: "raw", table: "Recordings", column: "rawFileKey" },
-  { prefix: "rec", table: "Recordings", column: "fileKey" }
+  { prefix: "rec", table: "Recordings", column: "fileKey" },
 ]);
 
 async function main() {
@@ -20,7 +20,7 @@ async function main() {
 
   Config = {
     ...config.default,
-    ...config.default.loadConfig(args.config)
+    ...config.default.loadConfig(args.config),
   };
 
   if (!args.delete) {
@@ -32,19 +32,19 @@ async function main() {
 
   const bucketKeys = await loadAllBucketKeys(
     s3,
-    keyTypes.map(x => x.prefix)
+    keyTypes.map((x) => x.prefix)
   );
   console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
   console.log(
     "waiting 20 minutes before getting keys from database to give uploading recordings time to finish"
   );
-  await new Promise(r => setTimeout(r, 1000 * 60 * 20)); // Sleep 20 minutes
+  await new Promise((r) => setTimeout(r, 1000 * 60 * 20)); // Sleep 20 minutes
   console.log("getting keys from the database");
   const dbKeys = await loadAllDBKeys(pgClient, keyTypes);
   console.log(`${dbKeys.size} keys loaded from the database`);
 
-  const toDelete = new Set([...bucketKeys].filter(x => !dbKeys.has(x)));
+  const toDelete = new Set([...bucketKeys].filter((x) => !dbKeys.has(x)));
   console.log(`${toDelete.size} keys to delete`);
 
   if (toDelete.size > 0 && args.delete) {
@@ -64,14 +64,14 @@ async function loadAllBucketKeys(s3, prefixes) {
 async function loadBucketKeys(s3, bucket, prefix) {
   const params: any = {
     Bucket: bucket,
-    Prefix: prefix
+    Prefix: prefix,
   };
 
   const keys = new Set();
   for (;;) {
     const data = await s3.listObjects(params).promise();
 
-    data.Contents.forEach(elem => {
+    data.Contents.forEach((elem) => {
       keys.add(elem.Key);
     });
 
@@ -91,7 +91,7 @@ async function pgConnect() {
     port: dbconf.port,
     user: dbconf.username,
     password: dbconf.password,
-    database: dbconf.database
+    database: dbconf.database,
   });
   await client.connect();
   return client;
@@ -130,7 +130,7 @@ async function collectKeys(promises) {
 
 async function deleteObjects(s3, bucket, keys) {
   const params: any = {
-    Bucket: bucket
+    Bucket: bucket,
   };
 
   for (const key of keys) {
@@ -140,7 +140,7 @@ async function deleteObjects(s3, bucket, keys) {
 }
 
 main()
-  .catch(err => {
+  .catch((err) => {
     console.log(err);
   })
   .then(() => {

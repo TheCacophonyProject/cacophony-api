@@ -1,14 +1,14 @@
 "use strict";
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return queryInterface.addIndex("Users", {
       fields: ["email"],
-      unique: true
+      unique: true,
     });
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return queryInterface.removeIndex("Users", ["email"]);
-  }
+  },
 };

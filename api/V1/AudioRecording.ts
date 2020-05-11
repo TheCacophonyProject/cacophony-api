@@ -27,12 +27,12 @@ import responseUtil from "./responseUtil";
 import { Application } from "express";
 import { RecordingType } from "../../models/Recording";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/audiorecordings`;
 
   // Massage fields sent to the legacy AudioRecordings API so that
   // they work in the Recordings schema.
-  const mungeAudioData = function(data) {
+  const mungeAudioData = function (data) {
     data.type = "audio";
     return data;
   };
@@ -93,7 +93,7 @@ export default function(app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       param("id").isInt(),
-      middleware.parseJSON("data", body)
+      middleware.parseJSON("data", body),
     ],
     middleware.requestWrapper(async (request, response) => {
       const updated = await models.Recording.updateOne(
@@ -157,12 +157,8 @@ export default function(app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware.parseJSON("where", header).optional(),
-      header("offset")
-        .isInt()
-        .optional(),
-      header("limit")
-        .isInt()
-        .optional()
+      header("offset").isInt().optional(),
+      header("limit").isInt().optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       // recordingUtil.query expects these as query parameters not
@@ -176,7 +172,7 @@ export default function(app: Application, baseUrl: string) {
         rows: [],
         limit: request.query.limit,
         offset: request.query.offset,
-        count: qresult.count
+        count: qresult.count,
       };
 
       // Just save the front end fields for each model.
@@ -187,7 +183,7 @@ export default function(app: Application, baseUrl: string) {
     })
   );
 
-  const getFrontendFields = function(rec) {
+  const getFrontendFields = function (rec) {
     return {
       id: rec.id,
       recordingDateTime: rec.recordingDateTime,
@@ -206,7 +202,7 @@ export default function(app: Application, baseUrl: string) {
       deviceId: rec.Device.id,
       groupId: rec.Group.id,
       group: rec.Group.groupname,
-      additionalMetadata: rec.additionalMetadata
+      additionalMetadata: rec.additionalMetadata,
     };
   };
 
@@ -238,7 +234,7 @@ export default function(app: Application, baseUrl: string) {
         statusCode: 200,
         messages: [],
         recording: recording,
-        jwt: cookedJWT
+        jwt: cookedJWT,
       });
     })
   );

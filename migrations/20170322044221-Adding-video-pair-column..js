@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return Promise.all([
       queryInterface.sequelize.query(
         'ALTER TABLE "ThermalVideoRecordings" ' +
@@ -10,18 +10,18 @@ module.exports = {
       queryInterface.sequelize.query(
         'ALTER TABLE "IrVideoRecordings" ' +
           ' ADD COLUMN "videoPair" boolean DEFAULT false;'
-      )
+      ),
     ]);
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return Promise.all([
       queryInterface.sequelize.query(
         'ALTER TABLE "ThermalVideoRecordings" ' + ' DROP COLUMN "videoPair";'
       ),
       queryInterface.sequelize.query(
         'ALTER TABLE "IrVideoRecordings" ' + ' DROP COLUMN "videoPair";'
-      )
+      ),
     ]);
-  }
+  },
 };

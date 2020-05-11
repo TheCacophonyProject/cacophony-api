@@ -3,7 +3,7 @@ import fs from "fs";
 import process from "process";
 // Set some default configuration
 const server = {
-  loggerLevel: "info"
+  loggerLevel: "info",
 };
 
 const timeZone = "Pacific/Auckland";
@@ -41,10 +41,12 @@ function loadConfig(configPath) {
 
 function checkConfigFileExists(configPath) {
   if (!fs.existsSync(configPath)) {
-    throw "Config file " +
+    throw (
+      "Config file " +
       configPath +
       " does not exist. See README.md for config setup. " +
-      "NB: The default config file has been renamed to ./config/app.js";
+      "NB: The default config file has been renamed to ./config/app.js"
+    );
   }
 }
 
@@ -61,5 +63,5 @@ export default {
   timeZone,
   server,
   euaVersion: 3,
-  ...loadConfigFromArgs()
+  ...loadConfigFromArgs(),
 };

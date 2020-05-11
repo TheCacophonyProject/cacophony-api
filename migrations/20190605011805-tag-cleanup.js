@@ -10,7 +10,7 @@ module.exports = {
 
     await queryInterface.addColumn("Tags", "version", {
       type: Sequelize.INTEGER,
-      defaultValue: 0x0100
+      defaultValue: 0x0100,
     });
 
     await queryInterface.renameColumn("Tags", "animal", "what");
@@ -27,5 +27,5 @@ module.exports = {
     await queryInterface.addColumn("Tags", "trapType", Sequelize.STRING);
     await queryInterface.addColumn("Tags", "sex", Sequelize.ENUM("M", "F"));
     await queryInterface.addColumn("Tags", "age", Sequelize.INTEGER);
-  }
+  },
 };

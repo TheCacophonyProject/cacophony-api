@@ -2,7 +2,7 @@
 const util = require("../models/util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.createTable("Recordings", {
       // Raw file data.
       rawFileKey: Sequelize.STRING,
@@ -30,7 +30,7 @@ module.exports = {
       public: { type: Sequelize.BOOLEAN, defaultValue: false },
       additionalMetadata: Sequelize.JSONB,
       createdAt: { type: Sequelize.DATE, allowedNull: false },
-      updatedAt: { type: Sequelize.DATE, allowedNull: false }
+      updatedAt: { type: Sequelize.DATE, allowedNull: false },
     });
     await util.addSerial(queryInterface, "Recordings");
     await util.migrationAddBelongsTo(queryInterface, "Recordings", "Groups");
@@ -38,8 +38,8 @@ module.exports = {
     return util.migrationAddBelongsTo(queryInterface, "Recordings", "Devices");
   },
 
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     await queryInterface.removeColumn("Tags", "RecordingId");
     return queryInterface.dropTable("Recordings");
-  }
+  },
 };

@@ -24,7 +24,7 @@ import { param, body, oneOf, query } from "express-validator/check";
 import { Application } from "express";
 import eventUtil from "./eventUtil";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/events`;
 
   /**
@@ -80,7 +80,7 @@ export default function(app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getDevice(param, "deviceID"),
       auth.userCanAccessDevices,
-      ...eventUtil.eventAuth
+      ...eventUtil.eventAuth,
     ],
     middleware.requestWrapper(eventUtil.uploadEvent)
   );
@@ -112,18 +112,9 @@ export default function(app: Application, baseUrl: string) {
         // @ts-ignore
         .isISO8601({ strict: true })
         .optional(),
-      query("deviceId")
-        .isInt()
-        .optional()
-        .toInt(),
-      query("offset")
-        .isInt()
-        .optional()
-        .toInt(),
-      query("limit")
-        .isInt()
-        .optional()
-        .toInt()
+      query("deviceId").isInt().optional().toInt(),
+      query("offset").isInt().optional().toInt(),
+      query("limit").isInt().optional().toInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
@@ -145,7 +136,54 @@ export default function(app: Application, baseUrl: string) {
         limit: query.limit,
         offset: query.offset,
         count: result.count,
-        rows: result.rows
+        rows: result.rows,
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/events/errors Query recorded events
+   * @apiName QueryEvents
+   * @apiGroup Events
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiParam {Datetime} [startTime] Return only events after this time
+   * @apiParam {Datetime} [endTime] Return only events from before this time
+   * @apiParam {Integer} [deviceId] Return only events for this device id
+   * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
+   * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
+   *
+   * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/errors",
+    [
+      auth.authenticateUser,
+      query("startTime")
+        // @ts-ignore
+        .isISO8601({ strict: true })
+        .optional(),
+      query("endTime")
+        // @ts-ignore
+        .isISO8601({ strict: true })
+        .optional(),
+      query("deviceId").isInt().optional().toInt(),
+      query("offset").isInt().optional().toInt(),
+      query("limit").isInt().optional().toInt(),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const query = request.query;
+      query.offset = query.offset || 0;
+      query.limit = query.limit || 100;
+      const result = await eventUtil.errors(request);
+
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Completed query."],
+        limit: query.limit,
+        offset: query.offset,
+        rows: result,
       });
     })
   );

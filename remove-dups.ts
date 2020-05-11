@@ -13,7 +13,7 @@ async function main() {
 
   Config = {
     ...config,
-    ...config.loadConfig(args.config)
+    ...config.loadConfig(args.config),
   };
 
   const client = await pgConnect();
@@ -66,7 +66,7 @@ async function pgConnect() {
     port: dbconf.port,
     user: dbconf.username,
     password: dbconf.password,
-    database: dbconf.database
+    database: dbconf.database,
   });
   await client.connect();
   return client;

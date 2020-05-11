@@ -7,19 +7,19 @@ const consoleTransport = new winston.transports.Console({
   level: config.server.loggerLevel,
   colorize: true,
   handleExceptions: true,
-  humanReadableUnhandledException: true
+  humanReadableUnhandledException: true,
 });
 
 const logger = new winston.Logger({
-  transports: [consoleTransport]
+  transports: [consoleTransport],
 });
 
-logger.addExpressApp = function(app) {
+logger.addExpressApp = function (app) {
   app.use(
     expressWinston.logger({
       transports: [consoleTransport],
       meta: false,
-      expressFormat: true
+      expressFormat: true,
     })
   );
 };

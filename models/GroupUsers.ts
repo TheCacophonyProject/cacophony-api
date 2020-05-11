@@ -26,14 +26,14 @@ export interface GroupUsersStatic extends ModelStaticCommon<GroupUsers> {
   isAdmin: (groupId: GroupId, userId: UserId) => Promise<boolean>;
 }
 
-export default function(sequelize, DataTypes): GroupUsersStatic {
+export default function (sequelize, DataTypes): GroupUsersStatic {
   const name = "GroupUsers";
 
   const attributes = {
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
-    }
+      defaultValue: false,
+    },
   };
 
   const GroupUsers = (sequelize.define(
@@ -48,13 +48,13 @@ export default function(sequelize, DataTypes): GroupUsersStatic {
   /**
    * Checks if a user is a admin of a group.
    */
-  GroupUsers.isAdmin = async function(groupId, userId) {
+  GroupUsers.isAdmin = async function (groupId, userId) {
     const groupUsers = await this.findOne({
       where: {
         GroupId: groupId,
         UserId: userId,
-        admin: true
-      }
+        admin: true,
+      },
     });
     return groupUsers != null;
   };

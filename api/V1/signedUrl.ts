@@ -26,7 +26,7 @@ import responseUtil from "./responseUtil";
 import { ClientError } from "../customErrors";
 import { Application } from "express";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   /**
    * @api {get} /api/v1/signedUrl Get a file using a JWT
    * @apiName GetFile
@@ -61,10 +61,10 @@ export default function(app: Application, baseUrl: string) {
       const s3 = modelsUtil.openS3();
       const params = {
         Bucket: config.s3.bucket,
-        Key: key
+        Key: key,
       };
 
-      s3.getObject(params, function(err, data) {
+      s3.getObject(params, function (err, data) {
         if (err) {
           log.error("Error with s3 getObject.");
           log.error(err.stack);
@@ -93,7 +93,7 @@ export default function(app: Application, baseUrl: string) {
           "Content-Range": "bytes " + start + "-" + end + "/" + total,
           "Content-Length": chunksize,
           "Accept-Ranges": "bytes",
-          "Content-type": mimeType
+          "Content-type": mimeType,
         };
 
         response.writeHead(206, headers);

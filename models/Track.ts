@@ -28,7 +28,7 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
     what,
     confidence,
     automatic,
-    data
+    data,
   }: {
     what: any;
     confidence: number;
@@ -40,7 +40,7 @@ export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
 }
 
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): TrackStatic {
@@ -48,17 +48,17 @@ export default function(
 
   const Track = (sequelize.define("Track", {
     data: DataTypes.JSONB,
-    archivedAt: DataTypes.DATE
+    archivedAt: DataTypes.DATE,
   }) as unknown) as TrackStatic;
 
   //---------------
   // CLASS
   //---------------
-  Track.addAssociations = function(models) {
+  Track.addAssociations = function (models) {
     models.Track.belongsTo(models.Recording);
     models.Track.belongsTo(models.DetailSnapshot, {
       as: "Algorithm",
-      foreignKey: "AlgorithmId"
+      foreignKey: "AlgorithmId",
     });
     models.Track.hasMany(models.TrackTag);
   };
@@ -73,28 +73,28 @@ export default function(
 
   //add or replace a tag, such that this track only has 1 animal tag by this user
   //and no duplicate tags
-  Track.replaceTag = async function(trackId, tag: TrackTag) {
+  Track.replaceTag = async function (trackId, tag: TrackTag) {
     const track = await Track.findByPk(trackId);
     if (!track) {
       throw new ClientError("No track found for " + trackId);
     }
-    return sequelize.transaction(async function(t) {
+    return sequelize.transaction(async function (t) {
       const trackTags = await models.TrackTag.findAll({
         where: {
           UserId: tag.UserId,
           automatic: tag.automatic,
-          TrackId: trackId
+          TrackId: trackId,
         },
-        transaction: t
+        transaction: t,
       });
 
-      const existingTag = trackTags.find(function(uTag) {
+      const existingTag = trackTags.find(function (uTag) {
         return uTag.what == tag.what;
       });
       if (existingTag) {
         return;
       } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
-        const existingAnimalTags = trackTags.filter(function(uTag) {
+        const existingAnimalTags = trackTags.filter(function (uTag) {
           return !uTag.isAdditionalTag();
         });
 
@@ -111,7 +111,7 @@ export default function(
   //---------------
 
   // Return a specific track tag for the track.
-  Track.prototype.getTrackTag = async function(trackTagId) {
+  Track.prototype.getTrackTag = async function (trackTagId) {
     const trackTag = await models.TrackTag.findByPk(trackTagId);
     if (!trackTag) {
       return null;

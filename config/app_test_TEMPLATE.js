@@ -6,8 +6,8 @@ const server = {
   loggerLevel: "debug",
   http: {
     active: true,
-    port: 1080
-  }
+    port: 1080,
+  },
 };
 
 const s3 = {
@@ -15,11 +15,11 @@ const s3 = {
   publicKey: "REQUIRED", // obtain from S3 server.
   privateKey: "REQUIRED", // obtain from S3 server
   bucket: "cacophony",
-  endpoint: "http://localhost:9001"
+  endpoint: "http://localhost:9001",
 };
 
 const fileProcessing = {
-  port: 2008
+  port: 2008,
 };
 
 // ======= Database settings =======
@@ -28,9 +28,18 @@ const database = {
   password: "REQUIRED",
   database: "cacophonytest",
   host: "localhost",
-  dialect: "postgres"
+  dialect: "postgres",
 };
 
+const smtpDetails = {
+  service: "gmail",
+  auth: {
+    user: "noinfo@cacophony.org.nz",
+    pass: "thesecretpassword",
+  },
+};
+
+exports.smtpDetails = smtpDetails;
 exports.server = server;
 exports.s3 = s3;
 exports.fileProcessing = fileProcessing;

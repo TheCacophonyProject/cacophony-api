@@ -7,18 +7,18 @@ module.exports = {
       queryInterface.addColumn("Devices", "active", {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
-        allowNull: false
-      })
+        allowNull: false,
+      }),
     ]);
     return queryInterface.sequelize.query(
       'update "Devices" set "saltId" = id where "saltId" is null;'
     );
   },
 
-  down: queryInterface => {
+  down: (queryInterface) => {
     return Promise.all([
       queryInterface.removeColumn("Devices", "saltId"),
-      queryInterface.removeColumn("Devices", "active")
+      queryInterface.removeColumn("Devices", "active"),
     ]);
-  }
+  },
 };

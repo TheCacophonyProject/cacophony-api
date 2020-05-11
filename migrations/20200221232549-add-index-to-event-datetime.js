@@ -1,15 +1,13 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  up: async queryInterface => {
+  up: async (queryInterface) => {
     await queryInterface.sequelize.query(
       `CREATE INDEX events_datetime ON "Events" ("dateTime");`
     );
   },
 
-  down: async queryInterface => {
-    await queryInterface.sequelize.query(
-      `DROP INDEX events_datetime;`
-    );
-  }
+  down: async (queryInterface) => {
+    await queryInterface.sequelize.query(`DROP INDEX events_datetime;`);
+  },
 };

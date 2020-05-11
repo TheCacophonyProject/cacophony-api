@@ -12,13 +12,13 @@ module.exports = {
       oldGroupID: { type: Sequelize.INTEGER, allowNull: false },
       newGroupID: { type: Sequelize.INTEGER, allowNull: false },
       createdAt: { type: Sequelize.DATE, allowNull: false },
-      updatedAt: { type: Sequelize.DATE, allowNull: false }
+      updatedAt: { type: Sequelize.DATE, allowNull: false },
     });
     await util.addSerial(queryInterface, tableName);
     await util.migrationAddBelongsTo(queryInterface, tableName, "Devices");
   },
 
-  down: queryInterface => {
+  down: (queryInterface) => {
     return queryInterface.dropTable(tableName);
-  }
+  },
 };

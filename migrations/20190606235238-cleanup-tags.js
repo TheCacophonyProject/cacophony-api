@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async function(queryInterface) {
+  up: async function (queryInterface) {
     // mustelid
     await queryInterface.sequelize.query(
       `UPDATE "Tags" set "what"='mustelid' where "what" in ('stoat', 'weasel', 'ferret')`
@@ -35,7 +35,7 @@ module.exports = {
     );
   },
 
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     // mustelid
     await queryInterface.sequelize.query(
       `UPDATE "Tags" set "what"='stoat' where "what"='mustelid'`
@@ -59,5 +59,5 @@ module.exports = {
     await queryInterface.sequelize.query(
       `UPDATE "TrackTags" set "what"='rat' where"what"='rodent'`
     );
-  }
+  },
 };

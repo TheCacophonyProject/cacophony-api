@@ -37,12 +37,12 @@ export interface DetailSnapshotStatic
   getFromId: (id: DetailSnapshotId) => Promise<DetailSnapShot>;
 }
 
-export default function(sequelize, DataTypes): DetailSnapshotStatic {
+export default function (sequelize, DataTypes): DetailSnapshotStatic {
   const name = "DetailSnapshot";
 
   const attributes = {
     type: DataTypes.STRING,
-    details: DataTypes.JSONB
+    details: DataTypes.JSONB,
   };
 
   const options = {};
@@ -59,20 +59,20 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
   // CLASS METHODS
   //---------------
 
-  DetailSnapshot.addAssociations = function(models) {
+  DetailSnapshot.addAssociations = function (models) {
     models.DetailSnapshot.hasMany(models.Event, {
-      foreignKey: "EventDetailId"
+      foreignKey: "EventDetailId",
     });
     models.DetailSnapshot.hasMany(models.Track, { foreignKey: "AlgorithmId" });
   };
 
-  DetailSnapshot.getOrCreateMatching = async function(
+  DetailSnapshot.getOrCreateMatching = async function (
     searchType,
     searchDetails
   ): Promise<DetailSnapShot> {
     if (!searchDetails) {
       searchDetails = {
-        [Op.eq]: null
+        [Op.eq]: null,
       };
     }
 
@@ -80,9 +80,9 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
       where: {
         type: searchType,
         details: {
-          [Op.eq]: searchDetails // Need to specify the equal operator as it's a JSONB
-        }
-      }
+          [Op.eq]: searchDetails, // Need to specify the equal operator as it's a JSONB
+        },
+      },
     });
 
     if (existing) {
@@ -90,12 +90,12 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
     } else {
       return this.create({
         type: searchType,
-        details: searchDetails
+        details: searchDetails,
       });
     }
   };
 
-  DetailSnapshot.getFromId = async function(id: DetailSnapshotId) {
+  DetailSnapshot.getFromId = async function (id: DetailSnapshotId) {
     return await this.findById(id);
   };
 
@@ -103,7 +103,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
   // INSTANCE METHODS
   //-----------------
 
-  DetailSnapshot.prototype.getFile = async function() {
+  DetailSnapshot.prototype.getFile = async function () {
     const fid = this.details.fileId;
     if (!fid) {
       return null;

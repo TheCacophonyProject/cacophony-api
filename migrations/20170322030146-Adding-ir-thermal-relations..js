@@ -1,7 +1,7 @@
 const util = require("../models/util/util");
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return util.migrationAddBelongsTo(
       queryInterface,
       "ThermalVideoRecordings",
@@ -9,11 +9,11 @@ module.exports = {
     );
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return util.migrationRemoveBelongsTo(
       queryInterface,
       "ThermalVideoRecordings",
       "IrVideoRecordings"
     );
-  }
+  },
 };

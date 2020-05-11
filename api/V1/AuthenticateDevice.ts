@@ -22,7 +22,7 @@ import auth from "../auth";
 import responseUtil from "./responseUtil";
 import { Application } from "express";
 
-export default function(app: Application) {
+export default function (app: Application) {
   /**
    * @api {post} /authenticate_device/ Authenticate a device
    * @apiName AuthenticateDevice
@@ -49,12 +49,12 @@ export default function(app: Application) {
           statusCode: 200,
           messages: ["Successful login."],
           id: request.body.device.id,
-          token: "JWT " + auth.createEntityJWT(request.body.device)
+          token: "JWT " + auth.createEntityJWT(request.body.device),
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 401,
-          messages: ["Wrong password or devicename."]
+          messages: ["Wrong password or devicename."],
         });
       }
     })

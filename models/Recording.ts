@@ -48,26 +48,26 @@ export enum TagMode {
   NoHuman = "no-human", // untagged or automatic only
   AutomaticOnly = "automatic-only",
   HumanOnly = "human-only",
-  AutomaticHuman = "automatic+human"
+  AutomaticHuman = "automatic+human",
 }
 
 type AllTagModes = TagMode | AcceptableTag;
 // local
 const validTagModes = new Set([
   ...Object.values(TagMode),
-  ...Object.values(AcceptableTag)
+  ...Object.values(AcceptableTag),
 ]);
 
 export enum RecordingType {
   ThermalRaw = "thermalRaw",
-  Audio = "audio"
+  Audio = "audio",
 }
 
 export enum RecordingPermission {
   DELETE = "delete",
   TAG = "tag",
   VIEW = "view",
-  UPDATE = "update"
+  UPDATE = "update",
 }
 
 export enum RecordingProcessingState {}
@@ -274,7 +274,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
 }
 
 const Op = Sequelize.Op;
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): RecordingStatic {
@@ -290,8 +290,8 @@ export default function(
       type: DataTypes.GEOMETRY,
       set: util.geometrySetter,
       validate: {
-        isLatLon: validation.isLatLon
-      }
+        isLatLon: validation.isLatLon,
+      },
     },
     relativeToDawn: DataTypes.INTEGER,
     relativeToDusk: DataTypes.INTEGER,
@@ -300,7 +300,7 @@ export default function(
     comment: DataTypes.STRING,
     public: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: false,
     },
 
     // Raw file data.
@@ -319,7 +319,7 @@ export default function(
     // Battery relevant fields.
     batteryLevel: DataTypes.DOUBLE,
     batteryCharging: DataTypes.STRING,
-    airplaneModeOn: DataTypes.BOOLEAN
+    airplaneModeOn: DataTypes.BOOLEAN,
   };
 
   const Recording = (sequelize.define(
@@ -332,20 +332,20 @@ export default function(
   //---------------
   const models = sequelize.models;
 
-  Recording.buildSafely = function(fields: Record<string, any>): Recording {
+  Recording.buildSafely = function (fields: Record<string, any>): Recording {
     return Recording.build(
       _.pick(fields, Recording.apiSettableFields)
     ) as Recording;
   };
 
-  Recording.addAssociations = function(models) {
+  Recording.addAssociations = function (models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
     models.Recording.hasMany(models.Tag);
     models.Recording.hasMany(models.Track);
   };
 
-  Recording.isValidTagMode = function(mode: TagMode) {
+  Recording.isValidTagMode = function (mode: TagMode) {
     return validTagModes.has(mode);
   };
 
@@ -354,14 +354,14 @@ export default function(
    * and sets the processingStartTime and jobKey for recording
    * arguments given.
    */
-  Recording.getOneForProcessing = async function(type, state) {
+  Recording.getOneForProcessing = async function (type, state) {
     return sequelize
-      .transaction(function(transaction) {
+      .transaction(function (transaction) {
         return Recording.findOne({
           where: {
             type: type,
             processingState: state,
-            processingStartTime: null
+            processingStartTime: null,
           },
           attributes: (models.Recording as RecordingStatic)
             .processingAttributes,
@@ -369,25 +369,25 @@ export default function(
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
-          transaction
-        }).then(async function(recording) {
+          transaction,
+        }).then(async function (recording) {
           const date = new Date();
           recording.set(
             {
               jobKey: uuidv4(),
-              processingStartTime: date.toISOString()
+              processingStartTime: date.toISOString(),
             },
             {
-              transaction
+              transaction,
             }
           );
           recording.save({
-            transaction
+            transaction,
           });
           return recording;
         });
       })
-      .then(function(result) {
+      .then(function (result) {
         return result;
       })
       .catch(() => {
@@ -398,7 +398,7 @@ export default function(
   /**
    * Return a single recording for a user.
    */
-  Recording.get = async function(
+  Recording.get = async function (
     user: User,
     id,
     permission,
@@ -415,17 +415,17 @@ export default function(
       where: {
         [Op.and]: [
           {
-            id: id
-          }
-        ]
+            id: id,
+          },
+        ],
       },
       include: getRecordingInclude(),
-      attributes: this.userGetAttributes.concat(["rawFileKey"])
+      attributes: this.userGetAttributes.concat(["rawFileKey"]),
     };
 
     if (options.type) {
       (query.where[Op.and] as any[]).push({
-        type: options.type
+        type: options.type,
       });
     }
 
@@ -449,7 +449,7 @@ export default function(
    * Deletes a single recording if the user has permission to do so.
    * @returns {Promise<Recording|null>} Returns the recording object if deleted, otherwise null.
    */
-  Recording.deleteOne = async function(user: User, id: RecordingId) {
+  Recording.deleteOne = async function (user: User, id: RecordingId) {
     const recording = await Recording.get(user, id, RecordingPermission.DELETE);
     if (!recording) {
       return null;
@@ -461,7 +461,7 @@ export default function(
   /**
    * Updates a single recording if the user has permission to do so.
    */
-  Recording.updateOne = async function(
+  Recording.updateOne = async function (
     user: User,
     id: RecordingId,
     updates: any
@@ -480,7 +480,7 @@ export default function(
     return true;
   };
 
-  Recording.makeFilterOptions = function(user: User, options: any) {
+  Recording.makeFilterOptions = function (user: User, options: any) {
     if (!options) {
       options = {};
     }
@@ -494,7 +494,7 @@ export default function(
   };
 
   // local
-  const recordingsFor = async function(user: User) {
+  const recordingsFor = async function (user: User) {
     if (user.hasGlobalRead()) {
       return null;
     }
@@ -503,19 +503,19 @@ export default function(
     return {
       [Op.or]: [
         {
-          public: true
+          public: true,
         },
         {
           GroupId: {
-            [Op.in]: groupIds
-          }
+            [Op.in]: groupIds,
+          },
         },
         {
           DeviceId: {
-            [Op.in]: deviceIds
-          }
-        }
-      ]
+            [Op.in]: deviceIds,
+          },
+        },
+      ],
     };
   };
 
@@ -574,9 +574,9 @@ from (
             start_s: item.TrackData.start_s,
             end_s: item.TrackData.end_s,
             positions: item.TrackData.positions,
-            num_frames: item.TrackData.num_frames
+            num_frames: item.TrackData.num_frames,
           },
-          needsTagging: item.TaggedBy !== false
+          needsTagging: item.TaggedBy !== false,
         });
         return acc;
       },
@@ -586,7 +586,7 @@ from (
         tracks: [],
         fileKey: "",
         fileMimeType: "",
-        recordingDateTime: ""
+        recordingDateTime: "",
       }
     );
     // Sort tracks by time, so that the front-end doesn't have to.
@@ -599,7 +599,7 @@ from (
       const s3Data = await s3
         .headObject({
           Bucket: config.s3.bucket,
-          Key: flattenedResult.fileKey
+          Key: flattenedResult.fileKey,
         })
         .promise();
       ContentLength = s3Data.ContentLength;
@@ -618,7 +618,7 @@ from (
       _type: "fileDownload",
       key: flattenedResult.fileKey,
       filename: `${fileName}.mp4`,
-      mimeType: flattenedResult.fileMimeType
+      mimeType: flattenedResult.fileMimeType,
     };
 
     const recordingJWT = jsonwebtoken.sign(
@@ -629,7 +629,7 @@ from (
     const tagJWT = jsonwebtoken.sign(
       {
         _type: "tagPermission",
-        recordingId: flattenedResult.RecordingId
+        recordingId: flattenedResult.RecordingId,
       },
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
@@ -644,21 +644,21 @@ from (
   // INSTANCE METHODS
   //------------------
 
-  Recording.prototype.getFileBaseName = function(): string {
+  Recording.prototype.getFileBaseName = function (): string {
     return moment(new Date(this.recordingDateTime))
       .tz(config.timeZone)
       .format("YYYYMMDD-HHmmss");
   };
 
-  Recording.prototype.getRawFileName = function() {
+  Recording.prototype.getRawFileName = function () {
     return this.getFileBaseName() + this.getRawFileExt();
   };
 
-  Recording.prototype.getFileName = function() {
+  Recording.prototype.getFileName = function () {
     return this.getFileBaseName() + this.getFileExt();
   };
 
-  Recording.prototype.getRawFileExt = function() {
+  Recording.prototype.getRawFileExt = function () {
     if (this.rawMimeType == "application/x-cptv") {
       return ".cptv";
     }
@@ -677,12 +677,12 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function(): Promise<
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
     any
   > {
     return await this.getTracks({
       where: {
-        archivedAt: null
+        archivedAt: null,
       },
       include: [
         {
@@ -690,14 +690,14 @@ from (
           include: [
             {
               model: models.User,
-              attributes: ["username"]
-            }
+              attributes: ["username"],
+            },
           ],
           attributes: {
-            exclude: ["UserId"]
-          }
-        }
-      ]
+            exclude: ["UserId"],
+          },
+        },
+      ],
     });
   };
   /* eslint-enable indent */
@@ -705,7 +705,7 @@ from (
   /**
    * TODO This will be edited in the future when recordings can be public.
    */
-  Recording.prototype.getUserPermissions = async function(
+  Recording.prototype.getUserPermissions = async function (
     user: User
   ): Promise<RecordingPermission[]> {
     if (
@@ -723,7 +723,7 @@ from (
 
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
-  Recording.prototype.mergeUpdate = function(newValues) {
+  Recording.prototype.mergeUpdate = function (newValues) {
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
@@ -734,11 +734,11 @@ from (
   };
 
   // Update additionalMetadata fields with new values supplied.
-  Recording.prototype.mergeAdditionalMetadata = function(newValues) {
+  Recording.prototype.mergeAdditionalMetadata = function (newValues) {
     this.additionalMetadata = { ...this.additionalMetadata, ...newValues };
   };
 
-  Recording.prototype.getFileExt = function() {
+  Recording.prototype.getFileExt = function () {
     if (this.fileMimeType == "video/mp4") {
       return ".mp4";
     }
@@ -749,7 +749,7 @@ from (
     return "";
   };
 
-  Recording.prototype.filterData = function(options: { latLongPrec: any }) {
+  Recording.prototype.filterData = function (options: { latLongPrec: any }) {
     if (this.location) {
       this.location.coordinates = reduceLatLonPrecision(
         this.location.coordinates,
@@ -762,7 +762,7 @@ from (
     assert(latLon.length == 2);
     const resolution = (prec * 360) / 40000000;
     const half_resolution = resolution / 2;
-    return latLon.map(val => {
+    return latLon.map((val) => {
       val = val - (val % resolution);
       if (val > 0) {
         val += half_resolution;
@@ -774,21 +774,21 @@ from (
   }
 
   // Returns all active tracks for the recording which are not archived.
-  Recording.prototype.getActiveTracks = async function() {
+  Recording.prototype.getActiveTracks = async function () {
     return await this.getTracks({
       where: {
-        archivedAt: null
+        archivedAt: null,
       },
       include: [
         {
-          model: models.TrackTag
-        }
-      ]
+          model: models.TrackTag,
+        },
+      ],
     });
   };
 
   // reprocess a recording and set all active tracks to archived
-  Recording.prototype.reprocess = async function() {
+  Recording.prototype.reprocess = async function () {
     const tags = await this.getTags();
     if (tags.length > 0) {
       const meta = this.additionalMetadata || {};
@@ -799,31 +799,31 @@ from (
 
     await models.Tag.destroy({
       where: {
-        RecordingId: this.id
-      }
+        RecordingId: this.id,
+      },
     });
 
     models.Track.update(
       {
-        archivedAt: Date.now()
+        archivedAt: Date.now(),
       },
       {
         where: {
           RecordingId: this.id,
-          archivedAt: null
-        }
+          archivedAt: null,
+        },
       }
     );
 
     const state = Recording.processingStates[this.type][0];
     await this.update({
       processingStartTime: null,
-      processingState: state
+      processingState: state,
     });
   };
 
   // Return a specific track for the recording.
-  Recording.prototype.getTrack = async function(
+  Recording.prototype.getTrack = async function (
     trackId: TrackId
   ): Promise<Track | null> {
     const track = await models.Track.findByPk(trackId);
@@ -838,9 +838,9 @@ from (
     return track;
   };
 
-  Recording.queryBuilder = (function() {} as unknown) as RecordingQueryBuilder;
+  Recording.queryBuilder = (function () {} as unknown) as RecordingQueryBuilder;
 
-  Recording.queryBuilder.prototype.init = async function(
+  Recording.queryBuilder.prototype.init = async function (
     user,
     where,
     tagMode,
@@ -873,9 +873,9 @@ from (
             Sequelize.col("recordingDateTime"),
             "1970-01-01"
           ),
-          "DESC"
+          "DESC",
         ],
-        ["id", "DESC"]
+        ["id", "DESC"],
       ];
     }
     this.query = {
@@ -883,14 +883,16 @@ from (
         [Op.and]: [
           where, // User query
           await recordingsFor(user),
-          Sequelize.literal(Recording.queryBuilder.handleTagMode(tagMode, tags))
-        ]
+          Sequelize.literal(
+            Recording.queryBuilder.handleTagMode(tagMode, tags)
+          ),
+        ],
       },
       order: order,
       include: getRecordingInclude(),
       limit: limit,
       offset: offset,
-      attributes: Recording.queryGetAttributes
+      attributes: Recording.queryGetAttributes,
     };
     return this;
   };
@@ -899,7 +901,7 @@ from (
     return [
       {
         model: models.Group,
-        attributes: ["groupname"]
+        attributes: ["groupname"],
       },
       {
         model: models.Tag,
@@ -907,14 +909,14 @@ from (
         include: [
           {
             association: "tagger",
-            attributes: ["username", "id"]
-          }
-        ]
+            attributes: ["username", "id"],
+          },
+        ],
       },
       {
         model: models.Track,
         where: {
-          archivedAt: null
+          archivedAt: null,
         },
         attributes: [
           "id",
@@ -926,8 +928,8 @@ from (
               "end_s",
               Sequelize.literal(`"Tracks"."data"#>'{end_s}'`)
             ),
-            "data"
-          ]
+            "data",
+          ],
         ],
 
         required: false,
@@ -939,23 +941,23 @@ from (
               "automatic",
               "TrackId",
               "confidence",
-              "UserId"
+              "UserId",
             ],
             include: [
               {
                 model: models.User,
-                attributes: ["username", "id"]
-              }
+                attributes: ["username", "id"],
+              },
             ],
-            required: false
-          }
-        ]
+            required: false,
+          },
+        ],
       },
       {
         model: models.Device,
         where: {},
-        attributes: ["devicename", "id"]
-      }
+        attributes: ["devicename", "id"],
+      },
     ];
   }
 
@@ -1036,7 +1038,7 @@ from (
     if (
       !tagWhats ||
       (!tagWhats && tagTypeSql) ||
-      tagWhats.find(tag =>
+      tagWhats.find((tag) =>
         (models.Tag as TagStatic).acceptableTags.has(tag as AcceptableTag)
       )
     ) {
@@ -1060,7 +1062,7 @@ from (
     if (
       !tagWhats ||
       (!tagWhats && tagTypeSql) ||
-      tagWhats.find(tag =>
+      tagWhats.find((tag) =>
         (models.Tag as TagStatic).acceptableTags.has(tag as AcceptableTag)
       )
     ) {
@@ -1143,17 +1145,17 @@ from (
     return parts.join(" OR ");
   };
 
-  Recording.queryBuilder.prototype.get = function() {
+  Recording.queryBuilder.prototype.get = function () {
     return this.query;
   };
 
-  Recording.queryBuilder.prototype.addColumn = function(name: string) {
+  Recording.queryBuilder.prototype.addColumn = function (name: string) {
     this.query.attributes.push(name);
     return this;
   };
 
   // Include details of recent audio bait events in the query output.
-  Recording.queryBuilder.prototype.addAudioEvents = function() {
+  Recording.queryBuilder.prototype.addAudioEvents = function () {
     const deviceInclude = this.findInclude(models.Device as DeviceStatic);
 
     if (!deviceInclude.include) {
@@ -1169,9 +1171,9 @@ from (
               Sequelize.literal(
                 '"Recording"."recordingDateTime" - interval \'30 minutes\''
               ),
-              Sequelize.literal('"Recording"."recordingDateTime"')
-            ]
-          }
+              Sequelize.literal('"Recording"."recordingDateTime"'),
+            ],
+          },
         },
         include: [
           {
@@ -1179,18 +1181,18 @@ from (
             as: "EventDetail",
             required: true,
             where: {
-              type: "audioBait"
+              type: "audioBait",
             },
-            attributes: ["details"]
-          }
-        ]
-      }
+            attributes: ["details"],
+          },
+        ],
+      },
     ];
 
     return this;
   };
 
-  Recording.queryBuilder.prototype.findInclude = function(
+  Recording.queryBuilder.prototype.findInclude = function (
     modelType: ModelStaticCommon<any>
   ): Includeable[] {
     for (const inc of this.query.include) {
@@ -1213,7 +1215,7 @@ from (
     "location",
     "batteryLevel",
     "DeviceId",
-    "GroupId"
+    "GroupId",
   ];
 
   // Attributes returned when looking up a single recording.
@@ -1235,7 +1237,7 @@ from (
     "additionalMetadata",
     "GroupId",
     "fileKey",
-    "comment"
+    "comment",
   ];
 
   // Fields that can be provided when uploading new recordings.
@@ -1252,7 +1254,7 @@ from (
     "airplaneModeOn",
     "additionalMetadata",
     "processingMeta",
-    "comment"
+    "comment",
   ];
 
   // local
@@ -1260,7 +1262,7 @@ from (
 
   Recording.processingStates = {
     thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
-    audio: ["toMp3", "analyse", "FINISHED"]
+    audio: ["toMp3", "analyse", "FINISHED"],
   };
 
   Recording.processingAttributes = [
@@ -1272,7 +1274,7 @@ from (
     "fileKey",
     "fileMimeType",
     "processingState",
-    "processingMeta"
+    "processingMeta",
   ];
 
   return Recording;

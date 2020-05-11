@@ -1,20 +1,20 @@
 "use strict";
 
 module.exports = {
-  up: queryInterface => {
+  up: (queryInterface) => {
     return Promise.all([
       queryInterface.addIndex("Tags", {
         fields: ["RecordingId"],
-        unique: false
+        unique: false,
       }),
-      queryInterface.addIndex("Tags", { fields: ["animal"], unique: false })
+      queryInterface.addIndex("Tags", { fields: ["animal"], unique: false }),
     ]);
   },
 
-  down: queryInterface => {
+  down: (queryInterface) => {
     return Promise.all([
       queryInterface.removeIndex("Tags", ["RecordingId"]),
-      queryInterface.removeIndex("Tags", ["animal"])
+      queryInterface.removeIndex("Tags", ["animal"]),
     ]);
-  }
+  },
 };

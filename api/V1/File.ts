@@ -72,13 +72,9 @@ export default (app: Application, baseUrl: string) => {
     [
       auth.authenticateUser,
       middleware.parseJSON("where", query),
-      query("offset")
-        .isInt()
-        .optional(),
-      query("limit")
-        .isInt()
-        .optional(),
-      middleware.parseJSON("order", query).optional()
+      query("offset").isInt().optional(),
+      query("limit").isInt().optional(),
+      middleware.parseJSON("order", query).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       if (request.query.offset == null) {
@@ -102,7 +98,7 @@ export default (app: Application, baseUrl: string) => {
         limit: request.query.limit,
         offset: request.query.offset,
         count: result.count,
-        rows: result.rows
+        rows: result.rows,
       });
     })
   );
@@ -131,7 +127,7 @@ export default (app: Application, baseUrl: string) => {
 
       const downloadFileData = {
         _type: "fileDownload",
-        key: file.fileKey
+        key: file.fileKey,
       };
 
       return responseUtil.send(response, {
@@ -140,8 +136,8 @@ export default (app: Application, baseUrl: string) => {
         file: file,
         fileSize: await util.getS3ObjectFileSize(file.fileKey),
         jwt: jsonwebtoken.sign(downloadFileData, config.server.passportSecret, {
-          expiresIn: 60 * 10
-        })
+          expiresIn: 60 * 10,
+        }),
       });
     })
   );
@@ -170,7 +166,7 @@ export default (app: Application, baseUrl: string) => {
       );
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Deleted file."]
+        messages: ["Deleted file."],
       });
     })
   );

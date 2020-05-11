@@ -25,7 +25,7 @@ import responseUtil from "./responseUtil";
 import { Application } from "express";
 import { RecordingPermission } from "../../models/Recording";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/tags`;
 
   /**
@@ -59,9 +59,9 @@ export default function(app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware.parseJSON("tag", body),
-      body("recordingId").isInt()
+      body("recordingId").isInt(),
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const recording = await models.Recording.get(
         request.user,
         request.body.recordingId,
@@ -80,7 +80,7 @@ export default function(app: Application, baseUrl: string) {
   app.delete(
     apiUrl,
     [auth.authenticateUser, body("tagId").isInt()],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const tagDeleteResult = await models.Tag.deleteFromId(
         request.body.tagId,
         request.user
@@ -88,12 +88,12 @@ export default function(app: Application, baseUrl: string) {
       if (tagDeleteResult) {
         return responseUtil.send(response, {
           statusCode: 200,
-          messages: ["Deleted tag."]
+          messages: ["Deleted tag."],
         });
       } else {
         return responseUtil.send(response, {
           statusCode: 400,
-          messages: ["Failed to delete tag."]
+          messages: ["Failed to delete tag."],
         });
       }
     })

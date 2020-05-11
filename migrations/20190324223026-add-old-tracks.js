@@ -3,10 +3,10 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn("Tracks", "archivedAt", Sequelize.DATE, {
-      allowNull: true
+      allowNull: true,
     });
   },
-  down: queryInterface => {
+  down: (queryInterface) => {
     return queryInterface.removeColumn("Tracks", "archivedAt");
-  }
+  },
 };

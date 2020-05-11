@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up: function (queryInterface, Sequelize) {
     return Promise.all([
       queryInterface.addColumn(
         "AudioRecordings",
@@ -32,18 +32,18 @@ module.exports = {
         "ThermalVideoRecordings",
         "relativeToDusk",
         Sequelize.INTEGER
-      )
+      ),
     ]);
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return Promise.all([
       queryInterface.removeColumn("AudioRecordings", "relativeToDawn"),
       queryInterface.removeColumn("IrVideoRecordings", "relativeToDawn"),
       queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDawn"),
       queryInterface.removeColumn("AudioRecordings", "relativeToDusk"),
       queryInterface.removeColumn("IrVideoRecordings", "relativeToDusk"),
-      queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDusk")
+      queryInterface.removeColumn("ThermalVideoRecordings", "relativeToDusk"),
     ]);
-  }
+  },
 };

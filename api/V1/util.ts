@@ -52,7 +52,7 @@ function multipartUpload(keyPrefix, buildRecord) {
     });
 
     // Handle the "file" part.
-    form.on("part", part => {
+    form.on("part", (part) => {
       if (part.name != "file") {
         part.resume();
         return;
@@ -64,10 +64,10 @@ function multipartUpload(keyPrefix, buildRecord) {
         .upload({
           Bucket: config.s3.bucket,
           Key: key,
-          Body: part
+          Body: part,
         })
         .promise()
-        .catch(err => {
+        .catch((err) => {
           return err;
         });
       log.debug("Started streaming upload to bucket...");
@@ -75,7 +75,7 @@ function multipartUpload(keyPrefix, buildRecord) {
 
     // Handle any errors. If this is called, the close handler
     // shouldn't be.
-    form.on("error", err => {
+    form.on("error", (err) => {
       responseUtil.serverError(response, err);
     });
 
@@ -129,7 +129,7 @@ function getS3Object(fileKey) {
   const s3 = modelsUtil.openS3();
   const params = {
     Bucket: config.s3.bucket,
-    Key: fileKey
+    Key: fileKey,
   };
   return s3.headObject(params).promise();
 }
@@ -149,7 +149,7 @@ async function deleteS3Object(fileKey) {
   const s3 = modelsUtil.openS3();
   const params = {
     Bucket: config.s3.bucket,
-    Key: fileKey
+    Key: fileKey,
   };
   return s3.deleteObject(params).promise();
 }
@@ -158,5 +158,5 @@ export default {
   getS3Object,
   deleteS3Object,
   getS3ObjectFileSize,
-  multipartUpload
+  multipartUpload,
 };

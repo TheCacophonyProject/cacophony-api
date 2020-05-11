@@ -20,19 +20,19 @@ import { Application } from "express";
 import fs from "fs";
 import path from "path";
 
-export default function(app: Application) {
+export default function (app: Application) {
   const excludedFiles = [
     "index.js",
     "util.js",
     "responseUtil.js",
     "recordingUtil.js",
     "eventUtil.js",
-    "apidoc.js"
+    "apidoc.js",
   ];
   // Filter out files that are not added to app directly, and filter out typescript versions of files.
   const apiRoutes = fs
     .readdirSync(__dirname)
-    .filter(file => file.endsWith(".js") && !excludedFiles.includes(file));
+    .filter((file) => file.endsWith(".js") && !excludedFiles.includes(file));
 
   for (const route of apiRoutes) {
     require(path.join(__dirname, route)).default(app, "/api/v1");

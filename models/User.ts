@@ -21,7 +21,7 @@ import Sequelize, {
   BuildOptions,
   ModelAttributes,
   ModelCtor,
-  ModelOptions
+  ModelOptions,
 } from "sequelize";
 import { AuthorizationError } from "../api/customErrors";
 import log from "../logging";
@@ -39,7 +39,7 @@ type GlobalPermission = "write" | "read" | "off";
 const PERMISSIONS: readonly string[] = Object.freeze([
   PERMISSION_WRITE,
   PERMISSION_READ,
-  PERMISSION_OFF
+  PERMISSION_OFF,
 ]);
 
 export type UserId = number;
@@ -95,36 +95,39 @@ interface UserData {
   globalPermission: GlobalPermission;
 }
 
-export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
+export default function (
+  sequelize: Sequelize.Sequelize,
+  DataTypes
+): UserStatic {
   const name = "User";
   const attributes: ModelAttributes = {
     username: {
       type: DataTypes.STRING,
-      unique: true
+      unique: true,
     },
     firstName: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     lastName: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     email: {
       type: DataTypes.STRING,
       validate: { isEmail: true },
-      unique: true
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     globalPermission: {
       type: DataTypes.ENUM,
       values: PERMISSIONS as string[],
-      defaultValue: PERMISSION_OFF
+      defaultValue: PERMISSION_OFF,
     },
     endUserAgreement: {
-      type: DataTypes.INTEGER
-    }
+      type: DataTypes.INTEGER,
+    },
   };
 
   const options: ModelOptions = {
@@ -135,8 +138,8 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
 
       // NOTE: Doesn't exist on publicly available typings, so ignore
       // @ts-ignore
-      beforeUpsert: beforeModify
-    }
+      beforeUpsert: beforeModify,
+    },
   };
 
   // Define table
@@ -152,12 +155,12 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
     "firstName",
     "lastName",
     "email",
-    "endUserAgreement"
+    "endUserAgreement",
   ]);
 
   Object.defineProperty(User, "GLOBAL_PERMISSIONS", {
     value: PERMISSIONS,
-    writable: false
+    writable: false,
   });
 
   //---------------
@@ -165,29 +168,29 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
   //---------------
   const models = sequelize.models;
 
-  User.addAssociations = function(models) {
+  User.addAssociations = function (models) {
     models.User.belongsToMany(models.Group, {
-      through: models.GroupUsers
+      through: models.GroupUsers,
     });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
   };
 
-  User.getAll = async function(where) {
+  User.getAll = async function (where) {
     return this.findAll({
       where,
-      attributes: this.publicFields
+      attributes: this.publicFields,
     });
   };
 
-  User.getFromId = async function(id) {
+  User.getFromId = async function (id) {
     return this.findByPk(id);
   };
 
-  User.getFromName = async function(name: string) {
+  User.getFromName = async function (name: string) {
     return this.findOne({ where: { username: name } });
   };
 
-  User.freeUsername = async function(username) {
+  User.freeUsername = async function (username) {
     const user = await this.findOne({ where: { username: username } });
     if (user != null) {
       throw new Error("Username in use");
@@ -195,11 +198,11 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
     return true;
   };
 
-  User.getFromEmail = async function(email) {
+  User.getFromEmail = async function (email) {
     return this.findOne({ where: { email: email } });
   };
 
-  User.freeEmail = async function(email: string, userId?: UserId) {
+  User.freeEmail = async function (email: string, userId?: UserId) {
     email = email.toLowerCase();
     const where: { email: string; id?: any } = { email };
     if (userId) {
@@ -213,7 +216,7 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
     return true;
   };
 
-  User.changeGlobalPermission = async function(admin, user, permission) {
+  User.changeGlobalPermission = async function (admin, user, permission) {
     if (!user || !admin || !admin.hasGlobalWrite()) {
       throw new AuthorizationError(
         "User must be an admin with global write permissions"
@@ -227,28 +230,28 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
   // INSTANCE METHODS
   //------------------
 
-  User.prototype.hasGlobalWrite = function() {
+  User.prototype.hasGlobalWrite = function () {
     return PERMISSION_WRITE == this.globalPermission;
   };
 
-  User.prototype.hasGlobalRead = function() {
+  User.prototype.hasGlobalRead = function () {
     return [PERMISSION_WRITE, PERMISSION_READ].includes(this.globalPermission);
   };
 
-  User.prototype.getGroupDeviceIds = async function() {
+  User.prototype.getGroupDeviceIds = async function () {
     const groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
       const devices = await models.Device.findAll({
         where: { GroupId: { [Op.in]: groupIds } },
-        attributes: ["id"]
+        attributes: ["id"],
       });
-      return devices.map(d => d.id);
+      return devices.map((d) => d.id);
     } else {
       return [];
     }
   };
 
-  User.prototype.getWhereDeviceVisible = async function() {
+  User.prototype.getWhereDeviceVisible = async function () {
     if (this.hasGlobalRead()) {
       return null;
     }
@@ -257,17 +260,17 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
     return { DeviceId: { [Op.in]: allDeviceIds } };
   };
 
-  User.prototype.getJwtDataValues = function() {
+  User.prototype.getJwtDataValues = function () {
     return {
       id: this.getDataValue("id"),
-      _type: "user"
+      _type: "user",
     };
   };
 
-  User.prototype.getDataValues = function() {
+  User.prototype.getDataValues = function () {
     const user = this;
-    return new Promise(function(resolve) {
-      user.getGroups().then(function(groups) {
+    return new Promise(function (resolve) {
+      user.getGroups().then(function (groups) {
         resolve({
           id: user.getDataValue("id"),
           username: user.getDataValue("username"),
@@ -276,7 +279,7 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
           email: user.getDataValue("email"),
           groups: groups,
           globalPermission: user.getDataValue("globalPermission"),
-          endUserAgreement: user.getDataValue("endUserAgreement")
+          endUserAgreement: user.getDataValue("endUserAgreement"),
         });
       });
     });
@@ -284,33 +287,33 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
 
   // Returns the groups that are associated with this user (via
   // GroupUsers).
-  User.prototype.getGroupsIds = async function() {
+  User.prototype.getGroupsIds = async function () {
     const groups = await this.getGroups();
-    return groups.map(g => g.id);
+    return groups.map((g) => g.id);
   };
 
-  User.prototype.isInGroup = async function(groupId) {
+  User.prototype.isInGroup = async function (groupId) {
     const groupIds = await this.getGroupsIds();
     return groupIds.includes(groupId);
   };
 
   // Returns the devices that are directly associated with this user
   // (via DeviceUsers).
-  User.prototype.getDeviceIds = async function() {
+  User.prototype.getDeviceIds = async function () {
     const devices = await this.getDevices();
-    return devices.map(d => d.id);
+    return devices.map((d) => d.id);
   };
 
-  User.prototype.canAccessDevice = async function(deviceId) {
+  User.prototype.canAccessDevice = async function (deviceId) {
     const deviceIds = await this.getDeviceIds();
     return deviceIds.includes(deviceId);
   };
 
-  User.prototype.checkUserControlsDevices = async function(deviceIds) {
+  User.prototype.checkUserControlsDevices = async function (deviceIds) {
     if (!this.hasGlobalWrite()) {
       const usersDevices = await this.getAllDeviceIds();
 
-      deviceIds.forEach(deviceId => {
+      deviceIds.forEach((deviceId) => {
         if (!usersDevices.includes(deviceId)) {
           log.info(
             "Attempted unauthorized use of device " +
@@ -326,16 +329,16 @@ export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
     }
   };
 
-  User.prototype.getAllDeviceIds = async function() {
+  User.prototype.getAllDeviceIds = async function () {
     const directDeviceIds = await this.getDeviceIds();
     const groupedDeviceIds = await this.getGroupDeviceIds();
     return [...directDeviceIds, ...groupedDeviceIds];
   };
 
-  User.prototype.comparePassword = function(password: string) {
+  User.prototype.comparePassword = function (password: string) {
     const user = this;
-    return new Promise(function(resolve, reject) {
-      bcrypt.compare(password, user.password, function(err, isMatch) {
+    return new Promise(function (resolve, reject) {
+      bcrypt.compare(password, user.password, function (err, isMatch) {
         if (err) {
           reject(err);
         } else {
@@ -359,7 +362,7 @@ async function beforeModify(user) {
 }
 
 function beforeValidate(user): Promise<void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     user.setDataValue("email", user.getDataValue("email").toLowerCase());
     resolve();
   });

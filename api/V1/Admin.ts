@@ -23,7 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, param } from "express-validator/check";
 import { Application } from "express";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/admin`;
 
   /**
@@ -41,7 +41,7 @@ export default function(app: Application, baseUrl: string) {
     [
       auth.authenticateAdmin,
       middleware.getUserByName(param),
-      body("permission").isIn(models.User.GLOBAL_PERMISSIONS)
+      body("permission").isIn(models.User.GLOBAL_PERMISSIONS),
     ],
     middleware.requestWrapper(async (request, response) => {
       await models.User.changeGlobalPermission(
@@ -51,7 +51,7 @@ export default function(app: Application, baseUrl: string) {
       );
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Users global permission updated."]
+        messages: ["Users global permission updated."],
       });
     })
   );
