@@ -21,6 +21,10 @@ async function main() {
     limit: null,
   };
   const serviceErrors = await eventUtil.errors({ query: query }, true);
+  if (Object.keys(serviceErrors).length == 0) {
+    log.info("No service errors in the last 24 hours");
+    return;
+  }
   const html = generateHtml(startDate, endDate, serviceErrors);
   console.log(html);
   await sendEmail(html);

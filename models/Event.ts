@@ -32,6 +32,12 @@ export interface Event extends Sequelize.Model, ModelCommon<Event> {
   Device: Device | null;
 }
 
+export interface QueryOptions {
+  eventType: string;
+  admin: boolean;
+  useCreatedDate: boolean;
+}
+
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (
     user: User,
@@ -40,8 +46,7 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     deviceId: DeviceId,
     offset: number,
     limit: number,
-    eventType?: string,
-    admin?: boolean
+    options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
 }
 
@@ -78,13 +83,17 @@ export default function (sequelize, DataTypes) {
     deviceId,
     offset,
     limit,
-    eventType?,
-    admin?
+    options
   ) {
     const where: any = {};
 
     if (startTime || endTime) {
-      const dateTime = (where.dateTime = {});
+      let dateTime;
+      if (options && options.useCreatedDate) {
+        dateTime = where.createdAt = {};
+      } else {
+        dateTime = where.dateTime = {};
+      }
       if (startTime) {
         dateTime[Op.gte] = startTime;
       }
@@ -97,14 +106,14 @@ export default function (sequelize, DataTypes) {
       where.DeviceId = deviceId;
     }
     const eventWhere: any = {};
-    if (eventType) {
-      eventWhere.type = eventType;
+    if (options && options.eventType) {
+      eventWhere.type = options.eventType;
     }
     return this.findAndCountAll({
       where: {
         [Op.and]: [
           where, // User query
-          admin ? "" : await user.getWhereDeviceVisible(), // can only see devices they should
+          options && options.admin ? "" : await user.getWhereDeviceVisible(), // can only see devices they should
         ],
       },
       order: ["dateTime"],

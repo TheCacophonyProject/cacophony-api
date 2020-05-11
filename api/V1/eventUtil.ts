@@ -1,5 +1,7 @@
 import middleware from "../middleware";
 import models from "../../models";
+import { QueryOptions } from "../../models/Event";
+
 import responseUtil from "./responseUtil";
 import { body, oneOf } from "express-validator/check";
 import { groupSystemErrors } from "./systemError";
@@ -9,6 +11,11 @@ async function errors(request: any, admin?: boolean) {
   query.offset = query.offset || 0;
   query.limit = query.limit || 100;
 
+  let options = {} as QueryOptions;
+  options.eventType = "systemError";
+  options.admin = admin;
+  options.useCreatedDate = true;
+
   const result = await models.Event.query(
     request.user,
     query.startTime,
@@ -16,8 +23,7 @@ async function errors(request: any, admin?: boolean) {
     query.deviceId,
     query.offset,
     query.limit,
-    "systemError",
-    admin
+    options
   );
 
   return groupSystemErrors(result.rows);
