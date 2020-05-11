@@ -41,11 +41,11 @@ export interface QueryOptions {
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (
     user: User,
-    startTime: string,
-    endTime: string,
-    deviceId: DeviceId,
-    offset: number,
-    limit: number,
+    startTime: string | null,
+    endTime: string | null,
+    deviceId: DeviceId | null,
+    offset: number | null,
+    limit: number | null,
     options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
 }
@@ -86,6 +86,8 @@ export default function (sequelize, DataTypes) {
     options
   ) {
     const where: any = {};
+    offset = offset || 0;
+    limit = limit || 100;
 
     if (startTime || endTime) {
       let dateTime;

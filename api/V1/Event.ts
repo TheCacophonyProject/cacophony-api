@@ -174,8 +174,6 @@ export default function (app: Application, baseUrl: string) {
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
-      query.offset = query.offset || 0;
-      query.limit = query.limit || 100;
       const result = await eventUtil.errors(request);
 
       return responseUtil.send(response, {

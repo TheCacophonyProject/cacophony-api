@@ -8,9 +8,6 @@ import { groupSystemErrors } from "./systemError";
 
 async function errors(request: any, admin?: boolean) {
   const query = request.query;
-  query.offset = query.offset || 0;
-  query.limit = query.limit || 100;
-
   let options = {} as QueryOptions;
   options.eventType = "systemError";
   options.admin = admin;

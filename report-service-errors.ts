@@ -4,8 +4,7 @@ import eventUtil from "./api/V1/eventUtil";
 // import models from "./models";
 import moment, { Moment } from "moment";
 import { ServiceErrorMap } from "./api/V1/systemError";
-
-var nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
 async function main() {
   if (!config.smtpDetails) {
