@@ -1,14 +1,14 @@
 /*
 This handles creation of Visits from recordings
 
-A visit is a grouping of many viewings of the same species (animal, insect ...). As long as 
+A visit is a grouping of many viewings of the same species (animal, insect ...). As long as
 they are seen again within eventMaxTimeSeconds of the last viewing
 
 A Visit is made up of many VisitEvents.
 VisitEvents are distinct viewings of a species, defined by a TrackTag
 
-Unidentified tags may be assumed to be another species e.g. Possum if they occur within 
-eventMaxTimeSeconds of a defined species 
+Unidentified tags may be assumed to be another species e.g. Possum if they occur within
+eventMaxTimeSeconds of a defined species
 */
 
 import { Recording } from "../../models/Recording";
@@ -85,7 +85,7 @@ class DeviceVisits {
     }
   }
 
-  updateSummary(visit) {
+  updateSummary(visit: Visit | VisitEvent) {
     this.audioBait = this.audioBait || visit.audioBaitDay;
     if (visit instanceof Visit) {
       this.visitCount += 1;
@@ -98,12 +98,12 @@ class DeviceVisits {
       this.startTime = visit.start;
       this.endTime = visit.end;
     } else {
-      if (this.startTime > visit.startTime) {
-        this.startTime = visit.STartTime;
+      if (this.startTime > visit.start) {
+        this.startTime = visit.start;
       }
 
-      if (this.endTime < visit.endTime) {
-        this.endTime = visit.endTime;
+      if (this.endTime < visit.end) {
+        this.endTime = visit.end;
       }
     }
   }
