@@ -66,7 +66,6 @@ function generateHtml(
 }
 
 async function sendEmail(html: string) {
-  console.log(config);
   var transporter = nodemailer.createTransport(config.smtpDetails);
 
   var mailOptions = {

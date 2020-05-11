@@ -143,7 +143,7 @@ export default function (app: Application, baseUrl: string) {
 
   /**
    * @api {get} /api/v1/events/errors Query recorded events
-   * @apiName QueryEvents
+   * @apiName QueryErrors
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
@@ -153,7 +153,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
    * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
    *
-   * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
+   * @apiSuccess {JSON} map of Service Name to Service errors
    * @apiUse V1ResponseError
    */
   app.get(
