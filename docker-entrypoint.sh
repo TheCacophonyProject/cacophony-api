@@ -1,10 +1,16 @@
 #!/bin/bash
 set -e
 
+echo "---- Starting api doc ----"
+
 cd /app
+
 
 echo "---- Generating API doc ----"
 npm run apidoc
+
+echo "---- Compiling TypeScript ----"
+node_modules/.bin/tsc
 
 echo "---- Migrating database ----"
 node_modules/.bin/sequelize db:migrate --config config/app_test_default.js

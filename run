@@ -90,14 +90,14 @@ if not (os.path.exists("node_modules") or args.isolate or args.isolate_node_modu
     print("Node modules have not been installed yet, doing so now")
     subprocess.call(["npm", "install"])
 
-print("Building containers")
+print("------Building containers------")
 build_container_cmd = ["docker-compose", "build"]
 if not args.cache:
     subprocess.check_call(add_sudo(["docker-compose", "pull"]))
     build_container_cmd.append("--no-cache")
 subprocess.check_call(add_sudo(build_container_cmd))
 
-print("Starting containers")
+print("------Starting containers------")
 run_cmd = ["docker-compose", "-f", "docker-compose.yml"]
 
 if not args.isolate:

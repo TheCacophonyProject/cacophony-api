@@ -1,7 +1,7 @@
 version: "2.4"
 services:
   server:
-    container_name: cacophony-api_server
+    container_name: cacophony-api
     build: .
     environment:
       NODE_BIN: node
@@ -12,7 +12,7 @@ services:
       db:
         condition: service_healthy
   db:
-    container_name: cacophony-api_db
+    container_name: cacophony-db
     image: kartoza/postgis:latest
     environment:
       POSTGRES_PASSWORD: test
@@ -26,7 +26,7 @@ services:
       timeout: 5s
       retries: 5
   s3:
-    container_name: cacophony-api_s3
+    container_name: cacophony-s3
     image: minio/minio:latest
     entrypoint: sh
     command: -c 'mkdir -p /buckets/cacophony && /usr/bin/minio server --address :9001 /buckets'

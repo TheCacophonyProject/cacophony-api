@@ -5,3 +5,6 @@ testconfig.json
 __pycache__
 /dist/
 .idea
+api/**/*.js
+models/**/*.js
+/*.js
