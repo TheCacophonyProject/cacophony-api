@@ -30,12 +30,13 @@ else
     cd /app
 fi
 
-echo "---- Compiling TypeScript ----"
-node_modules/.bin/tsc
 
 echo "---- Migrating database ----"
 node_modules/.bin/sequelize db:migrate --config config/app_test_default.js
 sudo -i -u postgres psql cacophonytest -f /app/test/db-seed.sql
+
+echo "---- Compiling TypeScript ----"
+node_modules/.bin/tsc
 
 echo "alias psqltest='sudo -i -u postgres psql cacophonytest'" > ~/.bashrc
 

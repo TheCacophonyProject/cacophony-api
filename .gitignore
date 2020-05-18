@@ -4,3 +4,7 @@ testconfig.json
 .pytest_cache
 __pycache__
 /dist/
+.idea
+api/**/*.js
+models/**/*.js
+/*.js
