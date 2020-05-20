@@ -41,11 +41,11 @@ export interface QueryOptions {
 export interface EventStatic extends ModelStaticCommon<Event> {
   query: (
     user: User,
-    startTime: string | null,
-    endTime: string | null,
-    deviceId: DeviceId | null,
-    offset: number | null,
-    limit: number | null,
+    startTime: string | null | undefined,
+    endTime: string | null | undefined,
+    deviceId: DeviceId | null | undefined,
+    offset: number | null | undefined,
+    limit: number | null | undefined,
     options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
 }
