@@ -56,7 +56,7 @@ export interface RecordingQuery {
     tags: null | string[];
     offset: null | number;
     limit: null | number;
-    order: null |Order;
+    order: null | Order;
     distinct: boolean;
   };
   filterOptions: null | any;
@@ -125,15 +125,17 @@ async function report(request) {
 }
 
 async function reportRecordings(request) {
-  const builder = (await new models.Recording.queryBuilder().init(
-    request.user,
-    request.query.where,
-    request.query.tagMode,
-    request.query.tags,
-    request.query.offset,
-    request.query.limit,
-    request.query.order
-  ))
+  const builder = (
+    await new models.Recording.queryBuilder().init(
+      request.user,
+      request.query.where,
+      request.query.tagMode,
+      request.query.tags,
+      request.query.offset,
+      request.query.limit,
+      request.query.order
+    )
+  )
     .addColumn("comment")
     .addColumn("additionalMetadata")
     .addAudioEvents();
@@ -543,7 +545,7 @@ function generateVisits(
   userId: number,
   gotAllRecordings: boolean
 ): [Visit[], Visit[]] {
-  let visits : Visit[] = [];
+  let visits: Visit[] = [];
   let incompleteVisits: Visit[] = [];
   for (const [i, rec] of recordings.entries()) {
     rec.filterData(filterOptions);
@@ -586,9 +588,11 @@ async function queryVisits(
   numRecordings: number;
   numVisits: number;
 }> {
-
   const maxVisitQueryResults = 5000;
-  const requestVisits = request.query.limit == null ?  maxVisitQueryResults : request.query.limit as number;
+  const requestVisits =
+    request.query.limit == null
+      ? maxVisitQueryResults
+      : (request.query.limit as number);
   let queryMax = maxVisitQueryResults * 2;
   let queryLimit = queryMax;
   if (request.query.limit) {
@@ -618,7 +622,7 @@ async function queryVisits(
   );
   let numRecordings = 0;
   let remainingVisits = requestVisits;
-  let incompleteVisits:Visit[] = [];
+  let incompleteVisits: Visit[] = [];
   let totalCount, recordings, gotAllRecordings;
 
   while (gotAllRecordings || remainingVisits > 0) {
@@ -667,7 +671,7 @@ async function queryVisits(
   let queryOffset = 0;
   // mark all as complete
   if (gotAllRecordings) {
-    incompleteVisits.forEach(elem => {
+    incompleteVisits.forEach((elem) => {
       elem.incomplete = false;
     });
 
@@ -678,13 +682,13 @@ async function queryVisits(
   // remove incomplete visits and get all audio file ids
   for (const device in deviceMap) {
     const deviceVisits = deviceMap[device];
-    deviceVisits.audioFileIds.forEach(id => audioFileIds.add(id));
+    deviceVisits.audioFileIds.forEach((id) => audioFileIds.add(id));
     if (!gotAllRecordings) {
       deviceVisits.removeIncompleteVisits();
     }
-   if (deviceVisits.visitCount == 0){
-     delete deviceMap[device]
-   }
+    if (deviceVisits.visitCount == 0) {
+      delete deviceMap[device];
+    }
   }
 
   // get the offset to use for future queries
@@ -694,7 +698,7 @@ async function queryVisits(
     queryOffset = visits[visits.length - 1].queryOffset + 1;
   }
 
-  visits = visits.filter(v => !v.incomplete);
+  visits = visits.filter((v) => !v.incomplete);
 
   // Bulk look up file details of played audio events.
   const audioFileNames = new Map();
@@ -741,7 +745,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
   ];
   const eventSum = (accumulator, visit) => accumulator + visit.events.length;
   for (const deviceId in deviceMap) {
-    const deviceVisits = deviceMap[deviceId];  
+    const deviceVisits = deviceMap[deviceId];
     device_summary_out.push([
       deviceId,
       deviceVisits.deviceName,
@@ -755,7 +759,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
       ).toString(),
       Object.keys(deviceVisits.animals).join(";"),
       Object.values(deviceVisits.animals)
-        .map(vis => vis.visits.length)
+        .map((vis) => vis.visits.length)
         .join(";"),
       deviceVisits.audioBait.toString()
     ]);
@@ -805,7 +809,7 @@ async function reportVisits(request) {
   for (const visit of results.visits) {
     addVisitRow(out, visit);
 
-    const audioEvents = visit.audioBaitEvents.sort(function(a, b) {
+    const audioEvents = visit.audioBaitEvents.sort(function (a, b) {
       return moment(a.dateTime) > moment(b.dateTime) ? 1 : -1;
     });
 
@@ -886,12 +890,8 @@ function addAudioBaitRow(out, visit, audioBait) {
     "Audio Bait",
     audioBait.dataValues.fileName,
     "",
-    moment(audioBait.dateTime)
-      .tz(config.timeZone)
-      .format("YYYY-MM-DD"),
-    moment(audioBait.dateTime)
-      .tz(config.timeZone)
-      .format("HH:mm:ss"),
+    moment(audioBait.dateTime).tz(config.timeZone).format("YYYY-MM-DD"),
+    moment(audioBait.dateTime).tz(config.timeZone).format("HH:mm:ss"),
     "",
     "",
     "",
@@ -906,7 +906,7 @@ function checkForCompleteVisits(
   visits: Visit[],
   incompleteVisits: Visit[],
   firstStart: Moment
-):Visit[] {
+): Visit[] {
   let stillIncomplete: Visit[] = [];
   for (const newVisit of incompleteVisits) {
     if (isWithinVisitInterval(newVisit.start, firstStart)) {

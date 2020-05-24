@@ -133,14 +133,8 @@ export default (app: Application, baseUrl: string) => {
 
   const queryValidators = Object.freeze([
     middleware.parseJSON("where", query).optional(),
-    query("offset")
-      .isInt()
-      .toInt()
-      .optional(),
-    query("limit")
-      .isInt()
-      .toInt()
-      .optional(),
+    query("offset").isInt().toInt().optional(),
+    query("limit").isInt().toInt().optional(),
     middleware.parseJSON("order", query).optional(),
     middleware.parseArray("tags", query).optional(),
     query("tagMode")
@@ -366,10 +360,7 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/report`,
     [
       auth.paramOrHeader,
-      query("type")
-        .isString()
-        .optional()
-        .isIn(["recordings", "visits"]),
+      query("type").isString().optional().isIn(["recordings", "visits"]),
       ...queryValidators
     ],
     middleware.requestWrapper(async (request, response) => {

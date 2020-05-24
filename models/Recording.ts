@@ -1155,7 +1155,7 @@ from (
   };
 
   // Include details of recent audio bait events in the query output.
-  Recording.queryBuilder.prototype.addAudioEvents = function(
+  Recording.queryBuilder.prototype.addAudioEvents = function (
     after?: string,
     before?: string
   ) {
