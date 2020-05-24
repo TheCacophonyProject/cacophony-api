@@ -281,6 +281,11 @@ class UserAPI(APIBase):
         )
         return self._check_response(response)["messages"]
 
+    def query_event_errors(self, deviceId=None, startTime=None, endTime=None, limit=20):
+        return self._query(
+            "events/errors", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit
+        )
+
     def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
         return self._query("events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit)
 

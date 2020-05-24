@@ -74,8 +74,8 @@ class ValidationError extends CustomError {
   constructor(errors) {
     const message = errors
       .array()
-      .filter(error => typeof error.msg === "string")
-      .map(error => error.msg)
+      .filter((error) => typeof error.msg === "string")
+      .map((error) => error.msg)
       .join("; ");
     super(message, 422);
     this.errors = errors;

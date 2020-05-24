@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.addColumn(
       "Recordings",
       "rawMimeType",
@@ -14,7 +14,7 @@ module.exports = {
     `);
   },
 
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     await queryInterface.removeColumn("Recordings", "rawMimeType");
   }
 };

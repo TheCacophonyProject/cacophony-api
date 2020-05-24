@@ -4,7 +4,7 @@
 // Users that were superusers should now have 'write' global permissions
 
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up: function (queryInterface, Sequelize) {
     return queryInterface
       .addColumn("Users", "globalPermission", {
         type: Sequelize.ENUM,
@@ -21,7 +21,7 @@ module.exports = {
       .then(() => queryInterface.removeColumn("Users", "superuser"));
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function (queryInterface, Sequelize) {
     return queryInterface
       .addColumn("Users", "superuser", {
         type: Sequelize.BOOLEAN,

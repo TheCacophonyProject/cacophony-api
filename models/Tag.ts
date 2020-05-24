@@ -51,7 +51,7 @@ export enum AcceptableTag {
 
 export const AcceptableTags = new Set(Object.values(AcceptableTag));
 
-export default function(sequelize, DataTypes): TagStatic {
+export default function (sequelize, DataTypes): TagStatic {
   const name = "Tag";
   const attributes = {
     what: {
@@ -92,24 +92,24 @@ export default function(sequelize, DataTypes): TagStatic {
   //---------------
   const Recording = sequelize.models.Recording;
 
-  Tag.buildSafely = function(fields) {
+  Tag.buildSafely = function (fields) {
     return Tag.build(_.pick(fields, Tag.apiSettableFields));
   };
 
-  Tag.addAssociations = function(models) {
+  Tag.addAssociations = function (models) {
     models.Tag.belongsTo(models.User, { as: "tagger" });
     models.Tag.belongsTo(models.Recording);
   };
 
-  Tag.getFromId = function(id, user, attributes) {
+  Tag.getFromId = function (id, user, attributes) {
     return util.getFromId(id, user, attributes);
   };
 
-  Tag.deleteModelInstance = function(id: TagId, user: User) {
+  Tag.deleteModelInstance = function (id: TagId, user: User) {
     return util.deleteModelInstance(id, user);
   };
 
-  Tag.deleteFromId = async function(id, user) {
+  Tag.deleteFromId = async function (id, user) {
     const tag = await this.findOne({ where: { id: id } });
     if (tag == null) {
       return true;

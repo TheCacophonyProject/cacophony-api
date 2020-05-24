@@ -43,7 +43,7 @@ function createEntityJWT<T>(
   return jwt.sign(payload, config.server.passportSecret, options);
 }
 
-const getVerifiedJWT = req => {
+const getVerifiedJWT = (req) => {
   const token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
   if (!token) {
     throw new customErrors.AuthenticationError("Could not find JWT token.");
@@ -96,7 +96,7 @@ type AuthenticateMiddleware = (
 /*
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
-const authenticate = function(
+const authenticate = function (
   type: string | null,
   reqAccess?
 ): AuthenticateMiddleware {
@@ -146,7 +146,7 @@ const authenticateUser: AuthenticateMiddleware = authenticate("user");
 const authenticateDevice: AuthenticateMiddleware = authenticate("device");
 const authenticateAny: AuthenticateMiddleware = authenticate(null);
 
-const authenticateAccess = function(
+const authenticateAccess = function (
   type: string,
   access: Record<string, "r" | "w">
 ) {

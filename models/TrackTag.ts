@@ -30,7 +30,7 @@ export interface TrackTag extends Sequelize.Model, ModelCommon<TrackTag> {
   confidence: number;
 }
 export interface TrackTagStatic extends ModelStaticCommon<TrackTag> {}
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): TrackTagStatic {
@@ -46,7 +46,7 @@ export default function(
   //---------------
   // CLASS METHODS
   //---------------
-  TrackTag.addAssociations = function(models) {
+  TrackTag.addAssociations = function (models) {
     models.TrackTag.belongsTo(models.Track);
     models.TrackTag.belongsTo(models.User);
   };
@@ -61,7 +61,7 @@ export default function(
   // INSTANCE
   //---------------
 
-  TrackTag.prototype.isAdditionalTag = function() {
+  TrackTag.prototype.isAdditionalTag = function () {
     return additionalTags.includes(this.what);
   };
 

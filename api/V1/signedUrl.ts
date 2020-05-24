@@ -26,7 +26,7 @@ import responseUtil from "./responseUtil";
 import { ClientError } from "../customErrors";
 import { Application } from "express";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   /**
    * @api {get} /api/v1/signedUrl Get a file using a JWT
    * @apiName GetFile
@@ -64,7 +64,7 @@ export default function(app: Application, baseUrl: string) {
         Key: key
       };
 
-      s3.getObject(params, function(err, data) {
+      s3.getObject(params, function (err, data) {
         if (err) {
           log.error("Error with s3 getObject.");
           log.error(err.stack);

@@ -37,7 +37,7 @@ export interface DetailSnapshotStatic
   getFromId: (id: DetailSnapshotId) => Promise<DetailSnapShot>;
 }
 
-export default function(sequelize, DataTypes): DetailSnapshotStatic {
+export default function (sequelize, DataTypes): DetailSnapshotStatic {
   const name = "DetailSnapshot";
 
   const attributes = {
@@ -59,14 +59,14 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
   // CLASS METHODS
   //---------------
 
-  DetailSnapshot.addAssociations = function(models) {
+  DetailSnapshot.addAssociations = function (models) {
     models.DetailSnapshot.hasMany(models.Event, {
       foreignKey: "EventDetailId"
     });
     models.DetailSnapshot.hasMany(models.Track, { foreignKey: "AlgorithmId" });
   };
 
-  DetailSnapshot.getOrCreateMatching = async function(
+  DetailSnapshot.getOrCreateMatching = async function (
     searchType,
     searchDetails
   ): Promise<DetailSnapShot> {
@@ -95,7 +95,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
     }
   };
 
-  DetailSnapshot.getFromId = async function(id: DetailSnapshotId) {
+  DetailSnapshot.getFromId = async function (id: DetailSnapshotId) {
     return await this.findById(id);
   };
 
@@ -103,7 +103,7 @@ export default function(sequelize, DataTypes): DetailSnapshotStatic {
   // INSTANCE METHODS
   //-----------------
 
-  DetailSnapshot.prototype.getFile = async function() {
+  DetailSnapshot.prototype.getFile = async function () {
     const fid = this.details.fileId;
     if (!fid) {
       return null;

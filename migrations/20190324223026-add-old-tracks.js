@@ -6,7 +6,7 @@ module.exports = {
       allowNull: true
     });
   },
-  down: queryInterface => {
+  down: (queryInterface) => {
     return queryInterface.removeColumn("Tracks", "archivedAt");
   }
 };

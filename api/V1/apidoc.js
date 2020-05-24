@@ -105,7 +105,7 @@
  *    },
  *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
  *  }
-*/
+ */
 
 /**
  * @apiDefine EventExampleEventDetailId
@@ -114,4 +114,4 @@
  *    "eventDetailId": 1,
  *    "dateTimes": ["2017-11-13T00:47:51.160Z"]
  *  }
-*/
+ */

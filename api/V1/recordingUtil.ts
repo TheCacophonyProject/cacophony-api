@@ -100,7 +100,7 @@ async function query(
     request.user,
     request.filterOptions
   );
-  result.rows = result.rows.map(rec => {
+  result.rows = result.rows.map((rec) => {
     rec.filterData(filterOptions);
     return handleLegacyTagFieldsForGetOnRecording(rec);
   });
@@ -205,7 +205,7 @@ async function report(request) {
       }
     }
 
-    const recording_tags = r.Tags.map(t => t.what || t.detail);
+    const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
     let audioBaitName = "";
     let audioBaitTime = null;
@@ -230,12 +230,8 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("YYYY-MM-DD"),
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("HH:mm:ss"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
       r.location ? r.location.coordinates[1] : "",
       r.duration,
@@ -259,14 +255,14 @@ async function report(request) {
 
 function getCacophonyIndex(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
-    ?.map(val => val.index_percent)
+    ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
     ?.map(
-      classification => `${classification.species}: ${classification.begin_s}`
+      (classification) => `${classification.species}: ${classification.begin_s}`
     )
     .join(";");
 }
@@ -355,12 +351,12 @@ async function delete_(request, response) {
     });
   }
   if (deleted.rawFileKey) {
-    util.deleteS3Object(deleted.rawFileKey).catch(err => {
+    util.deleteS3Object(deleted.rawFileKey).catch((err) => {
       log.warn(err);
     });
   }
   if (deleted.fileKey) {
-    util.deleteS3Object(deleted.fileKey).catch(err => {
+    util.deleteS3Object(deleted.fileKey).catch((err) => {
       log.warn(err);
     });
   }

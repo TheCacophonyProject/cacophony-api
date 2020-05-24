@@ -32,6 +32,15 @@ const s3 = {
   endpoint: "http://localhost:9000" // REQUIRED, URL
 };
 
+const smtpDetails = {
+  service: "gmail",
+  auth: {
+    user: "noinfo@cacophony.org.nz",
+    pass: "thesecretpassword"
+  }
+};
+
+exports.smtpDetails = smtpDetails;
 exports.server = server;
 exports.fileProcessing = fileProcessing;
 exports.database = database;
