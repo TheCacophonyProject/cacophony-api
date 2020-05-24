@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return Promise.all([
       queryInterface.sequelize.query(
         'ALTER TABLE "ThermalVideoRecordings" ' +
@@ -14,7 +14,7 @@ module.exports = {
     ]);
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return Promise.all([
       queryInterface.sequelize.query(
         'ALTER TABLE "ThermalVideoRecordings" ' + ' DROP COLUMN "videoPair";'

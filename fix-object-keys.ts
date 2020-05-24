@@ -106,7 +106,7 @@ async function deleteObject(s3, bucket, key) {
 const logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
-      timestamp: function() {
+      timestamp: function () {
         return moment().format();
       },
       colorize: true

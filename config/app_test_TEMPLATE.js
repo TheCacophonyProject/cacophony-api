@@ -31,6 +31,15 @@ const database = {
   dialect: "postgres"
 };
 
+const smtpDetails = {
+  service: "gmail",
+  auth: {
+    user: "noinfo@cacophony.org.nz",
+    pass: "thesecretpassword"
+  }
+};
+
+exports.smtpDetails = smtpDetails;
 exports.server = server;
 exports.s3 = s3;
 exports.fileProcessing = fileProcessing;

@@ -249,6 +249,12 @@ class TestUser:
             self._group = self.create_group(self.username + "s_devices", False)
         return self._group
 
+    def can_see_event_errors(self, device=None, startTime=None, endTime=None):
+        deviceId = None
+        if device is not None:
+            deviceId = device.get_id()
+        return self._userapi.query_event_errors(deviceId=deviceId, startTime=startTime, endTime=endTime)
+
     def can_see_events(self, device=None, startTime=None, endTime=None):
         deviceId = None
         if device is not None:

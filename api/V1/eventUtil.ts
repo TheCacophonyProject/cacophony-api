@@ -1,7 +1,30 @@
 import middleware from "../middleware";
 import models from "../../models";
+import { QueryOptions } from "../../models/Event";
+
 import responseUtil from "./responseUtil";
 import { body, oneOf } from "express-validator/check";
+import { groupSystemErrors } from "./systemError";
+
+async function errors(request: any, admin?: boolean) {
+  const query = request.query;
+  let options = {} as QueryOptions;
+  options.eventType = "systemError";
+  options.admin = admin;
+  options.useCreatedDate = true;
+
+  const result = await models.Event.query(
+    request.user,
+    query.startTime,
+    query.endTime,
+    query.deviceId,
+    query.offset,
+    query.limit,
+    options
+  );
+
+  return groupSystemErrors(result.rows);
+}
 
 async function uploadEvent(request, response) {
   let detailsId = request.body.eventDetailId;
@@ -17,7 +40,7 @@ async function uploadEvent(request, response) {
   const eventList = [];
   let count = 0;
 
-  request.body.dateTimes.forEach(function(time) {
+  request.body.dateTimes.forEach(function (time) {
     eventList.push({
       DeviceId: request.device.id,
       EventDetailId: detailsId,
@@ -57,5 +80,6 @@ const eventAuth = [
 
 export default {
   eventAuth,
-  uploadEvent
+  uploadEvent,
+  errors
 };

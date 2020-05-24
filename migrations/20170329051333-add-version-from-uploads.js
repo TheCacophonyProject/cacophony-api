@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up: function (queryInterface, Sequelize) {
     return Promise.all([
       queryInterface.addColumn("AudioRecordings", "version", Sequelize.STRING),
       queryInterface.addColumn(
@@ -17,7 +17,7 @@ module.exports = {
     ]);
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return Promise.all([
       queryInterface.removeColumn("AudioRecordings", "version"),
       queryInterface.removeColumn("IrVideoRecordings", "version"),

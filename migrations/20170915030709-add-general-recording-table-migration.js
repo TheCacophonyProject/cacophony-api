@@ -2,7 +2,7 @@
 const util = require("../models/util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.createTable("Recordings", {
       // Raw file data.
       rawFileKey: Sequelize.STRING,
@@ -38,7 +38,7 @@ module.exports = {
     return util.migrationAddBelongsTo(queryInterface, "Recordings", "Devices");
   },
 
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     await queryInterface.removeColumn("Tags", "RecordingId");
     return queryInterface.dropTable("Recordings");
   }

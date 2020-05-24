@@ -5,7 +5,7 @@ const util = require("../models/util/util");
 const tableName = "DeviceHistory";
 
 module.exports = {
-  up: queryInterface => {
+  up: (queryInterface) => {
     return queryInterface.dropTable(tableName);
   },
 
