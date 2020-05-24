@@ -16,13 +16,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { AuthorizationError, ClientError } from "../api/customErrors";
 import bcrypt from "bcrypt";
 import { format } from "util";
-import Sequelize from "sequelize";
+import Sequelize, { FindOptions } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { User, UserId } from "./User";
 import { Group, GroupStatic } from "./Group";
 import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleId } from "./Schedule";
+import { Event } from "./Event";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
@@ -44,6 +45,8 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
     group: Group,
     newPassword: string
   ) => Promise<Device>;
+
+  getEvents: (options: FindOptions) => Promise<Event[]>;
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {

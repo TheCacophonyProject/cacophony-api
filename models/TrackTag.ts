@@ -28,6 +28,7 @@ export interface TrackTag extends Sequelize.Model, ModelCommon<TrackTag> {
   automatic: boolean;
   UserId: UserIdAlias;
   confidence: number;
+  data: any;
 }
 export interface TrackTagStatic extends ModelStaticCommon<TrackTag> {}
 export default function (

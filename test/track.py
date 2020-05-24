@@ -11,9 +11,11 @@ class Track:
     tags = attr.ib(factory=list)
 
     @classmethod
-    def create(cls, recording):
+    def create(cls, recording, start_s=10, length=10):
         "Make a TestTrack with some plausible data."
-        return cls(None, recording, data={"foo": [[1, 2], [3, 4]], "start_s": 10, "end_s": 20})
+        return cls(
+            None, recording, data={"foo": [[1, 2], [3, 4]], "start_s": start_s, "end_s": start_s + length}
+        )
 
 
 @attr.s

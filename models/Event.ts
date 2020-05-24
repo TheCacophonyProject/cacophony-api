@@ -25,10 +25,12 @@ import { DetailSnapShot } from "./DetailSnapshot";
 const Op = Sequelize.Op;
 
 export interface Event extends Sequelize.Model, ModelCommon<Event> {
+  id: number;
   dateTime: Date;
   EventDetailId: number;
   EventDetail: DetailSnapShot;
   DeviceId: DeviceId;
+  dataValues: any;
   Device: Device | null;
 }
 

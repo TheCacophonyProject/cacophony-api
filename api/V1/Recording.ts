@@ -133,8 +133,8 @@ export default (app: Application, baseUrl: string) => {
 
   const queryValidators = Object.freeze([
     middleware.parseJSON("where", query).optional(),
-    query("offset").isInt().optional(),
-    query("limit").isInt().optional(),
+    query("offset").isInt().toInt().optional(),
+    query("limit").isInt().toInt().optional(),
     middleware.parseJSON("order", query).optional(),
     middleware.parseArray("tags", query).optional(),
     query("tagMode")
@@ -171,6 +171,43 @@ export default (app: Application, baseUrl: string) => {
       auth.userCanAccessDevices
     ],
     middleware.requestWrapper(recordingUtil.makeUploadHandler())
+  );
+
+  /**
+   * @api {get} /api/v1/recordings/visits Query available recordings and generate visits
+   * @apiName QueryVisits
+   * @apiGroup Recordings
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiUse BaseQueryParams
+   * @apiUse RecordingOrder
+   * @apiUse MoreQueryParams
+   * @apiUse FilterOptions
+   * @apiUse V1ResponseSuccessQuery
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/visits",
+    [auth.authenticateUser, ...queryValidators],
+    middleware.requestWrapper(
+      async (request: e.Request, response: e.Response) => {
+        const result = await recordingUtil.queryVisits(
+          (request as unknown) as RecordingQuery
+        );
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          limit: request.query.limit,
+          offset: request.query.offset,
+          numRecordings: result.numRecordings,
+          numVisits: result.numVisits,
+          queryOffset: result.queryOffset,
+          totalRecordings: result.totalRecordings,
+          hasMoreVisits: result.hasMoreVisits,
+          rows: result.rows
+        });
+      }
+    )
   );
 
   /**
@@ -312,6 +349,7 @@ export default (app: Application, baseUrl: string) => {
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiParam {String} [jwt] Signed JWT as produced by the [Token](#api-Authentication-Token) endpoint
+   * @apiParam {string} [type] Optional type of report either recordings or visits. Recordings is default.
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
@@ -320,7 +358,11 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/report`,
-    [auth.paramOrHeader, ...queryValidators],
+    [
+      auth.paramOrHeader,
+      query("type").isString().optional().isIn(["recordings", "visits"]),
+      ...queryValidators
+    ],
     middleware.requestWrapper(async (request, response) => {
       // 10 minute timeout because the query can take a while to run
       // when the result set is large.
