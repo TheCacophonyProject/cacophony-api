@@ -33,11 +33,16 @@ const s3 = {
 };
 
 const smtpDetails = {
-  service: "gmail",
-  auth: {
-    user: "noinfo@cacophony.org.nz",
-    pass: "thesecretpassword"
-  }
+  from: "localhost",
+  port: 25,
+  from: "hostmaster@cacophony.org.nz",
+  from_name: "Cacophony Reporting"
+  //
+  // service: "gmail",
+  // auth: {
+  //   user: "noinfo@cacophony.org.nz",
+  //   pass: "thesecretpassword"
+  // }
 };
 
 exports.smtpDetails = smtpDetails;
