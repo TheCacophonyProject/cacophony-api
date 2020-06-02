@@ -35,7 +35,6 @@ const s3 = {
 const smtpDetails = {
   from: "localhost",
   port: 25,
-  from: "hostmaster@cacophony.org.nz",
   from_name: "Cacophony Reporting"
   //
   // service: "gmail",
