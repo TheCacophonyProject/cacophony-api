@@ -70,7 +70,7 @@ async function sendEmail(html: string) {
   var transporter = nodemailer.createTransport(config.smtpDetails);
 
   var mailOptions = {
-    from: config.smptDetails.from_name,
+    from: config.smtpDetails.from_name,
     to: "coredev@cacophony.org.nz",
     subject: "Service Errors in the last 24 hours",
     html: html
