@@ -1,11 +1,4 @@
 {
-  "name": "cacophony-api",
-  "license": "AGPL-3.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/TheCacophonyProject/cacophony-api.git"
-  },
-  "version": "0.0.1",
   "dependencies": {
     "@types/express": "^4.17.4",
     "@types/express-validator": "^3.0.0",
@@ -56,14 +49,5 @@
     "prettier": "^2.0.3",
     "tsc-watch": "^4.2.3",
     "typescript": "^3.8.3"
-  },
-  "scripts": {
-    "lint": "eslint --ignore-path .gitignore .",
-    "lint:fix": "eslint --fix --ignore-path .gitignore .",
-    "apidoc": "apidoc -i api/V1/ -o apidoc/",
-    "db-migrate": "sequelize db:migrate",
-    "new-migration": "sequelize migration:generate --name",
-    "dev": "docker-compose build && docker-compose up --force-recreate",
-    "dev:bash": "docker-compose exec server bash"
   }
 }
