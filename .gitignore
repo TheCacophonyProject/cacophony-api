@@ -8,3 +8,4 @@ __pycache__
 api/**/*.js
 models/**/*.js
 /*.js
+dockerstart.log
