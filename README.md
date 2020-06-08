@@ -1,18 +1,18 @@
 # cacophony-api
 
-`cacophony-api` is a Node server that provides an REST API server for
-uploading, processing and retrieving media collected for the Cacophony
-Project. This server used to be known as "Full_Noise".
+`cacophony-api` is a node server that is accessed through a RESTful API.  This allows uploading, processing and retrieving media collected for The Cacophony
+Project. 
 
 Project | cacophony-api [![Status](https://api.travis-ci.org/TheCacophonyProject/cacophony-api.svg)](https://travis-ci.org/TheCacophonyProject/cacophony-api)
 ---|---
 Platform | Linux
 Requires | <none>
+Previous names | Full Noise
 Licence | [Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.en.html)
 
 ## Instructions
 
-Download and install the latest release from [Github](https://github.com/TheCacophonyProject/cacophony-api/releases).  Use our web application, [cacophony-browse](https://github.com/TheCacophonyProject/cacophony-browse/releases), or another program to connect to the api.
+Download and install the latest release from [Github](https://github.com/TheCacophonyProject/cacophony-api/releases). We recommend you use our web application, [cacophony-browse](https://github.com/TheCacophonyProject/cacophony-browse/releases), to connect to this server.
 
 
 ## Development instructions
@@ -25,14 +25,12 @@ cacophony-api using Docker. To do this:
   Ubuntu)
 * Run either `npm run dev` (if npm is installed) or `docker-compose build && docker-compose up --force-recreate`.
 
-This will build a Docker container which includes all the services
-that cacophony-api relies on and then runs the container. The end
-result is a fully functioning API server. The container name is
-"cacophony-api".
+This will build and then run a Docker container which includes all the services needed to run the server.
 
 Once the container is running, you can start a bash session inside
-the container with `npm run dev:bash` or `docker-compose exec server bash`.  You can then use
-psql to query the database `sudo -i -u postgres psql cacophonytest`
+the container with `npm run dev:bash` or `docker-compose exec server bash`. 
+
+To start psql to query the database in base use the alias `psqltest`
 
 
 ### Running the tests
@@ -40,7 +38,7 @@ psql to query the database `sudo -i -u postgres psql cacophonytest`
 The Cacophony API server has a comprehensive function test suite. This
 requires Python 3.
 
-To run the tests, you need to do these steps once:
+To set-up for the tests:
 
 * Create a virtualenv using your preferred method. Ensure that the
   virtualenv using Python 3. One approach way to create a virtualenv
@@ -54,7 +52,7 @@ To run the tests, you need to do these steps once:
 To run the tests:
 
 * Start the API server as described above.
-* Activate the virtualenv created earlier.
+* Activate your virtualenv.
 * `cd test`
 * Run the tests with: `pytest -s`
 
@@ -71,6 +69,9 @@ root URL.
 These are run automatically when you start the server.
 
 To create a new database migration file: `npm run new-migration <name>`
+
+### Docker base image
+To make the project build fast on our build servers (and your computer) we use a base docker image that contains nodejs, postgis, minio and most of our js dependencies.   The code for building this server is in the folder `docker-base`
 
 ### Releases
 Releases are created using travis and git and saved [on Github](https://github.com/TheCacophonyProject/cacophony-api/releases).   Follow our [release instructions](https://docs.cacophony.org.nz/home/creating-releases) to create a new release.
