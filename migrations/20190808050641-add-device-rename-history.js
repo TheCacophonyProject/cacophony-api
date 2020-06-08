@@ -18,7 +18,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, tableName, "Devices");
   },
 
-  down: queryInterface => {
+  down: (queryInterface) => {
     return queryInterface.dropTable(tableName);
   }
 };

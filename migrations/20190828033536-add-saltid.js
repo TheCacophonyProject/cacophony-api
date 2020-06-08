@@ -15,7 +15,7 @@ module.exports = {
     );
   },
 
-  down: queryInterface => {
+  down: (queryInterface) => {
     return Promise.all([
       queryInterface.removeColumn("Devices", "saltId"),
       queryInterface.removeColumn("Devices", "active")

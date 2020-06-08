@@ -2,7 +2,7 @@
 const util = require("./util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.createTable("Files", {
       id: {
         allowNull: false,
@@ -35,7 +35,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, "Files", "Users");
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return queryInterface.dropTable("Files");
   }
 };

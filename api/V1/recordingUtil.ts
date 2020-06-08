@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import urljoin from "url-join";
 import { ClientError } from "../customErrors";
 import config from "../../config";
@@ -37,21 +37,29 @@ import {
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
+import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
+import {
+  DeviceVisits,
+  VisitEvent,
+  DeviceVisitMap,
+  Visit,
+  isWithinVisitInterval
+} from "./Visits";
 
 export interface RecordingQuery {
-  user: any;
+  user: User;
   query: {
-    where: any;
-    tagMode: TagMode;
-    tags: string[];
-    offset: number;
-    limit: number;
-    order: Order;
+    where: null | any;
+    tagMode: null | TagMode;
+    tags: null | string[];
+    offset: null | number;
+    limit: null | number;
+    order: null | Order;
     distinct: boolean;
   };
-  filterOptions: any;
+  filterOptions: null | any;
 }
 
 function makeUploadHandler(mungeData?: (any) => any) {
@@ -100,7 +108,7 @@ async function query(
     request.user,
     request.filterOptions
   );
-  result.rows = result.rows.map(rec => {
+  result.rows = result.rows.map((rec) => {
     rec.filterData(filterOptions);
     return handleLegacyTagFieldsForGetOnRecording(rec);
   });
@@ -110,6 +118,13 @@ async function query(
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request) {
+  if (request.query.type == "visits") {
+    return reportVisits(request);
+  }
+  return reportRecordings(request);
+}
+
+async function reportRecordings(request) {
   const builder = (
     await new models.Recording.queryBuilder().init(
       request.user,
@@ -205,7 +220,7 @@ async function report(request) {
       }
     }
 
-    const recording_tags = r.Tags.map(t => t.what || t.detail);
+    const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
     let audioBaitName = "";
     let audioBaitTime = null;
@@ -230,12 +245,8 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("YYYY-MM-DD"),
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("HH:mm:ss"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
       r.location ? r.location.coordinates[1] : "",
       r.duration,
@@ -259,19 +270,19 @@ async function report(request) {
 
 function getCacophonyIndex(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
-    ?.map(val => val.index_percent)
+    ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
     ?.map(
-      classification => `${classification.species}: ${classification.begin_s}`
+      (classification) => `${classification.species}: ${classification.begin_s}`
     )
     .join(";");
 }
 
-function findLatestEvent(events: Event[]): Event {
+function findLatestEvent(events: Event[]): Event | null {
   if (!events) {
     return null;
   }
@@ -355,12 +366,12 @@ async function delete_(request, response) {
     });
   }
   if (deleted.rawFileKey) {
-    util.deleteS3Object(deleted.rawFileKey).catch(err => {
+    util.deleteS3Object(deleted.rawFileKey).catch((err) => {
       log.warn(err);
     });
   }
   if (deleted.fileKey) {
-    util.deleteS3Object(deleted.fileKey).catch(err => {
+    util.deleteS3Object(deleted.fileKey).catch((err) => {
       log.warn(err);
     });
   }
@@ -525,6 +536,389 @@ async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
 
+// generates new visits and returns a tuple of completeVisits and incompleteVisits
+function generateVisits(
+  deviceMap: DeviceVisitMap,
+  recordings: any[],
+  filterOptions,
+  queryOffset: number,
+  userId: number,
+  gotAllRecordings: boolean
+): [Visit[], Visit[]] {
+  let visits: Visit[] = [];
+  let incompleteVisits: Visit[] = [];
+  for (const [i, rec] of recordings.entries()) {
+    rec.filterData(filterOptions);
+
+    let devVisits = deviceMap[rec.DeviceId];
+    if (!devVisits) {
+      devVisits = new DeviceVisits(
+        rec.Device.devicename,
+        rec.Group.groupname,
+        rec.DeviceId,
+        userId
+      );
+      deviceMap[rec.DeviceId] = devVisits;
+    }
+    const newVisits = devVisits.calculateNewVisits(
+      rec,
+      queryOffset + i,
+      gotAllRecordings
+    );
+    if (gotAllRecordings) {
+      visits.push(...newVisits);
+    } else {
+      incompleteVisits.push(...newVisits);
+    }
+  }
+
+  return [visits, incompleteVisits];
+}
+// Returns a promise for the recordings visits query specified in the
+// request.
+async function queryVisits(
+  request: RecordingQuery,
+  type?
+): Promise<{
+  visits: Visit[];
+  rows: DeviceVisitMap;
+  hasMoreVisits: boolean;
+  queryOffset: number;
+  totalRecordings: number;
+  numRecordings: number;
+  numVisits: number;
+}> {
+  const maxVisitQueryResults = 5000;
+  const requestVisits =
+    request.query.limit == null
+      ? maxVisitQueryResults
+      : (request.query.limit as number);
+  let queryMax = maxVisitQueryResults * 2;
+  let queryLimit = queryMax;
+  if (request.query.limit) {
+    queryLimit = Math.min(request.query.limit * 2, queryMax);
+  }
+  const builder = await new models.Recording.queryBuilder().init(
+    request.user,
+    request.query.where,
+    request.query.tagMode,
+    request.query.tags,
+    request.query.offset,
+    queryLimit,
+    null
+  );
+  builder.query.distinct = true;
+  builder.addAudioEvents(
+    '"Recording"."recordingDateTime" - interval \'1 day\'',
+    '"Recording"."recordingDateTime" + interval \'1 day\''
+  );
+
+  const audioFileIds: Set<number> = new Set();
+  const deviceMap: DeviceVisitMap = {};
+  let visits: Visit[] = [];
+  const filterOptions = models.Recording.makeFilterOptions(
+    request.user,
+    request.filterOptions
+  );
+  let numRecordings = 0;
+  let remainingVisits = requestVisits;
+  let incompleteVisits: Visit[] = [];
+  let totalCount, recordings, gotAllRecordings;
+
+  while (gotAllRecordings || remainingVisits > 0) {
+    if (totalCount) {
+      recordings = await models.Recording.findAll(builder.get());
+    } else {
+      const result = await models.Recording.findAndCountAll(builder.get());
+      totalCount = result.count;
+      recordings = result.rows;
+    }
+
+    numRecordings += recordings.length;
+    gotAllRecordings = recordings.length + builder.query.offset >= recordings;
+    if (recordings.length == 0) {
+      break;
+    }
+
+    const [newVisits, newIncomplete] = generateVisits(
+      deviceMap,
+      recordings,
+      filterOptions,
+      request.query.offset || 0,
+      request.user.id,
+      gotAllRecordings
+    );
+    visits.push(...newVisits);
+    incompleteVisits.push(...newIncomplete);
+
+    if (!gotAllRecordings) {
+      const lastRecStart = moment(
+        recordings[recordings.length - 1].recordingDateTime
+      );
+
+      incompleteVisits = checkForCompleteVisits(
+        visits,
+        incompleteVisits,
+        lastRecStart
+      );
+    }
+
+    remainingVisits = requestVisits - visits.length;
+    builder.query.limit = Math.min(remainingVisits * 2, queryMax);
+    builder.query.offset += recordings.length;
+  }
+
+  let queryOffset = 0;
+  // mark all as complete
+  if (gotAllRecordings) {
+    incompleteVisits.forEach((elem) => {
+      elem.incomplete = false;
+    });
+
+    visits.push(...incompleteVisits);
+    incompleteVisits = [];
+  }
+
+  // remove incomplete visits and get all audio file ids
+  for (const device in deviceMap) {
+    const deviceVisits = deviceMap[device];
+    deviceVisits.audioFileIds.forEach((id) => audioFileIds.add(id));
+    if (!gotAllRecordings) {
+      deviceVisits.removeIncompleteVisits();
+    }
+    if (deviceVisits.visitCount == 0) {
+      delete deviceMap[device];
+    }
+  }
+
+  // get the offset to use for future queries
+  if (incompleteVisits.length > 0) {
+    queryOffset = incompleteVisits[0].queryOffset;
+  } else if (visits.length > 0) {
+    queryOffset = visits[visits.length - 1].queryOffset + 1;
+  }
+
+  visits = visits.filter((v) => !v.incomplete);
+
+  // Bulk look up file details of played audio events.
+  const audioFileNames = new Map();
+  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+    audioFileNames[f.id] = f.details.name;
+  }
+
+  // this updates the references in deviceMap
+  for (const visit of visits) {
+    for (const audioEvent of visit.audioBaitEvents) {
+      audioEvent.dataValues.fileName =
+        audioFileNames[audioEvent.EventDetail.details.fileId];
+    }
+  }
+
+  return {
+    visits: visits,
+    rows: deviceMap,
+    hasMoreVisits: !gotAllRecordings,
+    totalRecordings: totalCount,
+    queryOffset: queryOffset,
+    numRecordings: numRecordings,
+    numVisits: visits.length
+  };
+}
+
+function reportDeviceVisits(deviceMap: DeviceVisitMap) {
+  const device_summary_out = [
+    [
+      "Device ID",
+      "Device Name",
+      "Group Name",
+      "First Visit",
+      "Last Visit",
+      "# Visits",
+      "Avg Events per Visit",
+      "Animal",
+      "Visits",
+      "Using Audio Bait",
+      "", //needed for visits columns to show
+      "",
+      ""
+    ]
+  ];
+  const eventSum = (accumulator, visit) => accumulator + visit.events.length;
+  for (const deviceId in deviceMap) {
+    const deviceVisits = deviceMap[deviceId];
+    device_summary_out.push([
+      deviceId,
+      deviceVisits.deviceName,
+      deviceVisits.groupName,
+      deviceVisits.startTime.tz(config.timeZone).format("HH:mm:ss"),
+      deviceVisits.endTime.tz(config.timeZone).format("HH:mm:ss"),
+      deviceVisits.visitCount.toString(),
+      (
+        Math.round((10 * deviceVisits.eventCount) / deviceVisits.visitCount) /
+        10
+      ).toString(),
+      Object.keys(deviceVisits.animals).join(";"),
+      Object.values(deviceVisits.animals)
+        .map((vis) => vis.visits.length)
+        .join(";"),
+      deviceVisits.audioBait.toString()
+    ]);
+
+    for (const [animal, visitSummary] of Object.entries(deviceVisits.animals)) {
+      device_summary_out.push([
+        deviceId,
+        deviceVisits.deviceName,
+        deviceVisits.groupName,
+        visitSummary.start.tz(config.timeZone).format("HH:mm:ss"),
+        visitSummary.end.tz(config.timeZone).format("HH:mm:ss"),
+        visitSummary.visits.length.toString(),
+        (
+          Number(visitSummary.visits.reduce(eventSum, 0)) /
+          visitSummary.visits.length
+        ).toString(),
+        animal,
+        visitSummary.visits.length.toString(),
+        deviceVisits.audioBait.toString()
+      ]);
+    }
+  }
+  return device_summary_out;
+}
+
+async function reportVisits(request) {
+  const results = await queryVisits(request);
+  const out = reportDeviceVisits(results.rows);
+  const recordingUrlBase = config.server.recording_url_base || "";
+  out.push([]);
+  out.push([
+    "Visit ID",
+    "Group",
+    "Device",
+    "Type",
+    "What",
+    "Rec ID",
+    "Date",
+    "Start",
+    "End",
+    "Confidence",
+    "# Events",
+    "Audio Played",
+    "URL"
+  ]);
+
+  for (const visit of results.visits) {
+    addVisitRow(out, visit);
+
+    const audioEvents = visit.audioBaitEvents.sort(function (a, b) {
+      return moment(a.dateTime) > moment(b.dateTime) ? 1 : -1;
+    });
+
+    let audioEvent = audioEvents.pop();
+    let audioTime, audioBaitBefore;
+    if (audioEvent) {
+      audioTime = moment(audioEvent.dateTime);
+    }
+    // add visit events and audio bait in descending order
+    for (const event of visit.events) {
+      audioBaitBefore = audioTime && audioTime.isAfter(event.start);
+      while (audioBaitBefore) {
+        addAudioBaitRow(out, visit, audioEvent);
+        audioEvent = audioEvents.pop();
+        if (audioEvent) {
+          audioTime = moment(audioEvent.dateTime);
+        }
+        audioBaitBefore = audioTime && audioTime.isAfter(event.start);
+      }
+      addEventRow(out, visit, event, recordingUrlBase);
+    }
+    if (audioEvent) {
+      audioEvents.push(audioEvent);
+    }
+    for (const audioEvent of audioEvents.reverse()) {
+      addAudioBaitRow(out, visit, audioEvent);
+    }
+  }
+  return out;
+}
+
+function addVisitRow(out, visit) {
+  out.push([
+    visit.visitID.toString(),
+    visit.deviceName,
+    visit.groupName,
+    "Visit",
+    visit.what,
+    "",
+    visit.start.tz(config.timeZone).format("YYYY-MM-DD"),
+    visit.start.tz(config.timeZone).format("HH:mm:ss"),
+    visit.end.tz(config.timeZone).format("HH:mm:ss"),
+    "",
+    visit.events.length.toString(),
+    visit.audioBaitVisit.toString(),
+    ""
+  ]);
+}
+
+function addEventRow(out, visit, event, recordingUrlBase) {
+  out.push([
+    "",
+    "",
+    "",
+    "Event",
+    event.what,
+    event.recID.toString(),
+    event.start.tz(config.timeZone).format("YYYY-MM-DD"),
+    event.start.tz(config.timeZone).format("HH:mm:ss"),
+
+    event.end.tz(config.timeZone).format("HH:mm:ss"),
+    event.confidence + "%",
+    "",
+    "",
+    urljoin(recordingUrlBase, event.recID.toString(), event.trackID.toString())
+  ]);
+}
+
+function addAudioBaitRow(out, visit, audioBait) {
+  let audioPlayed = audioBait.dataValues.fileName;
+  if (audioBait.EventDetail.details.volume) {
+    audioPlayed += " vol " + audioBait.EventDetail.details.volume;
+  }
+  out.push([
+    "",
+    "",
+    "",
+    "Audio Bait",
+    audioBait.dataValues.fileName,
+    "",
+    moment(audioBait.dateTime).tz(config.timeZone).format("YYYY-MM-DD"),
+    moment(audioBait.dateTime).tz(config.timeZone).format("HH:mm:ss"),
+    "",
+    "",
+    "",
+    audioPlayed,
+    ""
+  ]);
+}
+
+// any visits which have started more than the visit interval from firstStart are marked as completed
+// any remaining incomplete visits are returned
+function checkForCompleteVisits(
+  visits: Visit[],
+  incompleteVisits: Visit[],
+  firstStart: Moment
+): Visit[] {
+  let stillIncomplete: Visit[] = [];
+  for (const newVisit of incompleteVisits) {
+    if (isWithinVisitInterval(newVisit.start, firstStart)) {
+      stillIncomplete.push(newVisit);
+    } else {
+      newVisit.incomplete = false;
+      visits.push(newVisit);
+    }
+  }
+  return stillIncomplete;
+}
+
 export default {
   makeUploadHandler,
   query,
@@ -534,5 +928,6 @@ export default {
   addTag,
   reprocess,
   reprocessAll,
-  updateMetadata
+  updateMetadata,
+  queryVisits
 };

@@ -28,6 +28,7 @@ script:
  - date
  - cd test
  - pytest --log-api-on-fail
+ - cd ..
 
 before_deploy:
 - version=${TRAVIS_TAG/v/}

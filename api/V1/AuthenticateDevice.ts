@@ -22,7 +22,7 @@ import auth from "../auth";
 import responseUtil from "./responseUtil";
 import { Application } from "express";
 
-export default function(app: Application) {
+export default function (app: Application) {
   /**
    * @api {post} /authenticate_device/ Authenticate a device
    * @apiName AuthenticateDevice

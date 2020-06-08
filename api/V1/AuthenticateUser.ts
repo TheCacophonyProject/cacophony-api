@@ -24,7 +24,7 @@ import { Application } from "express";
 
 const ttlTypes = Object.freeze({ short: 60, medium: 5 * 60, long: 30 * 60 });
 
-export default function(app: Application) {
+export default function (app: Application) {
   /**
    * @api {post} /authenticate_user/ Authenticate a user
    * @apiName AuthenticateUser

@@ -2,8 +2,8 @@
 const util = require("./util/util");
 
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    return new Promise(function(resolve, reject) {
+  up: function (queryInterface, Sequelize) {
+    return new Promise(function (resolve, reject) {
       console.log("Create tag table.");
       queryInterface
         .createTable("Tags", {
@@ -103,13 +103,13 @@ module.exports = {
         .then(() => {
           resolve();
         })
-        .catch(err => {
+        .catch((err) => {
           reject(err);
         });
     });
   },
 
-  down: function(queryInterface) {
+  down: function (queryInterface) {
     return queryInterface.sequelize.query('DROP TABLE "Tags" CASCADE');
   }
 };
