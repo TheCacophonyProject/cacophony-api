@@ -10,20 +10,20 @@ python:
   - "3.6"
 
 install:
- - docker-compose build
- - docker-compose up --force-recreate &> dockerstart.log &
- - npm install -g apidoc
- - npm run apidoc
- - npm install -g eslint
- - pip install -r test/requirements.txt
+  - npm install -g apidoc
+  - npm run apidoc
+  - npm install -g eslint
+  - docker-compose build
+  - docker-compose up --force-recreate &> dockerstart.log &
+  - pip install -r test/requirements.txt
 
 script:
  - npm run lint
  - black --diff --check ./test
  - ./wait-for-api || { docker ps; docker-compose logs; exit 1; }
 # Apply migration undo and redo to test undo migration
- - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate:undo --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
- - docker exec -it cacophony-api /app-isolated/node_modules/.bin/sequelize db:migrate --config /app-isolated/config/app_test_default.js --migrations-path /app-isolated/migrations
+ - docker-compose exec server /app/node_modules/.bin/sequelize db:migrate:undo --config /app/config/app_test_default.js --migrations-path /app/migrations
+ - docker-compose exec server /app/node_modules/.bin/sequelize db:migrate --config /app/config/app_test_default.js --migrations-path /app/migrations
 
  - date
  - cd test
