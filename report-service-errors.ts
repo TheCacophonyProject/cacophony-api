@@ -1,7 +1,6 @@
 import config from "./config";
 const winston = require("winston");
 import eventUtil from "./api/V1/eventUtil";
-// import models from "./models";
 import moment, { Moment } from "moment";
 import { ServiceErrorMap } from "./api/V1/systemError";
 import nodemailer from "nodemailer";
@@ -25,7 +24,6 @@ async function main() {
     return;
   }
   const html = generateHtml(startDate, endDate, serviceErrors);
-  console.log(html);
   await sendEmail(html);
 }
 
@@ -72,8 +70,8 @@ async function sendEmail(html: string) {
   var transporter = nodemailer.createTransport(config.smtpDetails);
 
   var mailOptions = {
-    from: "info@cacophony.org.nz",
-    to: "	coredev@cacophony.org.nz",
+    from: config.smtpDetails.from_name,
+    to: "coredev@cacophony.org.nz",
     subject: "Service Errors in the last 24 hours",
     html: html
   };

@@ -34,6 +34,7 @@ async function main() {
     s3,
     keyTypes.map((x) => x.prefix)
   );
+
   console.log(`loaded ${bucketKeys.size} keys from the object store`);
 
   console.log(
