@@ -367,7 +367,10 @@ export default function (
           },
           attributes: (models.Recording as RecordingStatic)
             .processingAttributes,
-          order: [["recordingDateTime", "DESC"]],
+          order: [
+            ["recordingDateTime", "DESC"],
+            ["id", "DESC"]  // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+          ],
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
