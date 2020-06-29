@@ -50,8 +50,8 @@ function generateHtml(
       serviceHtml += `${
         error.similar.length
       } Error${suffix} from ${firstError.format(
-        "ddd do H:MMa"
-      )} - ${lastError.format("ddd do H:MMa")}<br>`;
+        "ddd Do H:MMa"
+      )} - ${lastError.format("ddd Do H:MMa")}<br>`;
       serviceHtml += ` ${error.similar[0].lines}<br>`;
       serviceHtml += `Devices Affected:<br>`;
       serviceHtml += `${devices}<br>`;
