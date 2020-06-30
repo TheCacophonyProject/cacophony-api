@@ -1,4 +1,4 @@
 #
 # cron.d/cacophony-api-report-errors
 # every day at 9
-* 09 * * * root (cd /srv/cacophony/api/ && node report-service-errors.js) 2>&1 | logger --tag report-errors
+0 9 * * * root (cd /srv/cacophony/api/ && node report-service-errors.js) 2>&1 | logger --tag report-errors
