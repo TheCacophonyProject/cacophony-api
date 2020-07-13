@@ -13,6 +13,7 @@ install:
   - npm install -g apidoc
   - npm run apidoc
   - npm install -g eslint
+  - npm run lint
   - docker-compose build
   - docker-compose up --force-recreate &> dockerstart.log &
   - pip install -r test/requirements.txt
