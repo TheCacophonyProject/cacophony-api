@@ -1,21 +1,24 @@
-sudo: required
-
 services:
   - docker
 
-dist: xenial
+dist: bionic
 
-language: python
-python:
-  - "3.6"
+language: node_js
+node_js:
+  - "lts/*"
+
+python: 
+  - "3.6.1"
 
 install:
   - npm install -g apidoc
   - npm run apidoc
   - npm install -g eslint
+  - sudo apt update
+  - sudo apt install python3-pip
+  - python3 -m pip install -r test/requirements.txt
   - docker-compose build
   - docker-compose up --force-recreate &> dockerstart.log &
-  - pip install -r test/requirements.txt
 
 script:
  - npm run lint
@@ -27,7 +30,7 @@ script:
 
  - date
  - cd test
- - pytest --log-api-on-fail
+ - python3 -m pytest --log-api-on-fail
  - cd ..
 
 before_deploy:
