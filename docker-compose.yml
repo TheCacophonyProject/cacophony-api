@@ -1,0 +1,21 @@
+version: "2.4"
+services:
+  server:
+    container_name: cacophony-api
+    build: .
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
+      POSTGRES_DBNAME: cacophonytest
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: miniostorage
+    ports:
+      - 1080:1080
+      - 2008:2008
+      - 5432:5432
+      - 9001:9001
+    volumes:
+      - ./models:/app/models
+      - ./apidoc:/app/apidoc
+      - ./config:/app/config
+      - ./api/:/app/api

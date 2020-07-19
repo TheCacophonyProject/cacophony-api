@@ -1,0 +1,6 @@
+_release
+.git
+docker-base
+node_modules
+test
+!test/db-seed.sql

@@ -1,6 +1,6 @@
 "use strict";
 
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 const tableName = "DeviceHistory";
 
