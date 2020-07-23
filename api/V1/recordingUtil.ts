@@ -81,7 +81,7 @@ function makeUploadHandler(mungeData?: (any) => any) {
       await tracksFromMeta(recording, data.metadata);
     }
     recording.processingState = models.Recording.uploadedState(
-      RecordingType.ThermalRaw
+      data.type as RecordingType
     );
     return recording;
   });

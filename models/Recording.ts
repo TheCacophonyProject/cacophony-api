@@ -397,7 +397,7 @@ export default function (
             .processingAttributes,
           order: [
             ["recordingDateTime", "DESC"],
-            ["id", "DESC"]  // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+            ["id", "DESC"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
           ],
           // @ts-ignore
           skipLocked: true,
@@ -437,7 +437,7 @@ export default function (
   /**
    * Return a single recording for a user/device.
    */
-  Recording.get = async function(
+  Recording.get = async function (
     modelObj: User | Device,
     id,
     permission,
@@ -454,7 +454,7 @@ export default function (
   /**
    * Return a single recording for a user.
    */
-  Recording.getForUser = async function(
+  Recording.getForUser = async function (
     user: User,
     id,
     permission,
@@ -501,7 +501,7 @@ export default function (
   /**
    * Return a single recording for a devce.
    */
-  Recording.getForDevice = async function(
+  Recording.getForDevice = async function (
     device: Device,
     id,
     options: getOptions = {}
@@ -578,8 +578,9 @@ export default function (
     if (typeof options.latLongPrec !== "number") {
       options.latLongPrec = 100;
     }
-
-    options.latLongPrec = Math.max(options.latLongPrec, 100);
+    if (!user.hasGlobalWrite()) {
+      options.latLongPrec = Math.max(options.latLongPrec, 100);
+    }
     return options;
   };
 
@@ -1357,7 +1358,7 @@ from (
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 
-  Recording.uploadedState = function(type: RecordingType) {
+  Recording.uploadedState = function (type: RecordingType) {
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {

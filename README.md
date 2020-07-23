@@ -21,7 +21,7 @@ For development and testing purposes it is easiest to run
 cacophony-api using Docker. To do this:
 
 * Ensure your user account is set up to run commands as root using `sudo`.
-* Ensure the Docker is installed (`sudo apt install docker.io` and `sudo apt install docker-compose` on
+* Ensure the Docker is installed (`sudo apt install docker.io` and docker-compose (https://docs.docker.com/compose/install/) on
   Ubuntu)
 * Run either `npm run dev` (if npm is installed) or `docker-compose build && docker-compose up --force-recreate`.
 

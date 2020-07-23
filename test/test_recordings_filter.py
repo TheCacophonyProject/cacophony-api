@@ -37,7 +37,7 @@ class TestRecordingsFilter:
         bobsDevice = helper.given_new_device(self, "bobs_device", bobsGroup)
         rec = bobsDevice.upload_recording({"location": [20, 20]})
 
-        print("  The recording shoudl have a defautl precision of 100m")
+        print("  The recording shoudl have a default precision of 100m")
         rec_prec_default = bob.get_recording(rec)
         assert rec_prec_default["location"]["coordinates"] == [20.00025, 20.00025]
 
@@ -56,7 +56,7 @@ class TestRecordingsFilter:
         rec_prec_attempt_200 = helper.admin_user().get_recording(rec, params_prec_200)
         assert rec_prec_attempt_200["location"]["coordinates"] == [20.000025, 20.000025]
 
-        print("  Recordings from a normal query shoudl also be filtered", end="")
+        print("  Recordings from a normal query should also be filtered", end="")
         rec = bob.query_recordings(filterOptions=json.dumps({"latLongPrec": 10}))[0]
         assert rec["location"]["coordinates"] == [20.00025, 20.00025]
 

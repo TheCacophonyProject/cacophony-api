@@ -164,7 +164,6 @@ class TestFileProcessing:
         status, json = user.reprocess_recordings(recordings)
         assert status != 200
         assert json["reprocessed"] == [recording_first.id_, recording_second.id_]
-        print(json)
         assert json["fail"] == [-1]
 
     def create_processed_recording(
@@ -270,7 +269,6 @@ class TestFileProcessing:
 
         # processed audio recording
         recording = listener.upload_audio_recording_deprecated()
-
         recording = file_processing.get("audio", "toMp3")
         file_processing.put(recording, success=True, complete=True)
         assert admin.get_recording(recording)["processingState"] == "analyse"
@@ -285,7 +283,6 @@ class TestFileProcessing:
 
 def check_recording(user, recording, **expected):
     r = user.get_recording(recording)
-    print(r)
     for name, value in expected.items():
         if name == "additionalMetadata":
             # Just check the specific keys to allow for other
