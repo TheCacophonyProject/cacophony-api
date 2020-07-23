@@ -318,7 +318,6 @@ export default function (app: Application, baseUrl: string) {
 
       query("operator").isIn(["or", "and", "OR", "AND"]).optional(),
       auth.authenticateAccess(["user"], { devices: "r" })
-
     ],
     middleware.requestWrapper(async function (request, response) {
       if (
