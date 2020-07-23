@@ -6,7 +6,7 @@ import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
 import { Response, Request, Application } from "express";
 
-export default function(app: Application) {
+export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
 
   /**
@@ -29,56 +29,10 @@ export default function(app: Application) {
       return response.status(200).json({
         // FIXME(jon): Test that dataValues is even a thing.  It's not a publicly
         //  documented sequelize property.
-        recording: (recording as any).dataValues
+        recording: (recording as any).dataValues,
       });
     }
   });
-
-  /**
-   * @api {get} /api/fileProcessing/:id/tracks Get tracks for recording
-   * @apiName GetTracks
-   * @apiGroup Tracks
-   * @apiDescription Get all tracks for a given recording and their tags.
-   *
-   * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {JSON} tracks Array with elements containing id,
-   * algorithm, data and tags fields.
-   *
-   * @apiUse V1ResponseError
-   */
-  app.get(
-    `${apiUrl}/:id/tracks`,
-    [
-      param("id")
-        .isInt()
-        .toInt()
-    ],
-    middleware.requestWrapper(async (request, response) => {
-      const recording = await models.Recording.findByPk(request.params.id);
-
-      if (!recording) {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["No such recording."]
-        });
-        return;
-      }
-      console.log("found rec getting tracks", recording.id);
-      const tracks = await recording.getActiveTracksTagsAndTagger();
-      console.log("got tracks", recording.id);
-
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["OK."],
-        tracks: tracks.map(t => {
-          delete t.dataValues.RecordingId;
-          return t;
-        })
-      });
-    })
-  );
 
   /**
    * @api {put} /api/fileProcessing Finished a file processing job
@@ -121,7 +75,7 @@ export default function(app: Application) {
 
     if (errorMessages.length > 0) {
       return response.status(400).json({
-        messages: errorMessages
+        messages: errorMessages,
       });
     }
 
@@ -130,7 +84,7 @@ export default function(app: Application) {
     // Check that jobKey is correct.
     if (jobKey != recording.get("jobKey")) {
       return response.status(400).json({
-        messages: ["'jobKey' given did not match the database.."]
+        messages: ["'jobKey' given did not match the database.."],
       });
     }
 
@@ -157,7 +111,7 @@ export default function(app: Application) {
       recording.set("jobKey", null);
       await recording.save();
       return response.status(200).json({
-        messages: ["Processing failed."]
+        messages: ["Processing failed."],
       });
     }
   });
@@ -186,8 +140,8 @@ export default function(app: Application) {
     middleware.requestWrapper(async (request, response) => {
       const options = {
         include: [
-          { model: models.Device, where: {}, attributes: ["devicename", "id"] }
-        ]
+          { model: models.Device, where: {}, attributes: ["devicename", "id"] },
+        ],
       };
       const recording = await models.Recording.findByPk(
         request.body.recordingId,
@@ -215,7 +169,7 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/metadata`,
     [middleware.getRecordingById(body), middleware.parseJSON("metadata", body)],
-    middleware.requestWrapper(async request => {
+    middleware.requestWrapper(async (request) => {
       await recordingUtil.updateMetadata(
         request.body.recording,
         request.body.metadata
@@ -241,29 +195,27 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/:id/tracks`,
     [
-      param("id")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
       middleware.parseJSON("data", body),
-      middleware.getDetailSnapshotById(body, "algorithmId")
+      middleware.getDetailSnapshotById(body, "algorithmId"),
     ],
     middleware.requestWrapper(async (request: Request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."]
+          messages: ["No such recording."],
         });
         return;
       }
       const track = await recording.createTrack({
         data: request.body.data,
-        AlgorithmId: request.body.algorithmId
+        AlgorithmId: request.body.algorithmId,
       });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track added."],
-        trackId: track.id
+        trackId: track.id,
       });
     })
   );
@@ -280,27 +232,23 @@ export default function(app: Application) {
    */
   app.delete(
     `${apiUrl}/:id/tracks`,
-    [
-      param("id")
-        .isInt()
-        .toInt()
-    ],
+    [param("id").isInt().toInt()],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."]
+          messages: ["No such recording."],
         });
         return;
       }
 
       const tracks = await recording.getTracks();
-      tracks.forEach(track => track.destroy());
+      tracks.forEach((track) => track.destroy());
 
       responseUtil.send(response, {
         statusCode: 200,
-        messages: ["Tracks cleared."]
+        messages: ["Tracks cleared."],
       });
     })
   );
@@ -322,24 +270,18 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/:id/tracks/:trackId/tags`,
     [
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt(),
       body("what"),
-      body("confidence")
-        .isFloat()
-        .toFloat(),
-      middleware.parseJSON("data", body).optional()
+      body("confidence").isFloat().toFloat(),
+      middleware.parseJSON("data", body).optional(),
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such recording."]
+          messages: ["No such recording."],
         });
         return;
       }
@@ -348,7 +290,7 @@ export default function(app: Application) {
       if (!track) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such track."]
+          messages: ["No such track."],
         });
         return;
       }
@@ -357,12 +299,12 @@ export default function(app: Application) {
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: true,
-        data: request.body.data
+        data: request.body.data,
       });
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],
-        trackTagId: tag.id
+        trackTagId: tag.id,
       });
     })
   );
@@ -391,7 +333,7 @@ export default function(app: Application) {
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Algorithm key retrieved."],
-        algorithmId: algorithm.id
+        algorithmId: algorithm.id,
       });
     })
   );
