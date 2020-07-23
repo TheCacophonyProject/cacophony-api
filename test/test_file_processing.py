@@ -49,6 +49,36 @@ class TestFileProcessing:
         file_processing.put(recording, success=True, complete=True)
         check_recording(user, recording, processingState="FINISHED")
 
+    def test_thermal_video_with_meta(self, helper, file_processing):
+        user = helper.admin_user()
+
+        track_meta = {
+            "start_s": 10,
+            "end_s": 22.2,
+            "confident_tag": "rodent",
+            "all_class_confidences": {"rodent": 0.9, "else": 0.1},
+            "confidence": 0.9,
+        }
+        metadata = {"algorithm": {"model_name": "test-model"}, "tracks": [track_meta]}
+        props = {"metadata": metadata}
+        helper.given_a_recording(self, props=props)
+
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        assert recording["processingState"] == "getMetadata"
+
+        tracks = user.get_tracks(recording.id_)
+        assert len(tracks) == 1
+        track = tracks[0]
+
+        track_tags = track["TrackTags"]
+        assert len(track_tags) == 1
+        track_tag = track_tags[0]
+        assert track_tag["data"]["all_class_confidences"] == track_meta["all_class_confidences"]
+        assert track_tag["automatic"] is True
+        assert track_tag["what"] == track_meta["confident_tag"]
+        assert track_tag["confidence"] == track_meta["confidence"]
+        assert track_tag["data"]["name"] == metadata["algorithm"]["model_name"]
+
     def test_metadata_update(self, helper, file_processing):
         user = helper.admin_user()
         helper.given_a_recording(self)
