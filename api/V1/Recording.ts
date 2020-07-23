@@ -610,11 +610,7 @@ export default (app: Application, baseUrl: string) => {
     [
       auth.authenticateUser,
       param("id").isInt().toInt(),
-<<<<<<< HEAD
-      param("trackId").isInt().toInt(),
-=======
       param("trackId").isInt().toInt()
->>>>>>> origin/master
     ],
     middleware.requestWrapper(async (request, response) => {
       const track = await loadTrack(request, response);
@@ -661,11 +657,7 @@ export default (app: Application, baseUrl: string) => {
       body("what"),
       body("confidence").isFloat().toFloat(),
       body("automatic").isBoolean().toBoolean(),
-<<<<<<< HEAD
-      middleware.parseJSON("data", body).optional(),
-=======
       middleware.parseJSON("data", body).optional()
->>>>>>> origin/master
     ],
     middleware.requestWrapper(async (request, response) => {
       const newTag = models.TrackTag.build({
@@ -714,11 +706,7 @@ export default (app: Application, baseUrl: string) => {
       body("confidence").isFloat().toFloat(),
       body("automatic").isBoolean().toBoolean(),
       body("tagJWT").optional().isString(),
-<<<<<<< HEAD
-      middleware.parseJSON("data", body).optional(),
-=======
       middleware.parseJSON("data", body).optional()
->>>>>>> origin/master
     ],
     middleware.requestWrapper(async (request, response) => {
       let track;
@@ -769,11 +757,7 @@ export default (app: Application, baseUrl: string) => {
       param("id").isInt().toInt(),
       param("trackId").isInt().toInt(),
       param("trackTagId").isInt().toInt(),
-<<<<<<< HEAD
-      query("tagJWT").isString().optional(),
-=======
       query("tagJWT").isString().optional()
->>>>>>> origin/master
     ],
     middleware.requestWrapper(async (request, response) => {
       let track;
