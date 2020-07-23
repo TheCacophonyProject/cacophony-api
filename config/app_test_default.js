@@ -26,10 +26,19 @@ exports.database = {
   host: "localhost",
   dialect: "postgres"
 };
+
+exports.smtpDetails = {
+  service: "gmail",
+  auth: {
+    user: "noinfo@cacophony.org.nz",
+    pass: "thesecretpassword"
+  }
+};
 // This is needed because Sequelize looks for development by default
 // when using db:migrate
 exports.development = exports.database;
 exports.default = {
+  smtpDetails: exports.smtpDetails,
   server: exports.server,
   s3: exports.s3,
   fileProcessing: exports.fileProcessing,

@@ -62,6 +62,9 @@ class TestUser:
     def query_recordings(self, **options):
         return self._userapi.query(**options)
 
+    def query_visits(self, **options):
+        return self._userapi.query_visits(**options)
+
     def can_see_recordings(self, *expected_recordings):
         self._can_see_recordings_with_query({}, *expected_recordings)
 
@@ -143,8 +146,10 @@ class TestUser:
                 )
             )
 
-    def get_report(self, **args):
+    def get_report(self, raw=False, **args):
         text = self._userapi.report(**args)
+        if raw:
+            return text.splitlines()
         return csv.DictReader(text.splitlines())
 
     def can_download_correct_recording(self, recording):
@@ -243,6 +248,12 @@ class TestUser:
         if self._group is None:
             self._group = self.create_group(self.username + "s_devices", False)
         return self._group
+
+    def can_see_event_errors(self, device=None, startTime=None, endTime=None):
+        deviceId = None
+        if device is not None:
+            deviceId = device.get_id()
+        return self._userapi.query_event_errors(deviceId=deviceId, startTime=startTime, endTime=endTime)
 
     def can_see_events(self, device=None, startTime=None, endTime=None):
         deviceId = None
@@ -364,8 +375,8 @@ class TestUser:
         users = self._userapi.list_device_users(device.get_id())
         return {u["username"] for u in users if u["relation"] == relation}
 
-    def can_add_track_to_recording(self, recording):
-        track = Track.create(recording)
+    def can_add_track_to_recording(self, recording, start_s=10):
+        track = Track.create(recording, start_s)
         track.id_ = self._userapi.add_track(recording.id_, track.data)
         recording.tracks.append(track)
         return track

@@ -1,7 +1,7 @@
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.removeColumn("Devices", "UserId");
     await queryInterface.createTable("DeviceUsers", {
       admin: { type: Sequelize.BOOLEAN, defaultValue: false },
@@ -17,7 +17,7 @@ module.exports = {
     );
   },
 
-  down: async function(queryInterface, Sequelize) {
+  down: async function (queryInterface, Sequelize) {
     await queryInterface.dropTable("DeviceUsers");
     return queryInterface.addColumn("Devices", "UserId", {
       type: Sequelize.INTEGER

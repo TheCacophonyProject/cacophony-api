@@ -72,12 +72,8 @@ export default (app: Application, baseUrl: string) => {
     [
       auth.authenticateUser,
       middleware.parseJSON("where", query),
-      query("offset")
-        .isInt()
-        .optional(),
-      query("limit")
-        .isInt()
-        .optional(),
+      query("offset").isInt().optional(),
+      query("limit").isInt().optional(),
       middleware.parseJSON("order", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {

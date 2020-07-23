@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.removeColumn("Tags", "trapInteractionTime");
     await queryInterface.removeColumn("Tags", "trapInteractionDuration");
     await queryInterface.removeColumn("Tags", "trappedTime");
@@ -14,7 +14,7 @@ module.exports = {
     return queryInterface.sequelize.query('DROP TYPE "enum_Tags_animal"');
   },
 
-  down: async function(queryInterface, Sequelize) {
+  down: async function (queryInterface, Sequelize) {
     await queryInterface.addColumn("Tags", "trapInteractionTime", {
       type: Sequelize.FLOAT
     });

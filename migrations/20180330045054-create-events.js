@@ -1,8 +1,8 @@
 "use strict";
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await queryInterface.createTable("EventDetails", {
       id: {
         allowNull: false,
@@ -48,7 +48,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, "Events", "Devices");
     await util.migrationAddBelongsTo(queryInterface, "Events", "EventDetails");
   },
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     await queryInterface.dropTable("Events");
     await queryInterface.dropTable("EventDetails");
   }

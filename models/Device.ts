@@ -16,13 +16,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { AuthorizationError, ClientError } from "../api/customErrors";
 import bcrypt from "bcrypt";
 import { format } from "util";
-import Sequelize from "sequelize";
+import Sequelize, { FindOptions } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { User, UserId } from "./User";
 import { Group, GroupStatic } from "./Group";
 import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleId } from "./Schedule";
+import { Event } from "./Event";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
@@ -44,6 +45,8 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
     group: Group,
     newPassword: string
   ) => Promise<Device>;
+
+  getEvents: (options: FindOptions) => Promise<Event[]>;
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {
@@ -101,7 +104,7 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
   ) => Promise<{ hour: number; index: number }>;
 }
 
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): DeviceStatic {
@@ -159,7 +162,7 @@ export default function(
   //---------------
   const models = sequelize.models;
 
-  Device.addAssociations = function(models) {
+  Device.addAssociations = function (models) {
     models.Device.hasMany(models.Recording);
     models.Device.hasMany(models.Event);
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
@@ -172,7 +175,7 @@ export default function(
    * The authenticated user must either be admin of the group that the device
    * belongs to, an admin of that device, or have global write permission.
    */
-  Device.addUserToDevice = async function(authUser, device, userToAdd, admin) {
+  Device.addUserToDevice = async function (authUser, device, userToAdd, admin) {
     if (device == null || userToAdd == null) {
       return false;
     }
@@ -203,7 +206,11 @@ export default function(
    * Removes a user from a Device, if the given user has permission to do so.
    * The user must be a group or device admin, or have global write permission to do this. .
    */
-  Device.removeUserFromDevice = async function(authUser, device, userToRemove) {
+  Device.removeUserFromDevice = async function (
+    authUser,
+    device,
+    userToRemove
+  ) {
     if (device == null || userToRemove == null) {
       return false;
     }
@@ -226,7 +233,7 @@ export default function(
     return true;
   };
 
-  Device.onlyUsersDevicesMatching = async function(
+  Device.onlyUsersDevicesMatching = async function (
     user,
     conditions = null,
     includeData = null
@@ -251,7 +258,7 @@ export default function(
     });
   };
 
-  Device.allForUser = async function(user) {
+  Device.allForUser = async function (user) {
     const includeData = [
       {
         model: models.User,
@@ -262,7 +269,7 @@ export default function(
     return this.onlyUsersDevicesMatching(user, null, includeData);
   };
 
-  Device.newUserPermissions = function(enabled) {
+  Device.newUserPermissions = function (enabled) {
     return {
       canListUsers: enabled,
       canAddUsers: enabled,
@@ -270,7 +277,7 @@ export default function(
     };
   };
 
-  Device.freeDevicename = async function(devicename, groupId) {
+  Device.freeDevicename = async function (devicename, groupId) {
     const device = await this.findOne({
       where: { devicename: devicename, GroupId: groupId }
     });
@@ -280,11 +287,11 @@ export default function(
     return true;
   };
 
-  Device.getFromId = async function(id) {
+  Device.getFromId = async function (id) {
     return this.findByPk(id);
   };
 
-  Device.findDevice = async function(
+  Device.findDevice = async function (
     deviceID,
     deviceName,
     groupName,
@@ -320,7 +327,7 @@ export default function(
     return model;
   };
 
-  Device.wherePasswordMatches = async function(devices, password) {
+  Device.wherePasswordMatches = async function (devices, password) {
     // checks if there is a unique devicename and password match, else returns null
     const validDevices = [];
     let passwordMatch = false;
@@ -342,16 +349,16 @@ export default function(
     }
   };
 
-  Device.getFromNameAndPassword = async function(name, password) {
+  Device.getFromNameAndPassword = async function (name, password) {
     const devices = await this.allWithName(name);
     return this.wherePasswordMatches(devices, password);
   };
 
-  Device.allWithName = async function(name) {
+  Device.allWithName = async function (name) {
     return this.findAll({ where: { devicename: name } });
   };
 
-  Device.getFromNameAndGroup = async function(name, groupName) {
+  Device.getFromNameAndGroup = async function (name, groupName) {
     return this.findOne({
       where: { devicename: name },
       include: [
@@ -363,7 +370,7 @@ export default function(
     });
   };
 
-  Device.getCacophonyIndex = async function(
+  Device.getCacophonyIndex = async function (
     authUser,
     deviceId,
     from,
@@ -398,7 +405,7 @@ where
     return index;
   };
 
-  Device.getCacophonyIndexHistogram = async function(
+  Device.getCacophonyIndexHistogram = async function (
     authUser,
     deviceId,
     from,
@@ -429,7 +436,7 @@ order by hour;
 `);
     // TODO(jon): Do we want to validate that there is enough data in a given hour
     //  to get a reasonable index histogram?
-    return results.map(item => ({
+    return results.map((item) => ({
       hour: Number(item.hour),
       index: Number(item.index)
     }));
@@ -438,7 +445,7 @@ order by hour;
   /**
    * finds devices that match device array and groups array with supplied operator (or by default)
    */
-  Device.queryDevices = async function(
+  Device.queryDevices = async function (
     authUser,
     devices,
     groupNames,
@@ -451,11 +458,11 @@ order by hour;
     }
 
     if (devices) {
-      const fullNames = devices.filter(device => {
+      const fullNames = devices.filter((device) => {
         return device.devicename.length > 0 && device.groupname.length > 0;
       });
       if (fullNames.length > 0) {
-        const groupDevices = fullNames.map(device =>
+        const groupDevices = fullNames.map((device) =>
           [device.groupname, device.devicename].join(":")
         );
         whereQuery = Sequelize.where(
@@ -469,11 +476,11 @@ order by hour;
         );
       }
 
-      const deviceNames = devices.filter(device => {
+      const deviceNames = devices.filter((device) => {
         return device.devicename.length > 0 && device.groupname.length == 0;
       });
       if (deviceNames.length > 0) {
-        const names = deviceNames.map(device => device.devicename);
+        const names = deviceNames.map((device) => device.devicename);
         let nameQuery = Sequelize.where(Sequelize.col("devicename"), {
           [Op.in]: names
         });
@@ -532,7 +539,7 @@ order by hour;
   // INSTANCE METHODS
   //------------------
 
-  Device.prototype.userPermissions = async function(user) {
+  Device.prototype.userPermissions = async function (user) {
     if (user.hasGlobalWrite()) {
       return Device.newUserPermissions(true);
     }
@@ -548,17 +555,17 @@ order by hour;
     return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
   };
 
-  Device.prototype.getJwtDataValues = function() {
+  Device.prototype.getJwtDataValues = function () {
     return {
       id: this.getDataValue("id"),
       _type: "device"
     };
   };
 
-  Device.prototype.comparePassword = function(password) {
+  Device.prototype.comparePassword = function (password) {
     const device = this;
-    return new Promise(function(resolve, reject) {
-      bcrypt.compare(password, device.password, function(err, isMatch) {
+    return new Promise(function (resolve, reject) {
+      bcrypt.compare(password, device.password, function (err, isMatch) {
         if (err) {
           reject(err);
         } else {
@@ -571,7 +578,7 @@ order by hour;
   // Returns users that have access to this device either via group
   // membership or direct assignment. By default, only "safe" user
   // attributes are returned.
-  Device.prototype.users = async function(
+  Device.prototype.users = async function (
     authUser,
     attrs = ["id", "username", "email"]
   ) {
@@ -590,13 +597,17 @@ order by hour;
   };
 
   // Will register as a new device
-  Device.prototype.reregister = async function(newName, newGroup, newPassword) {
+  Device.prototype.reregister = async function (
+    newName,
+    newGroup,
+    newPassword
+  ) {
     let newDevice;
     await sequelize.transaction(
       {
         isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
       },
-      async t => {
+      async (t) => {
         const conflictingDevice = await Device.findOne({
           where: {
             devicename: newName,
@@ -683,8 +694,8 @@ function afterValidate(device: Device): Promise<void> | undefined {
   if (device.password !== undefined) {
     // TODO Make the password be hashed when the device password is set not in the validation.
     // TODO or make a custom validation for the password.
-    return new Promise(function(resolve, reject) {
-      bcrypt.hash(device.password, 10, function(err, hash) {
+    return new Promise(function (resolve, reject) {
+      bcrypt.hash(device.password, 10, function (err, hash) {
         if (err) {
           reject(err);
         } else {

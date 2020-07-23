@@ -109,7 +109,10 @@ interface RecordingQueryBuilder {
 }
 
 interface RecordingQueryBuilderInstance {
-  addAudioEvents: () => RecordingQueryBuilderInstance;
+  addAudioEvents: (
+    before?: string,
+    after?: string
+  ) => RecordingQueryBuilderInstance;
   get: () => FindOptions;
   addColumn: (name: string) => RecordingQueryBuilderInstance;
   query: any;
@@ -302,13 +305,12 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
 }
 
 const Op = Sequelize.Op;
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): RecordingStatic {
   const name = "Recording";
-  const maxQueryResults = 100000;
-
+  const maxQueryResults = 10000;
   const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
@@ -360,20 +362,20 @@ export default function(
   //---------------
   const models = sequelize.models;
 
-  Recording.buildSafely = function(fields: Record<string, any>): Recording {
+  Recording.buildSafely = function (fields: Record<string, any>): Recording {
     return Recording.build(
       _.pick(fields, Recording.apiSettableFields)
     ) as Recording;
   };
 
-  Recording.addAssociations = function(models) {
+  Recording.addAssociations = function (models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
     models.Recording.hasMany(models.Tag);
     models.Recording.hasMany(models.Track);
   };
 
-  Recording.isValidTagMode = function(mode: TagMode) {
+  Recording.isValidTagMode = function (mode: TagMode) {
     return validTagModes.has(mode);
   };
 
@@ -382,9 +384,9 @@ export default function(
    * and sets the processingStartTime and jobKey for recording
    * arguments given.
    */
-  Recording.getOneForProcessing = async function(type, state) {
+  Recording.getOneForProcessing = async function (type, state) {
     return sequelize
-      .transaction(function(transaction) {
+      .transaction(function (transaction) {
         return Recording.findOne({
           where: {
             type: type,
@@ -393,12 +395,15 @@ export default function(
           },
           attributes: (models.Recording as RecordingStatic)
             .processingAttributes,
-          order: [["recordingDateTime", "DESC"]],
+          order: [
+            ["recordingDateTime", "DESC"],
+            ["id", "DESC"]  // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+          ],
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
           transaction
-        }).then(async function(recording) {
+        }).then(async function (recording) {
           const date = new Date();
           recording.set(
             {
@@ -415,7 +420,7 @@ export default function(
           return recording;
         });
       })
-      .then(function(result) {
+      .then(function (result) {
         return result;
       })
       .catch(() => {
@@ -432,6 +437,7 @@ export default function(
   /**
    * Return a single recording for a user/device.
    */
+<<<<<<< HEAD
   Recording.get = async function(
     modelObj: User | Device,
     id,
@@ -450,6 +456,9 @@ export default function(
    * Return a single recording for a user.
    */
   Recording.getForUser = async function(
+=======
+  Recording.get = async function (
+>>>>>>> origin/master
     user: User,
     id,
     permission,
@@ -535,7 +544,7 @@ export default function(
    * Deletes a single recording if the user has permission to do so.
    * @returns {Promise<Recording|null>} Returns the recording object if deleted, otherwise null.
    */
-  Recording.deleteOne = async function(user: User, id: RecordingId) {
+  Recording.deleteOne = async function (user: User, id: RecordingId) {
     const recording = await Recording.get(user, id, RecordingPermission.DELETE);
     if (!recording) {
       return null;
@@ -547,7 +556,7 @@ export default function(
   /**
    * Updates a single recording if the user has permission to do so.
    */
-  Recording.updateOne = async function(
+  Recording.updateOne = async function (
     user: User,
     id: RecordingId,
     updates: any
@@ -566,7 +575,7 @@ export default function(
     return true;
   };
 
-  Recording.makeFilterOptions = function(user: User, options: any) {
+  Recording.makeFilterOptions = function (user: User, options: any) {
     if (!options) {
       options = {};
     }
@@ -579,7 +588,7 @@ export default function(
   };
 
   // local
-  const recordingsFor = async function(user: User) {
+  const recordingsFor = async function (user: User) {
     if (user.hasGlobalRead()) {
       return null;
     }
@@ -729,21 +738,21 @@ from (
   // INSTANCE METHODS
   //------------------
 
-  Recording.prototype.getFileBaseName = function(): string {
+  Recording.prototype.getFileBaseName = function (): string {
     return moment(new Date(this.recordingDateTime))
       .tz(config.timeZone)
       .format("YYYYMMDD-HHmmss");
   };
 
-  Recording.prototype.getRawFileName = function() {
+  Recording.prototype.getRawFileName = function () {
     return this.getFileBaseName() + this.getRawFileExt();
   };
 
-  Recording.prototype.getFileName = function() {
+  Recording.prototype.getFileName = function () {
     return this.getFileBaseName() + this.getFileExt();
   };
 
-  Recording.prototype.getRawFileExt = function() {
+  Recording.prototype.getRawFileExt = function () {
     if (this.rawMimeType == "application/x-cptv") {
       return ".cptv";
     }
@@ -762,7 +771,7 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function(): Promise<
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
     any
   > {
     return await this.getTracks({
@@ -790,7 +799,7 @@ from (
   /**
    * TODO This will be edited in the future when recordings can be public.
    */
-  Recording.prototype.getUserPermissions = async function(
+  Recording.prototype.getUserPermissions = async function (
     user: User
   ): Promise<RecordingPermission[]> {
     if (
@@ -808,7 +817,7 @@ from (
 
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
-  Recording.prototype.mergeUpdate = function(newValues) {
+  Recording.prototype.mergeUpdate = function (newValues) {
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
@@ -819,11 +828,11 @@ from (
   };
 
   // Update additionalMetadata fields with new values supplied.
-  Recording.prototype.mergeAdditionalMetadata = function(newValues) {
+  Recording.prototype.mergeAdditionalMetadata = function (newValues) {
     this.additionalMetadata = { ...this.additionalMetadata, ...newValues };
   };
 
-  Recording.prototype.getFileExt = function() {
+  Recording.prototype.getFileExt = function () {
     if (this.fileMimeType == "video/mp4") {
       return ".mp4";
     }
@@ -834,7 +843,7 @@ from (
     return "";
   };
 
-  Recording.prototype.filterData = function(options: { latLongPrec: any }) {
+  Recording.prototype.filterData = function (options: { latLongPrec: any }) {
     if (this.location) {
       this.location.coordinates = reduceLatLonPrecision(
         this.location.coordinates,
@@ -847,7 +856,7 @@ from (
     assert(latLon.length == 2);
     const resolution = (prec * 360) / 40000000;
     const half_resolution = resolution / 2;
-    return latLon.map(val => {
+    return latLon.map((val) => {
       val = val - (val % resolution);
       if (val > 0) {
         val += half_resolution;
@@ -859,7 +868,7 @@ from (
   }
 
   // Returns all active tracks for the recording which are not archived.
-  Recording.prototype.getActiveTracks = async function() {
+  Recording.prototype.getActiveTracks = async function () {
     return await this.getTracks({
       where: {
         archivedAt: null
@@ -873,7 +882,7 @@ from (
   };
 
   // reprocess a recording and set all active tracks to archived
-  Recording.prototype.reprocess = async function() {
+  Recording.prototype.reprocess = async function () {
     const tags = await this.getTags();
     if (tags.length > 0) {
       const meta = this.additionalMetadata || {};
@@ -908,7 +917,7 @@ from (
   };
 
   // Return a specific track for the recording.
-  Recording.prototype.getTrack = async function(
+  Recording.prototype.getTrack = async function (
     trackId: TrackId
   ): Promise<Track | null> {
     const track = await models.Track.findByPk(trackId);
@@ -923,9 +932,9 @@ from (
     return track;
   };
 
-  Recording.queryBuilder = (function() {} as unknown) as RecordingQueryBuilder;
+  Recording.queryBuilder = (function () {} as unknown) as RecordingQueryBuilder;
 
-  Recording.queryBuilder.prototype.init = async function(
+  Recording.queryBuilder.prototype.init = async function (
     user,
     where,
     tagMode,
@@ -1121,7 +1130,7 @@ from (
     if (
       !tagWhats ||
       (!tagWhats && tagTypeSql) ||
-      tagWhats.find(tag =>
+      tagWhats.find((tag) =>
         (models.Tag as TagStatic).acceptableTags.has(tag as AcceptableTag)
       )
     ) {
@@ -1145,7 +1154,7 @@ from (
     if (
       !tagWhats ||
       (!tagWhats && tagTypeSql) ||
-      tagWhats.find(tag =>
+      tagWhats.find((tag) =>
         (models.Tag as TagStatic).acceptableTags.has(tag as AcceptableTag)
       )
     ) {
@@ -1228,17 +1237,26 @@ from (
     return parts.join(" OR ");
   };
 
-  Recording.queryBuilder.prototype.get = function() {
+  Recording.queryBuilder.prototype.get = function () {
     return this.query;
   };
 
-  Recording.queryBuilder.prototype.addColumn = function(name: string) {
+  Recording.queryBuilder.prototype.addColumn = function (name: string) {
     this.query.attributes.push(name);
     return this;
   };
 
   // Include details of recent audio bait events in the query output.
-  Recording.queryBuilder.prototype.addAudioEvents = function() {
+  Recording.queryBuilder.prototype.addAudioEvents = function (
+    after?: string,
+    before?: string
+  ) {
+    if (!after) {
+      after = '"Recording"."recordingDateTime" - interval \'30 minutes\'';
+    }
+    if (!before) {
+      before = '"Recording"."recordingDateTime"';
+    }
     const deviceInclude = this.findInclude(models.Device as DeviceStatic);
 
     if (!deviceInclude.include) {
@@ -1250,12 +1268,7 @@ from (
         required: false,
         where: {
           dateTime: {
-            [Op.between]: [
-              Sequelize.literal(
-                '"Recording"."recordingDateTime" - interval \'30 minutes\''
-              ),
-              Sequelize.literal('"Recording"."recordingDateTime"')
-            ]
+            [Op.between]: [Sequelize.literal(after), Sequelize.literal(before)]
           }
         },
         include: [
@@ -1275,7 +1288,7 @@ from (
     return this;
   };
 
-  Recording.queryBuilder.prototype.findInclude = function(
+  Recording.queryBuilder.prototype.findInclude = function (
     modelType: ModelStaticCommon<any>
   ): Includeable[] {
     for (const inc of this.query.include) {

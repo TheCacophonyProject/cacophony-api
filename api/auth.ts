@@ -43,7 +43,7 @@ function createEntityJWT<T>(
   return jwt.sign(payload, config.server.passportSecret, options);
 }
 
-const getVerifiedJWT = req => {
+const getVerifiedJWT = (req) => {
   const token = ExtractJwt.fromAuthHeaderWithScheme("jwt")(req);
   if (!token) {
     throw new customErrors.AuthenticationError("Could not find JWT token.");

@@ -1,8 +1,8 @@
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    return new Promise(function(resolve, reject) {
+  up: function (queryInterface, Sequelize) {
+    return new Promise(function (resolve, reject) {
       console.log("Create tables.");
       return Promise.all([
         queryInterface.createTable("AudioRecordings", {
@@ -170,15 +170,15 @@ module.exports = {
           console.log("Finished INIT migration.");
           resolve();
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
           reject(err);
         });
     });
   },
 
-  down: function() {
-    return new Promise(function(resolve, reject) {
+  down: function () {
+    return new Promise(function (resolve, reject) {
       console.log("Can not undo init migration.");
       reject("Can not undo init migration.");
     });

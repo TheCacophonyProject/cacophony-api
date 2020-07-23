@@ -1,8 +1,8 @@
 "use strict";
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async function (queryInterface, Sequelize) {
     await util.renameTableAndIdSeq(
       queryInterface,
       "EventDetails",
@@ -69,7 +69,7 @@ module.exports = {
     await util.migrationAddBelongsTo(queryInterface, "TrackTags", "Users");
   },
 
-  down: async function(queryInterface) {
+  down: async function (queryInterface) {
     await util.renameTableAndIdSeq(
       queryInterface,
       "DetailSnapshots",

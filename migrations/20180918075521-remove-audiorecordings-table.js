@@ -1,12 +1,12 @@
 "use strict";
-const util = require("../models/util/util");
+const util = require("./util/util");
 
 module.exports = {
-  up: function(queryInterface) {
+  up: function (queryInterface) {
     return queryInterface.dropTable("AudioRecordings");
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: function (queryInterface, Sequelize) {
     return queryInterface
       .createTable("AudioRecordings", {
         fileKey: Sequelize.STRING,

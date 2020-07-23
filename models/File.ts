@@ -42,7 +42,7 @@ export interface FileStatic extends ModelStaticCommon<File> {
   deleteIfAllowedElseThrow: (user: User, file: File) => Promise<void>;
   getMultiple: (ids: FileId[]) => Promise<File[]>;
 }
-export default function(sequelize, DataTypes) {
+export default function (sequelize, DataTypes) {
   const name = "File";
 
   const attributes = {
@@ -59,11 +59,11 @@ export default function(sequelize, DataTypes) {
   // CLASS METHODS
   //---------------
 
-  File.buildSafely = function(fields) {
+  File.buildSafely = function (fields) {
     return File.build(_.pick(fields, File.apiSettableFields)) as File;
   };
 
-  File.addAssociations = function(models) {
+  File.addAssociations = function (models) {
     models.File.belongsTo(models.User);
   };
 
@@ -71,7 +71,7 @@ export default function(sequelize, DataTypes) {
    * Return one or more files for a user matching the query
    * arguments given.
    */
-  File.query = async function(where, offset, limit, order) {
+  File.query = async function (where, offset, limit, order) {
     if (order == null) {
       order = [["id", "DESC"]];
     }
@@ -86,7 +86,7 @@ export default function(sequelize, DataTypes) {
     return this.findAndCountAll(q);
   };
 
-  File.deleteIfAllowedElseThrow = async function(user, file) {
+  File.deleteIfAllowedElseThrow = async function (user, file) {
     if (!user.hasGlobalWrite() && user.id != file.UserId) {
       throw new AuthorizationError(
         "The user does not own that file and is not a global admin!"
@@ -95,7 +95,7 @@ export default function(sequelize, DataTypes) {
     await file.destroy();
   };
 
-  File.getMultiple = async function(ids) {
+  File.getMultiple = async function (ids) {
     return this.findAll({
       where: {
         id: {

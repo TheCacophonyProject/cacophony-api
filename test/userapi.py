@@ -78,6 +78,40 @@ class UserAPI(APIBase):
             return_json=return_json,
         )
 
+    def query_visits(
+        self,
+        startDate=None,
+        endDate=None,
+        min_secs=0,
+        limit=100,
+        offset=0,
+        tagmode=None,
+        tags=None,
+        filterOptions=None,
+        deviceIds=None,
+        return_json=True,
+        where=None,
+    ):
+        if where is None:
+            where = defaultdict(dict)
+        where["duration"] = {"$gte": min_secs}
+        if startDate is not None:
+            where["recordingDateTime"]["$gte"] = startDate.isoformat()
+        if endDate is not None:
+            where["recordingDateTime"]["$lte"] = endDate.isoformat()
+        if deviceIds is not None:
+            where["DeviceId"] = deviceIds
+        return self._query(
+            "recordings/visits",
+            where=where,
+            limit=limit,
+            offset=offset,
+            tagMode=tagmode,
+            tags=tags,
+            filterOptions=filterOptions,
+            return_json=return_json,
+        )
+
     def report(
         self,
         startDate=None,
@@ -90,6 +124,7 @@ class UserAPI(APIBase):
         filterOptions=None,
         deviceIds=None,
         jwt=None,
+        report_type=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -109,6 +144,9 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
+
+        if report_type:
+            params["type"] = report_type
 
         if jwt:
             params["jwt"] = jwt
@@ -281,6 +319,11 @@ class UserAPI(APIBase):
         )
         return self._check_response(response)["messages"]
 
+    def query_event_errors(self, deviceId=None, startTime=None, endTime=None, limit=20):
+        return self._query(
+            "events/errors", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit
+        )
+
     def query_events(self, deviceId=None, startTime=None, endTime=None, limit=20):
         return self._query("events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit)
 
@@ -296,7 +339,6 @@ class UserAPI(APIBase):
 
     def _query(self, queryname, **params):
         url = urljoin(self._baseurl, "/api/v1/" + queryname)
-
         params.setdefault("limit", 100)
         params.setdefault("offset", 0)
         return_json = params.pop("return_json", False)

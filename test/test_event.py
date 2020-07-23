@@ -5,6 +5,28 @@ from test.testexception import AuthorizationError
 
 
 class TestEvent:
+    def test_system_errors(self, helper):
+        user, device = helper.given_new_user_with_device(self, "error_maker")
+        new_event_name = "systemError"
+        unit_name = "coffeeMaker"
+
+        lines = ["Failure due to {} existing with status 12".format("barrys v2500 is out of milk")]
+        lines2 = ["Failure due to {} existing with status 12".format("franks rocket has no internet")]
+        lines3 = ["Failure due to {} existing with status 12".format("franks rocket is out of milk")]
+
+        details = {"version": 1, "unitName": unit_name, "activeState": "failed"}
+        details["logs"] = lines
+        screech = device.record_event(new_event_name, details)
+        details["logs"] = lines2
+        screech2 = device.record_event(new_event_name, details)
+        details["logs"] = lines3
+        screech2 = device.record_event(new_event_name, details)
+        errors = user.can_see_event_errors()
+        assert unit_name in errors
+        service = errors[unit_name]
+        assert len(service["errors"]) == 2
+        assert set(len(error["similar"]) for error in service["errors"]) == set([1, 2])
+
     def test_can_create_new_event(self, helper):
         doer = helper.given_new_device(self, "The Do-er")
         new_event_name = "E_" + helper.random_id()

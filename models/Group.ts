@@ -52,7 +52,7 @@ export interface GroupStatic extends ModelStaticCommon<Group> {
   getIdFromName: (groupname: string) => Promise<GroupId | null>;
 }
 
-export default function(sequelize, DataTypes): GroupStatic {
+export default function (sequelize, DataTypes): GroupStatic {
   const name = "Group";
 
   const attributes = {
@@ -71,7 +71,7 @@ export default function(sequelize, DataTypes): GroupStatic {
   //---------------
   const models = sequelize.models;
 
-  Group.addAssociations = function(models) {
+  Group.addAssociations = function (models) {
     models.Group.hasMany(models.Device);
     models.Group.belongsToMany(models.User, { through: models.GroupUsers });
     models.Group.hasMany(models.Recording);
@@ -81,7 +81,7 @@ export default function(sequelize, DataTypes): GroupStatic {
    * Adds a user to a Group, if the given user has permission to do so.
    * The user must be a group admin to do this.
    */
-  Group.addUserToGroup = async function(authUser, group, userToAdd, admin) {
+  Group.addUserToGroup = async function (authUser, group, userToAdd, admin) {
     if (!(await group.userPermissions(authUser)).canAddUsers) {
       throw new AuthorizationError(
         "User is not a group admin so cannot add users"
@@ -107,7 +107,7 @@ export default function(sequelize, DataTypes): GroupStatic {
    * Removes a user from a Group, if the given user has permission to do so.
    * The user must be a group admin to do this.
    */
-  Group.removeUserFromGroup = async function(authUser, group, userToRemove) {
+  Group.removeUserFromGroup = async function (authUser, group, userToRemove) {
     if (!(await group.userPermissions(authUser)).canRemoveUsers) {
       throw new AuthorizationError(
         "User is not a group admin so cannot remove users"
@@ -130,7 +130,7 @@ export default function(sequelize, DataTypes): GroupStatic {
    * Return one or more groups matching the where condition. Only get groups
    * that the user belongs if user does not have global read/write permission.
    */
-  Group.query = async function(where, user: User) {
+  Group.query = async function (where, user: User) {
     let userWhere = { id: user.id };
     if (user.hasGlobalRead()) {
       userWhere = null;
@@ -160,11 +160,11 @@ export default function(sequelize, DataTypes): GroupStatic {
           attributes: ["id", "devicename"]
         }
       ]
-    }).then(groups => {
+    }).then((groups) => {
       // TODO: Review the following with a mind to combining with the groups.findAll query to improve efficiency
       const augmentGroupData = new Promise((resolve, reject) => {
         try {
-          const groupsPromises = groups.map(group => {
+          const groupsPromises = groups.map((group) => {
             return models.User.findAll({
               attributes: ["username", "id"],
               include: [
@@ -176,10 +176,10 @@ export default function(sequelize, DataTypes): GroupStatic {
                   attributes: []
                 }
               ]
-            }).then(async groupUsers => {
-              const setAdminPromises = groupUsers.map(groupUser => {
+            }).then(async (groupUsers) => {
+              const setAdminPromises = groupUsers.map((groupUser) => {
                 return models.GroupUsers.isAdmin(group.id, groupUser.id).then(
-                  value => {
+                  (value) => {
                     groupUser.setDataValue("isAdmin", value);
                   }
                 );
@@ -192,7 +192,7 @@ export default function(sequelize, DataTypes): GroupStatic {
             });
           });
 
-          Promise.all(groupsPromises).then(data => {
+          Promise.all(groupsPromises).then((data) => {
             resolve(data);
           });
         } catch (e) {
@@ -200,21 +200,21 @@ export default function(sequelize, DataTypes): GroupStatic {
         }
       });
 
-      return augmentGroupData.then(groupData => {
+      return augmentGroupData.then((groupData) => {
         return groupData;
       });
     });
   };
 
-  Group.getFromId = async function(id) {
+  Group.getFromId = async function (id) {
     return this.findByPk(id);
   };
 
-  Group.getFromName = async function(name) {
+  Group.getFromName = async function (name) {
     return this.findOne({ where: { groupname: name } });
   };
 
-  Group.freeGroupname = async function(name) {
+  Group.freeGroupname = async function (name) {
     const group = await this.findOne({ where: { groupname: name } });
     if (group != null) {
       throw new Error("groupname in use");
@@ -223,7 +223,7 @@ export default function(sequelize, DataTypes): GroupStatic {
   };
 
   // NOTE: It doesn't seem that there are any consumers of this function right now.
-  Group.getIdFromName = async function(name): Promise<GroupId | null> {
+  Group.getIdFromName = async function (name): Promise<GroupId | null> {
     const Group = this;
     const group = await Group.findOne({ where: { groupname: name } });
     if (group == null) {
@@ -237,7 +237,7 @@ export default function(sequelize, DataTypes): GroupStatic {
   // Instance methods
   //------------------
 
-  Group.prototype.userPermissions = async function(user) {
+  Group.prototype.userPermissions = async function (user) {
     if (user.hasGlobalWrite()) {
       return newUserPermissions(true);
     }
@@ -246,7 +246,7 @@ export default function(sequelize, DataTypes): GroupStatic {
     );
   };
 
-  const newUserPermissions = function(enabled) {
+  const newUserPermissions = function (enabled) {
     return {
       canAddUsers: enabled,
       canRemoveUsers: enabled

@@ -274,7 +274,7 @@ export default function (app: Application) {
       param("trackId").isInt().toInt(),
       body("what"),
       body("confidence").isFloat().toFloat(),
-      middleware.parseJSON("data", body).optional(),
+      middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  up: queryInterface => {
+  up: (queryInterface) => {
     return Promise.all([
       queryInterface.removeColumn("Recordings", "fileSize"),
       queryInterface.removeColumn("Recordings", "rawFileSize"),
