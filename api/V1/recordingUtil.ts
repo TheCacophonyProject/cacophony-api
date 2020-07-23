@@ -34,7 +34,7 @@ import {
   RecordingPermission,
   RecordingType,
   SpeciesClassification,
-  TagMode
+  TagMode,
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
 import { Order } from "sequelize";
@@ -106,7 +106,7 @@ async function query(
     request.user,
     request.filterOptions
   );
-  result.rows = result.rows.map(rec => {
+  result.rows = result.rows.map((rec) => {
     rec.filterData(filterOptions);
     return handleLegacyTagFieldsForGetOnRecording(rec);
   });
@@ -154,7 +154,7 @@ async function report(request) {
       audioEvents[r.id] = {
         timestamp: event.dateTime,
         volume: event.EventDetail.details.volume,
-        fileId
+        fileId,
       };
       audioFileIds.add(fileId);
     }
@@ -191,8 +191,8 @@ async function report(request) {
       "Audio Bait Volume",
       "URL",
       "Cacophony Index",
-      "Species Classification"
-    ]
+      "Species Classification",
+    ],
   ];
 
   for (const r of result) {
@@ -211,7 +211,7 @@ async function report(request) {
       }
     }
 
-    const recording_tags = r.Tags.map(t => t.what || t.detail);
+    const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
     let audioBaitName = "";
     let audioBaitTime = null;
@@ -236,12 +236,8 @@ async function report(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("YYYY-MM-DD"),
-      moment(r.recordingDateTime)
-        .tz(config.timeZone)
-        .format("HH:mm:ss"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
+      moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
       r.location ? r.location.coordinates[1] : "",
       r.duration,
@@ -257,7 +253,7 @@ async function report(request) {
       audioBaitVolume,
       urljoin(recording_url_base, r.id.toString()),
       cacophonyIndex,
-      speciesClassifications
+      speciesClassifications,
     ]);
   }
   return out;
@@ -265,14 +261,14 @@ async function report(request) {
 
 function getCacophonyIndex(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
-    ?.map(val => val.index_percent)
+    ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
   return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
     ?.map(
-      classification => `${classification.species}: ${classification.begin_s}`
+      (classification) => `${classification.species}: ${classification.begin_s}`
     )
     .join(";");
 }
@@ -304,7 +300,7 @@ async function get(request, type?: RecordingType) {
     RecordingPermission.VIEW,
     {
       type,
-      filterOptions: request.query.filterOptions
+      filterOptions: request.query.filterOptions,
     }
   );
   if (!recording) {
@@ -312,7 +308,7 @@ async function get(request, type?: RecordingType) {
   }
 
   const data: any = {
-    recording: handleLegacyTagFieldsForGetOnRecording(recording)
+    recording: handleLegacyTagFieldsForGetOnRecording(recording),
   };
 
   if (recording.fileKey) {
@@ -321,7 +317,7 @@ async function get(request, type?: RecordingType) {
         _type: "fileDownload",
         key: recording.fileKey,
         filename: recording.getFileName(),
-        mimeType: recording.fileMimeType
+        mimeType: recording.fileMimeType,
       },
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
@@ -335,7 +331,7 @@ async function get(request, type?: RecordingType) {
         _type: "fileDownload",
         key: recording.rawFileKey,
         filename: recording.getRawFileName(),
-        mimeType: recording.rawMimeType
+        mimeType: recording.rawMimeType,
       },
       config.server.passportSecret,
       { expiresIn: 60 * 10 }
@@ -357,22 +353,22 @@ async function delete_(request, response) {
   if (deleted === null) {
     return responseUtil.send(response, {
       statusCode: 400,
-      messages: ["Failed to delete recording."]
+      messages: ["Failed to delete recording."],
     });
   }
   if (deleted.rawFileKey) {
-    util.deleteS3Object(deleted.rawFileKey).catch(err => {
+    util.deleteS3Object(deleted.rawFileKey).catch((err) => {
       log.warn(err);
     });
   }
   if (deleted.fileKey) {
-    util.deleteS3Object(deleted.fileKey).catch(err => {
+    util.deleteS3Object(deleted.fileKey).catch((err) => {
       log.warn(err);
     });
   }
   responseUtil.send(response, {
     statusCode: 200,
-    messages: ["Deleted recording."]
+    messages: ["Deleted recording."],
   });
 }
 
@@ -409,7 +405,7 @@ async function addTag(user, recording, tag, response) {
   responseUtil.send(response, {
     statusCode: 200,
     messages: ["Added new tag."],
-    tagId: tagInstance.id
+    tagId: tagInstance.id,
   });
 }
 
@@ -447,7 +443,7 @@ function handleLegacyTagFieldsForGetOnRecording(recording) {
 const statusCode = {
   Success: 1,
   Fail: 2,
-  Both: 3
+  Both: 3,
 };
 
 // reprocessAll expects request.body.recordings to be a list of recording_ids
@@ -458,7 +454,7 @@ async function reprocessAll(request, response) {
     statusCode: 200,
     messages: [],
     reprocessed: [],
-    fail: []
+    fail: [],
   };
 
   let status = 0;
@@ -505,7 +501,7 @@ async function reprocessRecording(user, recording_id) {
     return {
       statusCode: 400,
       messages: ["No such recording: " + recording_id],
-      recordingId: recording_id
+      recordingId: recording_id,
     };
   }
 
@@ -514,7 +510,7 @@ async function reprocessRecording(user, recording_id) {
   return {
     statusCode: 200,
     messages: ["Recording scheduled for reprocessing"],
-    recordingId: recording_id
+    recordingId: recording_id,
   };
 }
 
@@ -537,8 +533,8 @@ async function tracksFromMeta(recording: Recording, metadata: any) {
       metadata["algorithm"]
     );
     let model = {
-      model: metadata["model"],
-      algorithmId: algorithmDetail.id
+      name: "unknown",
+      algorithmId: algorithmDetail.id,
     };
     if ("model_name" in metadata["algorithm"]) {
       model["name"] = metadata["algorithm"]["model_name"];
@@ -546,7 +542,7 @@ async function tracksFromMeta(recording: Recording, metadata: any) {
     for (const trackMeta of metadata["tracks"]) {
       const track = await recording.createTrack({
         data: trackMeta,
-        AlgorithmId: algorithmDetail.id
+        AlgorithmId: algorithmDetail.id,
       });
       if ("confident_tag" in trackMeta) {
         model["all_class_confidences"] = trackMeta["all_class_confidences"];
@@ -554,7 +550,7 @@ async function tracksFromMeta(recording: Recording, metadata: any) {
           what: trackMeta["confident_tag"],
           confidence: trackMeta["confidence"],
           automatic: true,
-          data: model
+          data: model,
         });
       }
     }
@@ -577,5 +573,5 @@ export default {
   reprocess,
   reprocessAll,
   tracksFromMeta,
-  updateMetadata
+  updateMetadata,
 };
