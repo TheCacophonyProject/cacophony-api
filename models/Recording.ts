@@ -26,7 +26,7 @@ import util from "./util/util";
 import validation from "./util/validation";
 import { AuthorizationError } from "../api/customErrors";
 import _ from "lodash";
-import { User, UserStatic } from "./User";
+import { User } from "./User";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { AcceptableTag, TagStatic } from "./Tag";
 import {
@@ -437,7 +437,6 @@ export default function (
   /**
    * Return a single recording for a user/device.
    */
-<<<<<<< HEAD
   Recording.get = async function(
     modelObj: User | Device,
     id,
@@ -456,9 +455,6 @@ export default function (
    * Return a single recording for a user.
    */
   Recording.getForUser = async function(
-=======
-  Recording.get = async function (
->>>>>>> origin/master
     user: User,
     id,
     permission,
