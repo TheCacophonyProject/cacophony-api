@@ -9,10 +9,12 @@ import urllib.request
 CONN_TIMEOUT = 5
 
 
-def is_api_server_up(host, port):
+def is_api_server_up(host, port, endpoint=None):
     try:
+        if endpoint is None:
+            endpoint = "api/v1/endUserAgreement/latest"
         r = urllib.request.urlopen(
-            "http://{}:{}/".format(host, port), timeout=CONN_TIMEOUT
+            "http://{}:{}/{}".format(host, port, endpoint), timeout=CONN_TIMEOUT
         )
     except:
         return False
@@ -23,6 +25,9 @@ def main():
     parser = argparse.ArgumentParser(description="Wait for API server to be running")
     parser.add_argument(
         "--port", default=1080, type=int, help="Port to check for the API server"
+    )
+    parser.add_argument(
+        "--endpoint", default=None, help="Endpoint to check for on the API server"
     )
     parser.add_argument(
         "-w",
@@ -36,7 +41,7 @@ def main():
     print("waiting up to {} minutes for API server...".format(args.wait_mins))
     max_time = datetime.now() + timedelta(minutes=args.wait_mins)
     while datetime.now() < max_time:
-        if is_api_server_up("localhost", args.port):
+        if is_api_server_up("localhost", args.port, args.endpoint):
             print("API server is running")
             return 0
         time.sleep(3)
