@@ -1,7 +1,7 @@
 # cacophony-api
 
 `cacophony-api` is a node server that is accessed through a RESTful API.  This allows uploading, processing and retrieving media collected for The Cacophony
-Project. 
+Project.
 
 Project | cacophony-api [![Status](https://api.travis-ci.org/TheCacophonyProject/cacophony-api.svg)](https://travis-ci.org/TheCacophonyProject/cacophony-api)
 ---|---
@@ -21,14 +21,14 @@ For development and testing purposes it is easiest to run
 cacophony-api using Docker. To do this:
 
 * Ensure your user account is set up to run commands as root using `sudo`.
-* Ensure the Docker is installed (`sudo apt install docker.io` on
+* Ensure the Docker is installed (`sudo apt install docker.io` and docker-compose (https://docs.docker.com/compose/install/) on
   Ubuntu)
 * Run either `npm run dev` (if npm is installed) or `docker-compose build && docker-compose up --force-recreate`.
 
 This will build and then run a Docker container which includes all the services needed to run the server.
 
 Once the container is running, you can start a bash session inside
-the container with `npm run dev:bash` or `docker-compose exec server bash`. 
+the container with `npm run dev:bash` or `docker-compose exec server bash`.
 
 To start psql to query the database in base use the alias `psqltest`
 

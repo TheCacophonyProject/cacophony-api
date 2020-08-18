@@ -315,8 +315,9 @@ export default function (app: Application, baseUrl: string) {
     [
       middleware.parseJSON("devices", query).optional(),
       middleware.parseArray("groups", query).optional(),
+
       query("operator").isIn(["or", "and", "OR", "AND"]).optional(),
-      auth.authenticateAccess("user", { devices: "r" })
+      auth.authenticateAccess(["user"], { devices: "r" })
     ],
     middleware.requestWrapper(async function (request, response) {
       if (
