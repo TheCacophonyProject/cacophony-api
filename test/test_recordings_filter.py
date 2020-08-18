@@ -37,7 +37,7 @@ class TestRecordingsFilter:
         bobsDevice = helper.given_new_device(self, "bobs_device", bobsGroup)
         rec = bobsDevice.upload_recording({"location": [20, 20]})
 
-        print("  The recording shoudl have a default precision of 100m")
+        print("  The recording should have a default precision of 100m")
         rec_prec_default = bob.get_recording(rec)
         assert rec_prec_default["location"]["coordinates"] == [20.00025, 20.00025]
 
