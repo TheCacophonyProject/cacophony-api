@@ -33,8 +33,8 @@ function generateHtml(
   serviceErrors: ServiceErrorMap
 ): string {
   let html = `<h1>Service Errors ${startDate.format(
-    "ddd Do Ha"
-  )} - ${endDate.format("ddd Do Ha")}<h1>`;
+    "MMM ddd Do ha"
+  )} - ${endDate.format("MMM ddd Do ha")}<h1>`;
   for (const [key, serviceError] of Object.entries(serviceErrors)) {
     let serviceHtml = `<h2>${key}</h2>`;
     let devices = serviceError.devices.join(", ");
@@ -50,8 +50,8 @@ function generateHtml(
       serviceHtml += `${
         error.similar.length
       } Error${suffix} from ${firstError.format(
-        "ddd Do H:MMa"
-      )} - ${lastError.format("ddd Do H:MMa")}<br>`;
+        "MMM ddd Do H:MMa"
+      )} - ${lastError.format("MMM ddd Do H:MMa")}<br>`;
       serviceHtml += ` ${error.similar[0].lines}<br>`;
       serviceHtml += `Devices Affected:<br>`;
       serviceHtml += `${devices}<br>`;
