@@ -63,20 +63,26 @@ export interface RecordingQuery {
 }
 
 function makeUploadHandler(mungeData?: (any) => any) {
-  return util.multipartUpload("raw", (request, data, key) => {
+  return util.multipartUpload("raw", async (request, data, key) => {
     if (mungeData) {
       data = mungeData(data);
     }
-
     const recording = models.Recording.buildSafely(data);
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
-    recording.processingState = models.Recording.processingStates[data.type][0];
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }
+    await recording.validate();
+    await recording.save();
+    if (data.metadata) {
+      await tracksFromMeta(recording, data.metadata);
+    }
+    recording.processingState = models.Recording.uploadedState(
+      data.type as RecordingType
+    );
     return recording;
   });
 }
@@ -532,6 +538,42 @@ async function reprocess(request, response: Response) {
   responseUtil.send(response, responseInfo);
 }
 
+async function tracksFromMeta(recording: Recording, metadata: any) {
+  if (!("tracks" in metadata)) {
+    return;
+  }
+  try {
+    const algorithmDetail = await models.DetailSnapshot.getOrCreateMatching(
+      "algorithm",
+      metadata["algorithm"]
+    );
+    let model = {
+      name: "unknown",
+      algorithmId: algorithmDetail.id
+    };
+    if ("model_name" in metadata["algorithm"]) {
+      model["name"] = metadata["algorithm"]["model_name"];
+    }
+    for (const trackMeta of metadata["tracks"]) {
+      const track = await recording.createTrack({
+        data: trackMeta,
+        AlgorithmId: algorithmDetail.id
+      });
+      if ("confident_tag" in trackMeta) {
+        model["all_class_confidences"] = trackMeta["all_class_confidences"];
+        await track.createTrackTag({
+          what: trackMeta["confident_tag"],
+          confidence: trackMeta["confidence"],
+          automatic: true,
+          data: model
+        });
+      }
+    }
+  } catch (err) {
+    log.error("Error creating recording tracks from metadata", err);
+  }
+}
+
 async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
@@ -928,6 +970,7 @@ export default {
   addTag,
   reprocess,
   reprocessAll,
+  tracksFromMeta,
   updateMetadata,
   queryVisits
 };

@@ -111,7 +111,7 @@ function multipartUpload(keyPrefix, buildRecord) {
         data.filename = filename;
 
         // Store a record for the upload.
-        dbRecord = buildRecord(request, data, key);
+        dbRecord = await buildRecord(request, data, key);
         await dbRecord.validate();
         await dbRecord.save();
       } catch (err) {

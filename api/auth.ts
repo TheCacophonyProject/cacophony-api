@@ -97,7 +97,7 @@ type AuthenticateMiddleware = (
  * Authenticate a JWT in the 'Authorization' header of the given type
  */
 const authenticate = function (
-  type: string | null,
+  types: string[] | null,
   reqAccess?
 ): AuthenticateMiddleware {
   return async (req, res, next) => {
@@ -108,7 +108,7 @@ const authenticate = function (
       return res.status(401).json({ messages: [e.message] });
     }
 
-    if (type && type != jwtDecoded._type) {
+    if (types && !types.includes(jwtDecoded._type)) {
       res.status(401).json({ messages: ["Invalid JWT type."] });
       return;
     }
@@ -124,7 +124,7 @@ const authenticate = function (
       });
       return;
     }
-    req[type] = result;
+    req[jwtDecoded._type] = result;
     next();
   };
 };
@@ -142,12 +142,12 @@ async function lookupEntity(jwtDecoded) {
   }
 }
 
-const authenticateUser: AuthenticateMiddleware = authenticate("user");
-const authenticateDevice: AuthenticateMiddleware = authenticate("device");
+const authenticateUser: AuthenticateMiddleware = authenticate(["user"]);
+const authenticateDevice: AuthenticateMiddleware = authenticate(["device"]);
 const authenticateAny: AuthenticateMiddleware = authenticate(null);
 
 const authenticateAccess = function (
-  type: string,
+  type: string[],
   access: Record<string, "r" | "w">
 ) {
   return authenticate(type, access);

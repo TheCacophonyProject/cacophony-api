@@ -146,7 +146,7 @@ export function geometrySetter(val) {
 
 export function getFromId(id: number, user: User, attributes) {
   const modelClass = this;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     // Get just public models if no user was given
     if (!user) {
       return modelClass
@@ -289,5 +289,5 @@ export default {
   deleteModelInstance,
   userCanEdit,
   openS3,
-  saveFile,
+  saveFile
 };
