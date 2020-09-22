@@ -80,9 +80,13 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
     }
-    recording.processingState = models.Recording.uploadedState(
-      data.type as RecordingType
-    );
+    if (data.processingState){
+      recording.processingState = data.processingState;
+    }else{
+      recording.processingState = models.Recording.uploadedState(
+        data.type as RecordingType
+      );
+    }
     return recording;
   });
 }
