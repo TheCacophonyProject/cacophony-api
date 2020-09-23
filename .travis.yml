@@ -7,7 +7,7 @@ language: node_js
 node_js:
   - "lts/*"
 
-python: 
+python:
   - "3.6.1"
 
 install:
@@ -16,6 +16,7 @@ install:
   - npm install -g eslint
   - sudo apt update
   - sudo apt install python3-pip
+  - sudo apt-get install python3-setuptools
   - python3 -m pip install -r test/requirements.txt
   - docker-compose build
   - docker-compose up --force-recreate &> dockerstart.log &
