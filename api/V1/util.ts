@@ -107,7 +107,6 @@ function multipartUpload(keyPrefix, buildRecord) {
           return;
         }
         log.info("Finished streaming upload to object store. Key:", key);
-
         data.filename = filename;
 
         // Store a record for the upload.

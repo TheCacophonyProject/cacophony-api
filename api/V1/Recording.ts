@@ -36,6 +36,40 @@ export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
 
   /**
+   * @apiDefine RecordingMetaData
+   *
+   * @apiParam {JSON} data[metadata] recording tracks and predictions:
+   *<ul>
+   * <li>(REQUIRED) tracks - array of track JSON, each track should have
+   *   <ul>
+   *    <li> positions - array of track positions
+   *    a position is (time in seconds, [left, top, bottom, right])
+   *    e.g. "positions":[[0.78,[6,3,16,13]],[0.89,[6,3,16,13]]
+   *    <li> start_s - start time of track in seconds
+   *    <li> end_s - end time of track in seconds
+   *    <li>(OPTIONAL) confident_tag - if present create a track tag from this
+   *    <li>(OPTIONAL) confidence - confidence of the tag
+   *    <li>(OPTIONAL) all_class_confidences - dictionary of confidence per class
+   *  </ul>
+   *  <li>  algorithm(OPTIONAL) - dictionary describing algorithm, model_name should be present
+   *</ul>
+   * @apiParamExample {JSON} Example recording track metadata:
+   * {
+   *  "algorithm"{
+   *     "model_name": "resnet-wallaby"
+   *    },
+   *   "tracks"{
+   *     "start_s": 10,
+   *     "end_s": 22.2,
+   *     "confident_tag": "rodent",
+   *     "all_class_confidences": {"rodent": 0.9, "else": 0.1},
+   *     "confidence": 0.9,
+   *
+   *   }
+   * }
+   */
+
+  /**
    * @apiDefine RecordingParams
    *
    * @apiParam {JSON} data Metadata about the recording.   Valid tags are:
@@ -50,6 +84,7 @@ export default (app: Application, baseUrl: string) => {
    * <li>airplaneModeOn
    * <li>additionalMetadata
    * <li>comment
+   * <li>processingState - Initial processing state to set recording at
    * </ul>
    * @apiParam {File} file Recording file to upload
    */
@@ -65,6 +100,7 @@ export default (app: Application, baseUrl: string) => {
    *
    * @apiUse RecordingParams
    *
+   * @apiUse RecordingMetaData
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
    * @apiuse V1ResponseError
@@ -86,6 +122,8 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse RecordingParams
+   *
+   * @apiUse RecordingMetaData
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
@@ -114,7 +152,9 @@ export default (app: Application, baseUrl: string) => {
    * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiUse RecordingParams
+   * @apiUse * @apiUse RecordingParams
+   *
+   * @apiUse RecordingMetaData
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
@@ -157,7 +197,9 @@ export default (app: Application, baseUrl: string) => {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiUse RecordingParams
+   * @apiUse * @apiUse RecordingParams
+   *
+   * @apiUse RecordingMetaData
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
