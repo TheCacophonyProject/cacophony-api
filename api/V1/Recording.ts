@@ -101,6 +101,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse RecordingParams
    *
    * @apiUse RecordingMetaData
+   *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Number} recordingId ID of the recording.
    * @apiuse V1ResponseError
@@ -152,7 +153,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiParam {String} deviceID ID of the device to upload on behalf of. If you don't have access to the ID the devicename can be used instead in it's place.
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiUse * @apiUse RecordingParams
+   * @apiUse RecordingParams
    *
    * @apiUse RecordingMetaData
    *
@@ -197,7 +198,7 @@ export default (app: Application, baseUrl: string) => {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiUse * @apiUse RecordingParams
+   * @apiUse RecordingParams
    *
    * @apiUse RecordingMetaData
    *
