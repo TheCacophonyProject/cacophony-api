@@ -37,7 +37,7 @@ class TestDeviceCacophonyIndex:
                             "foo": "bar",
                             "analysis": {
                                 "cacophony_index": [
-                                    {"end_s": 20, "begin_s": 0, "index_percent": hour + (day * 24)},
+                                    {"end_s": 20, "begin_s": 0, "index_percent": hour + (day * 24)}
                                 ]
                             },
                         },
@@ -83,7 +83,7 @@ class TestDeviceCacophonyIndex:
         now_minus_twelve_hours = js_iso_format_with_utc(now - timedelta(hours=12))
         print(f"Get cacophony index from 12 hours ago ({now_minus_twelve_hours}), going back 12 hours")
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_for_device(
-            self.get_device(), now_minus_twelve_hours, 12,
+            self.get_device(), now_minus_twelve_hours, 12
         )
         assert cacophony_index_from_twelve_hours_ago["cacophonyIndex"] == 17.5
 
@@ -104,7 +104,7 @@ class TestDeviceCacophonyIndex:
 
         now = self.now()
         cacophony_index_from_twelve_hours_ago = johnny.get_cacophony_index_histogram_for_device(
-            self.get_device(), js_iso_format_with_utc(now - timedelta(hours=12)), 12,
+            self.get_device(), js_iso_format_with_utc(now - timedelta(hours=12)), 12
         )
         assert len(cacophony_index_from_twelve_hours_ago["cacophonyIndex"]) == 12
 
