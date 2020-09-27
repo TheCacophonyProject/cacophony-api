@@ -79,6 +79,14 @@ class TestFileProcessing:
         assert track_tag["confidence"] == track_meta["confidence"]
         assert track_tag["data"]["name"] == metadata["algorithm"]["model_name"]
 
+        # can upload meta data and mark as processed
+        self.process_all_recordings(file_processing)
+        props["processingState"] = "FINISHED"
+        processed_rec = helper.given_a_recording(self, props=props)
+        check_recording(user, processed_rec, processingState="FINISHED")
+        recording = file_processing.get("thermalRaw", "getMetadata")
+        assert recording is None
+
     def test_metadata_update(self, helper, file_processing):
         user = helper.admin_user()
         helper.given_a_recording(self)
