@@ -173,6 +173,7 @@ export default function (
       through: models.GroupUsers
     });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
+    models.User.belongsToMany(models.Alert, { through: models.UserAlert });
   };
 
   User.getAll = async function (where) {
