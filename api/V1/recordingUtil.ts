@@ -617,7 +617,6 @@ function generateVisits(
       incompleteVisits.push(...newVisits);
     }
   }
-
   return [visits, incompleteVisits];
 }
 // Returns a promise for the recordings visits query specified in the

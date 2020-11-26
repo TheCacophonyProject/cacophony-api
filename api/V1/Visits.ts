@@ -210,10 +210,10 @@ class DeviceVisits {
     this.addAudioFileIds(newItem);
 
     if (newItem instanceof Visit) {
-      this.firstVisit = newItem as Visit;
       if (tag.what != unidentified) {
-        this.recheckUnidentified(this.firstVisit);
+        this.recheckUnidentified(newItem as Visit);
       }
+      this.firstVisit = newItem as Visit;
     }
     return newItem;
   }
@@ -221,13 +221,11 @@ class DeviceVisits {
   // as we get new visits previous unidentified events may need to be added to this visit
   recheckUnidentified(visit: Visit) {
     const unVisit = this.firstVisit;
-
     if (unVisit && unVisit.what == unidentified) {
       let unEvent = unVisit.events[unVisit.events.length - 1];
-      let insertIndex = visit.events.length;
       while (unEvent && visit.isPartOfVisit(unEvent.end)) {
         unEvent.wasUnidentified = true;
-        visit.addEventAtIndex(unEvent, insertIndex);
+        visit.addEventAtIndex(unEvent, 0);
         unVisit.removeEventAtIndex(unVisit.events.length - 1);
         unEvent = unVisit.events[unVisit.events.length - 1];
       }
