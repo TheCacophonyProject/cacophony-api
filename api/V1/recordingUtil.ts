@@ -668,8 +668,7 @@ async function queryVisits(
   // mark all as complete
   if (gotAllRecordings) {
     devSummary.markCompleted();
-  }
-  if (!gotAllRecordings) {
+  } else {
     devSummary.removeIncompleteVisits();
   }
   const audioFileIds = devSummary.audiFileIds();
