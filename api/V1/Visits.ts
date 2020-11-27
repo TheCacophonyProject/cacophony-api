@@ -55,11 +55,16 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
 class DeviceSummary {
   deviceMap: DeviceVisitMap;
   lastRecTime: Moment;
-  constructor(){
-      this.deviceMap = {};
+  constructor() {
+    this.deviceMap = {};
   }
-  generateVisits(rec: any,     queryOffset: number,    complete: boolean = false, userId: number){
-    this.lastRecTime =      moment(rec.recordingDateTime);
+  generateVisits(
+    rec: any,
+    queryOffset: number,
+    complete: boolean = false,
+    userId: number
+  ) {
+    this.lastRecTime = moment(rec.recordingDateTime);
     let devVisits = this.deviceMap[rec.DeviceId];
     if (!devVisits) {
       devVisits = new DeviceVisits(
@@ -70,45 +75,41 @@ class DeviceSummary {
       );
       this.deviceMap[rec.DeviceId] = devVisits;
     }
-    devVisits.calculateNewVisits(
-      rec,
-      queryOffset ,
-      complete
-    );
+    devVisits.calculateNewVisits(rec, queryOffset, complete);
   }
-  earliestIncompleteOffset( ): number | null {
+  earliestIncompleteOffset(): number | null {
     var offset = null;
     for (const device of Object.values(this.deviceMap)) {
-      for(const visit of device.visits ){
-        if(!visit.incomplete){
-          break
+      for (const visit of device.visits) {
+        if (!visit.incomplete) {
+          break;
         }
-        if (offset == null){
+        if (offset == null) {
           offset = visit.queryOffset;
-        }else{
-          offset = Math.min(offset,visit.queryOffset);
-          }
+        } else {
+          offset = Math.min(offset, visit.queryOffset);
         }
       }
-      return offset;
+    }
+    return offset;
   }
-  checkForCompleteVisits(  ) {
+  checkForCompleteVisits() {
     for (const device of Object.values(this.deviceMap)) {
       device.checkForCompleteVisits(this.lastRecTime);
     }
   }
-  markCompleted(){
+  markCompleted() {
     var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
-      for(const visit of device.visits ){
-        if(!visit.incomplete){
-          break
+      for (const visit of device.visits) {
+        if (!visit.incomplete) {
+          break;
         }
         visit.incomplete = false;
       }
     }
   }
-  completeVisitsCount(): number{
+  completeVisitsCount(): number {
     var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
       visits += device.visits.filter((v) => !v.incomplete).length;
@@ -118,7 +119,7 @@ class DeviceSummary {
   removeIncompleteVisits() {
     for (const device of Object.values(this.deviceMap)) {
       device.removeIncompleteVisits();
-      if(device.visits.length == 0){
+      if (device.visits.length == 0) {
         delete this.deviceMap[device];
       }
     }
@@ -131,13 +132,13 @@ class DeviceSummary {
     }
     return audioFileIds;
   }
-completeVisits(): Visit[]{
-  var visits:Visit[] = [];
-  for (const device of Object.values(this.deviceMap)) {
-    visits.push(...device.visits.filter((v) => !v.incomplete));
+  completeVisits(): Visit[] {
+    var visits: Visit[] = [];
+    for (const device of Object.values(this.deviceMap)) {
+      visits.push(...device.visits.filter((v) => !v.incomplete));
+    }
+    return visits;
   }
-  return visits;
-}
 }
 class DeviceVisits {
   animals: AnimalMap;
@@ -163,14 +164,14 @@ class DeviceVisits {
     this.audioBait = false;
     this.visits = [];
   }
-  checkForCompleteVisits(     lastRecTime: Moment) {
-  for (const visit of this.visits.reverse()) {
-    if (!visit.incomplete){
-      break;
+  checkForCompleteVisits(lastRecTime: Moment) {
+    for (const visit of this.visits.reverse()) {
+      if (!visit.incomplete) {
+        break;
+      }
+      visit.incomplete = isWithinVisitInterval(visit.start, lastRecTime);
     }
-    visit.incomplete = isWithinVisitInterval(visit.start, lastRecTime)
   }
-}
 
   removeIncompleteVisits() {
     for (const [animal, visitSumary] of Object.entries(this.animals)) {
@@ -208,7 +209,7 @@ class DeviceVisits {
   calculateNewVisits(
     rec: any,
     queryOffset: number,
-    complete: boolean = false,
+    complete: boolean = false
   ): Visit[] {
     const visits = [];
 
@@ -234,11 +235,16 @@ class DeviceVisits {
 
   sortTracks(tracks: Track[]) {
     tracks.sort(function (a, b) {
-      if (a.data && b.data && a.data.start_s!= undefined && b.data.start_s!= undefined) {
-        const res =  b.data.start_s - a.data.start_s;
+      if (
+        a.data &&
+        b.data &&
+        a.data.start_s != undefined &&
+        b.data.start_s != undefined
+      ) {
+        const res = b.data.start_s - a.data.start_s;
         if (res == 0) {
-          return  b.id - a.id;
-        }else{
+          return b.id - a.id;
+        } else {
           return res;
         }
       } else {
@@ -636,4 +642,11 @@ export interface DeviceVisitMap {
 export default function () {
   console.log("");
 }
-export {DeviceSummary, DeviceVisits, VisitSummary, Visit, VisitEvent, TrackStartEnd };
+export {
+  DeviceSummary,
+  DeviceVisits,
+  VisitSummary,
+  Visit,
+  VisitEvent,
+  TrackStartEnd
+};

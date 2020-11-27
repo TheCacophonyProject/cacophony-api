@@ -81,9 +81,9 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
     }
-    if (data.processingState){
+    if (data.processingState) {
       recording.processingState = data.processingState;
-    }else{
+    } else {
       recording.processingState = models.Recording.uploadedState(
         data.type as RecordingType
       );
@@ -646,8 +646,13 @@ async function queryVisits(
       break;
     }
     for (const [i, rec] of recordings.entries()) {
-        rec.filterData(filterOptions);
-        devSummary.generateVisits(rec,   request.query.offset+i || i, gotAllRecordings, request.user.id)
+      rec.filterData(filterOptions);
+      devSummary.generateVisits(
+        rec,
+        request.query.offset + i || i,
+        gotAllRecordings,
+        request.user.id
+      );
     }
 
     if (!gotAllRecordings) {
@@ -667,16 +672,16 @@ async function queryVisits(
   if (!gotAllRecordings) {
     devSummary.removeIncompleteVisits();
   }
-  const audioFileIds = devSummary.audiFileIds()
+  const audioFileIds = devSummary.audiFileIds();
 
   const visits = devSummary.completeVisits();
   visits.sort(function (a, b) {
-      return b.start > a.start ? 1 : -1;
+    return b.start > a.start ? 1 : -1;
   });
 
   // get the offset to use for future queries
   queryOffset = devSummary.earliestIncompleteOffset();
- if (queryOffset == null && visits.length > 0) {
+  if (queryOffset == null && visits.length > 0) {
     queryOffset = visits[visits.length - 1].queryOffset + 1;
   }
 
