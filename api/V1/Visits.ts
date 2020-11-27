@@ -52,6 +52,93 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   }
 }
 
+class DeviceSummary {
+  deviceMap: DeviceVisitMap;
+  lastRecTime: Moment;
+  constructor(){
+      this.deviceMap = {};
+  }
+  generateVisits(rec: any,     queryOffset: number,    complete: boolean = false, userId: number){
+    this.lastRecTime =      moment(rec.recordingDateTime);
+    let devVisits = this.deviceMap[rec.DeviceId];
+    if (!devVisits) {
+      devVisits = new DeviceVisits(
+        rec.Device.devicename,
+        rec.Group.groupname,
+        rec.DeviceId,
+        userId
+      );
+      this.deviceMap[rec.DeviceId] = devVisits;
+    }
+    devVisits.calculateNewVisits(
+      rec,
+      queryOffset ,
+      complete
+    );
+  }
+  earliestIncompleteOffset( ): number | null {
+    var offset = null;
+    for (const device of Object.values(this.deviceMap)) {
+      for(const visit of device.visits ){
+        if(!visit.incomplete){
+          break
+        }
+        if (offset == null){
+          offset = visit.queryOffset;
+        }else{
+          offset = Math.min(offset,visit.queryOffset);
+          }
+        }
+      }
+      return offset;
+  }
+  checkForCompleteVisits(  ) {
+    for (const device of Object.values(this.deviceMap)) {
+      device.checkForCompleteVisits(this.lastRecTime);
+    }
+  }
+  markCompleted(){
+    var visits = 0;
+    for (const device of Object.values(this.deviceMap)) {
+      for(const visit of device.visits ){
+        if(!visit.incomplete){
+          break
+        }
+        visit.incomplete = false;
+      }
+    }
+  }
+  completeVisitsCount(): number{
+    var visits = 0;
+    for (const device of Object.values(this.deviceMap)) {
+      visits += device.visits.filter((v) => !v.incomplete).length;
+    }
+    return visits;
+  }
+  removeIncompleteVisits() {
+    for (const device of Object.values(this.deviceMap)) {
+      device.removeIncompleteVisits();
+      if(device.visits.length == 0){
+        delete this.deviceMap[device];
+      }
+    }
+  }
+  audiFileIds(): Set<number> {
+    const audioFileIds: Set<number> = new Set();
+
+    for (const device of Object.values(this.deviceMap)) {
+      device.audioFileIds.forEach((id) => audioFileIds.add(id));
+    }
+    return audioFileIds;
+  }
+completeVisits(): Visit[]{
+  var visits:Visit[] = [];
+  for (const device of Object.values(this.deviceMap)) {
+    visits.push(...device.visits.filter((v) => !v.incomplete));
+  }
+  return visits;
+}
+}
 class DeviceVisits {
   animals: AnimalMap;
   firstVisit: Visit | null;
@@ -61,6 +148,7 @@ class DeviceVisits {
   visitCount: number;
   eventCount: number;
   audioBait: boolean;
+  visits: Visit[];
   constructor(
     public deviceName: string,
     public groupName: string,
@@ -73,7 +161,16 @@ class DeviceVisits {
     this.visitCount = 0;
     this.eventCount = 0;
     this.audioBait = false;
+    this.visits = [];
   }
+  checkForCompleteVisits(     lastRecTime: Moment) {
+  for (const visit of this.visits.reverse()) {
+    if (!visit.incomplete){
+      break;
+    }
+    visit.incomplete = isWithinVisitInterval(visit.start, lastRecTime)
+  }
+}
 
   removeIncompleteVisits() {
     for (const [animal, visitSumary] of Object.entries(this.animals)) {
@@ -111,12 +208,13 @@ class DeviceVisits {
   calculateNewVisits(
     rec: any,
     queryOffset: number,
-    complete: boolean = false
+    complete: boolean = false,
   ): Visit[] {
-    const visits: Visit[] = [];
+    const visits = [];
 
     const tracks = rec.Tracks;
     this.sortTracks(tracks);
+
     for (const track of tracks) {
       const event = this.calculateTrackTagEvent(rec, track);
       if (event == null) {
@@ -130,13 +228,19 @@ class DeviceVisits {
         visits.push(newVisit);
       }
     }
+    this.visits.push(...visits);
     return visits;
   }
 
   sortTracks(tracks: Track[]) {
     tracks.sort(function (a, b) {
-      if (a.data && a.data.start_s && a.data.end_s) {
-        return b.data.start_s - a.data.start_s || b.id - a.id;
+      if (a.data && b.data && a.data.start_s!= undefined && b.data.start_s!= undefined) {
+        const res =  b.data.start_s - a.data.start_s;
+        if (res == 0) {
+          return  b.id - a.id;
+        }else{
+          return res;
+        }
       } else {
         return 0;
       }
@@ -211,7 +315,7 @@ class DeviceVisits {
 
     if (newItem instanceof Visit) {
       if (tag.what != unidentified) {
-        this.recheckUnidentified(newItem as Visit);
+        this.mergePreviousVisit(newItem as Visit);
       }
       this.firstVisit = newItem as Visit;
     }
@@ -219,11 +323,11 @@ class DeviceVisits {
   }
 
   // as we get new visits previous unidentified events may need to be added to this visit
-  recheckUnidentified(visit: Visit) {
+  mergePreviousVisit(visit: Visit) {
     const unVisit = this.firstVisit;
     if (unVisit && unVisit.what == unidentified) {
       let unEvent = unVisit.events[unVisit.events.length - 1];
-      while (unEvent && visit.isPartOfVisit(unEvent.end)) {
+      while (unEvent && isWithinVisitInterval(visit.end, unEvent.start)) {
         unEvent.wasUnidentified = true;
         visit.addEventAtIndex(unEvent, 0);
         unVisit.removeEventAtIndex(unVisit.events.length - 1);
@@ -232,7 +336,8 @@ class DeviceVisits {
 
       if (unVisit.events.length == 0) {
         const unVisitSummary = this.animals[unidentified];
-        unVisitSummary.removeVisitAtIndex(0);
+        unVisitSummary.visits.pop();
+        this.visits.pop();
         if (unVisitSummary.visits.length == 0) {
           delete this.animals[unidentified];
         }
@@ -531,4 +636,4 @@ export interface DeviceVisitMap {
 export default function () {
   console.log("");
 }
-export { DeviceVisits, VisitSummary, Visit, VisitEvent, TrackStartEnd };
+export {DeviceSummary, DeviceVisits, VisitSummary, Visit, VisitEvent, TrackStartEnd };

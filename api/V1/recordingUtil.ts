@@ -45,6 +45,7 @@ import {
   VisitEvent,
   DeviceVisitMap,
   Visit,
+  DeviceSummary,
   isWithinVisitInterval
 } from "./Visits";
 
@@ -582,43 +583,6 @@ async function updateMetadata(recording: any, metadata: any) {
   throw new Error("recordingUtil.updateMetadata is unimplemented!");
 }
 
-// generates new visits and returns a tuple of completeVisits and incompleteVisits
-function generateVisits(
-  deviceMap: DeviceVisitMap,
-  recordings: any[],
-  filterOptions,
-  queryOffset: number,
-  userId: number,
-  gotAllRecordings: boolean
-): [Visit[], Visit[]] {
-  let visits: Visit[] = [];
-  let incompleteVisits: Visit[] = [];
-  for (const [i, rec] of recordings.entries()) {
-    rec.filterData(filterOptions);
-
-    let devVisits = deviceMap[rec.DeviceId];
-    if (!devVisits) {
-      devVisits = new DeviceVisits(
-        rec.Device.devicename,
-        rec.Group.groupname,
-        rec.DeviceId,
-        userId
-      );
-      deviceMap[rec.DeviceId] = devVisits;
-    }
-    const newVisits = devVisits.calculateNewVisits(
-      rec,
-      queryOffset + i,
-      gotAllRecordings
-    );
-    if (gotAllRecordings) {
-      visits.push(...newVisits);
-    } else {
-      incompleteVisits.push(...newVisits);
-    }
-  }
-  return [visits, incompleteVisits];
-}
 // Returns a promise for the recordings visits query specified in the
 // request.
 async function queryVisits(
@@ -658,16 +622,13 @@ async function queryVisits(
     '"Recording"."recordingDateTime" + interval \'1 day\''
   );
 
-  const audioFileIds: Set<number> = new Set();
-  const deviceMap: DeviceVisitMap = {};
-  let visits: Visit[] = [];
+  const devSummary = new DeviceSummary();
   const filterOptions = models.Recording.makeFilterOptions(
     request.user,
     request.filterOptions
   );
   let numRecordings = 0;
   let remainingVisits = requestVisits;
-  let incompleteVisits: Visit[] = [];
   let totalCount, recordings, gotAllRecordings;
 
   while (gotAllRecordings || remainingVisits > 0) {
@@ -684,31 +645,16 @@ async function queryVisits(
     if (recordings.length == 0) {
       break;
     }
-
-    const [newVisits, newIncomplete] = generateVisits(
-      deviceMap,
-      recordings,
-      filterOptions,
-      request.query.offset || 0,
-      request.user.id,
-      gotAllRecordings
-    );
-    visits.push(...newVisits);
-    incompleteVisits.push(...newIncomplete);
-
-    if (!gotAllRecordings) {
-      const lastRecStart = moment(
-        recordings[recordings.length - 1].recordingDateTime
-      );
-
-      incompleteVisits = checkForCompleteVisits(
-        visits,
-        incompleteVisits,
-        lastRecStart
-      );
+    for (const [i, rec] of recordings.entries()) {
+        rec.filterData(filterOptions);
+        devSummary.generateVisits(rec,   request.query.offset+i || i, gotAllRecordings, request.user.id)
     }
 
-    remainingVisits = requestVisits - visits.length;
+    if (!gotAllRecordings) {
+      devSummary.checkForCompleteVisits();
+    }
+
+    remainingVisits = requestVisits - devSummary.completeVisitsCount();
     builder.query.limit = Math.min(remainingVisits * 2, queryMax);
     builder.query.offset += recordings.length;
   }
@@ -716,34 +662,23 @@ async function queryVisits(
   let queryOffset = 0;
   // mark all as complete
   if (gotAllRecordings) {
-    incompleteVisits.forEach((elem) => {
-      elem.incomplete = false;
-    });
-
-    visits.push(...incompleteVisits);
-    incompleteVisits = [];
+    devSummary.markCompleted();
   }
-
-  // remove incomplete visits and get all audio file ids
-  for (const device in deviceMap) {
-    const deviceVisits = deviceMap[device];
-    deviceVisits.audioFileIds.forEach((id) => audioFileIds.add(id));
-    if (!gotAllRecordings) {
-      deviceVisits.removeIncompleteVisits();
-    }
-    if (deviceVisits.visitCount == 0) {
-      delete deviceMap[device];
-    }
+  if (!gotAllRecordings) {
+    devSummary.removeIncompleteVisits();
   }
+  const audioFileIds = devSummary.audiFileIds()
+
+  const visits = devSummary.completeVisits();
+  visits.sort(function (a, b) {
+      return b.start > a.start ? 1 : -1;
+  });
 
   // get the offset to use for future queries
-  if (incompleteVisits.length > 0) {
-    queryOffset = incompleteVisits[0].queryOffset;
-  } else if (visits.length > 0) {
+  queryOffset = devSummary.earliestIncompleteOffset();
+ if (queryOffset == null && visits.length > 0) {
     queryOffset = visits[visits.length - 1].queryOffset + 1;
   }
-
-  visits = visits.filter((v) => !v.incomplete);
 
   // Bulk look up file details of played audio events.
   const audioFileNames = new Map();
@@ -761,7 +696,7 @@ async function queryVisits(
 
   return {
     visits: visits,
-    rows: deviceMap,
+    rows: devSummary.deviceMap,
     hasMoreVisits: !gotAllRecordings,
     totalRecordings: totalCount,
     queryOffset: queryOffset,
