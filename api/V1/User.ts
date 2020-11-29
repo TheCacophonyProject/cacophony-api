@@ -27,7 +27,7 @@ import { Application } from "express";
 import config from "../../config";
 import { User, UserStatic } from "../../models/User";
 
-export default function (app: Application, baseUrl: string) {
+export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/users`;
 
   /**
@@ -49,16 +49,18 @@ export default function (app: Application, baseUrl: string) {
   app.post(
     apiUrl,
     [
-      middleware.checkNewName("username").custom((value) => {
+      middleware.checkNewName("username").custom(value => {
         return models.User.freeUsername(value);
       }),
       body("email")
         .isEmail()
-        .custom((value) => {
+        .custom(value => {
           return models.User.freeEmail(value);
         }),
       middleware.checkNewPassword("password"),
-      body("endUserAgreement").isInt().optional()
+      body("endUserAgreement")
+        .isInt()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const user: User = await models.User.create({
@@ -99,18 +101,20 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware
         .checkNewName("username")
-        .custom((value) => {
+        .custom(value => {
           return models.User.freeUsername(value);
         })
         .optional(),
       body("email")
         .isEmail()
-        .custom((value) => {
+        .custom(value => {
           return models.User.freeEmail(value);
         })
         .optional(),
       middleware.checkNewPassword("password").optional(),
-      body("endUserAgreement").isInt().optional()
+      body("endUserAgreement")
+        .isInt()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const validData = matchedData(request);
@@ -151,6 +155,35 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: [],
         userData: await request.body.user.getDataValues()
+      });
+    })
+  );
+
+  /**
+   * @api {get} api/v1/users/list List usernames
+   * @apiName ListUsers
+   * @apiGroup User
+   * @apiDescription Given an authenticated super-user, we need to be able to get
+   * a list of all usernames on the system, so that we can switch to viewing
+   * as a given user.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiSuccess {JSON} usersList List of usernames
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${baseUrl}/list`,
+    [auth.authenticateAdmin],
+    middleware.requestWrapper(async (request, response) => {
+      const user: UserStatic = request.user;
+      const users = await user.getAll({});
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: [],
+        usersList: users.map((u: User) => u.getDataValue("username"))
       });
     })
   );

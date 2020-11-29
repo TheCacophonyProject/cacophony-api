@@ -96,14 +96,14 @@ async function addTrackTag(client, rId, trackId, tag) {
     trackId,
     tag.taggerId
   ];
-  await client.query(text, values).catch((e) => {
+  await client.query(text, values).catch(e => {
     logger.error(e.stack);
     process.exit(0);
   });
 }
 
 function getManualAnimalTags(oldTags) {
-  return oldTags.filter((tag) => {
+  return oldTags.filter(tag => {
     return (
       !tag.automatic &&
       animals.includes(tag.what) &&
@@ -142,14 +142,14 @@ function toTimestamp(strDate) {
 }
 
 function getAnimalsSql() {
-  return animals.map((animal) => `'${animal}'`).join(",");
+  return animals.map(animal => `'${animal}'`).join(",");
 }
 
 async function deleteOldTags(pgClient) {
   const recordings = await getOldTags(pgClient);
   logger.info(`Delete found ${recordings.length} possible old tags`);
   for (const [tagId, oldTags] of recordings) {
-    if (oldTags.find((oldTag) => oldTag.id === tagId)) {
+    if (oldTags.find(oldTag => oldTag.id === tagId)) {
       await deleteTag(pgClient, tagId);
     }
   }
@@ -157,7 +157,7 @@ async function deleteOldTags(pgClient) {
 
 async function deleteTag(client, tagId) {
   logger.info("Deleting tag", tagId);
-  await client.query(`DELETE FROM "Tags" where "id"=$1`, [tagId]).catch((e) => {
+  await client.query(`DELETE FROM "Tags" where "id"=$1`, [tagId]).catch(e => {
     logger.error(e.stack);
     process.exit(0);
   });
@@ -177,7 +177,7 @@ async function getOldTags(client) {
       values: [toTimestamp(args.before), args.algorithm],
       rowMode: "array"
     })
-    .catch((e) => {
+    .catch(e => {
       logger.error(e.stack);
       process.exit(0);
     });
@@ -186,7 +186,7 @@ async function getOldTags(client) {
 const logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
-      timestamp: function () {
+      timestamp: function() {
         return moment().format();
       },
       colorize: true

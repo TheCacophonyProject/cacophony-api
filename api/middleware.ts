@@ -29,7 +29,7 @@ import log from "../logging";
 import customErrors from "./customErrors";
 import { RequestHandler, Response } from "express";
 
-const getModelById = function <T>(
+const getModelById = function<T>(
   modelType: ModelStaticCommon<T>,
   fieldName: string,
   checkFunc
@@ -46,7 +46,7 @@ const getModelById = function <T>(
   });
 };
 
-const getModelByName = function <T>(
+const getModelByName = function<T>(
   modelType: ModelStaticCommon<T>,
   fieldName: string,
   checkFunc: ValidationChainBuilder
@@ -61,7 +61,7 @@ const getModelByName = function <T>(
   });
 };
 
-const getUserByEmail = function (
+const getUserByEmail = function(
   checkFunc: ValidationChainBuilder,
   fieldName: string = "email"
 ): ValidationChain {
@@ -82,12 +82,12 @@ function modelTypeName(modelType: ModelStaticCommon<any>): string {
   return modelType.options.name.singular.toLowerCase();
 }
 
-const isDateArray = function (fieldName: string, customError): ValidationChain {
+const isDateArray = function(fieldName: string, customError): ValidationChain {
   return body(fieldName, customError)
     .exists()
-    .custom((value) => {
+    .custom(value => {
       if (Array.isArray(value)) {
-        value.forEach((dateAsString) => {
+        value.forEach(dateAsString => {
           if (isNaN(Date.parse(dateAsString))) {
             throw new Error(
               format(
@@ -190,13 +190,13 @@ function getRecordingById(checkFunc: ValidationChainBuilder): ValidationChain {
   return getModelById(models.Recording, "id", checkFunc);
 }
 
-const checkNewName = function (field: string): ValidationChain {
+const checkNewName = function(field: string): ValidationChain {
   return body(field, "Invalid " + field)
     .isLength({ min: 3 })
     .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/);
 };
 
-const checkNewPassword = function (field: string): ValidationChain {
+const checkNewPassword = function(field: string): ValidationChain {
   return body(field, "Password must be at least 8 characters long").isLength({
     min: 8
   });
@@ -210,7 +210,7 @@ const checkNewPassword = function (field: string): ValidationChain {
  * @param field The field in the JSON object to get
  * @param checkFunc The express-validator function, typically `body` or `query`
  */
-const parseJSON = function (
+const parseJSON = function(
   field: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
@@ -243,7 +243,7 @@ const parseJSON = function (
  * @param field The field in the JSON object to get
  * @param checkFunc The express-validator function, typically `body` or `query`
  */
-const parseArray = function (
+const parseArray = function(
   field: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
@@ -269,14 +269,14 @@ const parseArray = function (
   });
 };
 
-const parseBool = function (value: any): boolean {
+const parseBool = function(value: any): boolean {
   if (!value) {
     return false;
   }
   return value.toString().toLowerCase() == "true";
 };
 
-const requestWrapper = (fn) => (request, response: Response, next) => {
+const requestWrapper = fn => (request, response: Response, next) => {
   let logMessage = format("%s %s", request.method, request.url);
   if (request.user) {
     logMessage = format(

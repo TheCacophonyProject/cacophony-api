@@ -32,9 +32,9 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   if (trackTags.length == 0) {
     return null;
   }
-  const manualTags = trackTags.filter((tag) => tag.automatic == false);
+  const manualTags = trackTags.filter(tag => tag.automatic == false);
   if (manualTags.length > 0) {
-    const userTag = manualTags.find((tag) => tag.UserId == userID);
+    const userTag = manualTags.find(tag => tag.UserId == userID);
     if (userTag) {
       return userTag;
     } else {
@@ -43,7 +43,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   }
 
   const originalTags = trackTags.filter(
-    (tag) => tag.data == null || tag.data.name == aiName
+    tag => tag.data == null || tag.data.name == aiName
   );
   if (originalTags.length > 0) {
     return originalTags[0];
@@ -134,7 +134,7 @@ class DeviceVisits {
   }
 
   sortTracks(tracks: Track[]) {
-    tracks.sort(function (a, b) {
+    tracks.sort(function(a, b) {
       if (a.data && a.data.start_s && a.data.end_s) {
         return b.data.start_s - a.data.start_s || b.id - a.id;
       } else {
@@ -144,7 +144,7 @@ class DeviceVisits {
   }
 
   addAudioFileIds(item) {
-    item.audioBaitEvents.forEach((audioEvent) => {
+    item.audioBaitEvents.forEach(audioEvent => {
       this.audioFileIds.add(audioEvent.EventDetail.details.fileId);
     });
   }
@@ -253,7 +253,7 @@ class VisitSummary {
 
   removeIncomplete() {
     const prevLength = this.visits.length;
-    this.visits = this.visits.filter((v) => !v.incomplete);
+    this.visits = this.visits.filter(v => !v.incomplete);
     if (prevLength != this.visits.length) {
       this.updateStartEnd();
     }
@@ -380,7 +380,7 @@ class Visit {
     }
 
     events = events.filter(
-      (e) => !this.audioBaitEvents.find((existing) => e.id == existing.id)
+      e => !this.audioBaitEvents.find(existing => e.id == existing.id)
     );
     for (const event of events) {
       const eventTime = moment(event.dateTime);
@@ -399,7 +399,7 @@ class Visit {
 
   updateAudioEvent(newEvent: VisitEvent) {
     const events = newEvent.audioBaitEvents.filter(
-      (e) => !this.audioBaitEvents.find((existing) => e.id == existing.id)
+      e => !this.audioBaitEvents.find(existing => e.id == existing.id)
     );
 
     this.audioBaitDay = this.audioBaitDay || newEvent.audioBaitDay;
@@ -530,7 +530,7 @@ export interface DeviceVisitMap {
   [key: number]: DeviceVisits;
 }
 
-export default function () {
+export default function() {
   console.log("");
 }
 export { DeviceVisits, VisitSummary, Visit, VisitEvent, TrackStartEnd };

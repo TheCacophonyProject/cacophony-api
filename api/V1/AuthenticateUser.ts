@@ -24,7 +24,7 @@ import { Application } from "express";
 
 const ttlTypes = Object.freeze({ short: 60, medium: 5 * 60, long: 30 * 60 });
 
-export default function (app: Application) {
+export default function(app: Application) {
   /**
    * @api {post} /authenticate_user/ Authenticate a user
    * @apiName AuthenticateUser
@@ -73,6 +73,46 @@ export default function (app: Application) {
           messages: ["Wrong password or username."]
         });
       }
+    })
+  );
+
+  /**
+   * @api {post} /authenticate_other_user_as_admin/ Authenticate as any user if you are a super-user.
+   * @apiName AuthenticateOtherUserAsAdmin
+   * @apiGroup Authentication
+   * @apiDescription Allows an authenticated super-user to obtain a user JWT token for any other user, so that they
+   * can view the site as that user.
+   *
+   * @apiParam {String} username Username identifying a valid user account
+   * @apiParam {String} email Email identifying a valid user account
+   * @apiParam {String} nameOrEmail Username or email of a valid user account.
+   * @apiParam {String} password Password for the user account
+   *
+   * @apiSuccess {String} token JWT string to provide to further API requests
+   */
+  app.post(
+    "/authenticate_other_user_as_admin",
+    [
+      auth.authenticateAdmin,
+      oneOf(
+        [
+          middleware.getUserByName(body),
+          middleware.getUserByName(body, "nameOrEmail"),
+          middleware.getUserByEmail(body),
+          middleware.getUserByEmail(body, "nameOrEmail")
+        ],
+        "could not find a user with the given username or email"
+      )
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const token = await auth.createEntityJWT(request.body.user);
+      const userData = await request.body.user.getDataValues();
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Got user token."],
+        token: "JWT " + token,
+        userData: userData
+      });
     })
   );
 

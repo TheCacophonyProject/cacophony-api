@@ -31,7 +31,7 @@ export interface ScheduleStatic extends ModelStaticCommon<Schedule> {
   buildSafely: (fields: any) => Schedule;
 }
 
-export default function (sequelize, DataTypes): ScheduleStatic {
+export default function(sequelize, DataTypes): ScheduleStatic {
   const name = "Schedule";
 
   const attributes = {
@@ -44,11 +44,11 @@ export default function (sequelize, DataTypes): ScheduleStatic {
   // CLASS METHODS
   //---------------
 
-  Schedule.buildSafely = function (fields) {
+  Schedule.buildSafely = function(fields) {
     return Schedule.build(_.pick(fields, ["schedule"]));
   };
 
-  Schedule.addAssociations = function (models) {
+  Schedule.addAssociations = function(models) {
     models.Schedule.belongsTo(models.User);
     models.Schedule.hasMany(models.Device);
   };

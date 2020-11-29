@@ -51,7 +51,7 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("schedule", body),
       auth.userCanAccessDevices
     ],
-    middleware.requestWrapper(async function (request, response) {
+    middleware.requestWrapper(async function(request, response) {
       const deviceIds = request.body.devices;
 
       const instance = models.Schedule.buildSafely(request.body);

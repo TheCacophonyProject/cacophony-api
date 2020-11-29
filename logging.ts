@@ -14,7 +14,7 @@ const logger = new winston.Logger({
   transports: [consoleTransport]
 });
 
-logger.addExpressApp = function (app) {
+logger.addExpressApp = function(app) {
   app.use(
     expressWinston.logger({
       transports: [consoleTransport],
