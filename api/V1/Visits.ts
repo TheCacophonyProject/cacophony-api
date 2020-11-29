@@ -112,7 +112,7 @@ class DeviceSummary {
   completeVisitsCount(): number {
     var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
-      visits += device.visits.filter((v) => !v.incomplete).length;
+      visits += device.visits.filter(v => !v.incomplete).length;
     }
     return visits;
   }
@@ -128,14 +128,14 @@ class DeviceSummary {
     const audioFileIds: Set<number> = new Set();
 
     for (const device of Object.values(this.deviceMap)) {
-      device.audioFileIds.forEach((id) => audioFileIds.add(id));
+      device.audioFileIds.forEach(id => audioFileIds.add(id));
     }
     return audioFileIds;
   }
   completeVisits(): Visit[] {
     var visits: Visit[] = [];
     for (const device of Object.values(this.deviceMap)) {
-      visits.push(...device.visits.filter((v) => !v.incomplete));
+      visits.push(...device.visits.filter(v => !v.incomplete));
     }
     return visits;
   }
@@ -234,7 +234,7 @@ class DeviceVisits {
   }
 
   sortTracks(tracks: Track[]) {
-    tracks.sort(function (a, b) {
+    tracks.sort(function(a, b) {
       if (
         a.data &&
         b.data &&
