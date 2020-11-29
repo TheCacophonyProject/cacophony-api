@@ -19,7 +19,7 @@ class TestVisits:
         tag = user.can_tag_track(track, what=what)
         return rec, track, tag
 
-    def test_report(self, helper):
+    def test_visits(self, helper):
         # init device and sounds
         admin = helper.admin_user()
         sound1_name = "rodent-scream"
@@ -37,7 +37,7 @@ class TestVisits:
         self.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
 
         # visit 1
-        # unidentified gets grouped with cat
+        # past unidentified gets grouped with cat
         self.upload_recording_with_tag(
             device, admin, "unidentified", time=now - timedelta(minutes=4), duration=90
         )
@@ -55,15 +55,24 @@ class TestVisits:
         track = admin.can_add_track_to_recording(rec, start_s=80)
         admin.can_tag_track(track, what="possum")
 
+        # visit 4
+        # future 3 unidentified gets grouped with cat
+
+        self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=40, seconds=10))
+        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=37))
+        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=32))
+        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=31))
+
+        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=29))
         # an event that should not show up in the visits
         device.record_event("audioBait", {"fileId": sound2}, [now + timedelta(days=1, seconds=1)])
 
         response = cosmo.query_visits(return_json=True)
-        assert response["numVisits"] == 3
+        assert response["numVisits"] == 5
 
         device_map = response["rows"][str(device.get_id())]
         distinct_animals = set(device_map["animals"].keys())
-        assert distinct_animals == set(["possum", "cat"])
+        assert distinct_animals == set(["possum", "cat", "unidentified"])
 
         possum_visits = device_map["animals"]["possum"]["visits"]
         print("second visit starts more than 10 minutes after the first visit ends")
@@ -93,6 +102,20 @@ class TestVisits:
         assert cat_visit["audioBaitVisit"]
         audio_events = cat_visit["audioBaitEvents"]
         assert len(audio_events) == 1
+
+        print("The last visit from a cat has 3 unidentified")
+        cat_visit = device_map["animals"]["cat"]["visits"][1]
+        events = cat_visit["events"]
+        cat_events = [event for event in events if event["what"] == "cat"]
+        unidentified_events = [event for event in events if event["what"] == "unidentified"]
+        assert len(cat_events) == 1
+        assert len(unidentified_events) == 3
+
+        print("Events are in descending start times")
+        most_recent_start = parsedate(events[0]["start"])
+        for past_event in events[1:]:
+            past_date = parsedate(past_event["start"])
+            assert past_date < most_recent_start
 
         print("the audio event is the same as the event from the possum")
         assert audio_events[0]["id"] == sound1_events[0]["id"]
