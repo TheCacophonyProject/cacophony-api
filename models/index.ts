@@ -23,6 +23,7 @@ import log from "../logging";
 import { AlertStatic } from "./Alert";
 import { AlertDeviceStatic } from "./AlertDevice";
 import { AlertGroupStatic } from "./AlertGroup";
+import { AlertConditionStatic } from "./AlertCondition";
 import { UserAlertStatic } from "./UserAlert";
 import { UserStatic } from "./User";
 import { TagStatic } from "./Tag";
@@ -136,6 +137,7 @@ const AllModels = {
   Alert: db.Alert as AlertStatic,
   AlertDevice: db.AlertDevice as AlertDeviceStatic,
   AlertGroup: db.AlertGroup as AlertGroupStatic,
+  AlertCondition: db.AlertCondition as AlertConditionStatic,
   UserAlert: db.UserAlert as UserAlertStatic,
   sequelize,
   Sequelize

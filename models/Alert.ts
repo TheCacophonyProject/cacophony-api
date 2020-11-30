@@ -23,13 +23,14 @@ import { User } from "./User";
 const { AuthorizationError } = require("../api/customErrors");
 export type AlertId = number;
 
+
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   id: AlertId;
   addUser: (userToAdd: User, through: any) => Promise<void>;
 }
 export interface AlertStatic extends ModelStaticCommon<Alert> {
   getFromId: (id: AlertId) => Promise<Alert>;
-  query: (where: any, user: User) => Promise<Alert[]>;
+  query: (where: any, user: User| null, condition?: any , admin? :boolean ) => Promise<Alert[]>;
 }
 
 export default function (sequelize, DataTypes): AlertStatic {
@@ -52,19 +53,20 @@ export default function (sequelize, DataTypes): AlertStatic {
   const models = sequelize.models;
 
   Alert.addAssociations = function (models) {
+    models.Alert.hasMany(models.AlertCondition);
+    models.Alert.hasMany(models.AlertLog);
     models.Alert.belongsToMany(models.User, { through: models.UserAlert });
-    models.Alert.belongsToMany(models.Group, { through: models.AlertGroup });
     models.Alert.belongsToMany(models.Device, { through: models.AlertDevice });
   };
 
-  Alert.getFromId = async function (id) {
-    return this.findByPk(id);
-  };
+  Alert.query = async function (where, user: User| null, condition: any = {}, admin :boolean= false ) {
 
-  Alert.query = async function (where, user: User) {
-    let userWhere = { id: user.id };
-    if (user.hasGlobalRead()) {
-      userWhere = null;
+    let userWhere = {}
+    if (!admin){
+      userWhere = { id: user.id };
+      if (user.hasGlobalRead()) {
+        userWhere = null;
+      }
     }
     return await models.Alert.findAll({
       where: where,
@@ -72,12 +74,12 @@ export default function (sequelize, DataTypes): AlertStatic {
       include: [
         {
           model: models.User,
-          // NOTE(jon): This adds GroupUsers to the group, which is currently required
-          // by the groups admin view to add new users to groups.  As per
-          // https://github.com/TheCacophonyProject/cacophony-api/issues/279
-          // we'd like to split this out into separate requests probably.
           attributes: ["id", "username"],
           where: userWhere
+        }
+        ,
+        {model: models.AlertCondition,
+          where:condition
         }
       ]
     });

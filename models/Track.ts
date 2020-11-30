@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { TrackTag, TrackTagId } from "./TrackTag";
+import { AlertStatic } from "./Alert";
+
 export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {
   getTrackTag: (trackTagId: TrackTagId) => Promise<TrackTag>;
@@ -26,7 +28,7 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
   AlgorithmId: number | null;
   data: any;
   // NOTE: Implicitly created by sequelize associations.
-  createTrackTag: ({
+  addTag: ({
     what,
     confidence,
     automatic,
@@ -108,10 +110,26 @@ export default function (
     });
   };
 
+
+
   //---------------
   // INSTANCE
   //---------------
+  async function checkAlerts(tag: TrackTag){
+    const alerts = await (models.Alert as AlertStatic).query({}, null, {"tag":tag.what}, true);
+    if (alerts.length){
+      //send alert
+    }
+    return alerts;
+  }
+  Track.prototype.addTag = async function (  what,
+    confidence,
+    automatic,
+    data) {
+    const tag = await this.createTrackTag(what,confidence,automatic,data);
 
+    checkAlerts(tag);
+  };
   // Return a specific track tag for the track.
   Track.prototype.getTrackTag = async function (trackTagId) {
     const trackTag = await models.TrackTag.findByPk(trackTagId);

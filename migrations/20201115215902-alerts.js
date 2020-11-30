@@ -13,8 +13,8 @@ module.exports = {
       alertName: {
         type: Sequelize.TEXT
       },
-      alert: {
-        type: Sequelize.JSONB
+      frequencySeconds: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
@@ -25,38 +25,45 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
+    await queryInterface.createTable("AlertConditions", {
+      tag: { type: Sequelize.TEXT, allowNull: false },
+      automatic: {type:Sequelize.BOOLEAN, defaultValue:false, allowNull:false},
+      updatedAt: { type: Sequelize.DATE, allowNull: false },
+      createdAt: { type: Sequelize.DATE, allowNull: false },
+    });
+    await queryInterface.createTable("AlertLog", {
+      sentAt: { type: Sequelize.DATE, allowNull: false },
+      updatedAt: { type: Sequelize.DATE, allowNull: false },
+      createdAt: { type: Sequelize.DATE, allowNull: false },
+    });
     await queryInterface.createTable("AlertDevices", {
       createdAt: { type: Sequelize.DATE, allowNull: false },
       updatedAt: { type: Sequelize.DATE, allowNull: false }
     });
-    await queryInterface.createTable("AlertGroups", {
+    await queryInterface.createTable("UserAlerts", {
+      admin: { type: Sequelize.BOOLEAN, defaultValue: false , allowNull:false},
       createdAt: { type: Sequelize.DATE, allowNull: false },
       updatedAt: { type: Sequelize.DATE, allowNull: false }
     }),
-      await queryInterface.createTable("UserAlerts", {
-        createdAt: { type: Sequelize.DATE, allowNull: false },
-        updatedAt: { type: Sequelize.DATE, allowNull: false }
-      }),
-      await util.addSerial(queryInterface, "UserAlerts");
-    await util.addSerial(queryInterface, "AlertDevices");
-    await util.addSerial(queryInterface, "AlertGroups");
+    await util.addSerial(queryInterface, "AlertLog");
+    await util.addSerial(queryInterface, "AlertConditions");
 
-    return util.belongsToMany(queryInterface, "UserAlerts", "Alerts", "Users");
-    return util.belongsToMany(
+    await util.addSerial(queryInterface, "UserAlerts");
+    await util.addSerial(queryInterface, "AlertDevices");
+    await util.migrationAddBelongsTo(queryInterface, "AlertConditions", "Alerts");
+
+    await util.migrationAddBelongsTo(queryInterface, "AlertLog", "Alerts");
+    await util.belongsToMany(queryInterface, "UserAlerts", "Alerts", "Users");
+    await util.belongsToMany(
       queryInterface,
       "AlertDevices",
       "Alerts",
       "Devices"
     );
-    return util.belongsToMany(
-      queryInterface,
-      "AlertGroups",
-      "Alerts",
-      "Groups"
-    );
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable("AlertLog");
     await queryInterface.dropTable("AlertDevices");
     await queryInterface.dropTable("AlertGroups");
     await queryInterface.dropTable("UserAlerts");

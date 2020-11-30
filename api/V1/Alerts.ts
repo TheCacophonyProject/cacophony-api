@@ -20,7 +20,7 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import { body, query } from "express-validator/check";
+import { body,param, query } from "express-validator/check";
 import { Application } from "express";
 
 export default function (app: Application, baseUrl: string) {
@@ -45,12 +45,12 @@ export default function (app: Application, baseUrl: string) {
     apiUrl,
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
-      console.log("CREATING with", request.body);
       const newAlert = await models.Alert.create({
         alertName: request.body.alertName
       });
       await newAlert.addUser(request.user.id, { through: { admin: true } });
       return responseUtil.send(response, {
+        id: newAlert.id,
         statusCode: 200,
         messages: ["Created new Alert."]
       });
@@ -58,7 +58,7 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/Alerts Get Alerts
+   * @api {get} /api/v1/alerts Get Alerts
    * @apiName GetAlerts
    * @apiAlert Alert
    *
@@ -74,6 +74,37 @@ export default function (app: Application, baseUrl: string) {
   app.get(
     apiUrl,
     [auth.authenticateUser],
+    middleware.requestWrapper(async (request, response) => {
+      const Alerts = await models.Alert.query(
+        request.query.where,
+        request.user
+      );
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: [],
+        Alerts
+      });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/alerts/:id Get Alerts
+   * @apiName GetAlerts
+   * @apiAlert Alert
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {Alerts[]} Alerts Array of Alerts
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:id`,
+    [auth.authenticateUser],
+      param("id").isInt(),
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
         request.query.where,

@@ -295,7 +295,7 @@ export default function (app: Application) {
         return;
       }
 
-      const tag = await track.createTrackTag({
+      const tag = await track.addTag({
         what: request.body.what,
         confidence: request.body.confidence,
         automatic: true,
