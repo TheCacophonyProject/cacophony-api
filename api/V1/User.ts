@@ -26,6 +26,7 @@ import { ClientError } from "../customErrors";
 import { Application } from "express";
 import config from "../../config";
 import { User, UserStatic } from "../../models/User";
+import AllModels from "../../models";
 
 export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/users`;
@@ -175,15 +176,14 @@ export default function(app: Application, baseUrl: string) {
    * @apiUse V1ResponseError
    */
   app.get(
-    `${baseUrl}/list`,
+    `${baseUrl}/listUsers`,
     [auth.authenticateAdmin],
     middleware.requestWrapper(async (request, response) => {
-      const user: UserStatic = request.user;
-      const users = await user.getAll({});
+      const users = await AllModels.User.getAll({});
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        usersList: users.map((u: User) => u.getDataValue("username"))
+        usersList: users
       });
     })
   );

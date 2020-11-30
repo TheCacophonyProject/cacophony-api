@@ -95,12 +95,7 @@ export default function(app: Application) {
     [
       auth.authenticateAdmin,
       oneOf(
-        [
-          middleware.getUserByName(body),
-          middleware.getUserByName(body, "nameOrEmail"),
-          middleware.getUserByEmail(body),
-          middleware.getUserByEmail(body, "nameOrEmail")
-        ],
+        [middleware.getUserByName(body, "name")],
         "could not find a user with the given username or email"
       )
     ],
