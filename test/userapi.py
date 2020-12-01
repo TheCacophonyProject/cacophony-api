@@ -514,6 +514,38 @@ class UserAPI(APIBase):
         self._check_response(response)
         return response.json()
 
+    def create_alert(self, name, frequency=None):
+        response = requests.post(
+            urljoin(self._baseurl, "/api/v1/alerts"),
+            headers=self._auth_header,
+            data={"name": name, "frequency": frequency},
+        )
+        return self._check_response(response)["id"]
+
+    def add_alert_condition(self, alert_id, what, automatic=None):
+        response = requests.post(
+            urljoin(self._baseurl, "/api/v1/alerts/{}/condition".format(alert_id)),
+            headers=self._auth_header,
+            data={"what": what, "automatic": automatic},
+        )
+        return self._check_response(response)["conditionId"]
+
+    def add_alert_device(self, alert_id, device_id):
+        response = requests.post(
+            urljoin(self._baseurl, "/api/v1/alerts/{}/device".format(alert_id)),
+            headers=self._auth_header,
+            data={"deviceId": device_id},
+        )
+        return self._check_response(response)
+
+    def get_alert(self, alert_id):
+        response = requests.get(
+            urljoin(self._baseurl, "/api/v1/alerts/{}".format(alert_id)),
+            headers=self._auth_header,
+        )
+        self._check_response(response)
+        return response.json()["alert"]
+
 
 def serialise_params(params):
     out = {}

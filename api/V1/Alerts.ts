@@ -20,7 +20,7 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import { body,param, query } from "express-validator/check";
+import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 
 export default function (app: Application, baseUrl: string) {
@@ -35,19 +35,24 @@ export default function (app: Application, baseUrl: string) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {String} Alertname
+   * @apiParam {String} name
+   * @apiParam {int} frequency maximum frequency in seconds that an alert will trigger
    *
    * @apiUse V1ResponseSuccess
-   *
+   * @apiSuccess {int} id Unique id of the newly created alert.
+
    * @apiUse V1ResponseError
    */
   app.post(
     apiUrl,
     [auth.authenticateUser],
+    body("name").isString(),
+    body("frequency").isInt().optional(),
     middleware.requestWrapper(async (request, response) => {
-      const newAlert = await models.Alert.create({
-        alertName: request.body.alertName
-      });
+      const newAlert = await models.Alert.newAlert(
+        request.body.name,
+        request.body.frequency
+      );
       await newAlert.addUser(request.user.id, { through: { admin: true } });
       return responseUtil.send(response, {
         id: newAlert.id,
@@ -57,6 +62,92 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
+  /**
+   * @api {post} /api/v1/alerts/:id/condition Add new condition to an alert
+   * @apiName PostTrack
+   * @apiGroup Tracks
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {number} id Id of the alert to add the condition to.
+   * @apiParam {string} what animal/event to trigger on
+   * @apiParam {boolean} automatic (Optional) Weather to trigger on automatic tags
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {int} id Unique id of the newly created condition.
+   *
+   * @apiUse V1ResponseError
+   *
+   */
+  app.post(
+    `${apiUrl}/:id/condition`,
+    [auth.authenticateUser],
+    param("id").isInt().toInt(),
+    body("what"),
+    body("automatic").isBoolean().toBoolean().optional(),
+    middleware.requestWrapper(async (request, response) => {
+      const alert = await models.Alert.getFromId(
+        request.params.id,
+        request.user
+      );
+      if (!alert) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such alert."]
+        });
+        return;
+      }
+      const condition = await alert.createAlertCondition({
+        tag: request.body.what,
+        automatic: request.body.automatic
+      });
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Alert Condition added."],
+        id: condition.id
+      });
+    })
+  );
+  /**
+   * @api {post} /api/v1/recordings/:id/device Add new device to alert
+   * @apiName PostTrack
+   * @apiGroup Tracks
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {number} id Id of the alert to add the device to.
+   * @apiParam {number} deviceId id of the device
+   *
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   *
+   */
+  app.post(
+    `${apiUrl}/:id/device`,
+    [auth.authenticateUser],
+    param("id").isInt().toInt(),
+    middleware.getDeviceById(body),
+    middleware.requestWrapper(async (request, response) => {
+      const alert = await models.Alert.getFromId(
+        request.params.id,
+        request.user
+      );
+      if (!alert) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such alert."]
+        });
+        return;
+      }
+      await alert.addDevice(request.body.device.id);
+
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Alert Device added."]
+      });
+    })
+  );
   /**
    * @api {get} /api/v1/alerts Get Alerts
    * @apiName GetAlerts
@@ -77,7 +168,8 @@ export default function (app: Application, baseUrl: string) {
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
         request.query.where,
-        request.user
+        request.user,
+        null
       );
       return responseUtil.send(response, {
         statusCode: 200,
@@ -88,32 +180,41 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/alerts/:id Get Alerts
+   * @api {get} /api/v1/alerts/:id Get Alert
    * @apiName GetAlerts
    * @apiAlert Alert
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   * @apiParam {number} id of the alert to retrieve
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {Alerts[]} Alerts Array of Alerts
+   * @apiSuccess {Alert}
    *
    * @apiUse V1ResponseError
    */
   app.get(
     `${apiUrl}/:id`,
     [auth.authenticateUser],
-      param("id").isInt(),
+    param("id").isInt(),
     middleware.requestWrapper(async (request, response) => {
-      const Alerts = await models.Alert.query(
-        request.query.where,
+      const alert = await models.Alert.getFromId(
+        request.params.id,
         request.user
       );
+
+      if (!alert) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such alert."]
+        });
+        return;
+      }
+
       return responseUtil.send(response, {
         statusCode: 200,
         messages: [],
-        Alerts
+        alert
       });
     })
   );

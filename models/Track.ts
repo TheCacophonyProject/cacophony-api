@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { TrackTag, TrackTagId } from "./TrackTag";
+import { User } from "./User";
+import { Recording } from "./Recording";
 import { AlertStatic } from "./Alert";
+import { alertHTML, sendEmail } from "../emailUtil";
 
 export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {
@@ -28,17 +31,14 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
   AlgorithmId: number | null;
   data: any;
   // NOTE: Implicitly created by sequelize associations.
-  addTag: ({
-    what,
-    confidence,
-    automatic,
-    data
-  }: {
-    what: any;
-    confidence: number;
-    automatic: boolean;
-    data: any;
-  }) => Promise<TrackTag>;
+  addTag: (
+    what: any,
+    confidence: number,
+    automatic: boolean,
+    data: any,
+    userId?: number
+  ) => Promise<TrackTag>;
+  getRecording: () => Promise<Recording>;
 }
 export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
@@ -110,25 +110,39 @@ export default function (
     });
   };
 
-
-
   //---------------
   // INSTANCE
   //---------------
-  async function checkAlerts(tag: TrackTag){
-    const alerts = await (models.Alert as AlertStatic).query({}, null, {"tag":tag.what}, true);
-    if (alerts.length){
-      //send alert
+  async function sendAlerts(track: Track, tag: TrackTag) {
+    const recording = await track.getRecording();
+    const alerts = await (models.Alert as AlertStatic).getAlertsFor(
+      recording.DeviceId,
+      tag.what
+    );
+    if (alerts.length > 0) {
+      for (const alert of alerts) {
+        await alert.sendAlert(recording, track, tag);
+      }
     }
+
     return alerts;
   }
-  Track.prototype.addTag = async function (  what,
+  Track.prototype.addTag = async function (
+    what,
     confidence,
     automatic,
-    data) {
-    const tag = await this.createTrackTag(what,confidence,automatic,data);
-
-    checkAlerts(tag);
+    data,
+    userId = null
+  ) {
+    const tag = await this.createTrackTag({
+      what: what,
+      confidence: confidence,
+      automatic: automatic,
+      data: data,
+      userId: userId
+    });
+    await sendAlerts(this, tag);
+    return tag;
   };
   // Return a specific track tag for the track.
   Track.prototype.getTrackTag = async function (trackTagId) {

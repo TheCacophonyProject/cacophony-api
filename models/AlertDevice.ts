@@ -32,12 +32,7 @@ export interface AlertDeviceStatic extends ModelStaticCommon<AlertDevice> {
 export default function (sequelize, DataTypes): AlertDeviceStatic {
   const name = "AlertDevice";
 
-  const attributes = {
-    AlertDeviceName: {
-      type: DataTypes.STRING,
-      unique: true
-    }
-  };
+  const attributes = {};
 
   const AlertDevice = (sequelize.define(
     name,

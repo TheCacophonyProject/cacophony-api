@@ -4,12 +4,12 @@ import eventUtil from "./api/V1/eventUtil";
 import moment, { Moment } from "moment";
 import { ServiceErrorMap } from "./api/V1/systemError";
 import nodemailer from "nodemailer";
+import { sendEmail } from "./emailUtil";
 
 async function main() {
   if (!config.smtpDetails) {
     throw "No SMTP details found in config/app.js";
   }
-
   const endDate = moment().tz(config.timeZone);
   const startDate = moment().tz(config.timeZone).subtract(24, "hours");
   const query = {
@@ -24,7 +24,11 @@ async function main() {
     return;
   }
   const html = generateHtml(startDate, endDate, serviceErrors);
-  await sendEmail(html);
+  await sendEmail(
+    html,
+    "coredev@cacophony.org.nz",
+    "Service Errors in the last 24 hours"
+  );
 }
 
 function generateHtml(
@@ -64,26 +68,6 @@ function generateHtml(
 
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
   return html;
-}
-
-async function sendEmail(html: string) {
-  var transporter = nodemailer.createTransport(config.smtpDetails);
-
-  var mailOptions = {
-    from: config.smtpDetails.from_name,
-    to: "coredev@cacophony.org.nz",
-    subject: "Service Errors in the last 24 hours",
-    html: html
-  };
-
-  log.info("sending email");
-  await transporter.sendMail(mailOptions).then((error: any) => {
-    if (error && error.rejected.length > 0) {
-      log.error(error);
-    } else {
-      log.info("Email sent");
-    }
-  });
 }
 
 const log = new winston.Logger({

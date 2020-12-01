@@ -21,10 +21,13 @@ import { ModelCommon, ModelStaticCommon } from "./index";
 
 const { AuthorizationError } = require("../api/customErrors");
 
-export interface AlertCondition extends Sequelize.Model, ModelCommon<AlertCondition> {
+export interface AlertCondition
+  extends Sequelize.Model,
+    ModelCommon<AlertCondition> {
   id: number;
 }
-export interface AlertConditionStatic extends ModelStaticCommon<AlertCondition> {
+export interface AlertConditionStatic
+  extends ModelStaticCommon<AlertCondition> {
   getFromId: (id: number) => Promise<AlertCondition>;
 }
 
@@ -33,10 +36,10 @@ export default function (sequelize, DataTypes): AlertConditionStatic {
 
   const attributes = {
     tag: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     automatic: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.BOOLEAN
     }
   };
 
@@ -54,7 +57,7 @@ export default function (sequelize, DataTypes): AlertConditionStatic {
 
   AlertCondition.addAssociations = function (models) {
     models.AlertCondition.belongsTo(models.Alert);
-  }
+  };
   AlertCondition.getFromId = async function (id) {
     return this.findByPk(id);
   };

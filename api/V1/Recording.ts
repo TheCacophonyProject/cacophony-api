@@ -768,13 +768,13 @@ export default (app: Application, baseUrl: string) => {
           return;
         }
       }
-      const tag = await track.createTrackTag({
-        what: request.body.what,
-        confidence: request.body.confidence,
-        automatic: request.body.automatic,
-        data: request.body.data ? request.body.data : "",
-        UserId: request.user.id
-      });
+      const tag = await track.addTag(
+        request.body.what,
+        request.body.confidence,
+        request.body.automatic,
+        request.body.data ? request.body.data : "",
+        request.user.id
+      );
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],

@@ -32,8 +32,20 @@ export default function (sequelize, DataTypes): AlertLogStatic {
   const name = "AlertLog";
 
   const attributes = {
+    recId: {
+      type: DataTypes.INTEGER
+    },
+    trackId: {
+      type: DataTypes.INTEGER
+    },
+    success: {
+      type: DataTypes.BOOLEAN
+    },
+    to: {
+      type: DataTypes.STRING
+    },
     sentAt: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATE
     }
   };
 
@@ -49,8 +61,8 @@ export default function (sequelize, DataTypes): AlertLogStatic {
   //---------------
   const models = sequelize.models;
   AlertLog.addAssociations = function (models) {
-    models.AlertCondition.belongsTo(models.Alert);
-  }
+    models.AlertLog.belongsTo(models.Alert);
+  };
   AlertLog.getFromId = async function (id) {
     return this.findByPk(id);
   };

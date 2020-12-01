@@ -220,6 +220,8 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getRawFileExt: () => string;
   getFileExt: () => string;
   getActiveTracks: () => Promise<Track[]>;
+  getDevice: () => Promise<Device>;
+
   getActiveTracksTagsAndTagger: () => Promise<any>;
   getUserPermissions: (user: User) => Promise<RecordingPermission[]>;
 
