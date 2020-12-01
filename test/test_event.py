@@ -1,8 +1,8 @@
 import pytest
+import json
 
 from datetime import datetime, timedelta, timezone
 from test.testexception import AuthorizationError
-
 
 class TestEvent:
     def test_system_errors(self, helper):
@@ -58,7 +58,7 @@ class TestEvent:
 
         print("Then 'data_collector' should be able to see that the device has an event")
         assert len(data_collector.can_see_events()) == 1
-
+        
         print("And super users should be able to see that the device has an event")
         assert len(helper.admin_user().can_see_events(device)) == 1
 
@@ -151,3 +151,15 @@ class TestEvent:
 
         # Just start time, on the event
         assert fred.can_see_events(startTime=now)
+
+    def test_event_filtering(self, helper):
+        fred, freds_device = helper.given_new_user_with_device(self, "freddie")
+
+        freds_device.record_event("playLure", {"lure_id": "possum_screech"})
+        freds_device.record_event("software", {"recorder": "v1.3"})
+        assert len(fred.can_see_events()) == 2
+
+        assert len(fred.can_see_events(type="software")) == 1
+
+        assert len(fred.can_see_events(type="software")) == 1
+        assert "recorder" in json.dumps(fred.can_see_events(type="software")[0])
