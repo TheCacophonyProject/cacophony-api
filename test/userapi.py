@@ -528,7 +528,7 @@ class UserAPI(APIBase):
             headers=self._auth_header,
             data={"what": what, "automatic": automatic},
         )
-        return self._check_response(response)["conditionId"]
+        return self._check_response(response)["id"]
 
     def add_alert_device(self, alert_id, device_id):
         response = requests.post(

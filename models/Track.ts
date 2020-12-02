@@ -139,7 +139,7 @@ export default function (
       confidence: confidence,
       automatic: automatic,
       data: data,
-      userId: userId
+      UserId: userId
     });
     await sendAlerts(this, tag);
     return tag;
