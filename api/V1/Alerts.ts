@@ -28,7 +28,7 @@ export default function (app: Application, baseUrl: string) {
 
   /**
    * @api {post} /api/v1/alerts Create a new alert
-   * @apiName NewAlert
+   * @apiName PostAlert
    * @apiAlert Alert
    *
    * @apiDescription Creates a new alert with the user used in the JWT as the admin.
@@ -64,8 +64,8 @@ export default function (app: Application, baseUrl: string) {
 
   /**
    * @api {post} /api/v1/alerts/:id/condition Add new condition to an alert
-   * @apiName PostTrack
-   * @apiGroup Tracks
+   * @apiName PostAlertCondition
+   * @apiGroup Alerts
    *
    * @apiUse V1UserAuthorizationHeader
    *
@@ -110,8 +110,8 @@ export default function (app: Application, baseUrl: string) {
   );
   /**
    * @api {post} /api/v1/recordings/:id/device Add new device to alert
-   * @apiName PostTrack
-   * @apiGroup Tracks
+   * @apiName PostAlertDevice
+   * @apiGroup Alerts
    *
    * @apiUse V1UserAuthorizationHeader
    *
@@ -181,7 +181,7 @@ export default function (app: Application, baseUrl: string) {
 
   /**
    * @api {get} /api/v1/alerts/:id Get Alert
-   * @apiName GetAlerts
+   * @apiName GetAlert
    * @apiAlert Alert
    *
    * @apiUse V1UserAuthorizationHeader
