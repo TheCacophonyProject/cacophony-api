@@ -462,8 +462,8 @@ class Visit {
   start: Moment;
   queryOffset: number;
   deviceName: string;
+  deviceId: number;
   groupName: string;
-
   audioBaitDay: boolean;
   audioBaitVisit: boolean;
   audioBaitEvents: Event[];
@@ -475,6 +475,7 @@ class Visit {
     this.end = event.end;
     this.start = event.start;
     this.deviceName = rec.Device.devicename;
+    this.deviceId = rec.Device.id;
     this.groupName = rec.Group.groupname;
     this.audioBaitEvents = [];
     this.audioBaitVisit = false;
