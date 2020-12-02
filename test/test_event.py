@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from test.testexception import AuthorizationError
 
+
 class TestEvent:
     def test_system_errors(self, helper):
         user, device = helper.given_new_user_with_device(self, "error_maker")
