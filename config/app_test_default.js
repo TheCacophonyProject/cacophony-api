@@ -32,7 +32,7 @@ exports.smtpDetails = {
   from_name: "Alert User",
   auth: {
     user: "giampaolo@cacophony.org.nz",
-    pass: "bl00dybrilliant"
+    pass: "-"
   }
 };
 // This is needed because Sequelize looks for development by default
