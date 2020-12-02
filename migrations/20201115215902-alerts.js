@@ -57,7 +57,7 @@ module.exports = {
       createdAt: { type: Sequelize.DATE, allowNull: false },
       updatedAt: { type: Sequelize.DATE, allowNull: false }
     }),
-      await util.addSerial(queryInterface, "AlertLogs");
+    await util.addSerial(queryInterface, "AlertLogs");
     await util.addSerial(queryInterface, "AlertConditions");
 
     await util.addSerial(queryInterface, "UserAlerts");
@@ -78,7 +78,7 @@ module.exports = {
     );
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable("AlertLogs");
     await queryInterface.dropTable("AlertConditions");
     await queryInterface.dropTable("AlertDevices");
