@@ -189,7 +189,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {number} id of the alert to retrieve
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {Alert}
+   * @apiSuccess {Alert} requested alert
    *
    * @apiUse V1ResponseError
    */
