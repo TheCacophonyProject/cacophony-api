@@ -29,10 +29,9 @@ exports.database = {
 
 exports.smtpDetails = {
   service: "gmail",
-  from_name: "Alert User",
   auth: {
-    user: "giampaolo@cacophony.org.nz",
-    pass: "-"
+    user: "noinfo@cacophony.org.nz",
+    pass: "thesecretpassword"
   }
 };
 // This is needed because Sequelize looks for development by default
