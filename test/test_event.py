@@ -1,4 +1,5 @@
 import pytest
+import json
 
 from datetime import datetime, timedelta, timezone
 from test.testexception import AuthorizationError
@@ -151,3 +152,15 @@ class TestEvent:
 
         # Just start time, on the event
         assert fred.can_see_events(startTime=now)
+
+    def test_event_filtering(self, helper):
+        georgina, georgina_device = helper.given_new_user_with_device(self, "georgina")
+
+        georgina_device.record_event("playLure", {"lure_id": "possum_screech"})
+        georgina_device.record_event("software", {"recorder": "v1.3"})
+        assert len(georgina.can_see_events()) == 2
+
+        assert len(georgina.can_see_events(type="software")) == 1
+
+        assert len(georgina.can_see_events(type="software")) == 1
+        assert "recorder" in json.dumps(georgina.can_see_events(type="software")[0])
