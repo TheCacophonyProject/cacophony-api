@@ -47,12 +47,12 @@ class TestVisits:
         # visit 4
         # future 3 unidentified gets grouped with cat
 
-        self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=40, seconds=10))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=37))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=32))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=31))
+        helper.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=40, seconds=10))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=37))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=32))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=31))
 
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=29))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=29))
         # an event that should not show up in the visits
         device.record_event("audioBait", {"fileId": sound2}, [now + timedelta(days=1, seconds=1)])
 

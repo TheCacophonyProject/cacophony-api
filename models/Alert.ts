@@ -209,7 +209,6 @@ export default function (sequelize, DataTypes): AlertStatic {
     const alertTime = new Date().toISOString();
     for (const user of this.Users) {
       const result = await sendEmail(html, user.email, subject);
-
       let sentAt = null;
       if (result) {
         sentAt = alertTime;

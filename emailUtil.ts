@@ -31,15 +31,20 @@ async function sendEmail(
     html: html
   };
 
-  await transporter.sendMail(mailOptions).then((error: any) => {
-    if (error && error.rejected.length > 0) {
-      log.error(error);
-      return false;
-    } else {
-      log.info("Email sent");
-      return true;
-    }
-  });
+  await transporter
+    .sendMail(mailOptions)
+    .then((error: any) => {
+      if (error && error.rejected.length > 0) {
+        log.error(error);
+        return false;
+      } else {
+        return true;
+      }
+    })
+    .catch(function (err) {
+      log.error(err);
+    });
+
   return false;
 }
 
