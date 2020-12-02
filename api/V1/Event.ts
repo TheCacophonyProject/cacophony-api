@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
+import { QueryOptions } from "../../models/Event";
 import responseUtil from "./responseUtil";
 import { param, body, oneOf, query } from "express-validator/check";
 import { Application } from "express";
@@ -96,6 +97,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {Integer} [deviceId] Return only events for this device id
    * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
    * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
+   * @apiParam {String} [type] Alphaonly string describing the type of event wanted 
    *
    * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
    * @apiUse V1ResponseError
@@ -114,12 +116,16 @@ export default function (app: Application, baseUrl: string) {
         .optional(),
       query("deviceId").isInt().optional().toInt(),
       query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt()
+      query("limit").isInt().optional().toInt(),
+      query("type").isAlpha().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
       query.offset = query.offset || 0;
-      query.limit = query.limit || 100;
+      let options : QueryOptions;
+      if (query.type) { 
+        options = { eventType: query.type } as QueryOptions;
+      }
 
       const result = await models.Event.query(
         request.user,
@@ -127,7 +133,8 @@ export default function (app: Application, baseUrl: string) {
         query.endTime,
         query.deviceId,
         query.offset,
-        query.limit
+        query.limit,
+        options
       );
 
       return responseUtil.send(response, {
@@ -142,16 +149,16 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/events/errors Query recorded events
+   * @api {get} /api/v1/events/errors Query recorded errors
    * @apiName QueryErrors
    * @apiGroup Events
    *
    * @apiUse V1UserAuthorizationHeader
-   * @apiParam {Datetime} [startTime] Return only events after this time
-   * @apiParam {Datetime} [endTime] Return only events from before this time
-   * @apiParam {Integer} [deviceId] Return only events for this device id
-   * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
-   * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
+   * @apiParam {Datetime} [startTime] Return only errors after this time
+   * @apiParam {Datetime} [endTime] Return only errors from before this time
+   * @apiParam {Integer} [deviceId] Return only errors for this device id
+   * @apiParam {Integer} [limit] Limit returned errors to this number (default is 100)
+   * @apiParam {Integer} [offset] Offset returned errors by this amount (default is 0)
    *
    * @apiSuccess {JSON} map of Service Name to Service errors
    * @apiUse V1ResponseError
