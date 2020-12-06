@@ -504,6 +504,12 @@ class TestUser:
     def get_cacophony_index_histogram_for_device(self, device: TestDevice, from_time=None, window_size=None):
         return self._userapi.get_cacophony_index_histogram(device.get_id(), from_time, window_size)
 
+    def admin_login_as_other_user(self, username):
+        return self._userapi.admin_login_as_other_user(username)
+
+    def list_users(self):
+        return self._userapi.list_users()
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser):

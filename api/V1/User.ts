@@ -161,7 +161,7 @@ export default function(app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} api/v1/users/list List usernames
+   * @api {get} api/v1/listUsers List usernames
    * @apiName ListUsers
    * @apiGroup User
    * @apiDescription Given an authenticated super-user, we need to be able to get
