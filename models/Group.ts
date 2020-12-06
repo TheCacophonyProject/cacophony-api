@@ -75,7 +75,6 @@ export default function (sequelize, DataTypes): GroupStatic {
     models.Group.hasMany(models.Device);
     models.Group.belongsToMany(models.User, { through: models.GroupUsers });
     models.Group.hasMany(models.Recording);
-    models.Group.belongsToMany(models.Alert, { through: models.AlertGroup });
   };
 
   /**

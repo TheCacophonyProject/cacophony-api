@@ -82,7 +82,6 @@ module.exports = {
     await queryInterface.dropTable("AlertLogs");
     await queryInterface.dropTable("AlertConditions");
     await queryInterface.dropTable("AlertDevices");
-    await queryInterface.dropTable("AlertGroups");
     await queryInterface.dropTable("UserAlerts");
     await queryInterface.dropTable("Alerts");
   }
