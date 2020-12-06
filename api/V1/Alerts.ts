@@ -63,52 +63,6 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {post} /api/v1/alerts/:id/condition Add new condition to an alert
-   * @apiName PostAlertCondition
-   * @apiGroup Alerts
-   *
-   * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiParam {number} id Id of the alert to add the condition to.
-   * @apiParam {string} what animal/event to trigger on
-   * @apiParam {boolean} automatic (Optional) Weather to trigger on automatic tags
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {int} id Unique id of the newly created condition.
-   *
-   * @apiUse V1ResponseError
-   *
-   */
-  app.post(
-    `${apiUrl}/:id/condition`,
-    [auth.authenticateUser],
-    param("id").isInt().toInt(),
-    body("what"),
-    body("automatic").isBoolean().toBoolean().optional(),
-    middleware.requestWrapper(async (request, response) => {
-      const alert = await models.Alert.getFromId(
-        request.params.id,
-        request.user
-      );
-      if (!alert) {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["No such alert."]
-        });
-        return;
-      }
-      const condition = await alert.createAlertCondition({
-        tag: request.body.what,
-        automatic: request.body.automatic
-      });
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Alert Condition added."],
-        id: condition.id
-      });
-    })
-  );
-  /**
    * @api {post} /api/v1/recordings/:id/device Add new device to alert
    * @apiName PostAlertDevice
    * @apiGroup Alerts

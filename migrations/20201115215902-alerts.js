@@ -20,6 +20,9 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE
       },
+      triggers: {
+        type: Sequelize.JSON
+      }
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -29,16 +32,7 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
-    await queryInterface.createTable("AlertConditions", {
-      tag: { type: Sequelize.TEXT, allowNull: false },
-      automatic: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-        allowNull: false
-      },
-      updatedAt: { type: Sequelize.DATE, allowNull: false },
-      createdAt: { type: Sequelize.DATE, allowNull: false }
-    });
+
     await queryInterface.createTable("AlertLogs", {
       recId: { type: Sequelize.INTEGER, allowNull: false },
       trackId: { type: Sequelize.INTEGER, allowNull: false },
@@ -52,24 +46,10 @@ module.exports = {
       createdAt: { type: Sequelize.DATE, allowNull: false },
       updatedAt: { type: Sequelize.DATE, allowNull: false }
     });
-    await queryInterface.createTable("UserAlerts", {
-      admin: { type: Sequelize.BOOLEAN, defaultValue: false, allowNull: false },
-      createdAt: { type: Sequelize.DATE, allowNull: false },
-      updatedAt: { type: Sequelize.DATE, allowNull: false }
-    }),
+
     await util.addSerial(queryInterface, "AlertLogs");
-    await util.addSerial(queryInterface, "AlertConditions");
-
-    await util.addSerial(queryInterface, "UserAlerts");
     await util.addSerial(queryInterface, "AlertDevices");
-    await util.migrationAddBelongsTo(
-      queryInterface,
-      "AlertConditions",
-      "Alerts"
-    );
-
     await util.migrationAddBelongsTo(queryInterface, "AlertLogs", "Alerts");
-    await util.belongsToMany(queryInterface, "UserAlerts", "Alerts", "Users");
     await util.belongsToMany(
       queryInterface,
       "AlertDevices",
@@ -80,9 +60,7 @@ module.exports = {
 
   down: async (queryInterface) => {
     await queryInterface.dropTable("AlertLogs");
-    await queryInterface.dropTable("AlertConditions");
     await queryInterface.dropTable("AlertDevices");
-    await queryInterface.dropTable("UserAlerts");
     await queryInterface.dropTable("Alerts");
   }
 };

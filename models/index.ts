@@ -22,7 +22,6 @@ import fs from "fs";
 import log from "../logging";
 import { AlertStatic } from "./Alert";
 import { AlertDeviceStatic } from "./AlertDevice";
-import { AlertConditionStatic } from "./AlertCondition";
 import { UserAlertStatic } from "./UserAlert";
 import { UserStatic } from "./User";
 import { TagStatic } from "./Tag";
@@ -135,7 +134,6 @@ const AllModels = {
   Schedule: db.Schedule as ScheduleStatic,
   Alert: db.Alert as AlertStatic,
   AlertDevice: db.AlertDevice as AlertDeviceStatic,
-  AlertCondition: db.AlertCondition as AlertConditionStatic,
   UserAlert: db.UserAlert as UserAlertStatic,
   sequelize,
   Sequelize
