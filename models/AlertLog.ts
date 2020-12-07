@@ -32,20 +32,12 @@ export default function (sequelize, DataTypes): AlertLogStatic {
   const name = "AlertLog";
 
   const attributes = {
-    recId: {
-      type: DataTypes.INTEGER
-    },
-    trackId: {
-      type: DataTypes.INTEGER
-    },
-    success: {
-      type: DataTypes.BOOLEAN
-    },
-    to: {
-      type: DataTypes.STRING
-    },
+    recId: DataTypes.INTEGER,
+    trackId: DataTypes.INTEGER,
+    success: DataTypes.BOOLEAN,
     sentAt: {
-      type: DataTypes.DATE
+      type: DataTypes.DATE,
+      allowNull: true
     }
   };
 

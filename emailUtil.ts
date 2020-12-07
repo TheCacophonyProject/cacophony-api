@@ -44,7 +44,6 @@ async function sendEmail(
     .catch(function (err) {
       log.error(err);
     });
-
   return false;
 }
 

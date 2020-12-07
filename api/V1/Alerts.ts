@@ -41,7 +41,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {JSON} alert Alert
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {int} id Unique id of the newly created alert.
+   * @apiSuccess {number} id Unique id of the newly created alert.
 
    * @apiUse V1ResponseError
    */
@@ -60,8 +60,8 @@ export default function (app: Application, baseUrl: string) {
 
       request.body.alert.UserId = request.user.id;
       if (
-        request.body.alert.frequency == undefined ||
-        request.body.alert.frequency == null
+        request.body.alert.frequencySeconds == undefined ||
+        request.body.alert.frequencySeconds == null
       ) {
         request.body.alert.frequencySeconds = DEFAULT_FREQUENCY;
       }

@@ -34,10 +34,7 @@ export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   conditions: any;
   frequencySeconds: number;
 
-  createAlertLog: ({
-    success: boolean,
-    sentAt: Date
-  }) => Promise<AlertLog>;
+  createAlertLog: ({ success: boolean, sentAt: Date }) => Promise<AlertLog>;
 }
 
 export interface AlertStatic extends ModelStaticCommon<Alert> {
