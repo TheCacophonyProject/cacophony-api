@@ -255,11 +255,11 @@ class TestUser:
             deviceId = device.get_id()
         return self._userapi.query_event_errors(deviceId=deviceId, startTime=startTime, endTime=endTime)
 
-    def can_see_events(self, device=None, startTime=None, endTime=None):
+    def can_see_events(self, device=None, startTime=None, endTime=None, type=None):
         deviceId = None
         if device is not None:
             deviceId = device.get_id()
-        return self._userapi.query_events(deviceId=deviceId, startTime=startTime, endTime=endTime)
+        return self._userapi.query_events(deviceId=deviceId, startTime=startTime, endTime=endTime, type=type)
 
     def cannot_see_events(self):
         events = self._userapi.query_events()
