@@ -86,6 +86,7 @@ export default function (sequelize, DataTypes): AlertStatic {
 
     return await models.Alert.findOne({
       where: { id: id },
+      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
       include: [
         {
           model: models.User,
@@ -121,7 +122,7 @@ export default function (sequelize, DataTypes): AlertStatic {
     }
     const alerts = await models.Alert.findAll({
       where: where,
-      attributes: ["id", "name", "frequencySeconds", "conditions"],
+      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
       include: [
         {
           model: models.AlertLog,
@@ -141,12 +142,13 @@ export default function (sequelize, DataTypes): AlertStatic {
       ]
     });
     if (tag) {
-      return alerts.filter((alert) => filterCondition(alert.conditions, tag));
+      return alerts.filter((alert) => filterConditions(alert.conditions, tag));
     }
     return alerts;
   };
 
-  function filterCondition(conditions, tag): boolean {
+  // check that any of the alert conditions are met
+  function filterConditions(conditions, tag): boolean {
     return conditions.some((condition) => condition.tag == tag);
   }
 
