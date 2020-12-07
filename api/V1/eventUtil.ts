@@ -20,6 +20,7 @@ async function errors(request: any, admin?: boolean) {
     query.deviceId,
     query.offset,
     query.limit,
+    false,
     options
   );
 
