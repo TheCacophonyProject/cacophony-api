@@ -114,15 +114,26 @@ export default function(app: Application, baseUrl: string) {
         // @ts-ignore
         .isISO8601({ strict: true })
         .optional(),
-      query("deviceId").isInt().optional().toInt(),
-      query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt(),
-      query("type").isAlpha().optional()
+      query("deviceId")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("offset")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("limit")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("type")
+        .isAlpha()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
       query.offset = query.offset || 0;
-      let options : QueryOptions;
+      let options: QueryOptions;
       if (query.type) {
         options = { eventType: query.type } as QueryOptions;
       }
