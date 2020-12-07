@@ -37,7 +37,6 @@ module.exports = {
       recId: { type: Sequelize.INTEGER, allowNull: false },
       trackId: { type: Sequelize.INTEGER, allowNull: false },
       success: { type: Sequelize.BOOLEAN, allowNull: false },
-      to: { type: Sequelize.STRING, allowNull: false },
       sentAt: { type: Sequelize.DATE, allowNull: true },
       updatedAt: { type: Sequelize.DATE, allowNull: false },
       createdAt: { type: Sequelize.DATE, allowNull: false }

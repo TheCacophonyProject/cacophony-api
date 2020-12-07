@@ -1,6 +1,6 @@
 /*
 cacophony-api: The Cacophony Project API server
-Copyright (C) 2018  The Cacophony Project
+Copyright (C) 2020  The Cacophony Project
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
@@ -33,11 +33,9 @@ export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   UserId: UserId;
   conditions: any;
   frequencySeconds: number;
-  getUser: () => Promise<User>;
 
   createAlertLog: ({
     success: boolean,
-    to: string,
     sentAt: Date
   }) => Promise<AlertLog>;
 }
@@ -191,7 +189,6 @@ export default function (sequelize, DataTypes): AlertStatic {
       recId: recording.id,
       trackId: track.id,
       success: result,
-      to: this.User.email,
       sentAt: sentAt
     });
 

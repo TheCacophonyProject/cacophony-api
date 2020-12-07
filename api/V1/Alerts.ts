@@ -1,6 +1,6 @@
 /*
 cacophony-api: The Cacophony Project API server
-Copyright (C) 2018  The Cacophony Project
+Copyright (C) 2020  The Cacophony Project
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
@@ -38,8 +38,7 @@ export default function (app: Application, baseUrl: string) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {String} name
-   * @apiParam {int} frequency maximum frequency in seconds that an alert will trigger
+   * @apiParam {JSON} alert Alert
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {int} id Unique id of the newly created alert.
