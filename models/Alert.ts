@@ -46,7 +46,7 @@ export interface AlertStatic extends ModelStaticCommon<Alert> {
     admin?: boolean
   ) => Promise<any[]>;
   getFromId: (id: number, user: User) => Promise<Alert>;
-  getAlertsFor: (deviceId: number, what: string) => Promise<any[]>;
+  getActiveAlerts: (deviceId: number, what: string) => Promise<any[]>;
   sendAlert: (recording: Recording, track: Track) => Promise<null>;
 }
 
@@ -152,7 +152,9 @@ export default function (sequelize, DataTypes): AlertStatic {
     return conditions.some((condition) => condition.tag == tag);
   }
 
-  Alert.getAlertsFor = async function (deviceId: number, what: string) {
+  // get all alerts for this device that satisfy the what condition and have
+  // not been triggered already (are active)
+  Alert.getActiveAlerts = async function (deviceId: number, what: string) {
     return Alert.query(
       {
         DeviceId: deviceId,

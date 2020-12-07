@@ -115,7 +115,7 @@ export default function (
   //---------------
   async function sendAlerts(track: Track, tag: TrackTag) {
     const recording = await track.getRecording();
-    const alerts = await (models.Alert as AlertStatic).getAlertsFor(
+    const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
       recording.DeviceId,
       tag.what
     );
