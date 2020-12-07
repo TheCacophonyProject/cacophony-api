@@ -22,6 +22,9 @@ import models from "../../models";
 import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
+import { Alert } from "../../models/Alert";
+
+const DEFAULT_FREQUENCY = 60 * 30; //30 minutes
 
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/alerts`;
@@ -46,14 +49,25 @@ export default function (app: Application, baseUrl: string) {
   app.post(
     apiUrl,
     [auth.authenticateUser],
-    body("name").isString(),
-    body("frequency").isInt().optional(),
+    middleware.parseJSON("alert", body),
     middleware.requestWrapper(async (request, response) => {
-      const newAlert = await models.Alert.newAlert(
-        request.body.name,
-        request.body.frequency
-      );
-      await newAlert.addUser(request.user.id, { through: { admin: true } });
+      if (!request.user.canAccessDevice(request.body.alert.DeviceId)) {
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["No such device."]
+        });
+        return;
+      }
+
+      request.body.alert.UserId = request.user.id;
+      if (
+        request.body.alert.frequency == undefined ||
+        request.body.alert.frequency == null
+      ) {
+        request.body.alert.frequencySeconds = DEFAULT_FREQUENCY;
+      }
+      const newAlert = (await models.Alert.build(request.body.alert)) as Alert;
+      await newAlert.save();
       return responseUtil.send(response, {
         id: newAlert.id,
         statusCode: 200,
@@ -62,46 +76,6 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
-  /**
-   * @api {post} /api/v1/recordings/:id/device Add new device to alert
-   * @apiName PostAlertDevice
-   * @apiGroup Alerts
-   *
-   * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiParam {number} id Id of the alert to add the device to.
-   * @apiParam {number} deviceId id of the device
-   *
-   * @apiUse V1ResponseSuccess
-   *
-   * @apiUse V1ResponseError
-   *
-   */
-  app.post(
-    `${apiUrl}/:id/device`,
-    [auth.authenticateUser],
-    param("id").isInt().toInt(),
-    middleware.getDeviceById(body),
-    middleware.requestWrapper(async (request, response) => {
-      const alert = await models.Alert.getFromId(
-        request.params.id,
-        request.user
-      );
-      if (!alert) {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["No such alert."]
-        });
-        return;
-      }
-      await alert.addDevice(request.body.device.id);
-
-      responseUtil.send(response, {
-        statusCode: 200,
-        messages: ["Alert Device added."]
-      });
-    })
-  );
   /**
    * @api {get} /api/v1/alerts Get Alerts
    * @apiName GetAlerts

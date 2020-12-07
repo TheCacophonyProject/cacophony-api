@@ -20,9 +20,9 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE
       },
-      triggers: {
+      conditions: {
         type: Sequelize.JSON
-      }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -42,25 +42,15 @@ module.exports = {
       updatedAt: { type: Sequelize.DATE, allowNull: false },
       createdAt: { type: Sequelize.DATE, allowNull: false }
     });
-    await queryInterface.createTable("AlertDevices", {
-      createdAt: { type: Sequelize.DATE, allowNull: false },
-      updatedAt: { type: Sequelize.DATE, allowNull: false }
-    });
 
     await util.addSerial(queryInterface, "AlertLogs");
-    await util.addSerial(queryInterface, "AlertDevices");
+    await util.migrationAddBelongsTo(queryInterface, "Alerts", "Users");
     await util.migrationAddBelongsTo(queryInterface, "AlertLogs", "Alerts");
-    await util.belongsToMany(
-      queryInterface,
-      "AlertDevices",
-      "Alerts",
-      "Devices"
-    );
+    await util.migrationAddBelongsTo(queryInterface, "Alerts", "Devices");
   },
 
   down: async (queryInterface) => {
     await queryInterface.dropTable("AlertLogs");
-    await queryInterface.dropTable("AlertDevices");
     await queryInterface.dropTable("Alerts");
   }
 };

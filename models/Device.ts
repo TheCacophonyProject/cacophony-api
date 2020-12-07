@@ -168,7 +168,7 @@ export default function (
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
     models.Device.belongsTo(models.Group);
-    models.Device.belongsToMany(models.Alert, { through: models.AlertDevice });
+    models.Device.hasMany(models.Alert);
   };
 
   /**

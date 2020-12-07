@@ -15,12 +15,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-import Sequelize from "sequelize";
+import Sequelize, { BuildOptions } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import { User } from "./User";
-import { AlertDevice } from "./AlertDevice";
-import { AlertCondition } from "./AlertCondition";
+import { User, UserId } from "./User";
 import { AlertLog } from "./AlertLog";
 import { Recording } from "./Recording";
 import { Track } from "./Track";
@@ -31,24 +28,20 @@ const { AuthorizationError } = require("../api/customErrors");
 export type AlertId = number;
 const Op = Sequelize.Op;
 
-const DEFAULT_FREQUENCY = 60 * 30; //30 minutes
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   id: AlertId;
-  addUser: (userToAdd: User, through: any) => Promise<void>;
-  addDevice: (userToAdd: User, through?: any) => Promise<void>;
+  UserId: UserId;
+  conditions: any;
+  frequencySeconds: number;
+  getUser: () => Promise<User>;
 
-  createAlertCondition: ({
-    tag: string,
-    automatic: boolean
-  }) => Promise<AlertCondition>;
-  createAlertDevice: ({ deviceId: number }) => Promise<AlertDevice>;
   createAlertLog: ({
     success: boolean,
     to: string,
     sentAt: Date
   }) => Promise<AlertLog>;
-  getUsers: () => Promise<User[]>;
 }
+
 export interface AlertStatic extends ModelStaticCommon<Alert> {
   query: (
     where: any,
@@ -57,7 +50,6 @@ export interface AlertStatic extends ModelStaticCommon<Alert> {
     condition?: any,
     admin?: boolean
   ) => Promise<any[]>;
-  newAlert: (name: String, frequency?: number) => Promise<Alert>;
   getFromId: (id: number, user: User) => Promise<Alert>;
   getAlertsFor: (deviceId: number, what: string) => Promise<any[]>;
   sendAlert: (recording: Recording, track: Track) => Promise<null>;
@@ -71,15 +63,12 @@ export default function (sequelize, DataTypes): AlertStatic {
       type: DataTypes.STRING,
       unique: true
     },
-    frequencySeconds: {
-      type: DataTypes.INTEGER
-    },
-    lastAlert: {
-      type: DataTypes.DATE
-    }
+    frequencySeconds: DataTypes.INTEGER,
+    lastAlert: DataTypes.DATE,
+    conditions: DataTypes.JSONB
   };
 
-  const Alert = (sequelize.define(name, attributes) as unknown) as AlertStatic;
+  const Alert = sequelize.define(name, attributes);
 
   Alert.apiSettableFields = [];
 
@@ -89,24 +78,11 @@ export default function (sequelize, DataTypes): AlertStatic {
   const models = sequelize.models;
 
   Alert.addAssociations = function (models) {
-    models.Alert.hasMany(models.AlertCondition);
     models.Alert.hasMany(models.AlertLog);
-    models.Alert.belongsToMany(models.User, { through: models.UserAlert });
-    models.Alert.belongsToMany(models.Device, { through: models.AlertDevice });
+    models.Alert.belongsTo(models.User);
+    models.Alert.belongsTo(models.Device);
   };
 
-  Alert.newAlert = async function (
-    name: string,
-    frequency: number | null = DEFAULT_FREQUENCY
-  ) {
-    if (frequency == undefined || frequency == null) {
-      frequency = DEFAULT_FREQUENCY;
-    }
-    return models.Alert.create({
-      name: name,
-      frequencySeconds: frequency
-    });
-  };
   Alert.getFromId = async function (id: number, user: User) {
     let userWhere = { id: user.id };
     if (user.hasGlobalRead()) {
@@ -127,8 +103,6 @@ export default function (sequelize, DataTypes): AlertStatic {
           limit: 5,
           order: [["updatedAt", "desc"]]
         },
-
-        { model: models.AlertCondition },
         {
           model: models.Device,
           attributes: ["id", "devicename"]
@@ -140,14 +114,9 @@ export default function (sequelize, DataTypes): AlertStatic {
   Alert.query = async function (
     where: any,
     user: User | null,
-    deviceId: number | null,
-    condition: any = {},
+    tag: string | null,
     admin: boolean = false
   ) {
-    let deviceWhere = null;
-    if (deviceId) {
-      deviceWhere = { id: deviceId };
-    }
     let userWhere = {};
     if (!admin) {
       userWhere = { id: user.id };
@@ -155,9 +124,9 @@ export default function (sequelize, DataTypes): AlertStatic {
         userWhere = null;
       }
     }
-    return await models.Alert.findAll({
+    const alerts = await models.Alert.findAll({
       where: where,
-      attributes: ["id", "name", "frequencySeconds"],
+      attributes: ["id", "name", "frequencySeconds", "conditions"],
       include: [
         {
           model: models.AlertLog,
@@ -170,19 +139,26 @@ export default function (sequelize, DataTypes): AlertStatic {
           attributes: ["id", "username", "email"],
           where: userWhere
         },
-        { model: models.AlertCondition, where: condition },
         {
           model: models.Device,
-          attributes: ["id", "devicename"],
-          where: deviceWhere
+          attributes: ["id", "devicename"]
         }
       ]
     });
+    if (tag) {
+      return alerts.filter((alert) => filterCondition(alert.conditions, tag));
+    }
+    return alerts;
   };
+
+  function filterCondition(conditions, tag): boolean {
+    return conditions.some((condition) => condition.tag == tag);
+  }
 
   Alert.getAlertsFor = async function (deviceId: number, what: string) {
     return Alert.query(
       {
+        DeviceId: deviceId,
         lastAlert: {
           [Op.or]: {
             [Op.eq]: null,
@@ -193,8 +169,7 @@ export default function (sequelize, DataTypes): AlertStatic {
         }
       },
       null,
-      deviceId,
-      { tag: what },
+      what,
       true
     );
   };
@@ -205,22 +180,20 @@ export default function (sequelize, DataTypes): AlertStatic {
     tag: TrackTag
   ) {
     const subject = `${this.name}  - ${tag.what} Detected`;
-    const html = alertHTML(recording, tag, this.Devices[0].devicename);
+    const html = alertHTML(recording, tag, this.Device.devicename);
     const alertTime = new Date().toISOString();
-    for (const user of this.Users) {
-      const result = await sendEmail(html, user.email, subject);
-      let sentAt = null;
-      if (result) {
-        sentAt = alertTime;
-      }
-      await this.createAlertLog({
-        recId: recording.id,
-        trackId: track.id,
-        success: result,
-        to: user.email,
-        sentAt: sentAt
-      });
+    const result = await sendEmail(html, this.User.email, subject);
+    let sentAt = null;
+    if (result) {
+      sentAt = alertTime;
     }
+    await this.createAlertLog({
+      recId: recording.id,
+      trackId: track.id,
+      success: result,
+      to: this.User.email,
+      sentAt: sentAt
+    });
 
     await this.update({ lastAlert: alertTime });
   };
