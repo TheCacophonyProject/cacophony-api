@@ -519,13 +519,16 @@ class UserAPI(APIBase):
     def create_alert(self, alert):
         props = {"alert": json.dumps(alert)}
         response = requests.post(
-            urljoin(self._baseurl, "/api/v1/alerts"), headers=self._auth_header, data=props,
+            urljoin(self._baseurl, "/api/v1/alerts"),
+            headers=self._auth_header,
+            data=props,
         )
         return self._check_response(response)["id"]
 
     def get_alert(self, alert_id):
         response = requests.get(
-            urljoin(self._baseurl, "/api/v1/alerts/{}".format(alert_id)), headers=self._auth_header,
+            urljoin(self._baseurl, "/api/v1/alerts/{}".format(alert_id)),
+            headers=self._auth_header,
         )
         self._check_response(response)
         return response.json()["alert"]
