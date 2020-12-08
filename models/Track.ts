@@ -22,7 +22,6 @@ import { TrackTag, TrackTagId } from "./TrackTag";
 import { User } from "./User";
 import { Recording } from "./Recording";
 import { AlertStatic } from "./Alert";
-import { alertHTML, sendEmail } from "../emailUtil";
 
 export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {

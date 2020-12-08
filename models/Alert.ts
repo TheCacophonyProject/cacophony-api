@@ -22,10 +22,9 @@ import { Recording } from "./Recording";
 import { Track } from "./Track";
 import { TrackTag } from "./TrackTag";
 import { EventStatic } from "./Event";
-
 import { alertHTML, sendEmail } from "../emailUtil";
-
 const { AuthorizationError } = require("../api/customErrors");
+
 export type AlertId = number;
 const Op = Sequelize.Op;
 

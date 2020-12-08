@@ -53,7 +53,7 @@ export default function (app: Application, baseUrl: string) {
       if (!request.user.canAccessDevice(request.body.alert.DeviceId)) {
         responseUtil.send(response, {
           statusCode: 400,
-          messages: ["No such device."]
+          messages: ["No device found."]
         });
         return;
       }
@@ -65,8 +65,7 @@ export default function (app: Application, baseUrl: string) {
       ) {
         request.body.alert.frequencySeconds = DEFAULT_FREQUENCY;
       }
-      const newAlert = (await models.Alert.build(request.body.alert)) as Alert;
-      await newAlert.save();
+      const newAlert = await models.Alert.create(request.body.alert);
       return responseUtil.send(response, {
         id: newAlert.id,
         statusCode: 200,
