@@ -22,7 +22,7 @@ import models from "../../models";
 import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
-import { Alert } from "../../models/Alert";
+import { Alert, AlertCondition, isAlertCondition } from "../../models/Alert";
 
 const DEFAULT_FREQUENCY = 60 * 30; //30 minutes
 
@@ -56,6 +56,15 @@ export default function (app: Application, baseUrl: string) {
           messages: ["No device found."]
         });
         return;
+      }
+      for (const condition of request.body.alert.conditions) {
+        if (!isAlertCondition(condition)) {
+          responseUtil.send(response, {
+            statusCode: 400,
+            messages: ["Bad condition."]
+          });
+          return;
+        }
       }
 
       request.body.alert.UserId = request.user.id;

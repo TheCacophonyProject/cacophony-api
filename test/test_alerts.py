@@ -1,4 +1,23 @@
+import pytest
+from .testexception import BadRequestError
+
+
 class TestAlert:
+    def test_alert_bad_alert_condition(self, helper):
+        colonel = helper.given_new_user(self, "colonel")
+        colonel_group = helper.make_unique_group_name(self, "colonelGroup")
+        colonel.create_group(colonel_group)
+        colonel_device = helper.given_new_device(self, "colonel_device", colonel_group)
+        print("The colonel creates an alert for his device on possums 0 frequency, automatic tags")
+        alert = {
+            "name": "bad condition",
+            "conditions": [{"tag": "any", "automaticF": True}],
+            "frequencySeconds": 0,
+            "DeviceId": colonel_device.get_id(),
+        }
+        with pytest.raises(BadRequestError):
+            colonel.create_alert(alert)
+
     def test_alert_automatic(self, helper):
         colonel = helper.given_new_user(self, "colonel")
         colonel_group = helper.make_unique_group_name(self, "colonelGroup")
