@@ -80,7 +80,8 @@ class DeviceSummary {
   earliestIncompleteOffset(): number | null {
     var offset = null;
     for (const device of Object.values(this.deviceMap)) {
-      for (const visit of device.visits) {
+      for (var i = device.visits.length - 1; i >= 0; i--) {
+        const visit = device.visits[i];
         if (!visit.incomplete) {
           break;
         }
@@ -101,7 +102,8 @@ class DeviceSummary {
   markCompleted() {
     var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
-      for (const visit of device.visits) {
+      for (var i = device.visits.length - 1; i >= 0; i--) {
+        const visit = device.visits[i];
         if (!visit.incomplete) {
           break;
         }
@@ -165,7 +167,8 @@ class DeviceVisits {
     this.visits = [];
   }
   checkForCompleteVisits(lastRecTime: Moment) {
-    for (const visit of this.visits.reverse()) {
+    for (var i = this.visits.length - 1; i >= 0; i--) {
+      const visit = this.visits[i];
       if (!visit.incomplete) {
         break;
       }
@@ -364,15 +367,14 @@ class VisitSummary {
     const prevLength = this.visits.length;
     this.visits = this.visits.filter((v) => !v.incomplete);
     if (prevLength != this.visits.length) {
-      this.updateStartEnd();
+      this.updateStart();
     }
   }
 
-  updateStartEnd() {
-    const firstVisit = this.firstVisit();
-    if (firstVisit != null) {
-      this.start = firstVisit.start;
-      this.end = firstVisit.end;
+  updateStart() {
+    const lastVisit = this.lastVisit();
+    if (lastVisit != null) {
+      this.start = lastVisit.start;
     }
   }
 
@@ -382,28 +384,19 @@ class VisitSummary {
     tag: TrackTag,
     trackPeriod: TrackStartEnd
   ): Visit | VisitEvent | null {
-    if (this.isPartOfFirstVisit(trackPeriod.trackEnd)) {
-      const newEvent = this.addEventToFirstVisit(rec, track, tag);
+    if (this.isPartOfCurrentVisit(trackPeriod.trackEnd)) {
+      const newEvent = this.addEventToCurrentVisit(rec, track, tag);
       return newEvent;
     }
-
     const visit = this.addVisit(rec, track, tag);
     return visit;
   }
-  isPartOfFirstVisit(time: Moment): boolean {
-    const firstVisit = this.firstVisit();
-    if (firstVisit == null) {
+  isPartOfCurrentVisit(time: Moment): boolean {
+    const currentVisit = this.lastVisit();
+    if (currentVisit == null) {
       return false;
     }
-    return firstVisit.isPartOfVisit(time);
-  }
-  removeFirstVisit() {
-    const firstVisit = this.firstVisit();
-
-    if (firstVisit != null) {
-      this.visits.shift();
-      this.start = firstVisit.start;
-    }
+    return currentVisit.isPartOfVisit(time);
   }
 
   lastVisit(): Visit | null {
@@ -413,25 +406,18 @@ class VisitSummary {
     return this.visits[this.visits.length - 1];
   }
 
-  firstVisit(): Visit | null {
-    if (this.visits.length == 0) {
-      return null;
-    }
-    return this.visits[0];
-  }
-
-  addEventToFirstVisit(
+  addEventToCurrentVisit(
     rec: Recording,
     track: Track,
     tag: TrackTag,
     wasUnidentified: boolean = false
   ): VisitEvent | null {
     //add event to current visit
-    const firstVisit = this.firstVisit();
-    if (firstVisit == null) {
+    const currentVisit = this.lastVisit();
+    if (currentVisit == null) {
       return null;
     }
-    const event = firstVisit.addEvent(rec, track, tag, wasUnidentified);
+    const event = currentVisit.addEvent(rec, track, tag, wasUnidentified);
     if (!wasUnidentified) {
       this.start = event.start;
     }
@@ -462,6 +448,7 @@ class Visit {
   start: Moment;
   queryOffset: number;
   deviceName: string;
+  deviceId: number
   groupName: string;
 
   audioBaitDay: boolean;
@@ -474,6 +461,7 @@ class Visit {
     this.what = tag.what;
     this.end = event.end;
     this.start = event.start;
+    this.deviceId = rec.Device.id;
     this.deviceName = rec.Device.devicename;
     this.groupName = rec.Group.groupname;
     this.audioBaitEvents = [];

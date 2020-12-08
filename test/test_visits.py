@@ -19,6 +19,25 @@ class TestVisits:
         tag = user.can_tag_track(track, what=what)
         return rec, track, tag
 
+    def test_visit_grouping(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
+
+        # check that last 2 possums are grouped together
+        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
+        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        response = cosmo.query_visits(return_json=True)
+        assert response["numVisits"] == 2
+        visits = response["rows"][str(device.get_id())]["visits"]
+        most_recent = parsedate(visits[0]["start"])
+        for visit in visits[1:]:
+            assert parsedate(visit["end"]) < most_recent
+
     def test_visits(self, helper):
         # init device and sounds
         admin = helper.admin_user()
