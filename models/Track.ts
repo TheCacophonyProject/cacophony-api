@@ -30,7 +30,6 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
   id: TrackId;
   AlgorithmId: number | null;
   data: any;
-  // NOTE: Implicitly created by sequelize associations.
   addTag: (
     what: any,
     confidence: number,
@@ -38,6 +37,7 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
     data: any,
     userId?: number
   ) => Promise<TrackTag>;
+  // NOTE: Implicitly created by sequelize associations.
   getRecording: () => Promise<Recording>;
 }
 export interface TrackStatic extends ModelStaticCommon<Track> {
@@ -127,6 +127,9 @@ export default function (
 
     return alerts;
   }
+
+  // Adds a tag to a track and checks if any alerts need to be sent. All trackTags
+  // should be added this way
   Track.prototype.addTag = async function (
     what,
     confidence,
