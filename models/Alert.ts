@@ -89,7 +89,7 @@ export default function (sequelize, DataTypes): AlertStatic {
 
     return await models.Alert.findOne({
       where: { id: id },
-      attributes: ["id", "name", "frequencySeconds", "conditions"],
+      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
       include: [
         {
           model: models.User,
@@ -119,7 +119,7 @@ export default function (sequelize, DataTypes): AlertStatic {
     }
     const alerts = await models.Alert.findAll({
       where: where,
-      attributes: ["id", "name", "frequencySeconds", "conditions"],
+      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
       include: [
         {
           model: models.User,
@@ -182,17 +182,14 @@ export default function (sequelize, DataTypes): AlertStatic {
     const html = alertHTML(recording, tag, this.Device.devicename);
     const alertTime = new Date().toISOString();
     const result = await sendEmail(html, this.User.email, subject);
-    let sentAt = null;
-
     const detail = await models.DetailSnapshot.getOrCreateMatching("alert", {
       alertId: this.id,
       recId: recording.id,
       trackId: track.id,
       success: result
     });
-
     await models.Event.create({
-      DeviceId: this.DeviceId,
+      DeviceId: this.Device.id,
       EventDetailId: detail.id,
       dateTime: alertTime
     });
