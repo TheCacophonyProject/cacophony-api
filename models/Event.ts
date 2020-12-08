@@ -58,6 +58,7 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     deviceId: DeviceId | null | undefined,
     offset: number | null | undefined,
     limit: number | null | undefined,
+    latest: boolean | null | undefined,
     options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
 }
@@ -95,6 +96,7 @@ export default function (sequelize, DataTypes) {
     deviceId,
     offset,
     limit,
+    latestFirst,
     options
   ) {
     const where: any = {};
@@ -123,6 +125,12 @@ export default function (sequelize, DataTypes) {
     if (options && options.eventType) {
       eventWhere.type = options.eventType;
     }
+
+    let order: any[] = ["dateTime"];
+    if (latestFirst) {
+      order = [["dateTime", "DESC"]];
+    }
+
     return this.findAndCountAll({
       where: {
         [Op.and]: [
@@ -130,7 +138,7 @@ export default function (sequelize, DataTypes) {
           options && options.admin ? "" : await user.getWhereDeviceVisible() // can only see devices they should
         ]
       },
-      order: ["dateTime"],
+      order: order,
       include: [
         {
           model: models.DetailSnapshot,

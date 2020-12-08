@@ -160,7 +160,16 @@ class TestEvent:
         georgina_device.record_event("software", {"recorder": "v1.3"})
         assert len(georgina.can_see_events()) == 2
 
-        assert len(georgina.can_see_events(type="software")) == 1
+        assert georgina.gets_first_event(type="software")["type"] == "software"
 
-        assert len(georgina.can_see_events(type="software")) == 1
-        assert "recorder" in json.dumps(georgina.can_see_events(type="software")[0])
+        assert georgina.gets_first_event(type="playLure")["type"] == "playLure"
+
+    def test_latest_first(self, helper):
+        lily, lily_device = helper.given_new_user_with_device(self, "lily")
+
+        lily_device.record_event("first_event", {"lure_id": "possum_screech"})
+        lily_device.record_event("second_event", {"recorder": "v1.3"})
+
+        assert "first_event" == lily.gets_first_event()["type"]
+
+        assert "second_event" == lily.gets_first_event(latest="true")["type"]
