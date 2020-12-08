@@ -117,7 +117,7 @@ export default function (
     const recording = await track.getRecording();
     const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
       recording.DeviceId,
-      tag.what
+      tag
     );
     if (alerts.length > 0) {
       for (const alert of alerts) {

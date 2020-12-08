@@ -18,23 +18,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Sequelize, { BuildOptions } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { User, UserId } from "./User";
-import { AlertLog } from "./AlertLog";
 import { Recording } from "./Recording";
 import { Track } from "./Track";
 import { TrackTag } from "./TrackTag";
+import { EventStatic } from "./Event";
+
 import { alertHTML, sendEmail } from "../emailUtil";
 
 const { AuthorizationError } = require("../api/customErrors");
 export type AlertId = number;
 const Op = Sequelize.Op;
 
+export interface AlertCondition {
+  tag: string;
+  automatic: boolean;
+}
+
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   id: AlertId;
   UserId: UserId;
   conditions: any;
   frequencySeconds: number;
-
-  createAlertLog: ({ success: boolean, sentAt: Date }) => Promise<AlertLog>;
 }
 
 export interface AlertStatic extends ModelStaticCommon<Alert> {
@@ -42,11 +46,11 @@ export interface AlertStatic extends ModelStaticCommon<Alert> {
     where: any,
     user: User | null,
     deviceId: number | null,
-    condition?: any,
+    trackTag?: TrackTag | null,
     admin?: boolean
   ) => Promise<any[]>;
   getFromId: (id: number, user: User) => Promise<Alert>;
-  getActiveAlerts: (deviceId: number, what: string) => Promise<any[]>;
+  getActiveAlerts: (deviceId: number, tag: TrackTag) => Promise<any[]>;
   sendAlert: (recording: Recording, track: Track) => Promise<null>;
 }
 
@@ -73,7 +77,6 @@ export default function (sequelize, DataTypes): AlertStatic {
   const models = sequelize.models;
 
   Alert.addAssociations = function (models) {
-    models.Alert.hasMany(models.AlertLog);
     models.Alert.belongsTo(models.User);
     models.Alert.belongsTo(models.Device);
   };
@@ -86,18 +89,12 @@ export default function (sequelize, DataTypes): AlertStatic {
 
     return await models.Alert.findOne({
       where: { id: id },
-      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
+      attributes: ["id", "name", "frequencySeconds", "conditions"],
       include: [
         {
           model: models.User,
           attributes: ["id", "username"],
           where: userWhere
-        },
-        {
-          model: models.AlertLog,
-          seperate: true,
-          limit: 5,
-          order: [["updatedAt", "desc"]]
         },
         {
           model: models.Device,
@@ -110,7 +107,7 @@ export default function (sequelize, DataTypes): AlertStatic {
   Alert.query = async function (
     where: any,
     user: User | null,
-    tag: string | null,
+    trackTag: TrackTag | null,
     admin: boolean = false
   ) {
     let userWhere = {};
@@ -122,14 +119,8 @@ export default function (sequelize, DataTypes): AlertStatic {
     }
     const alerts = await models.Alert.findAll({
       where: where,
-      attributes: ["id", "name", "frequencySeconds", "conditions", "lastAlert"],
+      attributes: ["id", "name", "frequencySeconds", "conditions"],
       include: [
-        {
-          model: models.AlertLog,
-          seperate: true,
-          limit: 5,
-          order: [["updatedAt", "desc"]]
-        },
         {
           model: models.User,
           attributes: ["id", "username", "email"],
@@ -141,20 +132,29 @@ export default function (sequelize, DataTypes): AlertStatic {
         }
       ]
     });
-    if (tag) {
-      return alerts.filter((alert) => filterConditions(alert.conditions, tag));
+    if (trackTag) {
+      return alerts.filter((alert) =>
+        filterConditions(alert.conditions as AlertCondition[], trackTag)
+      );
     }
     return alerts;
   };
 
   // check that any of the alert conditions are met
-  function filterConditions(conditions, tag): boolean {
-    return conditions.some((condition) => condition.tag == tag);
+  function filterConditions(
+    conditions: AlertCondition[],
+    trackTag: TrackTag
+  ): boolean {
+    return conditions.some(
+      (condition) =>
+        condition.tag == trackTag.what &&
+        condition.automatic == trackTag.automatic
+    );
   }
 
   // get all alerts for this device that satisfy the what condition and have
   // not been triggered already (are active)
-  Alert.getActiveAlerts = async function (deviceId: number, what: string) {
+  Alert.getActiveAlerts = async function (deviceId: number, tag: TrackTag) {
     return Alert.query(
       {
         DeviceId: deviceId,
@@ -168,7 +168,7 @@ export default function (sequelize, DataTypes): AlertStatic {
         }
       },
       null,
-      what,
+      tag,
       true
     );
   };
@@ -183,14 +183,18 @@ export default function (sequelize, DataTypes): AlertStatic {
     const alertTime = new Date().toISOString();
     const result = await sendEmail(html, this.User.email, subject);
     let sentAt = null;
-    if (result) {
-      sentAt = alertTime;
-    }
-    await this.createAlertLog({
+
+    const detail = await models.DetailSnapshot.getOrCreateMatching("alert", {
+      alertId: this.id,
       recId: recording.id,
       trackId: track.id,
-      success: result,
-      sentAt: sentAt
+      success: result
+    });
+
+    await models.Event.create({
+      DeviceId: this.DeviceId,
+      EventDetailId: detail.id,
+      dateTime: alertTime
     });
 
     await this.update({ lastAlert: alertTime });

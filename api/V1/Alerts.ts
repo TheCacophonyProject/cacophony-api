@@ -96,6 +96,7 @@ export default function (app: Application, baseUrl: string) {
       const Alerts = await models.Alert.query(
         request.query.where,
         request.user,
+        null,
         null
       );
       return responseUtil.send(response, {

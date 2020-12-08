@@ -32,6 +32,16 @@ export interface Event extends Sequelize.Model, ModelCommon<Event> {
   DeviceId: DeviceId;
   dataValues: any;
   Device: Device | null;
+
+  create: ({
+    deviceId,
+    eventDetailId,
+    dateTime
+  }: {
+    deviceId: number;
+    eventDetailId: number;
+    dateTime: Date;
+  }) => Promise<Event>;
 }
 
 export interface QueryOptions {
