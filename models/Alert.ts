@@ -33,13 +33,7 @@ export interface AlertCondition {
   automatic: boolean;
 }
 export function isAlertCondition(condition: any) {
-  const alertCondition = condition as AlertCondition;
-  return (
-    alertCondition.tag != undefined &&
-    alertCondition.tag != null &&
-    alertCondition.automatic != undefined &&
-    alertCondition.automatic != null
-  );
+  return condition.hasOwnProperty('tag') && condition.hasOwnProperty('automatic');
 }
 
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
