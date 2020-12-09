@@ -30,7 +30,7 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
   AlgorithmId: number | null;
   data: any;
   addTag: (
-    what: any,
+    what: string,
     confidence: number,
     automatic: boolean,
     data: any,
@@ -118,12 +118,9 @@ export default function (
       recording.DeviceId,
       tag
     );
-    if (alerts.length > 0) {
-      for (const alert of alerts) {
-        await alert.sendAlert(recording, track, tag);
-      }
+    for (const alert of alerts) {
+      await alert.sendAlert(recording, track, tag);
     }
-
     return alerts;
   }
 

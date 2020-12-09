@@ -39,7 +39,7 @@ export function isAlertCondition(condition: any) {
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
   id: AlertId;
   UserId: UserId;
-  conditions: any;
+  conditions: AlertCondition[];
   frequencySeconds: number;
 }
 
