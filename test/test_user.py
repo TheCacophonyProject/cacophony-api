@@ -103,7 +103,9 @@ class TestUser:
         new_user = helper.given_new_user(self, "admin_visible_user")
         users_response = admin_user.list_users()
         assert users_response.ok
-        found_user = [user for user in users_response.json()['usersList'] if user['username'] == new_user.username][0]
+        found_user = [
+            user for user in users_response.json()["usersList"] if user["username"] == new_user.username
+        ][0]
         assert found_user is not None
 
         print("A regular user can't list all other users")
@@ -121,7 +123,7 @@ class TestUser:
 
         non_admin_user = helper.given_new_user(self, "non_admin_2")
         with pytest.raises(AuthorizationError):
-            print("When a regular user tries to login as another using only the username it should return an error")
+            print(
+                "When a regular user tries to login as another using only the username it should return an error"
+            )
             non_admin_user.admin_login_as_other_user(other_user.username)
-
-
