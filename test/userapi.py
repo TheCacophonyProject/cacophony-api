@@ -523,8 +523,10 @@ class UserAPI(APIBase):
         self._check_response(response)
         return response.json()
 
-    def create_alert(self, alert):
-        props = {"alert": json.dumps(alert)}
+    def create_alert(self, name, conditions, deviceId, frequencySeconds=None):
+        props = {"name": name, "conditions": json.dumps(conditions), "deviceId": deviceId}
+        if frequencySeconds:
+            props["frequencySeconds"] = frequencySeconds
         response = requests.post(
             urljoin(self._baseurl, "/api/v1/alerts"),
             headers=self._auth_header,

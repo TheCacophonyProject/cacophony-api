@@ -48,16 +48,12 @@ export default function (app: Application, baseUrl: string) {
   app.post(
     apiUrl,
     [auth.authenticateUser],
-    middleware.parseJSON("alert", body),
+    body("name").isString(),
+    middleware.parseJSON("conditions", body),
+    body("frequencySeconds").toInt().optional(),
+    middleware.getDeviceById(body),
     middleware.requestWrapper(async (request, response) => {
-      if (!request.user.canAccessDevice(request.body.alert.DeviceId)) {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["No device found."]
-        });
-        return;
-      }
-      for (const condition of request.body.alert.conditions) {
+      for (const condition of request.body.conditions) {
         if (!isAlertCondition(condition)) {
           responseUtil.send(response, {
             statusCode: 400,
@@ -67,14 +63,17 @@ export default function (app: Application, baseUrl: string) {
         }
       }
 
-      request.body.alert.UserId = request.user.id;
-      if (
-        request.body.alert.frequencySeconds == undefined ||
-        request.body.alert.frequencySeconds == null
+      if (!
+        request.body.frequencySeconds
       ) {
-        request.body.alert.frequencySeconds = DEFAULT_FREQUENCY;
+        request.body.frequencySeconds = DEFAULT_FREQUENCY;
       }
-      const newAlert = await models.Alert.create(request.body.alert);
+      const newAlert = await models.Alert.create({name: request.body.name,
+        conditions: request.body.conditions,
+        frequencySeconds:request.body.frequencySeconds,
+        UserId: request.user.id,
+        DeviceId: request.body.device.id,
+      });
       return responseUtil.send(response, {
         id: newAlert.id,
         statusCode: 200,
@@ -90,7 +89,7 @@ export default function (app: Application, baseUrl: string) {
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {JSON} where [Sequelize where conditions](http://docs.sequelizejs.com/manual/tutorial/querying.html#where) for query.
+   * @apiParam {number} deviceId of the device to get alerts for
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Alerts[]} Alerts Array of Alerts
@@ -99,10 +98,11 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     apiUrl,
+    middleware.getDevice(body, "deviceID"),
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
-        request.query.where,
+        {DeviceId: request.device.id},
         request.user,
         null,
         null

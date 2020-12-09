@@ -9,14 +9,11 @@ class TestAlert:
         colonel.create_group(colonel_group)
         colonel_device = helper.given_new_device(self, "colonel_device", colonel_group)
         print("The colonel creates an alert for his device on possums 0 frequency, automatic tags")
-        alert = {
-            "name": "bad condition",
-            "conditions": [{"tag": "any", "automaticF": True}],
-            "frequencySeconds": 0,
-            "DeviceId": colonel_device.get_id(),
-        }
+
         with pytest.raises(BadRequestError):
-            colonel.create_alert(alert)
+            colonel.create_alert(
+                "bad condition", [{"tag": "any", "automaticF": True}], colonel_device.get_id(), 0
+            )
 
     def test_alert_automatic(self, helper):
         colonel = helper.given_new_user(self, "colonel")
@@ -25,7 +22,6 @@ class TestAlert:
         colonel_device = helper.given_new_device(self, "colonel_device", colonel_group)
         print("The colonel creates an alert for his device on possums 0 frequency, automatic tags")
         alert_id = make_alert(colonel, "Colonel always alert", "possum", colonel_device._id, frequency=0)
-
         print("Colonel's tags a recording as possum")
         helper.upload_recording_with_tag(colonel_device, colonel, "possum", automatic=False)
         alert = colonel.get_alert(alert_id)
@@ -122,13 +118,7 @@ class TestAlert:
 
 
 def make_alert(user, name, tag, deviceId, automatic=True, frequency=None):
-    alert = {
-        "name": name,
-        "conditions": [{"tag": tag, "automatic": automatic}],
-        "frequencySeconds": frequency,
-        "DeviceId": deviceId,
-    }
-    return user.create_alert(alert)
+    return user.create_alert(name, [{"tag": tag, "automatic": automatic}], deviceId, frequency)
 
 
 def check_event(event, alert_id, rec_id, track_id):
