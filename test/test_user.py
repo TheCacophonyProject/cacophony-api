@@ -98,10 +98,13 @@ class TestUser:
         helper.login_with_username_password(long_username, long_password)
 
     def test_admin_list_users(self, helper):
-        print("A super admin user can list all other users")
+        print("After creating a user, the users list should contain the new user")
         admin_user = helper.admin_user()
+        new_user = helper.given_new_user(self, "admin_visible_user")
         users_response = admin_user.list_users()
         assert users_response.ok
+        found_user = [user for user in users_response.json()['usersList'] if user['username'] == new_user.username][0]
+        assert found_user is not None
 
         print("A regular user can't list all other users")
         non_admin_user = helper.given_new_user(self, "non_admin")
@@ -111,9 +114,7 @@ class TestUser:
 
     def test_admin_user_viewing_as_other_user(self, helper):
         admin_user = helper.admin_user()
-        users = admin_user.list_users()
-        other_user = [user for user in users.json()["usersList"] if user['id'] == 2][0]['username']
-        assert other_user
+        other_user = helper.given_new_user(self, "other_user")
         print("Admin can login as another user using just their username")
         other_user_creds = admin_user.admin_login_as_other_user(other_user)
         assert other_user_creds
