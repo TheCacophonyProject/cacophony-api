@@ -4,8 +4,7 @@ from string import ascii_uppercase
 
 import pytest
 
-from .testexception import UnprocessableError
-
+from .testexception import UnprocessableError, AuthorizationError
 
 MIN_USERNAME_LENGTH = 3
 MIN_PASSWORD_LENGTH = 8
@@ -97,3 +96,34 @@ class TestUser:
         user.update(username=long_username, password=long_password)
         print("  Then when I then try to login using the newly changed data, it should also be successful")
         helper.login_with_username_password(long_username, long_password)
+
+    def test_admin_list_users(self, helper):
+        print("After creating a user, the users list should contain the new user")
+        admin_user = helper.admin_user()
+        new_user = helper.given_new_user(self, "admin_visible_user")
+        users_response = admin_user.list_users()
+        assert users_response.ok
+        found_user = [
+            user for user in users_response.json()["usersList"] if user["username"] == new_user.username
+        ][0]
+        assert found_user is not None
+
+        print("A regular user can't list all other users")
+        non_admin_user = helper.given_new_user(self, "non_admin")
+        with pytest.raises(AuthorizationError):
+            print("When a regular user tries to list other users it should return an error")
+            non_admin_user.list_users()
+
+    def test_admin_user_viewing_as_other_user(self, helper):
+        admin_user = helper.admin_user()
+        other_user = helper.given_new_user(self, "other_user")
+        print("Admin can login as another user using just their username")
+        other_user_creds = admin_user.admin_login_as_other_user(other_user.username)
+        assert other_user_creds
+
+        non_admin_user = helper.given_new_user(self, "non_admin_2")
+        with pytest.raises(AuthorizationError):
+            print(
+                "When a regular user tries to login as another using only the username it should return an error"
+            )
+            non_admin_user.admin_login_as_other_user(other_user.username)

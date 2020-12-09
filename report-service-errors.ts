@@ -11,7 +11,9 @@ async function main() {
   }
 
   const endDate = moment().tz(config.timeZone);
-  const startDate = moment().tz(config.timeZone).subtract(24, "hours");
+  const startDate = moment()
+    .tz(config.timeZone)
+    .subtract(24, "hours");
   const query = {
     endTime: endDate.toDate(),
     startTime: startDate.toDate(),
@@ -89,7 +91,7 @@ async function sendEmail(html: string) {
 const log = new winston.Logger({
   transports: [
     new winston.transports.Console({
-      timestamp: function () {
+      timestamp: function() {
         return moment().format();
       },
       colorize: true
