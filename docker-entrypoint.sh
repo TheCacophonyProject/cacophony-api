@@ -35,4 +35,4 @@ echo "alias psqltest='sudo -i -u postgres psql cacophonytest'" > ~/.bashrc
 
 echo "---- Compiling typescript and starting module ----"
 ./node_modules/.bin/tsc
-./node_modules/.bin/tsc-watch --noClear --onSuccess "node Server.js --config=config/$CONFIG"
+./node_modules/.bin/tsc-watch --noClear --onSuccess "node Server.js --config=$CONFIG"

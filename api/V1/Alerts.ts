@@ -62,8 +62,10 @@ export default function (app: Application, baseUrl: string) {
           return;
         }
       }
-
-      if (!request.body.frequencySeconds) {
+      if (
+        request.body.frequencySeconds == undefined ||
+        request.body.frequencySeconds == null
+      ) {
         request.body.frequencySeconds = DEFAULT_FREQUENCY;
       }
       const newAlert = await models.Alert.create({
@@ -82,7 +84,7 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/alerts Get Alerts
+   * @api {get} /api/v1/alerts/device/:deviceId Get Alerts
    * @apiName GetAlerts
    * @apiGroup Alert
    *
@@ -96,12 +98,12 @@ export default function (app: Application, baseUrl: string) {
    * @apiUse V1ResponseError
    */
   app.get(
-    apiUrl,
-    middleware.getDevice(body, "deviceID"),
+    `${apiUrl}/device/:deviceId`,
+    middleware.getDeviceById(param),
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
-        { DeviceId: request.device.id },
+        { DeviceId: request.body.device.id },
         request.user,
         null,
         null
@@ -110,46 +112,6 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: [],
         Alerts
-      });
-    })
-  );
-
-  /**
-   * @api {get} /api/v1/alerts/:id Get Alert
-   * @apiName GetAlert
-   * @apiGroup Alert
-   *
-   * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiParam {number} id of the alert to retrieve
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiSuccess {Alert} requested alert
-   *
-   * @apiUse V1ResponseError
-   */
-  app.get(
-    `${apiUrl}/:id`,
-    [auth.authenticateUser],
-    param("id").isInt(),
-    middleware.requestWrapper(async (request, response) => {
-      const alert = await models.Alert.getFromId(
-        request.params.id,
-        request.user
-      );
-
-      if (!alert) {
-        responseUtil.send(response, {
-          statusCode: 400,
-          messages: ["No such alert."]
-        });
-        return;
-      }
-
-      return responseUtil.send(response, {
-        statusCode: 200,
-        messages: [],
-        alert
       });
     })
   );

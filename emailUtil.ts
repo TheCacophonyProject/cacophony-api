@@ -4,8 +4,8 @@ import { TrackTag } from "./models/TrackTag";
 import log from "./logging";
 import moment, { Moment } from "moment";
 import nodemailer from "nodemailer";
-import {Mail} from 'nodemailer/lib/mailer';
-import {SMTPConnection} from '@types/nodemailer/lib/smtp-transport';
+import Mail from "nodemailer/lib/mailer";
+import { SentMessageInfo } from "nodemailer/lib/smtp-connection";
 
 function alertBody(
   recording: Recording,
@@ -38,14 +38,14 @@ async function sendEmail(
     html: html,
     text: text
   };
-
-  const info: SMTPConnection.SentMessageInfo = await transporter
-    .sendMail(mailOptions)
-    .catch(function (err) {
-      log.error(err);
+  try {
+    const info: SentMessageInfo = await transporter.sendMail(mailOptions);
+    if (info.rejected.length > 0) {
+      log.error(info);
       return false;
-    });
-  if (info.rejected.length > 0) {
+    }
+  } catch (error) {
+    log.error(error);
     return false;
   }
 

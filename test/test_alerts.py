@@ -24,7 +24,9 @@ class TestAlert:
         alert_id = make_alert(colonel, "Colonel always alert", "possum", colonel_device._id, frequency=0)
         print("Colonel's tags a recording as possum")
         helper.upload_recording_with_tag(colonel_device, colonel, "possum", automatic=False)
-        alert = colonel.get_alert(alert_id)
+        alerts = colonel.get_alerts(colonel_device.get_id())
+        assert len(alerts) == 1
+        alert = alerts[0]
         assert alert["lastAlert"] is None
 
         print("AI detects a possum on Colonel's device")
@@ -47,7 +49,9 @@ class TestAlert:
 
         print("AI detects a possum on Colonel's device")
         helper.upload_recording_with_tag(colonel_device, colonel, "possum", automatic=True)
-        alert = colonel.get_alert(alert_id)
+        alerts = colonel.get_alerts(colonel_device.get_id())
+        assert len(alerts) == 1
+        alert = alerts[0]
         assert alert["lastAlert"] is None
 
         print("Colonel's tags a recording as possum")
@@ -68,13 +72,17 @@ class TestAlert:
 
         print("AI detects a rat on Colonel's device, no should be alert sent")
         helper.upload_recording_with_tag(colonel_device, colonel, "rat", automatic=True)
-        alert = colonel.get_alert(alert_id)
+        alerts = colonel.get_alerts(colonel_device.get_id())
+        assert len(alerts) == 1
+        alert = alerts[0]
         assert alert["lastAlert"] is None
 
         print("AI detects a possum on Sharleen's device, no should be alert sent")
         sharleens_device = helper.given_new_device(self, "sharleens_device", colonel_group)
         helper.upload_recording_with_tag(sharleens_device, colonel, "possum", automatic=True)
-        alert = colonel.get_alert(alert_id)
+        alerts = colonel.get_alerts(colonel_device.get_id())
+        assert len(alerts) == 1
+        alert = alerts[0]
         assert alert["lastAlert"] is None
 
         print("AI detects a possum on Colonel's device")
@@ -117,8 +125,8 @@ class TestAlert:
         check_event(events[0], alert_less_id, first_rec.id_, first_track.id_)
 
 
-def make_alert(user, name, tag, deviceId, automatic=True, frequency=None):
-    return user.create_alert(name, [{"tag": tag, "automatic": automatic}], deviceId, frequency)
+def make_alert(user, name, tag, device_id, automatic=True, frequency=None):
+    return user.create_alert(name, [{"tag": tag, "automatic": automatic}], device_id, frequency)
 
 
 def check_event(event, alert_id, rec_id, track_id):

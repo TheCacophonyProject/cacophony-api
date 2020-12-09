@@ -511,11 +511,11 @@ class TestUser:
     def get_cacophony_index_histogram_for_device(self, device: TestDevice, from_time=None, window_size=None):
         return self._userapi.get_cacophony_index_histogram(device.get_id(), from_time, window_size)
 
-    def create_alert(self, name, conditions, deviceId, frequencySeconds=None):
-        return self._userapi.create_alert(name, conditions, deviceId, frequencySeconds)
+    def create_alert(self, name, conditions, device_id, frequency=None):
+        return self._userapi.create_alert(name, conditions, device_id, frequency)
 
-    def get_alert(self, alert_id):
-        return self._userapi.get_alert(alert_id)
+    def get_alerts(self, device_id):
+        return self._userapi.get_alerts(device_id)
 
 
 class RecordingQueryPromise:
