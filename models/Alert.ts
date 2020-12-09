@@ -22,7 +22,7 @@ import { Recording } from "./Recording";
 import { Track } from "./Track";
 import { TrackTag } from "./TrackTag";
 import { EventStatic } from "./Event";
-import { alertHTML, sendEmail } from "../emailUtil";
+import { alertBody, sendEmail } from "../emailUtil";
 const { AuthorizationError } = require("../api/customErrors");
 
 export type AlertId = number;
@@ -33,7 +33,9 @@ export interface AlertCondition {
   automatic: boolean;
 }
 export function isAlertCondition(condition: any) {
-  return condition.hasOwnProperty('tag') && condition.hasOwnProperty('automatic');
+  return (
+    condition.hasOwnProperty("tag") && condition.hasOwnProperty("automatic")
+  );
 }
 
 export interface Alert extends Sequelize.Model, ModelCommon<Alert> {
@@ -61,7 +63,7 @@ export default function (sequelize, DataTypes): AlertStatic {
 
   const attributes = {
     name: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING
     },
     frequencySeconds: DataTypes.INTEGER,
     lastAlert: DataTypes.DATE,
@@ -180,9 +182,9 @@ export default function (sequelize, DataTypes): AlertStatic {
     tag: TrackTag
   ) {
     const subject = `${this.name}  - ${tag.what} Detected`;
-    const html = alertHTML(recording, tag, this.Device.devicename);
+    const [html, text] = alertBody(recording, tag, this.Device.devicename);
     const alertTime = new Date().toISOString();
-    const result = await sendEmail(html, this.User.email, subject);
+    const result = await sendEmail(html, text, this.User.email, subject);
     const detail = await models.DetailSnapshot.getOrCreateMatching("alert", {
       alertId: this.id,
       recId: recording.id,

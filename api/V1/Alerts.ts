@@ -63,16 +63,15 @@ export default function (app: Application, baseUrl: string) {
         }
       }
 
-      if (!
-        request.body.frequencySeconds
-      ) {
+      if (!request.body.frequencySeconds) {
         request.body.frequencySeconds = DEFAULT_FREQUENCY;
       }
-      const newAlert = await models.Alert.create({name: request.body.name,
+      const newAlert = await models.Alert.create({
+        name: request.body.name,
         conditions: request.body.conditions,
-        frequencySeconds:request.body.frequencySeconds,
+        frequencySeconds: request.body.frequencySeconds,
         UserId: request.user.id,
-        DeviceId: request.body.device.id,
+        DeviceId: request.body.device.id
       });
       return responseUtil.send(response, {
         id: newAlert.id,
@@ -102,7 +101,7 @@ export default function (app: Application, baseUrl: string) {
     [auth.authenticateUser],
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
-        {DeviceId: request.device.id},
+        { DeviceId: request.device.id },
         request.user,
         null,
         null

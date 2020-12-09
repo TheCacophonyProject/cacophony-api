@@ -24,13 +24,54 @@ async function main() {
     return;
   }
   const html = generateHtml(startDate, endDate, serviceErrors);
+  const text = generateText(startDate, endDate, serviceErrors);
+
   await sendEmail(
     html,
+    text,
     "coredev@cacophony.org.nz",
     "Service Errors in the last 24 hours"
   );
 }
 
+function generateText(
+  startDate: Moment,
+  endDate: Moment,
+  serviceErrors: ServiceErrorMap
+): string {
+  let html = `Service Errors ${startDate.format(
+    "MMM ddd Do ha"
+  )} - ${endDate.format("MMM ddd Do ha")}\n`;
+  for (const [key, serviceError] of Object.entries(serviceErrors)) {
+    let serviceHtml = `${key}\n`;
+    let devices = serviceError.devices.join(", ");
+    serviceHtml += `Devices: ${devices}\n`;
+    serviceHtml += "\n";
+    for (const error of serviceError.errors) {
+      devices = error.devices.join(", ");
+      serviceHtml += "\n";
+      serviceHtml += "\n";
+      const firstError = moment(error.timestamps[0]);
+      const lastError = moment(error.timestamps[error.timestamps.length - 1]);
+      const suffix = error.similar.length > 1 ? "s" : "";
+      serviceHtml += `${
+        error.similar.length
+      } Error${suffix} from ${firstError.format(
+        "MMM ddd Do H:MMa"
+      )} - ${lastError.format("MMM ddd Do H:MMa")}\n`;
+      serviceHtml += ` ${error.similar[0].lines}\n`;
+      serviceHtml += `Devices Affected:\n`;
+      serviceHtml += `${devices}\n`;
+      serviceHtml += `\n`;
+      serviceHtml += "\n";
+    }
+    serviceHtml += "\n";
+    html += serviceHtml;
+  }
+
+  html += "Thanks, Cacophony Team";
+  return html;
+}
 function generateHtml(
   startDate: Moment,
   endDate: Moment,
