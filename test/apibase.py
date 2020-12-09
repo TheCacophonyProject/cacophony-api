@@ -23,6 +23,12 @@ class APIBase:
         self.check_login_response(response)
         return self
 
+    def admin_login_as_other_user(self, username):
+        url = urljoin(self._baseurl, "/admin_authenticate_as_other_user")
+        response = requests.post(url, headers=self._auth_header, data={"name": username})
+        self.check_login_response(response)
+        return self
+
     def check_login_response(self, response):
         if response.status_code == 200:
             self._set_jwt_token(response)

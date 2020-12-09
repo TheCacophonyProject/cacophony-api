@@ -517,6 +517,12 @@ class TestUser:
     def get_alerts(self, device_id):
         return self._userapi.get_alerts(device_id)
 
+    def admin_login_as_other_user(self, username):
+        return self._userapi.admin_login_as_other_user(username)
+
+    def list_users(self):
+        return self._userapi.list_users()
+
 
 class RecordingQueryPromise:
     def __init__(self, testUser):

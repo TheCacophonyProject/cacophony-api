@@ -25,7 +25,7 @@ import { param, body, oneOf, query } from "express-validator/check";
 import { Application } from "express";
 import eventUtil from "./eventUtil";
 
-export default function (app: Application, baseUrl: string) {
+export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/events`;
 
   /**
@@ -115,11 +115,21 @@ export default function (app: Application, baseUrl: string) {
         // @ts-ignore
         .isISO8601({ strict: true })
         .optional(),
-      query("deviceId").isInt().optional().toInt(),
-      query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt(),
-      query("latest").isBoolean().optional().toBoolean(),
-      query("type").isAlpha().optional()
+      query("deviceId")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("offset")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("limit")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("type")
+        .isAlpha()
+        .optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
@@ -178,9 +188,18 @@ export default function (app: Application, baseUrl: string) {
         // @ts-ignore
         .isISO8601({ strict: true })
         .optional(),
-      query("deviceId").isInt().optional().toInt(),
-      query("offset").isInt().optional().toInt(),
-      query("limit").isInt().optional().toInt()
+      query("deviceId")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("offset")
+        .isInt()
+        .optional()
+        .toInt(),
+      query("limit")
+        .isInt()
+        .optional()
+        .toInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
