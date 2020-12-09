@@ -116,12 +116,12 @@ class TestUser:
         admin_user = helper.admin_user()
         other_user = helper.given_new_user(self, "other_user")
         print("Admin can login as another user using just their username")
-        other_user_creds = admin_user.admin_login_as_other_user(other_user)
+        other_user_creds = admin_user.admin_login_as_other_user(other_user.username)
         assert other_user_creds
 
         non_admin_user = helper.given_new_user(self, "non_admin_2")
         with pytest.raises(AuthorizationError):
             print("When a regular user tries to login as another using only the username it should return an error")
-            non_admin_user.admin_login_as_other_user(other_user)
+            non_admin_user.admin_login_as_other_user(other_user.username)
 
 

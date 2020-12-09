@@ -25,7 +25,7 @@ import { param, body, oneOf, query } from "express-validator/check";
 import { Application } from "express";
 import eventUtil from "./eventUtil";
 
-export default function (app: Application, baseUrl: string) {
+export default function(app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/events`;
 
   /**
