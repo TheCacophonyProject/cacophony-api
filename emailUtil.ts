@@ -47,7 +47,4 @@ async function sendEmail(
   return false;
 }
 
-export default function () {
-  console.log("");
-}
 export { sendEmail, alertHTML };

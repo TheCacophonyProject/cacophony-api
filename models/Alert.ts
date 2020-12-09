@@ -62,7 +62,6 @@ export default function (sequelize, DataTypes): AlertStatic {
   const attributes = {
     name: {
       type: DataTypes.STRING,
-      unique: true
     },
     frequencySeconds: DataTypes.INTEGER,
     lastAlert: DataTypes.DATE,
