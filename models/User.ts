@@ -95,10 +95,7 @@ interface UserData {
   globalPermission: GlobalPermission;
 }
 
-export default function (
-  sequelize: Sequelize.Sequelize,
-  DataTypes
-): UserStatic {
+export default function(sequelize: Sequelize.Sequelize, DataTypes): UserStatic {
   const name = "User";
   const attributes: ModelAttributes = {
     username: {
@@ -168,29 +165,29 @@ export default function (
   //---------------
   const models = sequelize.models;
 
-  User.addAssociations = function (models) {
+  User.addAssociations = function(models) {
     models.User.belongsToMany(models.Group, {
       through: models.GroupUsers
     });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
   };
 
-  User.getAll = async function (where) {
+  User.getAll = async function(where) {
     return this.findAll({
       where,
       attributes: this.publicFields
     });
   };
 
-  User.getFromId = async function (id) {
+  User.getFromId = async function(id) {
     return this.findByPk(id);
   };
 
-  User.getFromName = async function (name: string) {
+  User.getFromName = async function(name: string) {
     return this.findOne({ where: { username: name } });
   };
 
-  User.freeUsername = async function (username) {
+  User.freeUsername = async function(username) {
     const user = await this.findOne({ where: { username: username } });
     if (user != null) {
       throw new Error("Username in use");
@@ -198,11 +195,11 @@ export default function (
     return true;
   };
 
-  User.getFromEmail = async function (email) {
+  User.getFromEmail = async function(email) {
     return this.findOne({ where: { email: email } });
   };
 
-  User.freeEmail = async function (email: string, userId?: UserId) {
+  User.freeEmail = async function(email: string, userId?: UserId) {
     email = email.toLowerCase();
     const where: { email: string; id?: any } = { email };
     if (userId) {
@@ -216,7 +213,7 @@ export default function (
     return true;
   };
 
-  User.changeGlobalPermission = async function (admin, user, permission) {
+  User.changeGlobalPermission = async function(admin, user, permission) {
     if (!user || !admin || !admin.hasGlobalWrite()) {
       throw new AuthorizationError(
         "User must be an admin with global write permissions"
@@ -230,28 +227,28 @@ export default function (
   // INSTANCE METHODS
   //------------------
 
-  User.prototype.hasGlobalWrite = function () {
+  User.prototype.hasGlobalWrite = function() {
     return PERMISSION_WRITE == this.globalPermission;
   };
 
-  User.prototype.hasGlobalRead = function () {
+  User.prototype.hasGlobalRead = function() {
     return [PERMISSION_WRITE, PERMISSION_READ].includes(this.globalPermission);
   };
 
-  User.prototype.getGroupDeviceIds = async function () {
+  User.prototype.getGroupDeviceIds = async function() {
     const groupIds = await this.getGroupsIds();
     if (groupIds.length > 0) {
       const devices = await models.Device.findAll({
         where: { GroupId: { [Op.in]: groupIds } },
         attributes: ["id"]
       });
-      return devices.map((d) => d.id);
+      return devices.map(d => d.id);
     } else {
       return [];
     }
   };
 
-  User.prototype.getWhereDeviceVisible = async function () {
+  User.prototype.getWhereDeviceVisible = async function() {
     if (this.hasGlobalRead()) {
       return null;
     }
@@ -260,17 +257,17 @@ export default function (
     return { DeviceId: { [Op.in]: allDeviceIds } };
   };
 
-  User.prototype.getJwtDataValues = function () {
+  User.prototype.getJwtDataValues = function() {
     return {
       id: this.getDataValue("id"),
       _type: "user"
     };
   };
 
-  User.prototype.getDataValues = function () {
+  User.prototype.getDataValues = function() {
     const user = this;
-    return new Promise(function (resolve) {
-      user.getGroups().then(function (groups) {
+    return new Promise(function(resolve) {
+      user.getGroups().then(function(groups) {
         resolve({
           id: user.getDataValue("id"),
           username: user.getDataValue("username"),
@@ -287,33 +284,33 @@ export default function (
 
   // Returns the groups that are associated with this user (via
   // GroupUsers).
-  User.prototype.getGroupsIds = async function () {
+  User.prototype.getGroupsIds = async function() {
     const groups = await this.getGroups();
-    return groups.map((g) => g.id);
+    return groups.map(g => g.id);
   };
 
-  User.prototype.isInGroup = async function (groupId) {
+  User.prototype.isInGroup = async function(groupId) {
     const groupIds = await this.getGroupsIds();
     return groupIds.includes(groupId);
   };
 
   // Returns the devices that are directly associated with this user
   // (via DeviceUsers).
-  User.prototype.getDeviceIds = async function () {
+  User.prototype.getDeviceIds = async function() {
     const devices = await this.getDevices();
-    return devices.map((d) => d.id);
+    return devices.map(d => d.id);
   };
 
-  User.prototype.canAccessDevice = async function (deviceId) {
+  User.prototype.canAccessDevice = async function(deviceId) {
     const deviceIds = await this.getDeviceIds();
     return deviceIds.includes(deviceId);
   };
 
-  User.prototype.checkUserControlsDevices = async function (deviceIds) {
+  User.prototype.checkUserControlsDevices = async function(deviceIds) {
     if (!this.hasGlobalWrite()) {
       const usersDevices = await this.getAllDeviceIds();
 
-      deviceIds.forEach((deviceId) => {
+      deviceIds.forEach(deviceId => {
         if (!usersDevices.includes(deviceId)) {
           log.info(
             "Attempted unauthorized use of device " +
@@ -329,16 +326,16 @@ export default function (
     }
   };
 
-  User.prototype.getAllDeviceIds = async function () {
+  User.prototype.getAllDeviceIds = async function() {
     const directDeviceIds = await this.getDeviceIds();
     const groupedDeviceIds = await this.getGroupDeviceIds();
     return [...directDeviceIds, ...groupedDeviceIds];
   };
 
-  User.prototype.comparePassword = function (password: string) {
+  User.prototype.comparePassword = function(password: string) {
     const user = this;
-    return new Promise(function (resolve, reject) {
-      bcrypt.compare(password, user.password, function (err, isMatch) {
+    return new Promise(function(resolve, reject) {
+      bcrypt.compare(password, user.password, function(err, isMatch) {
         if (err) {
           reject(err);
         } else {
@@ -362,7 +359,7 @@ async function beforeModify(user) {
 }
 
 function beforeValidate(user): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     user.setDataValue("email", user.getDataValue("email").toLowerCase());
     resolve();
   });

@@ -28,7 +28,7 @@ export interface DeviceUsersStatic extends ModelStaticCommon<DeviceUsers> {
   isAdmin: (deviceId: DeviceId, userId: UserId) => Promise<boolean>;
 }
 
-export default function (
+export default function(
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): DeviceUsersStatic {
@@ -50,9 +50,9 @@ export default function (
   // CLASS METHODS
   //---------------
 
-  DeviceUsers.addAssociations = function () {};
+  DeviceUsers.addAssociations = function() {};
 
-  DeviceUsers.isAdmin = async function (deviceId, userId) {
+  DeviceUsers.isAdmin = async function(deviceId, userId) {
     const deviceUser = await this.findOne({
       where: {
         DeviceId: deviceId,
