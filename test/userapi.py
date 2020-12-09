@@ -334,9 +334,16 @@ class UserAPI(APIBase):
             "events/errors", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit
         )
 
-    def query_events(self, deviceId=None, startTime=None, endTime=None, type=None, limit=20):
+    def query_events(self, deviceId=None, startTime=None, endTime=None, type=None, limit=20, latest=None):
+
         return self._query(
-            "events", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit, type=type
+            "events",
+            deviceId=deviceId,
+            startTime=startTime,
+            endTime=endTime,
+            limit=limit,
+            type=type,
+            latest=latest,
         )
 
     def query_files(self, where=None, limit=None, offset=None):
