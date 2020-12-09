@@ -4,8 +4,8 @@ import { TrackTag } from "./models/TrackTag";
 import log from "./logging";
 import moment, { Moment } from "moment";
 import nodemailer from "nodemailer";
-// import {Mail} from 'nodemailer/lib/mailer';
-// import {SMTPConnection} from '@types/nodemailer/lib/smtp-transport';
+import {Mail} from 'nodemailer/lib/mailer';
+import {SMTPConnection} from '@types/nodemailer/lib/smtp-transport';
 
 function alertBody(
   recording: Recording,

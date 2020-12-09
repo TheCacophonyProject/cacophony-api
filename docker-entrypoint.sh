@@ -22,12 +22,17 @@ echo "---- Setting up Minio ----"
 
 cd /app
 
-echo "---- Migrating database ----"
-node_modules/.bin/sequelize db:migrate --config config/app_test_default.js
+CONFIG=config/app.js
+if [ ! -f "$CONFIG" ]; then
+  CONFIG=config/app_test_default.js
+fi
+echo "---- Using config $CONFIG ----"
+
+node_modules/.bin/sequelize db:migrate --config $CONFIG
 sudo -i -u postgres psql cacophonytest -f /app/test/db-seed.sql
 
 echo "alias psqltest='sudo -i -u postgres psql cacophonytest'" > ~/.bashrc
 
 echo "---- Compiling typescript and starting module ----"
 ./node_modules/.bin/tsc
-./node_modules/.bin/tsc-watch --noClear --onSuccess "node Server.js --config=config/app_test_default.js"
+./node_modules/.bin/tsc-watch --noClear --onSuccess "node Server.js --config=config/$CONFIG"
