@@ -58,24 +58,29 @@ class DeviceSummary {
   constructor() {
     this.deviceMap = {};
   }
+
+  // generates visits from a list of receordings in descending date time order
   generateVisits(
-    rec: any,
+    recordings: any[],
     queryOffset: number,
     complete: boolean = false,
     userId: number
   ) {
-    this.lastRecTime = moment(rec.recordingDateTime);
-    let devVisits = this.deviceMap[rec.DeviceId];
-    if (!devVisits) {
-      devVisits = new DeviceVisits(
-        rec.Device.devicename,
-        rec.Group.groupname,
-        rec.DeviceId,
-        userId
-      );
-      this.deviceMap[rec.DeviceId] = devVisits;
+
+    for (const [i, rec] of recordings.entries()) {
+      this.lastRecTime = moment(rec.recordingDateTime);
+      let devVisits = this.deviceMap[rec.DeviceId];
+      if (!devVisits) {
+        devVisits = new DeviceVisits(
+          rec.Device.devicename,
+          rec.Group.groupname,
+          rec.DeviceId,
+          userId
+        );
+        this.deviceMap[rec.DeviceId] = devVisits;
+      }
+      devVisits.calculateNewVisits(rec, queryOffset + i , complete);
     }
-    devVisits.calculateNewVisits(rec, queryOffset, complete);
   }
   earliestIncompleteOffset(): number | null {
     var offset = null;
