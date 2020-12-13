@@ -14,12 +14,12 @@ class TestVisits:
         cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
 
         # check that last 2 possums are grouped together
-        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
-        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
-        self.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
         response = cosmo.query_visits(return_json=True)
         assert response["numVisits"] == 2
         visits = response["rows"][str(device.get_id())]["visits"]
