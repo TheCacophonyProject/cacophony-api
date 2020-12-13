@@ -566,12 +566,12 @@ async function tracksFromMeta(recording: Recording, metadata: any) {
       });
       if ("confident_tag" in trackMeta) {
         model["all_class_confidences"] = trackMeta["all_class_confidences"];
-        await track.createTrackTag({
-          what: trackMeta["confident_tag"],
-          confidence: trackMeta["confidence"],
-          automatic: true,
-          data: model
-        });
+        await track.addTag(
+          trackMeta["confident_tag"],
+          trackMeta["confidence"],
+          true,
+          model
+        );
       }
     }
   } catch (err) {

@@ -19,30 +19,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { TrackTag, TrackTagId } from "./TrackTag";
+import { User } from "./User";
+import { Recording } from "./Recording";
+import { AlertStatic } from "./Alert";
+
 export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {
   getTrackTag: (trackTagId: TrackTagId) => Promise<TrackTag>;
   id: TrackId;
   AlgorithmId: number | null;
   data: any;
+  addTag: (
+    what: string,
+    confidence: number,
+    automatic: boolean,
+    data: any,
+    userId?: number
+  ) => Promise<TrackTag>;
   // NOTE: Implicitly created by sequelize associations.
-  createTrackTag: ({
-    what,
-    confidence,
-    automatic,
-    data
-  }: {
-    what: any;
-    confidence: number;
-    automatic: boolean;
-    data: any;
-  }) => Promise<TrackTag>;
+  getRecording: () => Promise<Recording>;
 }
 export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
 }
 
-export default function(
+export default function (
   sequelize: Sequelize.Sequelize,
   DataTypes
 ): TrackStatic {
@@ -56,7 +57,7 @@ export default function(
   //---------------
   // CLASS
   //---------------
-  Track.addAssociations = function(models) {
+  Track.addAssociations = function (models) {
     models.Track.belongsTo(models.Recording);
     models.Track.belongsTo(models.DetailSnapshot, {
       as: "Algorithm",
@@ -75,12 +76,12 @@ export default function(
 
   //add or replace a tag, such that this track only has 1 animal tag by this user
   //and no duplicate tags
-  Track.replaceTag = async function(trackId, tag: TrackTag) {
+  Track.replaceTag = async function (trackId, tag: TrackTag) {
     const track = await Track.findByPk(trackId);
     if (!track) {
       throw new ClientError("No track found for " + trackId);
     }
-    return sequelize.transaction(async function(t) {
+    return sequelize.transaction(async function (t) {
       const trackTags = await models.TrackTag.findAll({
         where: {
           UserId: tag.UserId,
@@ -90,13 +91,13 @@ export default function(
         transaction: t
       });
 
-      const existingTag = trackTags.find(function(uTag) {
+      const existingTag = trackTags.find(function (uTag) {
         return uTag.what == tag.what;
       });
       if (existingTag) {
         return;
       } else if (trackTags.length > 0 && !tag.isAdditionalTag()) {
-        const existingAnimalTags = trackTags.filter(function(uTag) {
+        const existingAnimalTags = trackTags.filter(function (uTag) {
           return !uTag.isAdditionalTag();
         });
 
@@ -111,9 +112,39 @@ export default function(
   //---------------
   // INSTANCE
   //---------------
+  async function sendAlerts(track: Track, tag: TrackTag) {
+    const recording = await track.getRecording();
+    const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
+      recording.DeviceId,
+      tag
+    );
+    for (const alert of alerts) {
+      await alert.sendAlert(recording, track, tag);
+    }
+    return alerts;
+  }
 
+  // Adds a tag to a track and checks if any alerts need to be sent. All trackTags
+  // should be added this way
+  Track.prototype.addTag = async function (
+    what,
+    confidence,
+    automatic,
+    data,
+    userId = null
+  ) {
+    const tag = await this.createTrackTag({
+      what: what,
+      confidence: confidence,
+      automatic: automatic,
+      data: data,
+      UserId: userId
+    });
+    await sendAlerts(this, tag);
+    return tag;
+  };
   // Return a specific track tag for the track.
-  Track.prototype.getTrackTag = async function(trackTagId) {
+  Track.prototype.getTrackTag = async function (trackTagId) {
     const trackTag = await models.TrackTag.findByPk(trackTagId);
     if (!trackTag) {
       return null;
