@@ -6,7 +6,7 @@ import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
 import { Response, Request, Application } from "express";
 
-export default function(app: Application) {
+export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
 
   /**
@@ -169,7 +169,7 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/metadata`,
     [middleware.getRecordingById(body), middleware.parseJSON("metadata", body)],
-    middleware.requestWrapper(async request => {
+    middleware.requestWrapper(async (request) => {
       await recordingUtil.updateMetadata(
         request.body.recording,
         request.body.metadata
@@ -195,9 +195,7 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/:id/tracks`,
     [
-      param("id")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
       middleware.parseJSON("data", body),
       middleware.getDetailSnapshotById(body, "algorithmId")
     ],
@@ -234,11 +232,7 @@ export default function(app: Application) {
    */
   app.delete(
     `${apiUrl}/:id/tracks`,
-    [
-      param("id")
-        .isInt()
-        .toInt()
-    ],
+    [param("id").isInt().toInt()],
     middleware.requestWrapper(async (request, response) => {
       const recording = await models.Recording.findByPk(request.params.id);
       if (!recording) {
@@ -250,7 +244,7 @@ export default function(app: Application) {
       }
 
       const tracks = await recording.getTracks();
-      tracks.forEach(track => track.destroy());
+      tracks.forEach((track) => track.destroy());
 
       responseUtil.send(response, {
         statusCode: 200,
@@ -276,16 +270,10 @@ export default function(app: Application) {
   app.post(
     `${apiUrl}/:id/tracks/:trackId/tags`,
     [
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt(),
       body("what"),
-      body("confidence")
-        .isFloat()
-        .toFloat(),
+      body("confidence").isFloat().toFloat(),
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -307,12 +295,12 @@ export default function(app: Application) {
         return;
       }
 
-      const tag = await track.createTrackTag({
-        what: request.body.what,
-        confidence: request.body.confidence,
-        automatic: true,
-        data: request.body.data
-      });
+      const tag = await track.addTag(
+        request.body.what,
+        request.body.confidence,
+        true,
+        request.body.data
+      );
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],

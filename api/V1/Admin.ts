@@ -23,7 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, param } from "express-validator/check";
 import { Application } from "express";
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/admin`;
 
   /**

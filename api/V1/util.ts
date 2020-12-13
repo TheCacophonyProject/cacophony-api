@@ -52,7 +52,7 @@ function multipartUpload(keyPrefix, buildRecord) {
     });
 
     // Handle the "file" part.
-    form.on("part", part => {
+    form.on("part", (part) => {
       if (part.name != "file") {
         part.resume();
         return;
@@ -67,7 +67,7 @@ function multipartUpload(keyPrefix, buildRecord) {
           Body: part
         })
         .promise()
-        .catch(err => {
+        .catch((err) => {
           return err;
         });
       log.debug("Started streaming upload to bucket...");
@@ -75,7 +75,7 @@ function multipartUpload(keyPrefix, buildRecord) {
 
     // Handle any errors. If this is called, the close handler
     // shouldn't be.
-    form.on("error", err => {
+    form.on("error", (err) => {
       responseUtil.serverError(response, err);
     });
 

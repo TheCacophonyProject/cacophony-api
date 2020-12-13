@@ -20,6 +20,7 @@ import Sequelize from "sequelize";
 import path from "path";
 import fs from "fs";
 import log from "../logging";
+import { AlertStatic } from "./Alert";
 import { UserStatic } from "./User";
 import { TagStatic } from "./Tag";
 import { RecordingStatic } from "./Recording";
@@ -41,7 +42,7 @@ const dbConfig = config.database;
 dbConfig.benchmark = true;
 
 // Send logs via winston
-(dbConfig as any).logging = function(msg, timeMs) {
+(dbConfig as any).logging = function (msg, timeMs) {
   log.debug("%s [%d ms]", msg, timeMs);
 };
 
@@ -88,15 +89,15 @@ const sequelize = new Sequelize(
 const db: Record<string, any> = {};
 
 fs.readdirSync(__dirname)
-  .filter(file => {
+  .filter((file) => {
     return file.indexOf(".") !== 0 && file !== basename && file.endsWith(".js");
   })
-  .forEach(file => {
+  .forEach((file) => {
     const model = sequelize.import(path.join(__dirname, file));
     db[model.name] = model;
   });
 
-Object.keys(db).forEach(modelName => {
+Object.keys(db).forEach((modelName) => {
   if (db[modelName].addAssociations) {
     db[modelName].addAssociations(db);
   }
@@ -129,6 +130,7 @@ const AllModels = {
   GroupUsers: db.GroupUsers as GroupUsersStatic,
   DeviceUsers: db.DeviceUsers as DeviceUsersStatic,
   Schedule: db.Schedule as ScheduleStatic,
+  Alert: db.Alert as AlertStatic,
   sequelize,
   Sequelize
 };

@@ -41,7 +41,7 @@ async function uploadEvent(request, response) {
   const eventList = [];
   let count = 0;
 
-  request.body.dateTimes.forEach(function(time) {
+  request.body.dateTimes.forEach(function (time) {
     eventList.push({
       DeviceId: request.device.id,
       EventDetailId: detailsId,
