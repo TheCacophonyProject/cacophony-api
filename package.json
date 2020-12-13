@@ -45,7 +45,6 @@
     "pg-hstore": "^2.3.3",
     "pg-native": "^3.0.0",
     "pg-types": "^1.x",
-    "prettier": "^2.0.3",
     "sequelize": "^5.21.6",
     "sequelize-cli": "^5.5.1",
     "tar": "^4.4.13",

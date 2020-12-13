@@ -1,8 +1,19 @@
 import pytest
-from .testexception import BadRequestError
+from .testexception import BadRequestError, AuthorizationError
 
 
 class TestAlert:
+    def test_alert_device_access(self, helper):
+        colonel = helper.given_new_user(self, "colonel")
+        colonel_group = helper.make_unique_group_name(self, "colonelGroup")
+        colonel.create_group(colonel_group)
+        colonel_device = helper.given_new_device(self, "colonel_device", colonel_group)
+
+        frank = helper.given_new_user(self, "frank")
+        print("Franke cannot make an alert for the colonels device, without access")
+        with pytest.raises(AuthorizationError):
+            alert_id = make_alert(frank, "Colonel always alert", "possum", colonel_device._id, frequency=0)
+
     def test_alert_bad_alert_condition(self, helper):
         colonel = helper.given_new_user(self, "colonel")
         colonel_group = helper.make_unique_group_name(self, "colonelGroup")
