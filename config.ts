@@ -40,10 +40,12 @@ function loadConfig(configPath) {
 
 function checkConfigFileExists(configPath) {
   if (!fs.existsSync(configPath)) {
-    throw "Config file " +
+    throw (
+      "Config file " +
       configPath +
       " does not exist. See README.md for config setup. " +
-      "NB: The default config file has been renamed to ./config/app.js";
+      "NB: The default config file has been renamed to ./config/app.js"
+    );
   }
 }
 

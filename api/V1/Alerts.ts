@@ -57,7 +57,7 @@ export default function (app: Application, baseUrl: string) {
     body("frequencySeconds").toInt().optional(),
     middleware.getDeviceById(body),
     middleware.requestWrapper(async (request, response) => {
-      if (!Array.isArray(request.body.conditions) ){
+      if (!Array.isArray(request.body.conditions)) {
         responseUtil.send(response, {
           statusCode: 400,
           messages: ["Expecting array of conditions."]

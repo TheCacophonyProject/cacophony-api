@@ -38,7 +38,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
   user,
   queryParams
 ): Promise<QueryResult<T>> {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     const models = require("../");
     if (typeof queryParams.limit == "undefined") {
       queryParams.limit = 20;
@@ -57,7 +57,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
           limit: queryParams.limit,
           offset: queryParams.offset
         })
-        .then(function(result: QueryResult<T>) {
+        .then(function (result: QueryResult<T>) {
           result.limit = queryParams.limit;
           result.offset = queryParams.offset;
           resolve(result);
@@ -65,7 +65,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
     } else {
       user
         .getGroupsIds()
-        .then(function(ids) {
+        .then(function (ids) {
           // Adding filter so they only see recordings that they are allowed to.
           queryParams.where = {
             [Op.and]: [
@@ -79,7 +79,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
           ];
           return model.findAndCountAll(queryParams);
         })
-        .then(function(result: QueryResult<T>) {
+        .then(function (result: QueryResult<T>) {
           result.limit = queryParams.limit;
           result.offset = queryParams.offset;
           resolve(result);
@@ -94,9 +94,9 @@ export function getFileData<T extends ModelStaticCommon<T>>(
   id: number,
   user: User
 ) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     findAllWithUser(model, user, { where: { id } })
-      .then(function(result: { rows: null | T[] }) {
+      .then(function (result: { rows: null | T[] }) {
         if (result.rows !== null && result.rows.length >= 1) {
           const model = result.rows[0];
           const fileData = {
@@ -109,7 +109,7 @@ export function getFileData<T extends ModelStaticCommon<T>>(
           return resolve(null);
         }
       })
-      .catch(function(err) {
+      .catch(function (err) {
         log.error("Error at models/util.js getFileKey:");
         reject(err);
       });
@@ -146,7 +146,7 @@ export function geometrySetter(val) {
 
 export function getFromId(id: number, user: User, attributes) {
   const modelClass = this;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     // Get just public models if no user was given
     if (!user) {
       return modelClass
@@ -156,7 +156,7 @@ export function getFromId(id: number, user: User, attributes) {
 
     user
       .getGroupsIds()
-      .then(ids => {
+      .then((ids) => {
         // Condition where you get a public recordin or a recording that you
         // have permission to view (in same group).
         const condition = {
@@ -184,14 +184,14 @@ export function deleteModelInstance(id, user) {
   return new Promise((resolve, reject) => {
     modelClass
       .getFromId(id, user, ["fileKey", "id"])
-      .then(mi => {
+      .then((mi) => {
         modelInstance = mi;
         if (modelInstance === null) {
           throw new ClientError("No file found");
         }
         return modelInstance.fileKey;
       })
-      .then(fileKey => deleteFile(fileKey))
+      .then((fileKey) => deleteFile(fileKey))
       .then(() => modelInstance.destroy())
       .then(resolve)
       .catch(reject);
@@ -200,9 +200,9 @@ export function deleteModelInstance(id, user) {
 
 export function userCanEdit(id, user) {
   const modelClass = this;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     //models.User.where
-    modelClass.getFromId(id, user, ["id"]).then(result => {
+    modelClass.getFromId(id, user, ["id"]).then((result) => {
       if (result === null) {
         return resolve(false);
       } else {
@@ -223,7 +223,7 @@ export function openS3() {
 
 export function saveFile(file /* model.File */) {
   const model = this;
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     // Gets date object set to recordingDateTime field or now if field not set.
     const date = new Date(
       model.getDataValue("recordingDateTime") || new Date()
@@ -233,19 +233,17 @@ export function saveFile(file /* model.File */) {
     const key = `${date.getFullYear()}/${date.getMonth()}/${date
       .toISOString()
       .replace(/\..+/, "")
-      .replace(/:/g, "")}_${Math.random()
-      .toString(36)
-      .substr(2)}`;
+      .replace(/:/g, "")}_${Math.random().toString(36).substr(2)}`;
 
     // Save file with key.
     const s3 = openS3();
-    fs.readFile(file.path, function(err, data) {
+    fs.readFile(file.path, function (err, data) {
       const params = {
         Bucket: config.s3.bucket,
         Key: key,
         Body: data
       };
-      s3.upload(params, function(err) {
+      s3.upload(params, function (err) {
         if (err) {
           log.error("Error with saving to S3.");
           log.error(err);
@@ -273,7 +271,7 @@ export function deleteFile(fileKey) {
       Bucket: config.s3.bucket,
       Key: fileKey
     };
-    s3.deleteObject(params, function(err, data) {
+    s3.deleteObject(params, function (err, data) {
       if (err) {
         return reject(err);
       } else {

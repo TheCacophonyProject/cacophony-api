@@ -174,19 +174,13 @@ export default (app: Application, baseUrl: string) => {
 
   const queryValidators = Object.freeze([
     middleware.parseJSON("where", query).optional(),
-    query("offset")
-      .isInt()
-      .toInt()
-      .optional(),
-    query("limit")
-      .isInt()
-      .toInt()
-      .optional(),
+    query("offset").isInt().toInt().optional(),
+    query("limit").isInt().toInt().optional(),
     middleware.parseJSON("order", query).optional(),
     middleware.parseArray("tags", query).optional(),
     query("tagMode")
       .optional()
-      .custom(value => {
+      .custom((value) => {
         return models.Recording.isValidTagMode(value);
       }),
     middleware.parseJSON("filterOptions", query).optional()
@@ -360,13 +354,7 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/needs-tag`,
-    [
-      auth.authenticateUser,
-      query("deviceId")
-        .isInt()
-        .toInt()
-        .optional()
-    ],
+    [auth.authenticateUser, query("deviceId").isInt().toInt().optional()],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         // NOTE: We only return the minimum set of fields we need to play back
@@ -415,10 +403,7 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/report`,
     [
       auth.paramOrHeader,
-      query("type")
-        .isString()
-        .optional()
-        .isIn(["recordings", "visits"]),
+      query("type").isString().optional().isIn(["recordings", "visits"]),
       ...queryValidators
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -571,9 +556,7 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/tracks`,
     [
       auth.authenticateUser,
-      param("id")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
       middleware.parseJSON("data", body),
       middleware.parseJSON("algorithm", body).optional()
     ],
@@ -647,7 +630,7 @@ export default (app: Application, baseUrl: string) => {
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["OK."],
-        tracks: tracks.map(t => {
+        tracks: tracks.map((t) => {
           delete t.dataValues.RecordingId;
           return t;
         })
@@ -669,12 +652,8 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/tracks/:trackId`,
     [
       auth.authenticateUser,
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt()
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       const track = await loadTrack(request, response);
@@ -716,19 +695,11 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/tracks/:trackId/replaceTag`,
     [
       auth.authenticateUser,
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt(),
       body("what"),
-      body("confidence")
-        .isFloat()
-        .toFloat(),
-      body("automatic")
-        .isBoolean()
-        .toBoolean(),
+      body("confidence").isFloat().toFloat(),
+      body("automatic").isBoolean().toBoolean(),
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -772,22 +743,12 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/tracks/:trackId/tags`,
     [
       auth.authenticateUser,
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt(),
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt(),
       body("what"),
-      body("confidence")
-        .isFloat()
-        .toFloat(),
-      body("automatic")
-        .isBoolean()
-        .toBoolean(),
-      body("tagJWT")
-        .optional()
-        .isString(),
+      body("confidence").isFloat().toFloat(),
+      body("automatic").isBoolean().toBoolean(),
+      body("tagJWT").optional().isString(),
       middleware.parseJSON("data", body).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -836,18 +797,10 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/tracks/:trackId/tags/:trackTagId`,
     [
       auth.authenticateUser,
-      param("id")
-        .isInt()
-        .toInt(),
-      param("trackId")
-        .isInt()
-        .toInt(),
-      param("trackTagId")
-        .isInt()
-        .toInt(),
-      query("tagJWT")
-        .isString()
-        .optional()
+      param("id").isInt().toInt(),
+      param("trackId").isInt().toInt(),
+      param("trackTagId").isInt().toInt(),
+      query("tagJWT").isString().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       let track;

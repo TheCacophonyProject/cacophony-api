@@ -63,7 +63,7 @@ export interface EventStatic extends ModelStaticCommon<Event> {
   ) => Promise<{ rows: Event[]; count: number }>;
 }
 
-export default function(sequelize, DataTypes) {
+export default function (sequelize, DataTypes) {
   const name = "Event";
 
   const attributes = {
@@ -77,7 +77,7 @@ export default function(sequelize, DataTypes) {
   //---------------
   const models = sequelize.models;
 
-  Event.addAssociations = function(models) {
+  Event.addAssociations = function (models) {
     models.Event.belongsTo(models.DetailSnapshot, {
       as: "EventDetail",
       foreignKey: "EventDetailId"
@@ -89,7 +89,7 @@ export default function(sequelize, DataTypes) {
    * Return one or more recordings for a user matching the query
    * arguments given.
    */
-  Event.query = async function(
+  Event.query = async function (
     user,
     startTime,
     endTime,

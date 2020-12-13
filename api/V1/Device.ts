@@ -27,7 +27,7 @@ import { ClientError } from "../customErrors";
 
 const Op = Sequelize.Op;
 
-export default function(app: Application, baseUrl: string) {
+export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/devices`;
 
   /**
@@ -134,7 +134,7 @@ export default function(app: Application, baseUrl: string) {
     middleware.requestWrapper(async (request, response) => {
       let users = await request.body.device.users(request.user);
 
-      users = users.map(u => {
+      users = users.map((u) => {
         u = u.get({ plain: true });
 
         // Extract the useful parts from DeviceUsers/GroupUsers.
@@ -229,7 +229,7 @@ export default function(app: Application, baseUrl: string) {
       middleware.getDeviceById(body),
       middleware.getUserByNameOrId(body)
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const removed = await models.Device.removeUserFromDevice(
         request.user,
         request.body.device,
@@ -273,7 +273,7 @@ export default function(app: Application, baseUrl: string) {
       middleware.checkNewName("newName"),
       middleware.checkNewPassword("newPassword")
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const device = await request.device.reregister(
         request.body.newName,
         request.body.group,
@@ -316,12 +316,10 @@ export default function(app: Application, baseUrl: string) {
       middleware.parseJSON("devices", query).optional(),
       middleware.parseArray("groups", query).optional(),
 
-      query("operator")
-        .isIn(["or", "and", "OR", "AND"])
-        .optional(),
+      query("operator").isIn(["or", "and", "OR", "AND"]).optional(),
       auth.authenticateAccess(["user"], { devices: "r" })
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       if (
         request.query.operator &&
         request.query.operator.toLowerCase() == "and"
@@ -366,20 +364,12 @@ export default function(app: Application, baseUrl: string) {
   app.get(
     `${apiUrl}/:deviceId/cacophony-index`,
     [
-      param("deviceId")
-        .isInt()
-        .toInt(),
-      query("from")
-        .isISO8601()
-        .toDate()
-        .optional(),
-      query("window-size")
-        .isInt()
-        .toInt()
-        .optional(),
+      param("deviceId").isInt().toInt(),
+      query("from").isISO8601().toDate().optional(),
+      query("window-size").isInt().toInt().optional(),
       auth.authenticateUser
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const cacophonyIndex = await models.Device.getCacophonyIndex(
         request.user,
         request.params.deviceId,
@@ -416,20 +406,12 @@ export default function(app: Application, baseUrl: string) {
   app.get(
     `${apiUrl}/:deviceId/cacophony-index-histogram`,
     [
-      param("deviceId")
-        .isInt()
-        .toInt(),
-      query("from")
-        .isISO8601()
-        .toDate()
-        .optional(),
-      query("window-size")
-        .isInt()
-        .toInt()
-        .optional(),
+      param("deviceId").isInt().toInt(),
+      query("from").isISO8601().toDate().optional(),
+      query("window-size").isInt().toInt().optional(),
       auth.authenticateUser
     ],
-    middleware.requestWrapper(async function(request, response) {
+    middleware.requestWrapper(async function (request, response) {
       const cacophonyIndex = await models.Device.getCacophonyIndexHistogram(
         request.user,
         request.params.deviceId,
