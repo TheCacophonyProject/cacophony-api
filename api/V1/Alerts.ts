@@ -47,12 +47,23 @@ export default function (app: Application, baseUrl: string) {
    */
   app.post(
     apiUrl,
-    [auth.authenticateUser],
+    [
+      auth.authenticateUser,
+      middleware.getDeviceById(body),
+      auth.userCanAccessDevices
+    ],
     body("name").isString(),
     middleware.parseJSON("conditions", body),
     body("frequencySeconds").toInt().optional(),
     middleware.getDeviceById(body),
     middleware.requestWrapper(async (request, response) => {
+      if (!Array.isArray(request.body.conditions) ){
+        responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["Expecting array of conditions."]
+        });
+        return;
+      }
       for (const condition of request.body.conditions) {
         if (!isAlertCondition(condition)) {
           responseUtil.send(response, {
@@ -99,8 +110,11 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     `${apiUrl}/device/:deviceId`,
-    middleware.getDeviceById(param),
-    [auth.authenticateUser],
+    [
+      auth.authenticateUser,
+      middleware.getDeviceById(param),
+      auth.userCanAccessDevices
+    ],
     middleware.requestWrapper(async (request, response) => {
       const Alerts = await models.Alert.query(
         { DeviceId: request.body.device.id },
