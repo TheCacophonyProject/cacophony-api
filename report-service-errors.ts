@@ -41,38 +41,38 @@ function generateText(
   endDate: Moment,
   serviceErrors: ServiceErrorMap
 ): string {
-  let html = `Service Errors ${startDate.format(
+  let textBody = `Service Errors ${startDate.format(
     "MMM ddd Do ha"
   )} - ${endDate.format("MMM ddd Do ha")}\n`;
   for (const [key, serviceError] of Object.entries(serviceErrors)) {
-    let serviceHtml = `${key}\n`;
+    let serviceText = `${key}\n`;
     let devices = serviceError.devices.join(", ");
-    serviceHtml += `Devices: ${devices}\n`;
-    serviceHtml += "\n";
+    serviceText += `Devices: ${devices}\n`;
+    serviceText += "\n";
     for (const error of serviceError.errors) {
       devices = error.devices.join(", ");
-      serviceHtml += "\n";
-      serviceHtml += "\n";
+      serviceText += "\n";
+      serviceText += "\n";
       const firstError = moment(error.timestamps[0]);
       const lastError = moment(error.timestamps[error.timestamps.length - 1]);
       const suffix = error.similar.length > 1 ? "s" : "";
-      serviceHtml += `${
+      serviceText += `${
         error.similar.length
       } Error${suffix} from ${firstError.format(
         "MMM ddd Do H:MMa"
       )} - ${lastError.format("MMM ddd Do H:MMa")}\n`;
-      serviceHtml += ` ${error.similar[0].lines}\n`;
-      serviceHtml += `Devices Affected:\n`;
-      serviceHtml += `${devices}\n`;
-      serviceHtml += `\n`;
-      serviceHtml += "\n";
+      serviceText += ` ${error.similar[0].lines}\n`;
+      serviceText += `Devices Affected:\n`;
+      serviceText += `${devices}\n`;
+      serviceText += `\n`;
+      serviceText += "\n";
     }
-    serviceHtml += "\n";
-    html += serviceHtml;
+    serviceText += "\n";
+    textBody += serviceText;
   }
 
-  html += "Thanks, Cacophony Team";
-  return html;
+  textBody += "Thanks, Cacophony Team";
+  return textBody;
 }
 function generateHtml(
   startDate: Moment,
