@@ -645,15 +645,17 @@ async function queryVisits(
     if (recordings.length == 0) {
       break;
     }
+    
     for (const [i, rec] of recordings.entries()) {
       rec.filterData(filterOptions);
-      devSummary.generateVisits(
-        rec,
-        request.query.offset + i || i,
-        gotAllRecordings,
-        request.user.id
-      );
     }
+
+    devSummary.generateVisits(
+      recordings,
+      request.query.offset  || 0,
+      gotAllRecordings,
+      request.user.id
+    );
 
     if (!gotAllRecordings) {
       devSummary.checkForCompleteVisits();
