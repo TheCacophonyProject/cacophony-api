@@ -1377,7 +1377,10 @@ from (
     "fileKey",
     "fileMimeType",
     "processingState",
-    "processingMeta"
+    "processingMeta",
+    "GroupId",
+    "DeviceId",
+
   ];
 
   return Recording;

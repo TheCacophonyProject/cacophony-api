@@ -19,7 +19,7 @@ import { Event } from "../../models/Event";
 
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
-const aiName = "Original";
+const aiName = "Master";
 const unidentified = "unidentified";
 const audioBaitInterval = 60 * 10;
 interface AnimalMap {
