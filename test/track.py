@@ -27,19 +27,24 @@ class TrackTag:
     automatic = attr.ib()
     data = attr.ib()
 
+    MASTER_TAG = "Master"
+
     @classmethod
-    def create(cls, track, automatic=None, what=None):
+    def create(cls, track, automatic=None, what=None, data=None):
         "Make a TestTrackTag with some plausible data."
         if automatic is None:
             automatic = random.choice([True, False])
         if what is None:
             what = random.choice(["possum", "rat", "stoat"])
-
+        if data is None:
+            data = random.choice([{"foo": 1}, {"bar": 2}, {"what": 3}])
+        if automatic and "name" not in data:
+            data["name"] = TrackTag.MASTER_TAG
         return cls(
             id_=None,
             track=track,
             what=what,
             confidence=random.choice([0.5, 0.8, 0.9]),
             automatic=automatic,
-            data=random.choice([["foo", 1], ["bar", 2], ["what", 3]]),
+            data=data,
         )

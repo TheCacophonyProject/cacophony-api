@@ -1032,7 +1032,8 @@ from (
               "automatic",
               "TrackId",
               "confidence",
-              "UserId"
+              "UserId",
+              [Sequelize.json("data.name"),"data"]
             ],
             include: [
               {
