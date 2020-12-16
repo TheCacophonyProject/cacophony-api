@@ -41,9 +41,8 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
       return manualTags[0];
     }
   }
-
   const masterTag = trackTags.filter(
-    (tag) => tag.data == null || tag.data.name == aiName
+    (tag) => tag.data == aiName
   );
   if (masterTag.length > 0) {
     return masterTag[0];
