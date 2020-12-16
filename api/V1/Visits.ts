@@ -19,7 +19,7 @@ import { Event } from "../../models/Event";
 
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
-const aiName = "Original";
+const aiName = "Master";
 const unidentified = "unidentified";
 const audioBaitInterval = 60 * 10;
 interface AnimalMap {
@@ -42,11 +42,11 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
     }
   }
 
-  const originalTags = trackTags.filter(
+  const masterTag = trackTags.filter(
     (tag) => tag.data == null || tag.data.name == aiName
   );
-  if (originalTags.length > 0) {
-    return originalTags[0];
+  if (masterTag.length > 0) {
+    return masterTag[0];
   } else {
     return null;
   }
@@ -66,7 +66,6 @@ class DeviceSummary {
     complete: boolean = false,
     userId: number
   ) {
-
     for (const [i, rec] of recordings.entries()) {
       this.lastRecTime = moment(rec.recordingDateTime);
       let devVisits = this.deviceMap[rec.DeviceId];
@@ -79,7 +78,7 @@ class DeviceSummary {
         );
         this.deviceMap[rec.DeviceId] = devVisits;
       }
-      devVisits.calculateNewVisits(rec, queryOffset + i , complete);
+      devVisits.calculateNewVisits(rec, queryOffset + i, complete);
     }
   }
   earliestIncompleteOffset(): number | null {
@@ -453,7 +452,7 @@ class Visit {
   start: Moment;
   queryOffset: number;
   deviceName: string;
-  deviceId: number
+  deviceId: number;
   groupName: string;
   audioBaitDay: boolean;
   audioBaitVisit: boolean;
