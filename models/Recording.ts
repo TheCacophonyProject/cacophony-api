@@ -1379,8 +1379,7 @@ from (
     "processingState",
     "processingMeta",
     "GroupId",
-    "DeviceId",
-
+    "DeviceId"
   ];
 
   return Recording;
