@@ -26,6 +26,27 @@ interface AnimalMap {
   [key: string]: VisitSummary;
 }
 
+function getRecordingTag(tracks:any [], userID: number): any | null{
+  animalVote = {}
+  let max = null;
+  for(const track of tracks){
+    const tag = getTrackTag(track.TrackTags, userId)
+    if (tag && tag.what != unidentified) {
+        if(tag in animalVote){
+          animalVote[tag.what] +=1
+        }else{
+          animalVote[tag.what] = 1
+        }
+        if(max == null || max[0] < animalVote[tag.what]){
+          max = [animalVote[tag.what], tag, track]
+        }
+    }
+  }
+  if(max){
+    return max[1]
+  }
+  return null;
+}
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
 function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
@@ -221,9 +242,9 @@ class DeviceVisits {
 
     const tracks = rec.Tracks;
     this.sortTracks(tracks);
-
-    for (const track of tracks) {
-      const event = this.calculateTrackTagEvent(rec, track);
+    const trackTags = getRecordingTag(tracks, this.userID)
+    for (const trackTag of trackTags) {
+      const event = this.calculateTrackTagEvent(rec, trackTag.track, trackTag.tag);
       if (event == null) {
         continue;
       }
@@ -269,13 +290,9 @@ class DeviceVisits {
   // otherwise it will add an event to an existing visit and return the new event
   calculateTrackTagEvent(
     rec: Recording,
-    track: any
+    track: any,
+    tag: TrackTag
   ): null | Visit | VisitEvent {
-    const tag = getTrackTag(track.TrackTags, this.userID);
-    if (!tag) {
-      return null;
-    }
-
     const trackPeriod = new TrackStartEnd(rec, track);
     if (this.unknownIsPartOfPreviousVisit(tag, trackPeriod.trackEnd)) {
       return this.addEventToPreviousVisit(rec, track, tag);
