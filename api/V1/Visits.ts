@@ -363,7 +363,7 @@ class DeviceVisits {
     if (unVisit && unVisit.what == unidentified) {
       let unEvent = unVisit.events[unVisit.events.length - 1];
       while (unEvent && isWithinVisitInterval(visit.end, unEvent.start)) {
-        unEvent.wasTaggedAs = unidentified;
+        unEvent.assumedTag = visit.what;
         visit.addEventAtIndex(unEvent, 0);
         unVisit.removeEventAtIndex(unVisit.events.length - 1);
         unEvent = unVisit.events[unVisit.events.length - 1];
@@ -564,7 +564,7 @@ class Visit {
 }
 
 class VisitEvent {
-  wasTaggedAs: string;
+  assumedTag: string;
   recID: number;
   recStart: Moment;
   trackID: number;
@@ -579,27 +579,21 @@ class VisitEvent {
     const trackTimes = new TrackStartEnd(rec, track);
     this.audioBaitDay = false;
     this.audioBaitVisit = false;
-    this.wasTaggedAs = null;
     this.recID = rec.id;
     this.audioBaitEvents = [];
     this.recStart = trackTimes.recStart;
     this.trackID = track.id;
-    this.what = tag.what;
-    if (tag.what != unidentified) {
-      this.confidence = Math.round(tag.confidence * 100);
-    } else {
-      this.confidence = 0;
-    }
+    this.what = taggedAs.what;
+    this.assumedTag = tag.what;
+    this.confidence = Math.round(tag.confidence * 100);
     this.start = trackTimes.trackStart;
     this.end = trackTimes.trackEnd;
 
-    if (tag.what != taggedAs.what) {
-      this.wasTaggedAs = taggedAs.what;
-    }
+
     this.setAudioBaitEvents(rec);
   }
   wasUnidentified() {
-    return this.wasTaggedAs == unidentified;
+    return this.what == unidentified;
   }
   setAudioBaitEvents(rec) {
     let events = rec.Device.Events;
