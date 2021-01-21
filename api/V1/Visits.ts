@@ -565,6 +565,9 @@ class Visit {
 }
 
 class VisitEvent {
+  // this is the overriding tag that we have given this event
+  // e.g. if it was unidentified but grouped under a cat visit
+  // assumedTag woudl be "cat"
   assumedTag: string;
   recID: number;
   recStart: Moment;
