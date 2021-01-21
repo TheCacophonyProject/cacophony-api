@@ -249,11 +249,12 @@ class DeviceVisits {
     const tracks = rec.Tracks;
     this.sortTracks(tracks);
     const recTag = getRecordingTag(tracks, this.userID);
-    if (recTag == null) return visits;
+    if (recTag == null) {
+      return visits;
+    }
 
     for (const track of tracks) {
       const tag = getTrackTag(track.TrackTags, this.userID);
-
       const event = this.calculateTrackTagEvent(rec, track, recTag, tag);
       if (event == null) {
         continue;
@@ -588,7 +589,6 @@ class VisitEvent {
     this.confidence = Math.round(tag.confidence * 100);
     this.start = trackTimes.trackStart;
     this.end = trackTimes.trackEnd;
-
 
     this.setAudioBaitEvents(rec);
   }
