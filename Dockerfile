@@ -1,7 +1,9 @@
 # Build:                   sudo docker build --no-cache . -t cacophony-api
 # Run interactive session: sudo docker run -it cacophony-api
 
-FROM cacophonyproject/server-base
+#FROM cacophonyproject/server-base
+FROM cacophony-api
+#FROM cacophony-minimal
 
 WORKDIR /app
 COPY package*.json ./
