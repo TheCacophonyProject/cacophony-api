@@ -30,7 +30,6 @@ interface AnimalMap {
 // highest occurence that isnt unidentified
 function getRecordingTag(tracks: any[], userID: number): TrackTag | null {
   const animalVote = {};
-  let maxVote = null;
   for (const track of tracks) {
     const tag = getTrackTag(track.TrackTags, userID);
     if (tag) {
@@ -39,19 +38,18 @@ function getRecordingTag(tracks: any[], userID: number): TrackTag | null {
       } else {
         animalVote[tag.what] = { tag: tag, count: 1 };
       }
-      if (
-        (maxVote == null || maxVote.count < animalVote[tag.what].count) &&
-        tag.what != unidentified
-      ) {
-        maxVote = animalVote[tag.what];
-      }
     }
   }
+  const sortedKeys = Object.keys(animalVote).sort(function (a, b) {
+    if (a == unidentified) {
+      return 1;
+    }
+    return animalVote[b].count - animalVote[a].count;
+  });
+
+  const maxVote = animalVote[sortedKeys[0]];
   if (maxVote) {
     return maxVote.tag;
-  }
-  if (unidentified in animalVote) {
-    return animalVote[unidentified].tag;
   }
   return null;
 }
