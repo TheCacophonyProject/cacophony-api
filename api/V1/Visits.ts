@@ -585,7 +585,11 @@ class VisitEvent {
     this.audioBaitEvents = [];
     this.recStart = trackTimes.recStart;
     this.trackID = track.id;
-    this.what = taggedAs.what;
+    if (taggedAs){
+      this.what = taggedAs.what;
+    }else{
+      this.what =  null;
+    }
     this.assumedTag = tag.what;
     this.confidence = Math.round(tag.confidence * 100);
     this.start = trackTimes.trackStart;
