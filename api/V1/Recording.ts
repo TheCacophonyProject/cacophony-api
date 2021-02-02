@@ -247,7 +247,8 @@ export default (app: Application, baseUrl: string) => {
           queryOffset: result.queryOffset,
           totalRecordings: result.totalRecordings,
           hasMoreVisits: result.hasMoreVisits,
-          rows: result.rows
+          visits: result.visits,
+          summary: result.summary.generateAnimalSummary(),
         });
       }
     )
