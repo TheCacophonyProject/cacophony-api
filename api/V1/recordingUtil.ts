@@ -730,7 +730,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
   ];
   const eventSum = (accumulator, visit) => accumulator + visit.events.length;
   for (const [deviceId, deviceVisits] of Object.entries(deviceMap)) {
-    const animalSummary = deviceVisits.animalSummary()
+    const animalSummary = deviceVisits.animalSummary();
 
     device_summary_out.push([
       deviceId,
@@ -753,16 +753,16 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
     for (const animal in animalSummary) {
       const summary = animalSummary[animal];
       device_summary_out.push([
-      deviceId,
-      summary.deviceName,
-      summary.groupName,
-      summary.start.tz(config.timeZone).format("HH:mm:ss"),
-      summary.end.tz(config.timeZone).format("HH:mm:ss"),
-      summary.visitCount.toString(),
-      (summary.visitCount /  summary.eventCount).toString(),
-      animal,
-      summary.visitCount.toString(),
-      deviceVisits.audioBait.toString()
+        deviceId,
+        summary.deviceName,
+        summary.groupName,
+        summary.start.tz(config.timeZone).format("HH:mm:ss"),
+        summary.end.tz(config.timeZone).format("HH:mm:ss"),
+        summary.visitCount.toString(),
+        (summary.visitCount / summary.eventCount).toString(),
+        animal,
+        summary.visitCount.toString(),
+        deviceVisits.audioBait.toString()
       ]);
     }
   }
@@ -811,7 +811,7 @@ async function reportVisits(request) {
         audioEvent = audioEvents.pop();
         if (audioEvent) {
           audioTime = moment(audioEvent.dateTime);
-        }else{
+        } else {
           audioTime = null;
         }
         audioBaitBefore = audioTime && audioTime.isAfter(event.start);

@@ -248,7 +248,7 @@ export default (app: Application, baseUrl: string) => {
           totalRecordings: result.totalRecordings,
           hasMoreVisits: result.hasMoreVisits,
           visits: result.visits,
-          summary: result.summary.generateAnimalSummary(),
+          summary: result.summary.generateAnimalSummary()
         });
       }
     )

@@ -1,14 +1,12 @@
 /*
 This handles creation of Visits from recordings
 
-A visit is a grouping of many viewings of the same species (animal, insect ...). As long as
-they are seen again within eventMaxTimeSeconds of the last viewing
-
+A visit is a all tracks that occur within eventMaxTimeSeconds of eachother
 A Visit is made up of many VisitEvents.
 VisitEvents are distinct viewings of a species, defined by a TrackTag
+A visit is assumed to be the tag that occurs the most in the visitevents
 
-Unidentified tags may be assumed to be another species e.g. Possum if they occur within
-eventMaxTimeSeconds of a defined species
+All tracks of a recording always belong to the same visit
 */
 
 import { Recording } from "../../models/Recording";
@@ -25,24 +23,24 @@ const audioBaitInterval = 60 * 10;
 
 function sortTracks(tracks: Track[]) {
   // sort tracks in descending start time order
-    tracks.sort(function (a, b) {
-      if (
-        a.data &&
-        b.data &&
-        a.data.start_s != undefined &&
-        b.data.start_s != undefined
-      ) {
-        const res = b.data.start_s - a.data.start_s;
-        if (res == 0) {
-          return b.id - a.id;
-        } else {
-          return res;
-        }
+  tracks.sort(function (a, b) {
+    if (
+      a.data &&
+      b.data &&
+      a.data.start_s != undefined &&
+      b.data.start_s != undefined
+    ) {
+      const res = b.data.start_s - a.data.start_s;
+      if (res == 0) {
+        return b.id - a.id;
       } else {
-        return 0;
+        return res;
       }
-    });
-  }
+    } else {
+      return 0;
+    }
+  });
+}
 
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
@@ -74,10 +72,10 @@ class DeviceSummary {
     this.deviceMap = {};
   }
 
-  generateAnimalSummary(): DeviceAnimals{
-    const deviceSummary: DeviceAnimals = {}
-    for(const [devId,device] of Object.entries(this.deviceMap)){
-      deviceSummary[devId] =device.animalSummary()
+  generateAnimalSummary(): DeviceAnimals {
+    const deviceSummary: DeviceAnimals = {};
+    for (const [devId, device] of Object.entries(this.deviceMap)) {
+      deviceSummary[devId] = device.animalSummary();
     }
     return deviceSummary;
   }
@@ -96,7 +94,8 @@ class DeviceSummary {
         devVisits = new DeviceVisits(
           rec.Device.devicename,
           rec.Group.groupname,
-          rec.DeviceId        );
+          rec.DeviceId
+        );
         this.deviceMap[rec.DeviceId] = devVisits;
       }
       devVisits.calculateNewVisits(rec, queryOffset + i, complete, userID);
@@ -169,7 +168,6 @@ class DeviceSummary {
   }
 }
 
-
 class VisitSummary {
   visitCount: number;
   eventCount: number;
@@ -184,15 +182,14 @@ class VisitSummary {
     this.start = moment(visit.start);
     this.visitCount = 1;
     this.eventCount = visit.events.length;
-
   }
-  updateSummary( visit: Visit ){
-    this.visitCount+=1;
+  updateSummary(visit: Visit) {
+    this.visitCount += 1;
     this.eventCount += visit.events.length;
-    if(visit.start < this.start){
+    if (visit.start < this.start) {
       this.start = visit.start;
     }
-    if(visit.end > this.end){
+    if (visit.end > this.end) {
       this.end = visit.end;
     }
   }
@@ -210,7 +207,7 @@ class DeviceVisits {
   constructor(
     public deviceName: string,
     public groupName: string,
-    public id: number,
+    public id: number
   ) {
     this.firstVisit = null;
     this.audioFileIds = new Set();
@@ -219,17 +216,17 @@ class DeviceVisits {
     this.audioBait = false;
     this.visits = [];
   }
-  animalSummary(): AnimalSummary{
+  animalSummary(): AnimalSummary {
     // return a summary of the animals with visits
     const animalSummary: AnimalSummary = {};
-    for(const visit of this.visits){
-      if (visit.what in animalSummary){
-        animalSummary[visit.what].updateSummary(visit)
-      }else{
-        animalSummary[visit.what]= new VisitSummary(visit);
+    for (const visit of this.visits) {
+      if (visit.what in animalSummary) {
+        animalSummary[visit.what].updateSummary(visit);
+      } else {
+        animalSummary[visit.what] = new VisitSummary(visit);
       }
     }
-    return animalSummary
+    return animalSummary;
   }
 
   checkForCompleteVisits(lastRecTime: Moment) {
@@ -240,8 +237,8 @@ class DeviceVisits {
         break;
       }
       visit.complete = !isWithinVisitInterval(visit.start, lastRecTime);
-      if (visit.complete){
-        visit.completeVisit()
+      if (visit.complete) {
+        visit.completeVisit();
       }
     }
   }
@@ -250,13 +247,13 @@ class DeviceVisits {
     var delIndex = 0;
     for (var i = this.visits.length - 1; i >= 0; i--) {
       const visit = this.visits[i];
-      if (!visit.complete){
+      if (!visit.complete) {
         delIndex = i;
       }
     }
     this.visits.splice(delIndex, this.visits.length - delIndex);
     const currentVisit = this.currentVisit();
-    if(currentVisit){
+    if (currentVisit) {
       if (this.endTime < currentVisit.end) {
         this.endTime = currentVisit.end;
       }
@@ -282,11 +279,11 @@ class DeviceVisits {
     }
   }
   currentVisit(): Visit | null {
-    //current visit is the visit that is actively calculated
+    // currents visit is the visit that is actively calculated
     // the earliest in time
-    return this.visits[this.visits.length-1];
+    return this.visits[this.visits.length - 1];
   }
-  
+
   isPartOfCurrentVisit(time: Moment): boolean {
     const currentVisit = this.currentVisit();
     if (currentVisit == null) {
@@ -299,20 +296,19 @@ class DeviceVisits {
     rec: any,
     queryOffset: number,
     complete: boolean = false,
-    userID: number,
+    userID: number
   ): Visit[] {
-
     sortTracks(rec.Tracks);
-    if (rec.Tracks.length == 0){
+    if (rec.Tracks.length == 0) {
       return this.visits;
     }
     //check earliest track in recording is withint interval of current visit
     const trackPeriod = new TrackStartEnd(rec, rec.Tracks[0]);
-    const currentVisit = this.currentVisit()
-    if(currentVisit &&  currentVisit.isPartOfVisit(trackPeriod.trackStart) ){
-      currentVisit.addRecording(rec, userID)
-    }else{
-      if(currentVisit){
+    const currentVisit = this.currentVisit();
+    if (currentVisit && currentVisit.isPartOfVisit(trackPeriod.trackStart)) {
+      currentVisit.addRecording(rec, userID);
+    } else {
+      if (currentVisit) {
         currentVisit.completeVisit();
       }
       const visit = new Visit(rec, userID);
@@ -324,15 +320,12 @@ class DeviceVisits {
     return this.visits;
   }
 
-
   addAudioFileIds(rec: any) {
     rec.Device.Events.forEach((audioEvent) => {
       this.audioFileIds.add(audioEvent.EventDetail.details.fileId);
     });
   }
 }
-
-
 
 class Visit {
   visitID: number;
@@ -350,7 +343,7 @@ class Visit {
   audioBaitEvents: Event[];
   complete: boolean;
   tagCount: any;
-  constructor(rec: any, userID:number) {
+  constructor(rec: any, userID: number) {
     visitID += 1;
     this.tagCount = {};
     this.visitID = visitID;
@@ -362,20 +355,18 @@ class Visit {
     this.audioBaitVisit = false;
     this.audioBaitDay = false;
     this.complete = false;
-    this.addRecording(rec,userID)
-
+    this.addRecording(rec, userID);
   }
 
-
-  mostCommonTag(): string|null{
+  mostCommonTag(): string | null {
     // from all events in a visit, get the tag with the highest occurence that
     // isnt unidentified
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
       if (a == unidentified) {
         return 1;
-      }else if( b == unidentified){
-        return -1
+      } else if (b == unidentified) {
+        return -1;
       }
       return tagCount[b] - tagCount[a];
     });
@@ -385,24 +376,23 @@ class Visit {
     }
     return null;
   }
-  completeVisit(){
+  completeVisit() {
     // assign the visit a tag based on the most common tag that isn't unidentified
     const visitTag = this.mostCommonTag();
     this.what = visitTag;
-    for(const event of this.events){
+    for (const event of this.events) {
       event.assumedTag = visitTag;
     }
     this.complete = true;
   }
 
-  addRecording(rec: any, userID:number){
-    for(const track of rec.Tracks){
+  addRecording(rec: any, userID: number) {
+    for (const track of rec.Tracks) {
       const taggedAs = getTrackTag(track.TrackTags, userID);
       const event = new VisitEvent(rec, track, null, taggedAs);
       this.addEvent(event);
     }
     this.addAudioBaitEvents(rec);
-
   }
 
   addAudioBaitEvents(rec) {
@@ -434,14 +424,14 @@ class Visit {
     return isWithinVisitInterval(this.start, eTime);
   }
 
-  updateTagCount(event:VisitEvent){
-    if(!event.what){
-      return
+  updateTagCount(event: VisitEvent) {
+    if (!event.what) {
+      return;
     }
-    if(event.what in this.tagCount){
-      this.tagCount[event.what]+=1
-    }else{
-      this.tagCount[event.what]=1
+    if (event.what in this.tagCount) {
+      this.tagCount[event.what] += 1;
+    } else {
+      this.tagCount[event.what] = 1;
     }
   }
 
@@ -450,11 +440,11 @@ class Visit {
     this.updateTagCount(event);
     this.events.push(event);
 
-    if(!this.end || event.end.isAfter(this.end)){
-      this.end = event.end
+    if (!this.end || event.end.isAfter(this.end)) {
+      this.end = event.end;
     }
-    if(!this.start || event.start.isBefore(this.start)){
-      this.start = event.start
+    if (!this.start || event.start.isBefore(this.start)) {
+      this.start = event.start;
     }
     return event;
   }
@@ -486,11 +476,10 @@ class VisitEvent {
     if (taggedAs) {
       this.what = taggedAs.what;
       this.confidence = Math.round(taggedAs.confidence * 100);
-
     } else {
       this.what = null;
     }
-    if(tag){
+    if (tag) {
       this.assumedTag = tag.what;
     }
     this.start = trackTimes.trackStart;
@@ -517,10 +506,7 @@ class TrackStartEnd {
   }
 }
 
-function isWithinVisitInterval(
-  firstTime: Moment,
-  secondTime: Moment
-): boolean {
+function isWithinVisitInterval(firstTime: Moment, secondTime: Moment): boolean {
   const secondsDiff = Math.abs(firstTime.diff(secondTime, "seconds"));
   return secondsDiff <= eventMaxTimeSeconds;
 }
