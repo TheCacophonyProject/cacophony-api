@@ -603,11 +603,13 @@ async function queryVisits(
     request.query.limit == null
       ? maxVisitQueryResults
       : (request.query.limit as number);
+
   let queryMax = maxVisitQueryResults * 2;
   let queryLimit = queryMax;
   if (request.query.limit) {
     queryLimit = Math.min(request.query.limit * 2, queryMax);
   }
+
   const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
@@ -679,7 +681,6 @@ async function queryVisits(
   visits.sort(function (a, b) {
     return b.start > a.start ? 1 : -1;
   });
-
   // get the offset to use for future queries
   queryOffset = devSummary.earliestIncompleteOffset();
   if (queryOffset == null && visits.length > 0) {

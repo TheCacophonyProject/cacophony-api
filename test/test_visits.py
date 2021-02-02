@@ -88,6 +88,43 @@ class TestVisits:
         for visit in visits[1:]:
             assert parsedate(visit["end"]) < most_recent
 
+    def test_load_offset(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
+
+        animals = ["possum", "cat", "rodent"]
+        # make 3 visits per animal
+        for i in range(len(animals) * 3):
+            helper.upload_recording_with_tag(
+                device, admin, animals[int(i / 3)], time=now - timedelta(minutes=i * 20)
+            )
+        offset = 0
+
+        # visits query always gets 2 * limit in recordings as an attempt to get limit visits
+        # after they are groupedd, so by choosing limit 2 it will look for 4 Recordings
+        # first 3 will make a complete visit, and last one will not be complete
+        limit = 2
+        for i in range(3):
+            if i == 2:
+                # last query needs to be more than 2 so it knows to complete the final visit
+                # as no other recordings are available
+                limit = 3
+            response = cosmo.query_visits(return_json=True, limit=limit, offset=offset)
+            offset = response["queryOffset"]
+            assert response["numVisits"] == 3
+            summary = response["summary"][str(device.get_id())]
+            assert list(summary.keys()) == [animals[i]]
+            assert summary[animals[i]]["visitCount"] == 3
+
+        response = cosmo.query_visits(return_json=True)
+        summary = response["summary"][str(device.get_id())]
+        assert list(summary.keys()) == animals
+        assert len(response["visits"]) == 9
+
     def test_visit_interval(self, helper):
         admin = helper.admin_user()
         cosmo = helper.given_new_user(self, "cosmo")

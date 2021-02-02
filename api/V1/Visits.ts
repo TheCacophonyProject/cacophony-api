@@ -307,11 +307,12 @@ class DeviceVisits {
     const currentVisit = this.currentVisit();
     if (currentVisit && currentVisit.isPartOfVisit(trackPeriod.trackStart)) {
       currentVisit.addRecording(rec, userID);
+      currentVisit.queryOffset = queryOffset;
     } else {
       if (currentVisit) {
         currentVisit.completeVisit();
       }
-      const visit = new Visit(rec, userID);
+      const visit = new Visit(rec, userID, queryOffset);
       this.visits.push(visit);
       this.visitCount++;
     }
@@ -334,7 +335,6 @@ class Visit {
   what: string;
   end: Moment;
   start: Moment;
-  queryOffset: number;
   deviceName: string;
   deviceId: number;
   groupName: string;
@@ -343,7 +343,7 @@ class Visit {
   audioBaitEvents: Event[];
   complete: boolean;
   tagCount: any;
-  constructor(rec: any, userID: number) {
+  constructor(rec: any, userID: number, public queryOffset: number) {
     visitID += 1;
     this.tagCount = {};
     this.visitID = visitID;
