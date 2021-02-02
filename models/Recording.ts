@@ -1064,7 +1064,7 @@ from (
               "TrackId",
               "confidence",
               "UserId",
-              [Sequelize.json("data.name"),"data"]
+              [Sequelize.json("data.name"), "data"]
             ],
             include: [
               {

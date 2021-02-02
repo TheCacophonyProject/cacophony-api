@@ -8,6 +8,60 @@ from dateutil.parser import parse as parsedate
 class TestVisits:
     VISIT_INTERVAL_SECONDS = 600
 
+    def test_multiple_animals(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
+
+        # check that a recording with 2 possums and 1 cat, assumes the cat is a possum
+        rec, _, _ = helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="possum")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+        response = cosmo.query_visits(return_json=True)
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "possum"
+        assert len(visit["events"]) == 3
+
+        device = helper.given_new_device(self, "cosmo_device2", cosmo_group)
+        # check that a recording with 2 unidentified and 1 cat, assumes the unidentified is a cat
+        rec, _, _ = helper.upload_recording_with_tag(
+            device, admin, "unidentified", time=now - timedelta(seconds=0)
+        )
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="unidentified")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+
+        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "cat"
+        assert len(visit["events"]) == 3
+
+    def test_no_tag(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        # check that a recording with 1 untagged track, 1 unidentified and 1 cat, assumes the unidentified and untagged is a cat
+        rec, _, _ = helper.upload_recording_with_tag(device, admin, "unidentified")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+
+        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "cat"
+        assert len(visit["events"]) == 3
+
     def test_visit_grouping(self, helper):
         admin = helper.admin_user()
         cosmo = helper.given_new_user(self, "cosmo")
