@@ -24,6 +24,7 @@ const unidentified = "unidentified";
 const audioBaitInterval = 60 * 10;
 
 function sortTracks(tracks: Track[]) {
+  // sort tracks in descending start time order
     tracks.sort(function (a, b) {
       if (
         a.data &&
@@ -42,33 +43,7 @@ function sortTracks(tracks: Track[]) {
       }
     });
   }
-// getRecordingTag from all tracks of a single recording, get the tag with the
-// highest occurence that isnt unidentified
-function getRecordingTag(tracks: any[], userID: number): TrackTag | null {
-  const animalVote = {};
-  for (const track of tracks) {
-    const tag = getTrackTag(track.TrackTags, userID);
-    if (tag) {
-      if (tag.what in animalVote) {
-        animalVote[tag.what].count += 1;
-      } else {
-        animalVote[tag.what] = { tag: tag, count: 1 };
-      }
-    }
-  }
-  const sortedKeys = Object.keys(animalVote).sort(function (a, b) {
-    if (a == unidentified) {
-      return 1;
-    }
-    return animalVote[b].count - animalVote[a].count;
-  });
 
-  const maxVote = animalVote[sortedKeys[0]];
-  if (maxVote) {
-    return maxVote.tag;
-  }
-  return null;
-}
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
 function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
@@ -245,6 +220,7 @@ class DeviceVisits {
     this.visits = [];
   }
   animalSummary(): AnimalSummary{
+    // return a summary of the animals with visits
     const animalSummary: AnimalSummary = {};
     for(const visit of this.visits){
       if (visit.what in animalSummary){
@@ -255,7 +231,9 @@ class DeviceVisits {
     }
     return animalSummary
   }
+
   checkForCompleteVisits(lastRecTime: Moment) {
+    //complete any visits that start at least visit interval seconds after this time
     for (var i = this.visits.length - 1; i >= 0; i--) {
       const visit = this.visits[i];
       if (visit.complete) {
@@ -286,6 +264,7 @@ class DeviceVisits {
   }
 
   updateSummary(rec: any) {
+    //update tally of visits and counts and start end time of the device summary
     const currentVisit = this.currentVisit();
     this.audioBait = this.audioBait || currentVisit.audioBaitDay;
     this.eventCount += rec.Tracks.length;
@@ -303,8 +282,11 @@ class DeviceVisits {
     }
   }
   currentVisit(): Visit | null {
+    //current visit is the visit that is actively calculated
+    // the earliest in time
     return this.visits[this.visits.length-1];
   }
+  
   isPartOfCurrentVisit(time: Moment): boolean {
     const currentVisit = this.currentVisit();
     if (currentVisit == null) {
@@ -320,11 +302,11 @@ class DeviceVisits {
     userID: number,
   ): Visit[] {
 
-    //check recoding is withint interval of current visit
-     sortTracks(rec.Tracks);
+    sortTracks(rec.Tracks);
     if (rec.Tracks.length == 0){
       return this.visits;
     }
+    //check earliest track in recording is withint interval of current visit
     const trackPeriod = new TrackStartEnd(rec, rec.Tracks[0]);
     const currentVisit = this.currentVisit()
     if(currentVisit &&  currentVisit.isPartOfVisit(trackPeriod.trackStart) ){
@@ -384,7 +366,10 @@ class Visit {
 
   }
 
+
   mostCommonTag(): string|null{
+    // from all events in a visit, get the tag with the highest occurence that
+    // isnt unidentified
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
       if (a == unidentified) {
@@ -401,6 +386,7 @@ class Visit {
     return null;
   }
   completeVisit(){
+    // assign the visit a tag based on the most common tag that isn't unidentified
     const visitTag = this.mostCommonTag();
     this.what = visitTag;
     for(const event of this.events){
@@ -408,17 +394,20 @@ class Visit {
     }
     this.complete = true;
   }
+
   addRecording(rec: any, userID:number){
     for(const track of rec.Tracks){
       const taggedAs = getTrackTag(track.TrackTags, userID);
       const event = new VisitEvent(rec, track, null, taggedAs);
       this.addEvent(event);
     }
-    this.setAudioBaitEvents(rec);
+    this.addAudioBaitEvents(rec);
 
   }
 
-  setAudioBaitEvents(rec) {
+  addAudioBaitEvents(rec) {
+    // add all audio bait events that occur within audioBaitInterval of this visit
+    // and before the end of the visit
     let events = rec.Device.Events;
     if (!events) {
       return null;
@@ -444,10 +433,6 @@ class Visit {
   isPartOfVisit(eTime: Moment): boolean {
     return isWithinVisitInterval(this.start, eTime);
   }
-  //
-  // eventIsPartOfVisit(newEvent: VisitEvent): boolean {
-  //   return isWithinVisitInterval(this.start, newEvent.end);
-  // }
 
   updateTagCount(event:VisitEvent){
     if(!event.what){
@@ -461,6 +446,7 @@ class Visit {
   }
 
   addEvent(event: VisitEvent): VisitEvent {
+    //add a new event to this visit and update start, end and tagcount accordingly
     this.updateTagCount(event);
     this.events.push(event);
 
@@ -531,7 +517,7 @@ class TrackStartEnd {
   }
 }
 
-export function isWithinVisitInterval(
+function isWithinVisitInterval(
   firstTime: Moment,
   secondTime: Moment
 ): boolean {
@@ -558,5 +544,6 @@ export {
   DeviceVisits,
   Visit,
   VisitEvent,
-  TrackStartEnd
+  TrackStartEnd,
+  isWithinVisitInterval
 };
