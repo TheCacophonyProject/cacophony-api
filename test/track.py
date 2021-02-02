@@ -21,7 +21,7 @@ class Track:
 @attr.s
 class TrackTag:
     id_ = attr.ib()
-    track = attr.ib(cmp=False)  # avoid cycles during comparsion
+    track = attr.ib(eq=False)  # avoid cycles during comparsion
     what = attr.ib()
     confidence = attr.ib()
     automatic = attr.ib()

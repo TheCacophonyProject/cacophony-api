@@ -22,6 +22,7 @@ function isLatLon(point) {
   if (
     val === null ||
     typeof val !== "object" ||
+    !Array.isArray(val) ||
     val.length !== 2 ||
     typeof val[0] !== "number" ||
     typeof val[1] !== "number" ||

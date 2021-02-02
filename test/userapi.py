@@ -310,6 +310,7 @@ class UserAPI(APIBase):
         url = urljoin(self._baseurl, "/api/v1/groups")
         response = requests.post(url, headers=self._auth_header, data={"groupname": groupname})
         self._check_response(response)
+        return response.json()
 
     def get_user_details(self, username):
         url = urljoin(self._baseurl, "/api/v1/users/{}".format(username))
@@ -423,11 +424,33 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=props)
         self._check_response(response)
 
+    def add_to_group_as_group_admin(self, newuser, groupname):
+        url = urljoin(self._baseurl, "/api/v1/groups/users")
+        props = {"group": groupname, "username": newuser.username, "admin": "true"}
+        response = requests.post(url, headers=self._auth_header, data=props)
+        self._check_response(response)
+
+
     def remove_user_from_group(self, olduser, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups/users")
         props = {"group": groupname, "username": olduser.username}
         response = requests.delete(url, headers=self._auth_header, data=props)
         self._check_response(response)
+
+    def add_stations_to_group(self, group_id_or_name, stations, fromDate = None):
+        url = urljoin(self._baseurl, "/api/v1/groups/{}/stations".format(group_id_or_name))
+        props = {"stations": stations}
+        if fromDate is not None:
+            props["fromDate"] = fromDate
+        response = requests.post(url, headers=self._auth_header, data=props)
+        self._check_response(response)
+        return response.json()
+
+    def get_stations_for_group(self, group_id_or_name):
+        url = urljoin(self._baseurl, "/api/v1/groups/{}/stations".format(group_id_or_name))
+        response = requests.get(url, headers=self._auth_header)
+        self._check_response(response)
+        return response.json()
 
     def add_user_to_device(self, newuser, deviceid):
         url = urljoin(self._baseurl, "/api/v1/devices/users")

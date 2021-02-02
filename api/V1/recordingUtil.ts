@@ -63,6 +63,42 @@ export interface RecordingQuery {
   filterOptions: null | any;
 }
 
+export const MAX_STATION_DISTANCE_THRESHOLD_METERS = 30;
+
+export function latLngApproxDistance(a: [number, number], b: [number, number]): number {
+  const R = 6371e3;
+  // Using 'spherical law of cosines' from https://www.movable-type.co.uk/scripts/latlong.html
+  const lat1 = (a[0] * Math.PI) / 180;
+  const costLat1 = Math.cos(lat1);
+  const sinLat1 = Math.sin(lat1);
+  const lat2 = (b[0] * Math.PI) / 180;
+  const deltaLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const part1 = Math.acos(sinLat1 * Math.sin(lat2) + costLat1 * Math.cos(lat2) * Math.cos(deltaLng));
+  return part1 * R;
+}
+
+async function tryToMatchStationToRecording(recording: Recording) {
+  // TODO(jon): Move these into the Recording instance methods?
+
+  // Match the recording to any stations that the group might have:
+  const group = await models.Group.getFromId(recording.GroupId);
+  const stations = await group.getStations();
+  const stationDistances = [];
+  for (const station of stations) {
+    // See if any stations match: Looking at the location distance between this recording and the stations.
+    const distanceToStation = latLngApproxDistance(station.location.coordinates, recording.location.coordinates);
+    stationDistances.push({distanceToStation, station});
+  }
+  const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_STATION_DISTANCE_THRESHOLD_METERS);
+  validStationDistances.sort((a, b) => {
+    return b.distanceToStation - a.distanceToStation;
+  });
+  const closest = validStationDistances.pop();
+  if (closest) {
+    recording.StationId = closest.station.id;
+  }
+}
+
 function makeUploadHandler(mungeData?: (any) => any) {
   return util.multipartUpload("raw", async (request, data, key) => {
     if (mungeData) {
@@ -73,10 +109,15 @@ function makeUploadHandler(mungeData?: (any) => any) {
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
+
+    await tryToMatchStationToRecording(recording);
+
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }
+
     await recording.validate();
+    // NOTE: The documentation for save() claims that it also does validation, so not sure if we really need the call to validate() here.
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);

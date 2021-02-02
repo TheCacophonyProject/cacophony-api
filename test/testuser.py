@@ -203,6 +203,9 @@ class TestUser:
         self._userapi.update_recording(recording.id_, updates)
         recording.props.update(updates)
 
+    def create_group_and_return_response(self, groupname):
+        return self._userapi.create_group(groupname)
+
     def create_group(self, groupname, printname=True):
         self._userapi.create_group(groupname)
         if printname:
@@ -363,8 +366,17 @@ class TestUser:
     def add_to_group(self, newuser, groupname):
         self._userapi.add_user_to_group(newuser, groupname)
 
+    def add_to_group_as_group_admin(self, newuser, groupname):
+        self._userapi.add_to_group_as_group_admin(newuser, groupname)
+
     def remove_from_group(self, olduser, groupname):
         self._userapi.remove_user_from_group(olduser, groupname)
+
+    def add_stations_to_group(self, group_id_or_name, stations=None, fromDate=None):
+        return self._userapi.add_stations_to_group(group_id_or_name, stations, fromDate)
+
+    def get_stations_for_group(self, group_id_or_name):
+        return self._userapi.get_stations_for_group(group_id_or_name)
 
     def add_to_device(self, newuser, device):
         self._userapi.add_user_to_device(newuser, device.get_id())

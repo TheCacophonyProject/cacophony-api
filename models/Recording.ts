@@ -39,6 +39,8 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
+import {CreateStationData, Station, StationId} from "./Station";
+import {latLngApproxDistance, MAX_STATION_DISTANCE_THRESHOLD_METERS} from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -212,6 +214,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   DeviceId: DeviceIdAlias;
   GroupId: GroupIdAlias;
+  StationId: StationId;
   // Recording columns end
 
   getFileBaseName: () => string;
@@ -233,6 +236,9 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getTrack: (id: TrackId) => Promise<Track | null>;
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
+
+  isInStation: (station: Station) => boolean;
+  setStation: (station: Station) => Promise<void>;
 }
 type Mp4File = "string";
 type CptvFile = "string";
@@ -373,6 +379,7 @@ export default function (
   Recording.addAssociations = function (models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
+    models.Recording.belongsTo(models.Station);
     models.Recording.hasMany(models.Tag);
     models.Recording.hasMany(models.Track);
   };
@@ -591,8 +598,12 @@ export default function (
     if (user.hasGlobalRead()) {
       return null;
     }
-    const deviceIds = await user.getDeviceIds();
-    const groupIds = await user.getGroupsIds();
+
+    // FIXME(jon): Should really combine these into a single query?
+    const [deviceIds, groupIds] = await Promise.all([
+      user.getDeviceIds(),
+      user.getGroupsIds()
+    ]);
     return {
       [Op.or]: [
         {
@@ -736,6 +747,26 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
+
+  Recording.prototype.isInStation = function (station: Station | CreateStationData) {
+    if (station.hasOwnProperty('lat')) {
+      return latLngApproxDistance(
+          this.location.coordinates,
+          [(station as CreateStationData).lat, (station as CreateStationData).lng] as [number, number]
+      ) <= MAX_STATION_DISTANCE_THRESHOLD_METERS;
+    }
+    else {
+      return latLngApproxDistance(
+          this.location.coordinates,
+          (station as Station).location.coordinates
+      ) <= MAX_STATION_DISTANCE_THRESHOLD_METERS;
+    }
+  }
+
+  Recording.prototype.setStation = async function (station: { id: number }) {
+    this.StationId = station.id;
+    return this.save();
+  }
 
   Recording.prototype.getFileBaseName = function (): string {
     return moment(new Date(this.recordingDateTime))
@@ -1311,7 +1342,8 @@ from (
     "location",
     "batteryLevel",
     "DeviceId",
-    "GroupId"
+    "GroupId",
+    "StationId"
   ];
 
   // Attributes returned when looking up a single recording.
@@ -1332,6 +1364,7 @@ from (
     "type",
     "additionalMetadata",
     "GroupId",
+    "StationId",
     "fileKey",
     "comment"
   ];
@@ -1350,7 +1383,8 @@ from (
     "airplaneModeOn",
     "additionalMetadata",
     "processingMeta",
-    "comment"
+    "comment",
+    "StationId"
   ];
 
   // local
@@ -1380,7 +1414,8 @@ from (
     "processingState",
     "processingMeta",
     "GroupId",
-    "DeviceId"
+    "DeviceId",
+    "StationId"
   ];
 
   return Recording;
