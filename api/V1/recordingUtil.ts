@@ -692,7 +692,7 @@ async function queryVisits(
     audioFileNames[f.id] = f.details.name;
   }
 
-  // this updates the references in deviceMap
+  // update the references in deviceMap
   for (const visit of visits) {
     for (const audioEvent of visit.audioBaitEvents) {
       audioEvent.dataValues.fileName =

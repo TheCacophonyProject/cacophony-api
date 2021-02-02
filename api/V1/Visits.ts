@@ -1,7 +1,7 @@
 /*
 This handles creation of Visits from recordings
 
-A visit is a all tracks that occur within eventMaxTimeSeconds of eachother
+A visit is a all tracks that occur within eventMaxTimeSeconds of each other
 A Visit is made up of many VisitEvents.
 VisitEvents are distinct viewings of a species, defined by a TrackTag
 A visit is assumed to be the tag that occurs the most in the visitevents
@@ -80,7 +80,7 @@ class DeviceSummary {
     return deviceSummary;
   }
 
-  // generates visits from a list of receordings in descending date time order
+  // generates visits from a list of recordings in descending date time order
   generateVisits(
     recordings: any[],
     queryOffset: number,
@@ -302,7 +302,7 @@ class DeviceVisits {
     if (rec.Tracks.length == 0) {
       return this.visits;
     }
-    //check earliest track in recording is withint interval of current visit
+    //check earliest track in recording is within interval of current visit
     const trackPeriod = new TrackStartEnd(rec, rec.Tracks[0]);
     const currentVisit = this.currentVisit();
     if (currentVisit && currentVisit.isPartOfVisit(trackPeriod.trackStart)) {
