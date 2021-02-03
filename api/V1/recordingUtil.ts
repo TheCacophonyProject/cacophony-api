@@ -33,7 +33,6 @@ import {
   RecordingId,
   RecordingPermission,
   RecordingType,
-  SpeciesClassification,
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
@@ -41,13 +40,12 @@ import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
-  DeviceVisits,
-  VisitEvent,
   DeviceVisitMap,
   Visit,
   DeviceSummary,
   isWithinVisitInterval
 } from "./Visits";
+import {StationId} from "../../models/Station";
 
 export interface RecordingQuery {
   user: User;
@@ -63,7 +61,11 @@ export interface RecordingQuery {
   filterOptions: null | any;
 }
 
-export const MAX_STATION_DISTANCE_THRESHOLD_METERS = 30;
+// How close is a station allowed to be to another station?
+export const MAX_STATION_DISTANCE_THRESHOLD_METERS = 60;
+// The radius of the station is half the max distance between stations: any recording inside the radius can
+// be considered to belong to that station.
+export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING = MAX_STATION_DISTANCE_THRESHOLD_METERS / 2;
 
 export function latLngApproxDistance(a: [number, number], b: [number, number]): number {
   const R = 6371e3;
@@ -77,9 +79,7 @@ export function latLngApproxDistance(a: [number, number], b: [number, number]): 
   return part1 * R;
 }
 
-async function tryToMatchStationToRecording(recording: Recording) {
-  // TODO(jon): Move these into the Recording instance methods?
-
+async function tryToMatchRecordingToStation(recording: Recording): Promise<StationId | null> {
   // Match the recording to any stations that the group might have:
   const group = await models.Group.getFromId(recording.GroupId);
   const stations = await group.getStations();
@@ -89,14 +89,15 @@ async function tryToMatchStationToRecording(recording: Recording) {
     const distanceToStation = latLngApproxDistance(station.location.coordinates, recording.location.coordinates);
     stationDistances.push({distanceToStation, station});
   }
-  const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_STATION_DISTANCE_THRESHOLD_METERS);
+  const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING);
   validStationDistances.sort((a, b) => {
     return b.distanceToStation - a.distanceToStation;
   });
   const closest = validStationDistances.pop();
   if (closest) {
-    recording.StationId = closest.station.id;
+    return closest.station.id;
   }
+  return null;
 }
 
 function makeUploadHandler(mungeData?: (any) => any) {
@@ -109,15 +110,15 @@ function makeUploadHandler(mungeData?: (any) => any) {
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
-
-    await tryToMatchStationToRecording(recording);
+    recording.StationId = await tryToMatchRecordingToStation(recording);
 
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }
 
     await recording.validate();
-    // NOTE: The documentation for save() claims that it also does validation, so not sure if we really need the call to validate() here.
+    // NOTE: The documentation for save() claims that it also does validation,
+    //  so not sure if we really need the call to validate() here.
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);

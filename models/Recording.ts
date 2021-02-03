@@ -40,7 +40,11 @@ import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
 import {CreateStationData, Station, StationId} from "./Station";
-import {latLngApproxDistance, MAX_STATION_DISTANCE_THRESHOLD_METERS} from "../api/V1/recordingUtil";
+import {
+  latLngApproxDistance,
+  MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
+  MAX_STATION_DISTANCE_THRESHOLD_METERS
+} from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -753,13 +757,13 @@ from (
       return latLngApproxDistance(
           this.location.coordinates,
           [(station as CreateStationData).lat, (station as CreateStationData).lng] as [number, number]
-      ) <= MAX_STATION_DISTANCE_THRESHOLD_METERS;
+      ) <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING;
     }
     else {
       return latLngApproxDistance(
           this.location.coordinates,
           (station as Station).location.coordinates
-      ) <= MAX_STATION_DISTANCE_THRESHOLD_METERS;
+      ) <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING;
     }
   }
 

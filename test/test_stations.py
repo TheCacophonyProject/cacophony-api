@@ -1,5 +1,4 @@
 import json
-from time import sleep
 from datetime import datetime
 import dateutil.parser
 
@@ -16,9 +15,9 @@ class TestStations:
         station_group = station_user.create_group_and_return_response(station_group_name)
 
         # Try to add stations to group without supplying stations JSON
-        with pytest.raises(BadRequestError) as error:
+        with pytest.raises(UnprocessableError) as error:
             station_user.add_stations_to_group(station_group['groupId'])
-        print("Error:", str(error.value))
+        print("Error:", json.loads(str(error.value))['errors'])
 
         # Try to add stations to group supplying json of empty array
         with pytest.raises(UnprocessableError) as error:
@@ -37,7 +36,7 @@ class TestStations:
             station_user.add_stations_to_group(station_group['groupId'], json.dumps([{"name": "Station name"}]))
         print("Error:", json.loads(str(error.value))['errors'])
 
-        with pytest.raises(UnprocessableError) as error:
+        with pytest.raises(UnprocessableError):
             station_user.add_stations_to_group(station_group['groupId'], json.dumps([{
                 "name": "Station name",
                 "lat": -43.5338773,
@@ -53,7 +52,6 @@ class TestStations:
         }]))
         print("Added stations", added_station_ids['stationIds'])
         assert len(added_station_ids['stationIds']) == 1
-        sleep(0.1)
 
         print("Make sure added stations are not too close to any others (we don't want overlapping stations)")
         with pytest.raises(BadRequestError) as error:
@@ -79,7 +77,6 @@ class TestStations:
             "lng": 172.8
         }]))
         assert len(added_station_ids['stationIds']) == 2
-        sleep(0.1)
 
         print("Existing stations that are missing when uploading new stations should be set to 'retired'")
         added_station_ids = station_user.add_stations_to_group(station_group['groupId'], json.dumps([{
@@ -90,7 +87,6 @@ class TestStations:
         assert len(added_station_ids['stationIds']) == 1
         added_station_id = added_station_ids['stationIds'][0]
         print("Added", added_station_ids, added_station_id)
-        sleep(0.1)
 
         # Get stations and make sure that "Will be retired" exists and is retired
         current_stations = station_user.get_stations_for_group(station_group['groupId'])
@@ -168,7 +164,6 @@ class TestStations:
         assert retired[0]['id'] not in added_station_ids
         print("Added station with same name as retired station", added_station_ids)
 
-        sleep(0.1)
         # Make sure that if that station gets retired again, we retire the correct version
         station_user.add_stations_to_group(station_group['groupId'], json.dumps([{
             "name": "Station name",

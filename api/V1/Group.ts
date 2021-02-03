@@ -23,8 +23,6 @@ import responseUtil from "./responseUtil";
 import {body, param, query} from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
-import {AuthorizationError} from "../customErrors";
-import log from "../../logging";
 
 const JsonSchema = new Validator();
 
@@ -190,6 +188,7 @@ export default function (app: Application, baseUrl: string) {
       auth.authenticateUser,
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
       body("stations")
+          .exists()
           .isJSON()
           .withMessage("Expected JSON array")
           .custom((val, { req }) => {

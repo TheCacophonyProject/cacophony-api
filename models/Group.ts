@@ -152,13 +152,16 @@ export default function (sequelize, DataTypes): GroupStatic {
    * will be matched against the new list of stations to see if they fall within the station radius.
    *
    * As designed, this will *always* be a bulk import operation of external data from trap.nz
+   *
+   * Returns ids of updated or added stations
+   *
    */
   Group.addStationsToGroup = async function (
     authUser,
     group,
     stationsToAdd,
     applyToRecordingsFromDate
-  ) {
+  ): Promise<StationId[]> {
     if (!(await group.userPermissions(authUser)).canAddStations) {
       throw new AuthorizationError(
         "User doesn't belong to group and/or is not a group admin so cannot add stations"
@@ -231,10 +234,11 @@ export default function (sequelize, DataTypes): GroupStatic {
         });
         addedStations.push(stationObj);
         stationOpsPromises.push(
-            stationObj.save()
-                .then(() => {
-                  group.addStation(stationObj)
-                })
+            new Promise(async (resolve) => {
+              await stationObj.save();
+              await group.addStation(stationObj);
+              resolve();
+            })
         );
       } else {
         // Update lat/lng if it has changed but the name is the same
@@ -259,6 +263,8 @@ export default function (sequelize, DataTypes): GroupStatic {
     if (!applyToRecordingsFromDate) {
       return await Promise.all([...stationOpsPromises, ...retirePromises]).then(() => addedStations.map(({id}) => id));
     } else {
+      // After adding stations, we need to apply any station matches to recordings from a start date:
+
       await Promise.all([...stationOpsPromises, ...retirePromises]);
       // Now addedStations are properly resolved with ids:
       // Now we can look for all recordings in the group back to startDate, and check if any of them

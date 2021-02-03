@@ -439,7 +439,9 @@ class UserAPI(APIBase):
 
     def add_stations_to_group(self, group_id_or_name, stations, fromDate = None):
         url = urljoin(self._baseurl, "/api/v1/groups/{}/stations".format(group_id_or_name))
-        props = {"stations": stations}
+        props = {}
+        if stations is not None:
+            props["stations"] = stations
         if fromDate is not None:
             props["fromDate"] = fromDate
         response = requests.post(url, headers=self._auth_header, data=props)
