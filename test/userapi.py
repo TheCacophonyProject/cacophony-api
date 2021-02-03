@@ -430,14 +430,13 @@ class UserAPI(APIBase):
         response = requests.post(url, headers=self._auth_header, data=props)
         self._check_response(response)
 
-
     def remove_user_from_group(self, olduser, groupname):
         url = urljoin(self._baseurl, "/api/v1/groups/users")
         props = {"group": groupname, "username": olduser.username}
         response = requests.delete(url, headers=self._auth_header, data=props)
         self._check_response(response)
 
-    def add_stations_to_group(self, group_id_or_name, stations, fromDate = None):
+    def add_stations_to_group(self, group_id_or_name, stations, fromDate=None):
         url = urljoin(self._baseurl, "/api/v1/groups/{}/stations".format(group_id_or_name))
         props = {}
         if stations is not None:

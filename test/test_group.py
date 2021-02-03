@@ -34,7 +34,6 @@ class TestGroup:
         print("  then Daniel should see the recording from 'Terminator'")
         daniel.can_see_recording_from(terminator)
 
-
         print("When Clare removes Daniel to her group")
         clare.remove_from_group(daniel, claresGroup)
 
