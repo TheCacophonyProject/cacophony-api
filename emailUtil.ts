@@ -3,7 +3,7 @@ import { Recording } from "./models/Recording";
 import { TrackTag } from "./models/TrackTag";
 import log from "./logging";
 import moment, { Moment } from "moment";
-import { SMTPClient, Message } from 'emailjs';
+import { SMTPClient, Message } from "emailjs";
 
 function alertBody(
   recording: Recording,
@@ -37,7 +37,7 @@ async function sendEmail(
       subject: subject,
       attachment: [{ data: text, alternative: true }]
     });
-    await client.sendAsync(message)
+    await client.sendAsync(message);
   } catch (err) {
     log.error(err);
     return false;
