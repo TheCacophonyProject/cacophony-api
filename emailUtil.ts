@@ -1,11 +1,10 @@
+//@ts-nocheck
 import config from "./config";
 import { Recording } from "./models/Recording";
 import { TrackTag } from "./models/TrackTag";
 import log from "./logging";
 import moment, { Moment } from "moment";
-import nodemailer from "nodemailer";
-import Mail from "nodemailer/lib/mailer";
-import { SentMessageInfo } from "nodemailer/lib/smtp-connection";
+import { SMTPClient } from "emailjs";
 
 function alertBody(
   recording: Recording,
@@ -29,26 +28,21 @@ async function sendEmail(
   to: string,
   subject: string
 ): Promise<boolean> {
-  const transporter: Mail = nodemailer.createTransport(config.smtpDetails);
+  const client = new SMTPClient(config.smtpDetails);
 
-  var mailOptions: Mail.Options = {
-    from: config.smtpDetails.from_name,
-    to: to,
-    subject: subject,
-    html: html,
-    text: text
-  };
   try {
-    const info: SentMessageInfo = await transporter.sendMail(mailOptions);
-    if (info.rejected.length > 0) {
-      log.error(info);
-      return false;
+    const message = {
+      text: text,
+      from: config.smtpDetails.from_name,
+      to: to,
+      subject: subject,
+      attachment: [{ data: text, alternative: true }]
     }
-  } catch (error) {
-    log.error(error);
+    const result = await client.sendAsync(message);
+  } catch (err) {
+    log.error(err);
     return false;
   }
-
   return true;
 }
 
