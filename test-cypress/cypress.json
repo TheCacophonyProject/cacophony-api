@@ -1,0 +1,6 @@
+{
+  "projectId": "dyez6t",
+  "cacophony-api-server": "https://api-test.cacophony.org.nz",
+
+  "integrationFolder": "cypress/api-tests"
+}
