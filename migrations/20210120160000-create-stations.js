@@ -23,11 +23,17 @@ module.exports = {
       updatedAt: { type: Sequelize.DATE, allowedNull: false, defaultValue: Sequelize.NOW },
       retiredAt: { type: Sequelize.DATE, allowedNull: true, defaultValue: Sequelize.NULL }
     });
+    await util.migrationAddBelongsTo(queryInterface, "Stations", "Users", {
+      name: "lastUpdatedBy"
+    });
     await util.migrationAddBelongsTo(queryInterface, "Stations", "Groups");
     await util.migrationAddBelongsTo(queryInterface, "Recordings", "Stations");
   },
 
   down: async function (queryInterface) {
+    await util.migrationRemoveBelongsTo(queryInterface, "Stations", "Users", {
+      name: "lastUpdatedBy"
+    });
     await util.migrationRemoveBelongsTo(queryInterface, "Stations", "Groups");
     await util.migrationRemoveBelongsTo(queryInterface, "Recordings", "Stations");
     await queryInterface.dropTable("Stations");

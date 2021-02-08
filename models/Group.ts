@@ -191,6 +191,7 @@ export default function (sequelize, DataTypes): GroupStatic {
       const station = existingStations.pop();
       if (!newStationsByName.hasOwnProperty(station.name)) {
         station.retiredAt = new Date();
+        station.lastUpdatedById = authUser.id;
         retirePromises.push(station.save());
       } else {
         existingStations.unshift(station);
@@ -230,7 +231,8 @@ export default function (sequelize, DataTypes): GroupStatic {
       if (!existingStationsByName.hasOwnProperty(name)) {
         const stationObj = new models.Station({
           name: station.name,
-          location: [station.lat, station.lng]
+          location: [station.lat, station.lng],
+          lastUpdatedById: authUser.id
         });
         addedStations.push(stationObj);
         stationOpsPromises.push(
@@ -252,6 +254,7 @@ export default function (sequelize, DataTypes): GroupStatic {
         ) {
           // NOTE - Casting this as "any" because station.location has a special setter function
           (stationToUpdate as any).location = [station.lat, station.lng];
+          stationToUpdate.lastUpdatedById = authUser.id;
           addedStations.push(stationToUpdate);
           stationOpsPromises.push(stationToUpdate.save());
         } else if (applyToRecordingsFromDate) {

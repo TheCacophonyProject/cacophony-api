@@ -20,6 +20,7 @@ import Sequelize, { BuildOptions, ModelAttributes } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import util from "./util/util";
 import validation from "./util/validation";
+import {UserId} from "./User";
 //import log from "../../logging";
 
 export type StationId = number;
@@ -37,6 +38,7 @@ export interface Station extends Sequelize.Model, ModelCommon<Station> {
   location: {
     coordinates: [number, number]
   };
+  lastUpdatedById: UserId;
   createdAt: Date;
   retiredAt: Date | null;
 }
@@ -61,6 +63,9 @@ export default function (
       validate: {
         isLatLon: validation.isLatLon
       }
+    },
+    lastUpdatedById: {
+      type: DataTypes.INTEGER
     },
     createdAt: {
       type: DataTypes.DATE
