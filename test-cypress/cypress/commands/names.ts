@@ -3,7 +3,7 @@ import crypto = require("crypto");
 const uniqueIdName = "uniqueId";
 
 export function getTestName(baseName) {
-  initializeTestNames('ea2b51d6');
+  initializeTestNames();
 
   return "cypress_" + baseName + Cypress.config("env")[uniqueIdName];
 }

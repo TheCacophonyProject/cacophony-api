@@ -1,7 +1,7 @@
 {
   "projectId": "dyez6t",
   "env" : {
-    "cacophony-api-server": "https://api-test.cacophony.org.nz", 
-    "testUsers" : {}
+    "cacophony-api-server": "http://localhost:1080", 
+    "testCreds" : {}
   }
 }

@@ -3,7 +3,7 @@
 
 import url = require("url");
 import names = require("../names");
-import { apiPath, getUserCreds, saveUserCreds } from "../server";
+import { apiPath, getCreds, saveCreds } from "../server";
 
 Cypress.Commands.add("apiCreateUser", (username) => {
   const usersUrl = apiPath() + '/api/v1/users';
@@ -17,7 +17,7 @@ Cypress.Commands.add("apiCreateUser", (username) => {
     email: fullName + "@api.created.com"
   };
 
-  cy.request('POST', usersUrl, data).then((response) => { saveUserInfo(response, username); });
+  cy.request('POST', usersUrl, data).then((response) => { saveCreds(response, username); });
 });
 
 Cypress.Commands.add("apiSignInAs", (username) => {
@@ -31,11 +31,27 @@ Cypress.Commands.add("apiSignInAs", (username) => {
     password : password,
   };
 
-  cy.request('POST', usersUrl, data).then((response) => { saveUserInfo(response, username); });
+  cy.request('POST', usersUrl, data).then((response) => { saveCreds(response, username); });
+});
+
+Cypress.Commands.add("apiCreateGroup", (username, groupname) => {
+  const user = getCreds(username);
+  const fullGroupname = names.getTestName(groupname);
+  const groupURL = apiPath() + "/api/v1/groups";
+
+  const data = {
+    groupname : fullGroupname,
+  };
+
+  cy.request({
+    method: 'POST', 
+    url: groupURL, 
+    headers: user.headers,
+    body: data});
 });
 
 Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, groupname) => {
-  const user = getUserCreds(username);
+  const user = getCreds(username);
   const fullGroupname = names.getTestName(groupname);
   const fullUrl = apiPath() + "/" + url.format({
     pathname: 'api/v1/groups',
@@ -53,20 +69,12 @@ Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, groupname) => {
   });
 });
 
+Cypress.Commands.add("apiCreateUserGroupAndCamera", (username, group, camera) => {
+  cy.apiCreateUser(username);
+  cy.apiCreateGroup(username, group);
+  cy.apiCreateCamera(camera, group);
+});
 
-// function getCameraInfo(cameraName) {
-//   return Cypress.config("devices")[cameraName];
-// }
-
-function saveUserInfo(response, username)  {
-  saveUserCreds({
-    jwt : response.body.token,
-    username: username,
-    headers: {
-      'authorization': response.body.token
-    }
-  });
-}
 
 // Cypress.Commands.add("apiCheckEventUploaded", (username, deviceName, eventType) => {
 //   const user = getUserCreds(username);

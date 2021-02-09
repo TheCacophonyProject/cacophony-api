@@ -1,11 +1,5 @@
 // load the global Cypress types
 /// <reference types="cypress" />
+/// <reference path="../commands/api/user.d.ts" />
+/// <reference path="../commands/api/camera.d.ts" />
 
-declare namespace Cypress {
-    interface Chainable {
-      /**
-       * user sign in and stored with api credentials for further in the test
-      */
-     apiSignInAs(username: string): Chainable<Element>
-    }
-}

@@ -2,24 +2,36 @@
 /// <reference types="cypress" />
 
 export function apiPath() : string {
-   cy.log(Cypress.env('cacophony-api-server'));
    return Cypress.env('cacophony-api-server');
 }
 
-interface userCreds {
-   jwt : any,
-   username: string,
+export function v1ApiPath(page: string) : string {
+   return Cypress.env('cacophony-api-server') + "/api/v1/" + page;
+}
+
+interface apiCreds {
+   name: string,
    headers: {
      'authorization': any
    }
 }
 
-export function getUserCreds(username: string) : userCreds {
-   return Cypress.env('testUsers').username;
+export function getCreds(username: string) : apiCreds {
+   return Cypress.env('testCreds')[username];
 }
 
-export function saveUserCreds(user : userCreds) {
-   Cypress.env('testUsers')[user.username] = user;
+export function saveCreds(response: Cypress.Response, name: string) {
+   const creds = {
+      name: name,
+      headers: {
+        'authorization': response.body.token
+      }
+    }
+   Cypress.env('testCreds')[name] = creds;
 }
 
+export function checkRequestFails(requestdetails: any) {
+   requestdetails.failOnStatusCode = false;
+   cy.request(requestdetails).then((response) => expect(response.isOkStatusCode, "Request should have return a failure status code.").to.be.false, );
+}
 
