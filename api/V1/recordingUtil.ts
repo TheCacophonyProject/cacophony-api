@@ -193,6 +193,11 @@ async function reportRecordings(request) {
     .addColumn("additionalMetadata")
     .addAudioEvents();
 
+  builder.query.include.push({
+    model: models.Station,
+    attributes: ["name"]
+  });
+
   // NOTE: Not even going to try to attempt to add typing info to this bundle
   //  of properties...
   const result: any[] = await models.Recording.findAll(builder.get());
@@ -236,6 +241,7 @@ async function reportRecordings(request) {
       "Type",
       "Group",
       "Device",
+      "Station",
       "Date",
       "Time",
       "Latitude",
@@ -298,6 +304,7 @@ async function reportRecordings(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
+      r.Station ? r.Station.name : "",
       moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
       moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
