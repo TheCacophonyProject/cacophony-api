@@ -1030,6 +1030,10 @@ from (
         attributes: ["groupname"]
       },
       {
+        model: models.Station,
+        attributes: ["name", "location"]
+      },
+      {
         model: models.Tag,
         attributes: (models.Tag as TagStatic).userGetAttributes,
         include: [
