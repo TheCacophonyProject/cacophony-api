@@ -1,3 +1,5 @@
+/// <reference path="../support/index.d.ts" />
+
 describe('Group Admin Pages', () => {
 
   // before(() => {
