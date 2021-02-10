@@ -71,7 +71,10 @@ class TestStations:
             )
         print("Error", json.loads(str(error.value)))
 
-        # TODO Check that no partial stations got added or use a different group
+        # Make a fresh group for the next part
+        station_group_name = helper.make_unique_group_name(self, "stationGroup")
+        # NOTE: user is automatically added to any group they create as an admin.
+        station_group = station_user.create_group_and_return_response(station_group_name)
 
         print("Existing stations that are missing when uploading new stations should be set to 'retired'")
         added_station_ids = station_user.add_stations_to_group(
