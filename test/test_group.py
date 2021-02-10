@@ -11,8 +11,6 @@ class TestGroup:
         print("   has a new group called 'clares group'", end="")
         claresGroup = helper.make_unique_group_name(self, "clares_group")
 
-        # FIXME(jon): Clare creates the group, but by default she isn't the admin of the group!?
-        # Check how this is working from the web front-end side of things.
         clare.create_group(claresGroup)
         print("({})".format(claresGroup))
 

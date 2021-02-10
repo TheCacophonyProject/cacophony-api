@@ -71,6 +71,8 @@ class TestStations:
             )
         print("Error", json.loads(str(error.value)))
 
+        # TODO Check that no partial stations got added or use a different group
+
         print("Existing stations that are missing when uploading new stations should be set to 'retired'")
         added_station_ids = station_user.add_stations_to_group(
             station_group["groupId"],
@@ -83,7 +85,6 @@ class TestStations:
         )
         assert len(added_station_ids["stationIds"]) == 2
 
-        print("Existing stations that are missing when uploading new stations should be set to 'retired'")
         added_station_ids = station_user.add_stations_to_group(
             station_group["groupId"],
             json.dumps([{"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894}]),

@@ -43,7 +43,7 @@ import {CreateStationData, Station, StationId} from "./Station";
 import {
   latLngApproxDistance,
   MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MAX_STATION_DISTANCE_THRESHOLD_METERS
+  MIN_STATION_SEPARATION_METERS
 } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
@@ -96,8 +96,8 @@ interface RecordingQueryBuilder {
   init: (
     user: User,
     where: any,
-    tagMode: TagMode,
-    tags: string[], // AcceptableTag[]
+    tagMode?: TagMode,
+    tags?: string[], // AcceptableTag[]
     offset?: number,
     limit?: number,
     order?: Order
@@ -241,7 +241,6 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
 
-  isInStation: (station: Station) => boolean;
   setStation: (station: Station) => Promise<void>;
 }
 type Mp4File = "string";
@@ -751,21 +750,6 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
-
-  Recording.prototype.isInStation = function (station: Station | CreateStationData) {
-    if (station.hasOwnProperty('lat')) {
-      return latLngApproxDistance(
-          this.location.coordinates,
-          [(station as CreateStationData).lat, (station as CreateStationData).lng] as [number, number]
-      ) <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING;
-    }
-    else {
-      return latLngApproxDistance(
-          this.location.coordinates,
-          (station as Station).location.coordinates
-      ) <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING;
-    }
-  }
 
   Recording.prototype.setStation = async function (station: { id: number }) {
     this.StationId = station.id;

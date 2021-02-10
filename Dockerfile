@@ -2,8 +2,9 @@
 # Run interactive session: sudo docker run -it cacophony-api
 
 FROM cacophonyproject/server-base
-#FROM cacophony-api
-#FROM cacophony-minimal
+
+# NOTE: Using locally for arm64
+# FROM cacophony-api
 
 WORKDIR /app
 COPY package*.json ./

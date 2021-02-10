@@ -45,7 +45,7 @@ import {
   DeviceSummary,
   isWithinVisitInterval
 } from "./Visits";
-import {StationId} from "../../models/Station";
+import {Station, StationId} from "../../models/Station";
 
 export interface RecordingQuery {
   user: User;
@@ -62,10 +62,10 @@ export interface RecordingQuery {
 }
 
 // How close is a station allowed to be to another station?
-export const MAX_STATION_DISTANCE_THRESHOLD_METERS = 60;
+export const MIN_STATION_SEPARATION_METERS = 60;
 // The radius of the station is half the max distance between stations: any recording inside the radius can
 // be considered to belong to that station.
-export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING = MAX_STATION_DISTANCE_THRESHOLD_METERS / 2;
+export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING = MIN_STATION_SEPARATION_METERS / 2;
 
 export function latLngApproxDistance(a: [number, number], b: [number, number]): number {
   const R = 6371e3;
@@ -79,10 +79,12 @@ export function latLngApproxDistance(a: [number, number], b: [number, number]): 
   return part1 * R;
 }
 
-async function tryToMatchRecordingToStation(recording: Recording): Promise<StationId | null> {
+export async function tryToMatchRecordingToStation(recording: Recording, stations?: Station[]): Promise<Station | null> {
   // Match the recording to any stations that the group might have:
-  const group = await models.Group.getFromId(recording.GroupId);
-  const stations = await group.getStations();
+  if (!stations) {
+    const group = await models.Group.getFromId(recording.GroupId);
+    stations = await group.getStations();
+  }
   const stationDistances = [];
   for (const station of stations) {
     // See if any stations match: Looking at the location distance between this recording and the stations.
@@ -90,12 +92,16 @@ async function tryToMatchRecordingToStation(recording: Recording): Promise<Stati
     stationDistances.push({distanceToStation, station});
   }
   const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING);
+
+  // There shouldn't really ever be more than one station within our threshold distance,
+  // since we check that stations aren't too close together when we add them.  However, on the off
+  // chance we *do* get two or more valid stations for a recording, take the closest one.
   validStationDistances.sort((a, b) => {
     return b.distanceToStation - a.distanceToStation;
   });
   const closest = validStationDistances.pop();
   if (closest) {
-    return closest.station.id;
+    return closest.station;
   }
   return null;
 }
@@ -110,7 +116,10 @@ function makeUploadHandler(mungeData?: (any) => any) {
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
-    recording.StationId = await tryToMatchRecordingToStation(recording);
+    const matchingStation = await tryToMatchRecordingToStation(recording);
+    if (matchingStation) {
+      recording.StationId = matchingStation.id;
+    }
 
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;

@@ -17,15 +17,96 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import Sequelize, {Op} from "sequelize";
-import {ModelCommon, ModelStaticCommon} from "./index";
-import {User} from "./User";
+import AllModels, {ModelCommon, ModelStaticCommon} from "./index";
+import {User, UserId} from "./User";
 import {CreateStationData, Station, StationId} from "./Station";
 import {Recording} from "./Recording";
-import {latLngApproxDistance, MAX_STATION_DISTANCE_THRESHOLD_METERS} from "../api/V1/recordingUtil";
+import {
+  latLngApproxDistance,
+  MIN_STATION_SEPARATION_METERS,
+  tryToMatchRecordingToStation
+} from "../api/V1/recordingUtil";
 import {ClientError} from "../api/customErrors";
-
-const { AuthorizationError } = require("../api/customErrors");
+import { AuthorizationError } from "../api/customErrors";
 export type GroupId = number;
+
+const retireMissingStations = (existingStations: Station[], newStationsByName: Record<string, CreateStationData>, userId: UserId): Promise<Station>[] => {
+  const retirePromises = [];
+  const numExisting = existingStations.length;
+  for (let i = 0; i < numExisting; i++) {
+    const station = existingStations.pop();
+    if (!newStationsByName.hasOwnProperty(station.name)) {
+      station.retiredAt = new Date();
+      station.lastUpdatedById = userId;
+      retirePromises.push(station.save());
+    } else {
+      existingStations.unshift(station);
+    }
+  }
+  return retirePromises;
+};
+
+const EPSILON = 0.000000000001;
+const stationLocationHasChanged = (oldStation: Station, newStation: CreateStationData) => (
+  // NOTE: We need to compare these numbers with an epsilon value, otherwise we get floating-point precision issues.
+  Math.abs(oldStation.location.coordinates[0] - newStation.lat) < EPSILON ||
+  Math.abs(oldStation.location.coordinates[1] - newStation.lat) < EPSILON
+);
+
+const checkThatStationsAreNotTooCloseTogether = (stations: Array<Station | CreateStationData>) => {
+  const allStations = stations.map(s => {
+    if (s.hasOwnProperty('lat')) {
+      return {
+        name: (s as CreateStationData).name,
+        location: [(s as CreateStationData).lat, (s as CreateStationData).lng] as [number, number]
+      };
+    } else {
+      return {
+        name: (s as Station).name,
+        location: (s as Station).location.coordinates
+      }
+    }
+  });
+  for (const a of allStations) {
+    for (const b of allStations) {
+      if (a !== b && a.name !== b.name) {
+        if (latLngApproxDistance(a.location, b.location) < MIN_STATION_SEPARATION_METERS) {
+          throw new ClientError("Stations too close together");
+        }
+      }
+    }
+  }
+}
+
+const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (authUser: User, group: Group, fromDate: Date, stations: Station[]): Promise<Promise<Station>[]> => {
+  // Now addedStations are properly resolved with ids:
+  // Now we can look for all recordings in the group back to startDate, and check if any of them
+  // should be assigned to any of our stations.
+
+  // Get recordings for group starting at date:
+  const builder = await new AllModels.Recording.queryBuilder().init(
+      authUser,
+      {
+        // Group id, and after date
+        GroupId: group.id,
+        createdAt: {
+          [Op.gte]: fromDate.toISOString()
+        }
+      }
+  );
+  const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(builder.get());
+  const recordingOpPromises = [];
+  // Find matching recordings to apply stations to from `applyToRecordingsFromDate`
+  for (const recording of recordingsFromStartDate) {
+    // NOTE: This await call won't actually block, since we're passing all the stations in.
+    const matchingStation = await tryToMatchRecordingToStation(recording, stations);
+    if (matchingStation !== null) {
+      recordingOpPromises.push(recording.setStation(matchingStation));
+    }
+  }
+  return recordingOpPromises;
+};
+
 
 export interface Group extends Sequelize.Model, ModelCommon<Group> {
   id: GroupId;
@@ -168,9 +249,6 @@ export default function (sequelize, DataTypes): GroupStatic {
       );
     }
 
-    // Or maybe we should do all of this on the front-end, and show the list of
-    // what will be changed there?
-
     // Enforce name uniqueness to group here:
     let existingStations: Station[] = await group.getStations();
     // Filter out retired stations.
@@ -185,120 +263,55 @@ export default function (sequelize, DataTypes): GroupStatic {
 
     // Make sure existing stations that are not in the current update are retired, and removed from
     // the list of existing stations that we are comparing with.
-    const retirePromises = [];
-    const numExisting = existingStations.length;
-    for (let i = 0; i < numExisting; i++) {
-      const station = existingStations.pop();
-      if (!newStationsByName.hasOwnProperty(station.name)) {
-        station.retiredAt = new Date();
-        station.lastUpdatedById = authUser.id;
-        retirePromises.push(station.save());
-      } else {
-        existingStations.unshift(station);
-      }
-    }
+    const retiredStations = retireMissingStations(existingStations, newStationsByName, authUser.id);
+
     for (const station of existingStations) {
       existingStationsByName[station.name] = station;
     }
 
     // Make sure no two stations are too close to each other:
-    const allStations = [...existingStations, ...stationsToAdd].map(s => {
-      if (s.hasOwnProperty('lat')) {
-        return {
-          name: (s as CreateStationData).name,
-          location: [(s as CreateStationData).lat, (s as CreateStationData).lng] as [number, number]
-        };
-      } else {
-        return {
-          name: (s as Station).name,
-          location: (s as Station).location.coordinates
-        }
-      }
-    });
-    for (const a of allStations) {
-      for (const b of allStations) {
-        if (a !== b && a.name !== b.name) {
-          if (latLngApproxDistance(a.location, b.location) < MAX_STATION_DISTANCE_THRESHOLD_METERS) {
-            throw new ClientError("Stations too close together");
-          }
-        }
-      }
-    }
+    checkThatStationsAreNotTooCloseTogether([...existingStations, ...stationsToAdd]);
 
     // Add new stations, or update lat/lng if station with same name but different lat lng.
-    const addedStations = [];
-    for (const [name, station] of Object.entries(newStationsByName)) {
+    const addedOrUpdatedStations = [];
+    const allStations = [];
+    for (const [name, newStation] of Object.entries(newStationsByName)) {
+      let stationToAddOrUpdate;
       if (!existingStationsByName.hasOwnProperty(name)) {
-        const stationObj = new models.Station({
-          name: station.name,
-          location: [station.lat, station.lng],
+        stationToAddOrUpdate = new models.Station({
+          name: newStation.name,
+          location: [newStation.lat, newStation.lng],
           lastUpdatedById: authUser.id
         });
-        addedStations.push(stationObj);
+        addedOrUpdatedStations.push(stationToAddOrUpdate);
         stationOpsPromises.push(
             new Promise(async (resolve) => {
-              await stationObj.save();
-              await group.addStation(stationObj);
+              await stationToAddOrUpdate.save();
+              await group.addStation(stationToAddOrUpdate);
               resolve();
             })
         );
       } else {
         // Update lat/lng if it has changed but the name is the same
-        const stationToUpdate = existingStationsByName[station.name];
-
-        const EPSILON = 0.000000000001;
-        // We need to compare these numbers with an epsilon value, otherwise we get floating-point precision issues.
-        if (
-            Math.abs(stationToUpdate.location.coordinates[0] - station.lat) < EPSILON ||
-            Math.abs(stationToUpdate.location.coordinates[1] - station.lat) < EPSILON
-        ) {
+        stationToAddOrUpdate = existingStationsByName[newStation.name];
+        if (stationLocationHasChanged(stationToAddOrUpdate, newStation)) {
           // NOTE - Casting this as "any" because station.location has a special setter function
-          (stationToUpdate as any).location = [station.lat, station.lng];
-          stationToUpdate.lastUpdatedById = authUser.id;
-          addedStations.push(stationToUpdate);
-          stationOpsPromises.push(stationToUpdate.save());
-        } else if (applyToRecordingsFromDate) {
-          addedStations.push(stationToUpdate);
+          (stationToAddOrUpdate as any).location = [newStation.lat, newStation.lng];
+          stationToAddOrUpdate.lastUpdatedById = authUser.id;
+          addedOrUpdatedStations.push(stationToAddOrUpdate);
+          stationOpsPromises.push(stationToAddOrUpdate.save());
         }
       }
+      allStations.push(stationToAddOrUpdate);
     }
-
-    if (!applyToRecordingsFromDate) {
-      return await Promise.all([...stationOpsPromises, ...retirePromises]).then(() => addedStations.map(({id}) => id));
-    } else {
+    await Promise.all([...stationOpsPromises, ...retiredStations]);
+    if (applyToRecordingsFromDate) {
       // After adding stations, we need to apply any station matches to recordings from a start date:
-
-      await Promise.all([...stationOpsPromises, ...retirePromises]);
-      // Now addedStations are properly resolved with ids:
-      // Now we can look for all recordings in the group back to startDate, and check if any of them
-      // should be assigned to any of our stations.
-
-      // Find matching recordings to apply stations to from `applyToRecordingsFromDate`
-
-      // Get recordings for group starting at date:
-      const builder = await new models.Recording.queryBuilder().init(
-          authUser,
-          {
-            // Group id, and after date
-            GroupId: group.id,
-            createdAt: {
-              [Op.gte]: applyToRecordingsFromDate.toISOString()
-            }
-          }
-      );
-      const recordingsFromStartDate: Recording[] = await models.Recording.findAll(builder.get());
-      const recordingOpPromises = [];
-      for (const recording of recordingsFromStartDate) {
-        for (const station of addedStations) {
-          // Find any matches for stations
-          if (recording.isInStation(station)) {
-            recordingOpPromises.push(recording.setStation(station));
-            break;
-          }
-        }
-      }
-      return Promise.all(recordingOpPromises).then(() => addedStations.map(({id}) => id));
+      await Promise.all([...stationOpsPromises, ...retiredStations]);
+      const updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(authUser, group, applyToRecordingsFromDate, allStations);
+      await Promise.all(updatedRecordings);
     }
+    return addedOrUpdatedStations.map(({id}) => id);
   };
 
   /**

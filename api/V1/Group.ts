@@ -26,6 +26,28 @@ import { Validator } from "jsonschema";
 
 const JsonSchema = new Validator();
 
+const validateStationsJson = (val, { req }) => {
+    const  stations = JSON.parse(val);
+
+    // Validate json schema of input:
+    JsonSchema.validate(stations, {
+        type: "array",
+        minItems: 1,
+        uniqueItems: true,
+        items: {
+            properties: {
+                name: { type: "string" },
+                lat: { type: "number" },
+                lng: { type: "number" },
+            },
+            required: ["name", "lat", "lng"]
+        }
+    }, {throwFirst: true});
+    req.body.stations = stations;
+    return true;
+};
+
+
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/groups`;
 
@@ -170,7 +192,7 @@ export default function (app: Application, baseUrl: string) {
 
   /**
   * @api {post} /api/v1/groups/{groupIdOrName}/stations Add, Update and retire current stations belonging to group
-  * @apiName GetStationsForGroup
+  * @apiName PostStationsForGroup
   * @apiGroup Group
   * @apiDescription A group admin or an admin with globalWrite permissions can update stations for a group.
   *
@@ -191,26 +213,7 @@ export default function (app: Application, baseUrl: string) {
           .exists()
           .isJSON()
           .withMessage("Expected JSON array")
-          .custom((val, { req }) => {
-        const  stations = JSON.parse(val);
-
-        // Validate json schema of input:
-        JsonSchema.validate(stations, {
-            type: "array",
-            minItems: 1,
-            uniqueItems: true,
-            items: {
-                properties: {
-                    name: { type: "string" },
-                    lat: { type: "number" },
-                    lng: { type: "number" },
-                },
-                required: ["name", "lat", "lng"]
-            }
-        }, {throwFirst: true});
-        req.body.stations = stations;
-        return true;
-      }),
+          .custom(validateStationsJson),
       body("fromDate")
           .isISO8601()
           .toDate()
