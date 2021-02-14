@@ -19,24 +19,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { TrackTag, TrackTagId } from "./TrackTag";
+import { User } from "./User";
+import { Recording } from "./Recording";
+import { AlertStatic } from "./Alert";
+
 export type TrackId = number;
 export interface Track extends Sequelize.Model, ModelCommon<Track> {
   getTrackTag: (trackTagId: TrackTagId) => Promise<TrackTag>;
   id: TrackId;
   AlgorithmId: number | null;
   data: any;
+  addTag: (
+    what: string,
+    confidence: number,
+    automatic: boolean,
+    data: any,
+    userId?: number
+  ) => Promise<TrackTag>;
   // NOTE: Implicitly created by sequelize associations.
-  createTrackTag: ({
-    what,
-    confidence,
-    automatic,
-    data
-  }: {
-    what: any;
-    confidence: number;
-    automatic: boolean;
-    data: any;
-  }) => Promise<TrackTag>;
+  getRecording: () => Promise<Recording>;
 }
 export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
@@ -111,7 +112,37 @@ export default function (
   //---------------
   // INSTANCE
   //---------------
+  async function sendAlerts(track: Track, tag: TrackTag) {
+    const recording = await track.getRecording();
+    const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
+      recording.DeviceId,
+      tag
+    );
+    for (const alert of alerts) {
+      await alert.sendAlert(recording, track, tag);
+    }
+    return alerts;
+  }
 
+  // Adds a tag to a track and checks if any alerts need to be sent. All trackTags
+  // should be added this way
+  Track.prototype.addTag = async function (
+    what,
+    confidence,
+    automatic,
+    data,
+    userId = null
+  ) {
+    const tag = await this.createTrackTag({
+      what: what,
+      confidence: confidence,
+      automatic: automatic,
+      data: data,
+      UserId: userId
+    });
+    await sendAlerts(this, tag);
+    return tag;
+  };
   // Return a specific track tag for the track.
   Track.prototype.getTrackTag = async function (trackTagId) {
     const trackTag = await models.TrackTag.findByPk(trackTagId);

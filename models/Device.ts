@@ -168,6 +168,7 @@ export default function (
     models.Device.belongsToMany(models.User, { through: models.DeviceUsers });
     models.Device.belongsTo(models.Schedule);
     models.Device.belongsTo(models.Group);
+    models.Device.hasMany(models.Alert);
   };
 
   /**
@@ -395,7 +396,7 @@ export default function (
 from
 	"Recordings"
 where
-	"DeviceId" = ${deviceId} 
+	"DeviceId" = ${deviceId}
 	and "type" = 'audio'
 	and "recordingDateTime" at time zone 'UTC' between (to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC' - interval '${windowSizeInHours} hours') and to_timestamp(${windowEndTimestampUtc}) at time zone 'UTC') as cacophony_index;`);
     const index = result[0].cacophony_index;
@@ -417,11 +418,11 @@ where
     // Make sure the user can see the device:
     await authUser.checkUserControlsDevices([deviceId]);
     // Get a spread of 24 results with each result falling into an hour bucket.
-    const [results, extra] = await sequelize.query(`select 
+    const [results, extra] = await sequelize.query(`select
 	hour,
-	round((avg(scores))::numeric, 2) as index 
+	round((avg(scores))::numeric, 2) as index
 from
-(select 
+(select
 	date_part('hour', "recordingDateTime") as hour,
 	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
 from

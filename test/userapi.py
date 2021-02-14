@@ -24,6 +24,16 @@ class UserAPI(APIBase):
     def login(self):
         return super().login(email=self.email)
 
+    def admin_login_as_other_user(self, username):
+        return super().admin_login_as_other_user(username)
+
+    def list_users(self):
+        url = urljoin(self._baseurl, "/api/v1/listUsers")
+        response = requests.get(url, headers=self._auth_header)
+        if response.status_code == 200:
+            return response
+        raise_specific_exception(response)
+
     def token(self, access=None, set_token=False):
         post_data = {}
         if access is not None:
@@ -522,6 +532,26 @@ class UserAPI(APIBase):
         )
         self._check_response(response)
         return response.json()
+
+    def create_alert(self, name, conditions, device_id, frequency=None):
+        props = {"name": name, "conditions": json.dumps(conditions), "deviceId": device_id}
+        if frequency is not None:
+            props["frequencySeconds"] = frequency
+        response = requests.post(
+            urljoin(self._baseurl, "/api/v1/alerts"),
+            headers=self._auth_header,
+            data=props,
+        )
+        return self._check_response(response)["id"]
+
+    def get_alerts(self, device_id):
+        response = requests.get(
+            urljoin(self._baseurl, f"/api/v1/alerts/device/{device_id}"),
+            headers=self._auth_header,
+            data={"deviceId": device_id},
+        )
+        self._check_response(response)
+        return response.json()["Alerts"]
 
 
 def serialise_params(params):

@@ -255,14 +255,16 @@ class TestUser:
             deviceId = device.get_id()
         return self._userapi.query_event_errors(deviceId=deviceId, startTime=startTime, endTime=endTime)
 
-    def can_see_events(self, device=None, startTime=None, endTime=None):
+    def can_see_events(self, device=None, startTime=None, endTime=None, type=None, limit=None, latest=None):
         deviceId = None
         if device is not None:
             deviceId = device.get_id()
-        return self._userapi.query_events(deviceId=deviceId, startTime=startTime, endTime=endTime)
+        return self._userapi.query_events(
+            deviceId=deviceId, startTime=startTime, endTime=endTime, type=type, limit=limit, latest=latest
+        )
 
     def gets_first_event(self, type=None, limit=1, latest=None):
-        events = self._userapi.query_events(type=type, limit=1, latest=latest)
+        events = self._userapi.query_events(type=type, limit=limit, latest=latest)
         assert len(events) == 1
         return events[0]["EventDetail"]
 
@@ -508,6 +510,18 @@ class TestUser:
 
     def get_cacophony_index_histogram_for_device(self, device: TestDevice, from_time=None, window_size=None):
         return self._userapi.get_cacophony_index_histogram(device.get_id(), from_time, window_size)
+
+    def create_alert(self, name, conditions, device_id, frequency=None):
+        return self._userapi.create_alert(name, conditions, device_id, frequency)
+
+    def get_alerts(self, device_id):
+        return self._userapi.get_alerts(device_id)
+
+    def admin_login_as_other_user(self, username):
+        return self._userapi.admin_login_as_other_user(username)
+
+    def list_users(self):
+        return self._userapi.list_users()
 
 
 class RecordingQueryPromise:

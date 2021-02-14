@@ -77,6 +77,38 @@ export default function (app: Application) {
   );
 
   /**
+   * @api {post} /admin_authenticate_as_other_user/ Authenticate as any user if you are a super-user.
+   * @apiName AdminAuthenticateAsOtherUser
+   * @apiGroup Authentication
+   * @apiDescription Allows an authenticated super-user to obtain a user JWT token for any other user, so that they
+   * can view the site as that user.
+   *
+   * @apiParam {String} name Username identifying a valid user account
+   *
+   * @apiSuccess {String} token JWT string to provide to further API requests
+   */
+  app.post(
+    "/admin_authenticate_as_other_user",
+    [
+      auth.authenticateAdmin,
+      oneOf(
+        [middleware.getUserByName(body, "name")],
+        "could not find a user with the given username"
+      )
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const token = await auth.createEntityJWT(request.body.user);
+      const userData = await request.body.user.getDataValues();
+      responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Got user token."],
+        token: "JWT " + token,
+        userData: userData
+      });
+    })
+  );
+
+  /**
    * @api {post} /token Generate temporary JWT
    * @apiName Token
    * @apiGroup Authentication

@@ -54,7 +54,6 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   checkUserControlsDevices: (deviceIds: number[]) => Promise<void>;
   canAccessDevice: (deviceId: number) => Promise<bool>;
   getDeviceIds: () => Promise<number>;
-
   admin: boolean;
   getGroupDeviceIds: () => Promise<number[]>;
   hasGlobalWrite: () => boolean;
@@ -173,6 +172,7 @@ export default function (
       through: models.GroupUsers
     });
     models.User.belongsToMany(models.Device, { through: models.DeviceUsers });
+    models.User.hasMany(models.Alert);
   };
 
   User.getAll = async function (where) {

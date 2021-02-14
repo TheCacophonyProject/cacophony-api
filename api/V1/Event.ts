@@ -97,7 +97,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {Integer} [deviceId] Return only events for this device id
    * @apiParam {Integer} [limit] Limit returned events to this number (default is 100)
    * @apiParam {Integer} [offset] Offset returned events by this amount (default is 0)
-   * @apiParam {String} [type] Alphaonly string describing the type of event wanted 
+   * @apiParam {String} [type] Alphaonly string describing the type of event wanted
    * @apiParam {Boolean} [latest] Set to true to see the most recent events recorded listed first
    *
    * @apiSuccess {JSON} rows Array containing details of events matching the criteria given.
@@ -118,14 +118,13 @@ export default function (app: Application, baseUrl: string) {
       query("deviceId").isInt().optional().toInt(),
       query("offset").isInt().optional().toInt(),
       query("limit").isInt().optional().toInt(),
-      query("latest").isBoolean().optional().toBoolean(),
       query("type").isAlpha().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;
       query.offset = query.offset || 0;
-      let options : QueryOptions;
-      if (query.type) { 
+      let options: QueryOptions;
+      if (query.type) {
         options = { eventType: query.type } as QueryOptions;
       }
 

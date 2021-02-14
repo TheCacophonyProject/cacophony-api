@@ -566,12 +566,12 @@ async function tracksFromMeta(recording: Recording, metadata: any) {
       });
       if ("confident_tag" in trackMeta) {
         model["all_class_confidences"] = trackMeta["all_class_confidences"];
-        await track.createTrackTag({
-          what: trackMeta["confident_tag"],
-          confidence: trackMeta["confidence"],
-          automatic: true,
-          data: model
-        });
+        await track.addTag(
+          trackMeta["confident_tag"],
+          trackMeta["confidence"],
+          true,
+          model
+        );
       }
     }
   } catch (err) {
@@ -645,15 +645,17 @@ async function queryVisits(
     if (recordings.length == 0) {
       break;
     }
+
     for (const [i, rec] of recordings.entries()) {
       rec.filterData(filterOptions);
-      devSummary.generateVisits(
-        rec,
-        request.query.offset + i || i,
-        gotAllRecordings,
-        request.user.id
-      );
     }
+
+    devSummary.generateVisits(
+      recordings,
+      request.query.offset || 0,
+      gotAllRecordings,
+      request.user.id
+    );
 
     if (!gotAllRecordings) {
       devSummary.checkForCompleteVisits();

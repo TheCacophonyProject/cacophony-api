@@ -7,17 +7,79 @@ from dateutil.parser import parse as parsedate
 
 class TestVisits:
     VISIT_INTERVAL_SECONDS = 600
-    TIMEZONE = "Pacific/Auckland"
 
-    def upload_recording_with_track(self, device, user, time, duration=30):
-        rec = device.upload_recording({"recordingDateTime": time.isoformat(), "duration": duration})
-        track = user.can_add_track_to_recording(rec)
-        return rec, track
+    def test_multiple_animals(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
 
-    def upload_recording_with_tag(self, device, user, what, time, duration=30):
-        rec, track = self.upload_recording_with_track(device, user, time, duration=30)
-        tag = user.can_tag_track(track, what=what)
-        return rec, track, tag
+        # check that a recording with 2 possums and 1 cat, assumes the cat is a possum
+        rec, _, _ = helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="possum")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+        response = cosmo.query_visits(return_json=True)
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "possum"
+        assert len(visit["events"]) == 3
+
+        device = helper.given_new_device(self, "cosmo_device2", cosmo_group)
+        # check that a recording with 2 unidentified and 1 cat, assumes the unidentified is a cat
+        rec, _, _ = helper.upload_recording_with_tag(
+            device, admin, "unidentified", time=now - timedelta(seconds=0)
+        )
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="unidentified")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+
+        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "cat"
+        assert len(visit["events"]) == 3
+
+    def test_no_tag(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        # check that a recording with 1 untagged track, 1 unidentified and 1 cat, assumes the unidentified and untagged is a cat
+        rec, _, _ = helper.upload_recording_with_tag(device, admin, "unidentified")
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        track = admin.can_add_track_to_recording(rec, start_s=80)
+        admin.can_tag_track(track, what="cat")
+
+        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
+        assert response["numVisits"] == 1
+        visit = response["rows"][str(device.get_id())]["visits"][0]
+        assert visit["what"] == "cat"
+        assert len(visit["events"]) == 3
+
+    def test_visit_grouping(self, helper):
+        admin = helper.admin_user()
+        cosmo = helper.given_new_user(self, "cosmo")
+        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
+        cosmo.create_group(cosmo_group)
+        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
+
+        # check that last 2 possums are grouped together
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=0))
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        helper.upload_recording_with_tag(device, admin, "possum", time=now - timedelta(seconds=10000))
+        response = cosmo.query_visits(return_json=True)
+        assert response["numVisits"] == 2
+        visits = response["rows"][str(device.get_id())]["visits"]
+        most_recent = parsedate(visits[0]["start"])
+        for visit in visits[1:]:
+            assert parsedate(visit["end"]) < most_recent
 
     def test_visits(self, helper):
         # init device and sounds
@@ -31,26 +93,26 @@ class TestVisits:
         cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
 
         # no tag no visit
-        self.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
+        helper.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
 
         # visit 1
-        # past unidentified gets grouped with cat
-        self.upload_recording_with_tag(
+        # unidentified gets grouped with cat
+        helper.upload_recording_with_tag(
             device, admin, "unidentified", time=now - timedelta(minutes=4), duration=90
         )
-        self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=1), duration=90)
+        helper.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=1), duration=90)
 
         # visit 2
-        self.upload_recording_with_tag(
+        helper.upload_recording_with_tag(
             device, admin, "possum", time=now - timedelta(seconds=TestVisits.VISIT_INTERVAL_SECONDS + 11)
         )
 
         # visit 3
         device.record_event("audioBait", {"fileId": sound1}, [now - timedelta(minutes=9)])
-        rec, _, _ = self.upload_recording_with_tag(device, admin, "possum", time=now, duration=90)
+        rec, _, _ = helper.upload_recording_with_tag(device, admin, "possum", time=now, duration=90)
         device.record_event("audioBait", {"fileId": sound2, "volume": 9}, [now + timedelta(seconds=40)])
         track = admin.can_add_track_to_recording(rec, start_s=80)
         admin.can_tag_track(track, what="possum")
@@ -58,12 +120,12 @@ class TestVisits:
         # visit 4
         # future 3 unidentified gets grouped with cat
 
-        self.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=40, seconds=10))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=37))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=32))
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=31))
+        helper.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=40, seconds=10))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=37))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=32))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=31))
 
-        self.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=29))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=29))
         # an event that should not show up in the visits
         device.record_event("audioBait", {"fileId": sound2}, [now + timedelta(days=1, seconds=1)])
 
@@ -132,20 +194,20 @@ class TestVisits:
         cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        now = datetime.now(dateutil.tz.gettz(TestVisits.TIMEZONE)).replace(microsecond=0)
+        now = datetime.now(dateutil.tz.gettz(helper.TIMEZONE)).replace(microsecond=0)
 
         animals_summary = []
         animals_summary.append({"what": "possum", "visits": 2, "audiobait": True, "events": []})
         animals_summary.append({"what": "cat", "visits": 1, "audiobait": True, "events": []})
 
         # no tag no visit
-        self.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
+        helper.upload_recording_with_track(device, admin, time=now - timedelta(minutes=20), duration=90)
 
         visits = []
 
         # visit
         visit = []
-        rec, track, tag = self.upload_recording_with_tag(
+        rec, track, tag = helper.upload_recording_with_tag(
             device, admin, "possum", time=now - timedelta(seconds=TestVisits.VISIT_INTERVAL_SECONDS + 11)
         )
         visit.append(event_line(rec, track, tag))
@@ -154,13 +216,13 @@ class TestVisits:
         # visit
         visit = []
         # unidentified gets grouped with cat
-        rec, track, tag = self.upload_recording_with_tag(
+        rec, track, tag = helper.upload_recording_with_tag(
             device, admin, "unidentified", time=now - timedelta(minutes=4), duration=90
         )
         event = event_line(rec, track, tag)
         visit.append(event)
 
-        rec, track, tag = self.upload_recording_with_tag(
+        rec, track, tag = helper.upload_recording_with_tag(
             device, admin, "cat", time=now - timedelta(minutes=1), duration=90
         )
         visit.append(event_line(rec, track, tag))
@@ -174,7 +236,7 @@ class TestVisits:
         visit.append(audio_event)
         visits[-1].append(audio_event)
 
-        rec, track, tag = self.upload_recording_with_tag(device, admin, "possum", time=now, duration=90)
+        rec, track, tag = helper.upload_recording_with_tag(device, admin, "possum", time=now, duration=90)
         visit.append(event_line(rec, track, tag))
 
         device.record_event("audioBait", {"fileId": sound2, "volume": 9}, [now + timedelta(seconds=40)])

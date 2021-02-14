@@ -295,12 +295,12 @@ export default function (app: Application) {
         return;
       }
 
-      const tag = await track.createTrackTag({
-        what: request.body.what,
-        confidence: request.body.confidence,
-        automatic: true,
-        data: request.body.data
-      });
+      const tag = await track.addTag(
+        request.body.what,
+        request.body.confidence,
+        true,
+        request.body.data
+      );
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track tag added."],

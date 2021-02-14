@@ -14,7 +14,6 @@ function loadConfigFromArgs(strict: boolean = false) {
 
 function getConfigPathFromArgs(strict: boolean = false): string {
   let configPath = "./config/app.js";
-
   for (let i = 2; i < process.argv.length; i++) {
     const val = process.argv[i];
     if (val.startsWith("--config=")) {

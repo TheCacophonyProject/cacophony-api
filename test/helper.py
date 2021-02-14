@@ -1,6 +1,7 @@
 import random
 import string
-from datetime import date
+from datetime import date, datetime
+import dateutil.parser
 
 from .userapi import UserAPI
 from .deviceapi import DeviceAPI
@@ -11,6 +12,8 @@ from .testexception import TestException, UnprocessableError
 
 
 class Helper:
+    TIMEZONE = "Pacific/Auckland"
+
     def __init__(self):
         self.config = TestConfig().load_config()
         self._admin = None
@@ -174,3 +177,18 @@ class Helper:
 
     def random_password(self, length=10):
         return self.random_id(length)
+
+    def upload_recording_with_track(self, device, user, time=None, duration=30):
+        if time is None:
+            time = datetime.now(dateutil.tz.gettz(Helper.TIMEZONE)).replace(microsecond=0)
+        rec = device.upload_recording({"recordingDateTime": time.isoformat(), "duration": duration})
+        track = user.can_add_track_to_recording(rec)
+        return rec, track
+
+    def upload_recording_with_tag(self, device, user, what, time=None, duration=30, automatic=None):
+        if time is None:
+            time = datetime.now(dateutil.tz.gettz(Helper.TIMEZONE)).replace(microsecond=0)
+
+        rec, track = self.upload_recording_with_track(device, user, time, duration=30)
+        tag = user.can_tag_track(track, what=what, automatic=automatic)
+        return rec, track, tag

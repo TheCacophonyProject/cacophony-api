@@ -33,8 +33,9 @@ const s3 = {
 };
 
 const smtpDetails = {
-  from: "localhost",
+  host: "localhost",
   port: 25,
+  tls: true,
   from_name: "Cacophony Reporting"
   //
   // service: "gmail",

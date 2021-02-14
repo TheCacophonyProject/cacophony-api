@@ -20,6 +20,7 @@ import Sequelize from "sequelize";
 import path from "path";
 import fs from "fs";
 import log from "../logging";
+import { AlertStatic } from "./Alert";
 import { UserStatic } from "./User";
 import { TagStatic } from "./Tag";
 import { RecordingStatic } from "./Recording";
@@ -129,6 +130,7 @@ const AllModels = {
   GroupUsers: db.GroupUsers as GroupUsersStatic,
   DeviceUsers: db.DeviceUsers as DeviceUsersStatic,
   Schedule: db.Schedule as ScheduleStatic,
+  Alert: db.Alert as AlertStatic,
   sequelize,
   Sequelize
 };

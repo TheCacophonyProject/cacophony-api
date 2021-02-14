@@ -26,6 +26,7 @@ import { ClientError } from "../customErrors";
 import { Application } from "express";
 import config from "../../config";
 import { User, UserStatic } from "../../models/User";
+import AllModels from "../../models";
 
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/users`;
@@ -151,6 +152,34 @@ export default function (app: Application, baseUrl: string) {
         statusCode: 200,
         messages: [],
         userData: await request.body.user.getDataValues()
+      });
+    })
+  );
+
+  /**
+   * @api {get} api/v1/listUsers List usernames
+   * @apiName ListUsers
+   * @apiGroup User
+   * @apiDescription Given an authenticated super-user, we need to be able to get
+   * a list of all usernames on the system, so that we can switch to viewing
+   * as a given user.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiSuccess {JSON} usersList List of usernames
+   * @apiUse V1ResponseSuccess
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${baseUrl}/listUsers`,
+    [auth.authenticateAdmin],
+    middleware.requestWrapper(async (request, response) => {
+      const users = await AllModels.User.getAll({});
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: [],
+        usersList: users
       });
     })
   );

@@ -3,13 +3,12 @@ const winston = require("winston");
 import eventUtil from "./api/V1/eventUtil";
 import moment, { Moment } from "moment";
 import { ServiceErrorMap } from "./api/V1/systemError";
-import nodemailer from "nodemailer";
+import { sendEmail } from "./emailUtil";
 
 async function main() {
   if (!config.smtpDetails) {
     throw "No SMTP details found in config/app.js";
   }
-
   const endDate = moment().tz(config.timeZone);
   const startDate = moment().tz(config.timeZone).subtract(24, "hours");
   const query = {
@@ -24,9 +23,54 @@ async function main() {
     return;
   }
   const html = generateHtml(startDate, endDate, serviceErrors);
-  await sendEmail(html);
+  const text = generateText(startDate, endDate, serviceErrors);
+
+  await sendEmail(
+    html,
+    text,
+    "coredev@cacophony.org.nz",
+    "Service Errors in the last 24 hours"
+  );
 }
 
+function generateText(
+  startDate: Moment,
+  endDate: Moment,
+  serviceErrors: ServiceErrorMap
+): string {
+  let textBody = `Service Errors ${startDate.format(
+    "MMM ddd Do ha"
+  )} - ${endDate.format("MMM ddd Do ha")}\n`;
+  for (const [key, serviceError] of Object.entries(serviceErrors)) {
+    let serviceText = `${key}\n`;
+    let devices = serviceError.devices.join(", ");
+    serviceText += `Devices: ${devices}\n`;
+    serviceText += "\n";
+    for (const error of serviceError.errors) {
+      devices = error.devices.join(", ");
+      serviceText += "\n";
+      serviceText += "\n";
+      const firstError = moment(error.timestamps[0]);
+      const lastError = moment(error.timestamps[error.timestamps.length - 1]);
+      const suffix = error.similar.length > 1 ? "s" : "";
+      serviceText += `${
+        error.similar.length
+      } Error${suffix} from ${firstError.format(
+        "MMM ddd Do H:MMa"
+      )} - ${lastError.format("MMM ddd Do H:MMa")}\n`;
+      serviceText += ` ${error.similar[0].lines}\n`;
+      serviceText += `Devices Affected:\n`;
+      serviceText += `${devices}\n`;
+      serviceText += `\n`;
+      serviceText += "\n";
+    }
+    serviceText += "\n";
+    textBody += serviceText;
+  }
+
+  textBody += "Thanks, Cacophony Team";
+  return textBody;
+}
 function generateHtml(
   startDate: Moment,
   endDate: Moment,
@@ -64,26 +108,6 @@ function generateHtml(
 
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
   return html;
-}
-
-async function sendEmail(html: string) {
-  var transporter = nodemailer.createTransport(config.smtpDetails);
-
-  var mailOptions = {
-    from: config.smtpDetails.from_name,
-    to: "coredev@cacophony.org.nz",
-    subject: "Service Errors in the last 24 hours",
-    html: html
-  };
-
-  log.info("sending email");
-  await transporter.sendMail(mailOptions).then((error: any) => {
-    if (error && error.rejected.length > 0) {
-      log.error(error);
-    } else {
-      log.info("Email sent");
-    }
-  });
 }
 
 const log = new winston.Logger({
