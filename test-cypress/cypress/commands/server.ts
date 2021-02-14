@@ -32,6 +32,6 @@ export function saveCreds(response: Cypress.Response, name: string) {
 
 export function checkRequestFails(requestdetails: any) {
    requestdetails.failOnStatusCode = false;
-   cy.request(requestdetails).then((response) => expect(response.isOkStatusCode, "Request should have return a failure status code.").to.be.false, );
+   cy.request(requestdetails).then((response) => expect(response.isOkStatusCode, "Request should return a failure status code.").to.be.false);
 }
 

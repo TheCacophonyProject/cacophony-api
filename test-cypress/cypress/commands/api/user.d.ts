@@ -6,7 +6,7 @@ declare namespace Cypress {
         /**
          * create user and save api credentials further use
         */
-        apiCreateUser(username: string): Chainable<Element>
+        apiCreateUser(username: string, log: boolean): Chainable<Element>
 
         /**
          * user sign in and stored with api credentials for further in the test
@@ -16,7 +16,7 @@ declare namespace Cypress {
         /**
          * create a group for the given user (who has already been referenced in the test
         */
-        apiCreateGroup(username: string, groupname: String): Chainable<Element>
+        apiCreateGroup(username: string, groupname: String, log: boolean): Chainable<Element>
  
         /**
          * create user group and camera at the same time

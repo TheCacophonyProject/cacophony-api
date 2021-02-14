@@ -2,23 +2,23 @@
 
 describe('Device names', () => {
 
-  const cams_group = "cams";
-  const other_cams = "other cams";
+  const camsGroup = "cams";
+  const otherCams = "other cams";
 
   before(() => {
-    cy.apiCreateUserGroupAndCamera("Anna", cams_group, "gotya");
-    cy.apiCreateGroup("Anna", other_cams);
+    cy.apiCreateUserGroupAndCamera("Anna", camsGroup, "gotya");
+    cy.apiCreateGroup("Anna", otherCams);
   });
 
   it('group can have multiple devices with a different names', () => {
-    cy.apiCreateCamera("Smile", cams_group);
+    cy.apiCreateCamera("Smile", camsGroup);
   });
 
   it('devices in different groups can have the same names', () => {
-    cy.apiCreateCamera("gotya", other_cams);
+    cy.apiCreateCamera("gotya", otherCams);
   });
 
   it('But cannot create device with same name (even with different case) in the same group', () => {
-    cy.apiShouldFailToCreateCamera("GotYa", cams_group);
+    cy.apiShouldFailToCreateCamera("GotYa", camsGroup);
   });
 });

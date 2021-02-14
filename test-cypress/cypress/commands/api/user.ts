@@ -5,10 +5,13 @@ import url = require("url");
 import names = require("../names");
 import { apiPath, getCreds, saveCreds } from "../server";
 
-Cypress.Commands.add("apiCreateUser", (username) => {
+Cypress.Commands.add("apiCreateUser", (userName: string, log = true) => {
+  if (log) {
+    cy.log(`Create user '${userName}'`);
+  }
   const usersUrl = apiPath() + '/api/v1/users';
 
-  const fullName = names.getTestName(username);
+  const fullName = names.getTestName(userName);
   const password = 'p' + fullName;
 
   const data = {
@@ -17,10 +20,10 @@ Cypress.Commands.add("apiCreateUser", (username) => {
     email: fullName + "@api.created.com"
   };
 
-  cy.request('POST', usersUrl, data).then((response) => { saveCreds(response, username); });
+  cy.request('POST', usersUrl, data).then((response) => { saveCreds(response, userName); });
 });
 
-Cypress.Commands.add("apiSignInAs", (username) => {
+Cypress.Commands.add("apiSignInAs", (username: string) => {
   const usersUrl = apiPath() + '/authenticate_user';
 
   const fullName = names.getTestName(username);
@@ -34,9 +37,12 @@ Cypress.Commands.add("apiSignInAs", (username) => {
   cy.request('POST', usersUrl, data).then((response) => { saveCreds(response, username); });
 });
 
-Cypress.Commands.add("apiCreateGroup", (username, groupname) => {
-  const user = getCreds(username);
-  const fullGroupname = names.getTestName(groupname);
+Cypress.Commands.add("apiCreateGroup", (userName: string, group: string, log = true ) => {
+  if (log) { 
+    cy.log(`Create group '${group}' for user '${userName}'`);
+  }
+  const user = getCreds(userName);
+  const fullGroupname = names.getTestName(group);
   const groupURL = apiPath() + "/api/v1/groups";
 
   const data = {
@@ -50,9 +56,9 @@ Cypress.Commands.add("apiCreateGroup", (username, groupname) => {
     body: data});
 });
 
-Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, groupname) => {
+Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, group) => {
   const user = getCreds(username);
-  const fullGroupname = names.getTestName(groupname);
+  const fullGroupname = names.getTestName(group);
   const fullUrl = apiPath() + "/" + url.format({
     pathname: 'api/v1/groups',
     query: {
@@ -70,9 +76,10 @@ Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, groupname) => {
 });
 
 Cypress.Commands.add("apiCreateUserGroupAndCamera", (username, group, camera) => {
-  cy.apiCreateUser(username);
-  cy.apiCreateGroup(username, group);
-  cy.apiCreateCamera(camera, group);
+  cy.log(`Create user '${username}' with camera '${camera}' in group '${group}'`);
+  cy.apiCreateUser(username, false);
+  cy.apiCreateGroup(username, group, false);
+  cy.apiCreateCamera(camera, group, false);
 });
 
 

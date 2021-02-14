@@ -3,18 +3,22 @@ import { getTestName } from "../names";
 import { v1ApiPath, saveCreds, checkRequestFails} from "../server";
 
 
-Cypress.Commands.add("apiCreateCamera", (cameraname: string, group: string) => {
-  const request = createCameraDetails(cameraname, group)
-  cy.request(request).then((response) => { saveCreds(response, cameraname); });  
+Cypress.Commands.add("apiCreateCamera", (cameraName: string, group: string, log = true) => {
+  if (log) {
+    cy.log(`Create camera '${cameraName}' in group '${group}'`);
+  }
+  const request = createCameraDetails(cameraName, group)
+  cy.request(request).then((response) => { saveCreds(response, cameraName); });  
 });
 
-Cypress.Commands.add("apiShouldFailToCreateCamera", (cameraname: string, group: string) => {
-  const request = createCameraDetails(cameraname, group)
+Cypress.Commands.add("apiShouldFailToCreateCamera", (cameraName: string, group: string, log = true) => {
+  cy.log(`Check fails to create camera '${cameraName}' in group '${group}`);
+  const request = createCameraDetails(cameraName, group)
   checkRequestFails(request);
 });
 
-function createCameraDetails(cameraname: string, group: string, shouldFail = false): any {
-  const fullName = getTestName(cameraname);
+function createCameraDetails(cameraName: string, group: string, shouldFail = false): any {
+  const fullName = getTestName(cameraName);
   const password = 'p' + fullName;
   
   const data = {
