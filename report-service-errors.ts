@@ -3,7 +3,6 @@ const winston = require("winston");
 import eventUtil from "./api/V1/eventUtil";
 import moment, { Moment } from "moment";
 import { ServiceErrorMap } from "./api/V1/systemError";
-import nodemailer from "nodemailer";
 import { sendEmail } from "./emailUtil";
 
 async function main() {
