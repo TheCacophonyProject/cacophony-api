@@ -5,7 +5,7 @@ const uniqueIdName = "uniqueId";
 export function getTestName(baseName) {
   initializeTestNames();
 
-  return "cypress_" + baseName + Cypress.config("env")[uniqueIdName];
+  return `cy_${baseName}_${Cypress.config("env")[uniqueIdName]}`;
 }
 
 export function initializeTestNames(uniqueId = "") {
