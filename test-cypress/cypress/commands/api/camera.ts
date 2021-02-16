@@ -1,4 +1,3 @@
-import { should } from "chai";
 import { getTestName } from "../names";
 import { v1ApiPath, saveCreds, checkRequestFails} from "../server";
 

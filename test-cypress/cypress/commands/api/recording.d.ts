@@ -1,11 +1,22 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
+interface thermalRecording {
+    recordingDateTime: Date,
+    
+
+    
+}
+
 declare namespace Cypress {
     interface Chainable {
-        // /**
-        //  * use to test when a camera should not be able to be created. 
-        // */
-        // apiShouldFailToCreateCamera(cameraname: string, groupname: String): Chainable<Element>
+    
+        /**
+         * upload a recording to for a particular camera
+        */
+       uploadRecording(cameraname: string, log?: boolean): Chainable<Element>
+
+       form_request(method: string, url: string, jwt: string, formData: any, done:any): Chainable<Element>
+
     }
 }

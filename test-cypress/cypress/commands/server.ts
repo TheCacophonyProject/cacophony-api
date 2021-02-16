@@ -13,7 +13,8 @@ interface apiCreds {
    name: string,
    headers: {
      'authorization': any
-   }
+   },
+   jwt: string
 }
 
 export function getCreds(username: string) : apiCreds {
@@ -25,8 +26,9 @@ export function saveCreds(response: Cypress.Response, name: string) {
       name: name,
       headers: {
         'authorization': response.body.token
-      }
-    }
+      },
+      jwt: response.body.token
+   }
    Cypress.env('testCreds')[name] = creds;
 }
 
