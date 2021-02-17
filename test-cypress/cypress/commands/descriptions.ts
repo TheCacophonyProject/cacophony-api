@@ -6,7 +6,7 @@ export function logTestDescription(message : string, consoleObject: any, log = t
     Cypress.log({
         name: "Test description",
         displayName: "TEST",
-        message: message,
+        message: `**${message}**`,
         consoleProps: () => consoleObject
     })
 }

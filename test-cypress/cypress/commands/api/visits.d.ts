@@ -7,7 +7,7 @@ declare namespace Cypress {
         /**
          * upload a single recording to for a particular camera
         */
-        checkVisits(user: string, noVists: number): Chainable<Element>
+        checkVisits(user: string, camera: string, noVists: number): Chainable<Element>
     }
 }
     

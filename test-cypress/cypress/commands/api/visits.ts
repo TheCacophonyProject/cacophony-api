@@ -4,17 +4,27 @@
 import {v1ApiPath, getCreds} from "../server";
 import {logTestDescription} from "../descriptions"; 
 
-Cypress.Commands.add("checkVisits", (user: string, noVists: number) => {
-  logTestDescription(`Check visits match ${noVists}`, {
+
+
+
+Cypress.Commands.add("checkVisits", (user: string, camera: string, noVists: number) => {
+  logTestDescription(`Check number of visits is ${noVists}`, {
       user: user,
+      camera: camera,
       expectedVisits: noVists,
   });
 
+  const where : visitsWhere = {
+    duration : {"$gte":"0"},
+    type:"thermalRaw"
+  }
+
+  if (camera) {
+      where.DeviceId = getCreds(camera).id;
+  }
+
   const params = {
-    where: JSON.stringify({
-        duration : {"$gte":"0"},
-        type:"thermalRaw",
-    }),
+    where: JSON.stringify(where),
     limit: 100
   };
 
@@ -25,3 +35,9 @@ Cypress.Commands.add("checkVisits", (user: string, noVists: number) => {
     headers: getCreds(user).headers
   }).then((response) => {expect(response.body.numVisits).to.eq(visitsNum)});
 });
+
+interface visitsWhere {
+    type: string,
+    duration? : any,
+    DeviceId?: number
+}

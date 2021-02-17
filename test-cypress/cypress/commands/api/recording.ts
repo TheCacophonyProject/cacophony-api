@@ -19,6 +19,8 @@ Cypress.Commands.add("uploadRecording", (cameraName: string, details: thermalRec
   const fileType = 'application/cptv';
 
   uploadFile(url, cameraName, fileName, fileType, data);
+  // must wait until the upload request has completed
+  cy.wait(['@addRecording']);
 });
 
 interface trackData {
@@ -75,7 +77,6 @@ function makeRecordingDataFromDetails(details: thermalRecordingInfo) : any {
 function getDateForRecordings(details: thermalRecordingInfo) : Date {
   let date = lastUsedTime;
 
-  cy.log("last used date " + lastUsedTime);
   if( details.time ) {
     date = details.time;
   } else if (details.minsLater || details.secsLater) {
@@ -87,14 +88,12 @@ function getDateForRecordings(details: thermalRecordingInfo) : Date {
       secs += details.secsLater;
     }
     date = new Date(date.getTime() + secs * 1000);
-    cy.log("last used date " + lastUsedTime);
   } else {
     // add a minute anyway so we don't get two overlapping recordings on the same camera
     const MINUTE = 60;
     date = new Date(date.getTime()  + MINUTE * 1000);
   }
 
-  cy.log("new date " + date);
   lastUsedTime = date;
   return date;
 }
@@ -111,8 +110,8 @@ function addTracksToRecording(data : thermalRecordingData, model: string, trackD
   if (trackDetails) {
     trackDetails.forEach((track) => {
       const fullTrack : trackData = {
-        start_s : 10,
-        end_s : 22.2,
+        start_s : 2,
+        end_s : 8,
         confident_tag: "possum",
         confidence: .9,
       }
@@ -124,10 +123,10 @@ function addTracksToRecording(data : thermalRecordingData, model: string, trackD
     }); 
   } else {
     data.metadata.tracks.push({
-      start_s : 10,
-      end_s : 22.2,
+      start_s : 2,
+      end_s : 8,
       confident_tag: "possum",
-      confidence: .9,
+      confidence: .5,
     });
   }
 }
