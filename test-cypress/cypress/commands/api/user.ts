@@ -4,11 +4,11 @@
 import url = require("url");
 import names = require("../names");
 import { apiPath, getCreds, saveCreds } from "../server";
+import { logTestDescription } from "../descriptions"
 
 Cypress.Commands.add("apiCreateUser", (userName: string, log = true) => {
-  if (log) {
-    cy.log(`Create user '${userName}'`);
-  }
+  logTestDescription(`Create user '${userName}'`, { user: userName }, log);
+
   const usersUrl = apiPath() + '/api/v1/users';
 
   const fullName = names.getTestName(userName);
@@ -38,9 +38,8 @@ Cypress.Commands.add("apiSignInAs", (username: string) => {
 });
 
 Cypress.Commands.add("apiCreateGroup", (userName: string, group: string, log = true ) => {
-  if (log) { 
-    cy.log(`Create group '${group}' for user '${userName}'`);
-  }
+  logTestDescription(`Create group '${group}' for user '${userName}'`, { user: userName, group : group }, log);
+
   const user = getCreds(userName);
   const fullGroupname = names.getTestName(group);
   const groupURL = apiPath() + "/api/v1/groups";
@@ -75,10 +74,10 @@ Cypress.Commands.add("apiCheckUserCanSeeGroup", (username, group) => {
   });
 });
 
-Cypress.Commands.add("apiCreateUserGroupAndCamera", (username, group, camera) => {
-  cy.log(`Create user '${username}' with camera '${camera}' in group '${group}'`);
-  cy.apiCreateUser(username, false);
-  cy.apiCreateGroup(username, group, false);
+Cypress.Commands.add("apiCreateUserGroupAndCamera", (userName, group, camera) => {
+  logTestDescription(`Create user '${userName}' with camera '${camera}' in group '${group}'`, { user: userName, group : group, camera: camera });
+  cy.apiCreateUser(userName, false);
+  cy.apiCreateGroup(userName, group, false);
   cy.apiCreateCamera(camera, group, false);
 });
 

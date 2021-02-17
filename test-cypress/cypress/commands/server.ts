@@ -1,12 +1,18 @@
 // load the global Cypress types
 /// <reference types="cypress" />
+export const DEFAULT_DATE = new Date(2021, 1, 16, 22);
+import url = require("url");
 
 export function apiPath() : string {
    return Cypress.env('cacophony-api-server');
-}
+}  
 
-export function v1ApiPath(page: string) : string {
-   return Cypress.env('cacophony-api-server') + "/api/v1/" + page;
+export function v1ApiPath(page: string, queryParams : any = {}) : string {
+   const urlpage = url.format({
+      pathname:`/api/v1/${page}`,
+      query: queryParams
+    });
+   return `${Cypress.env('cacophony-api-server')}${urlpage }`;
 }
 
 interface apiCreds {
@@ -14,20 +20,22 @@ interface apiCreds {
    headers: {
      'authorization': any
    },
-   jwt: string
+   jwt: string,
+   id: number
 }
 
 export function getCreds(username: string) : apiCreds {
    return Cypress.env('testCreds')[username];
 }
 
-export function saveCreds(response: Cypress.Response, name: string) {
+export function saveCreds(response: Cypress.Response, name: string, id = 0) {
    const creds = {
       name: name,
       headers: {
         'authorization': response.body.token
       },
-      jwt: response.body.token
+      jwt: response.body.token,
+      id: id
    }
    Cypress.env('testCreds')[name] = creds;
 }

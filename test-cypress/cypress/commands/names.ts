@@ -15,6 +15,7 @@ export function initializeTestNames(uniqueId = "") {
       uniqueId =  crypto.randomBytes(4).toString('hex');
     }
 
+    cy.log(`Unique id for names for this run is '${uniqueId}'`);
     if (typeof Cypress.config("env") === 'undefined') {
       Cypress.config("env", { uniqueIdName : uniqueId});
     }

@@ -1,16 +1,22 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-import {v1ApiPath, uploadFile } from "../server";
- 
+import {v1ApiPath, uploadFile, DEFAULT_DATE } from "../server";
+import {logTestDescription} from "../descriptions"; 
+
+let lastUsedTime = DEFAULT_DATE;
+
 Cypress.Commands.add("uploadRecording", (cameraName: string, details: thermalRecordingInfo, log = true) => {
-  if (log) {
-    cy.log(`Uploading '${JSON.stringify(details)}' recording to '${cameraName}'`);
-  }
+  const data = makeRecordingDataFromDetails(details);
+
+  logTestDescription(`Upload '${JSON.stringify(details)}' recording to '${cameraName}'`,
+    { camera : cameraName, requestData: data},
+    log
+  );
+
   const fileName = 'invalid.cptv';
   const url = v1ApiPath('recordings');
   const fileType = 'application/cptv';
-  const data = makeRecordingDataFromDetails(details);
 
   uploadFile(url, cameraName, fileName, fileType, data);
 });
@@ -47,18 +53,16 @@ interface thermalRecordingData {
 function makeRecordingDataFromDetails(details: thermalRecordingInfo) : any {
   let data : thermalRecordingData = {
     "type": "thermalRaw", 
-    "recordingDateTime": new Date().toISOString(), 
+    "recordingDateTime": "", 
     "duration": 12, 
     "comment": "uploaded by cypress", 
   }
 
   if( details.duration ) {
     data.duration = details.duration;
-  }
+  } 
 
-  if( details.time ) {
-    data.recordingDateTime = details.time.toISOString();
-  }
+  data.recordingDateTime = getDateForRecordings(details).toISOString();
 
   if( !details.noTracks ) {
     const model = details.model ? details.model : "Master";
@@ -67,6 +71,34 @@ function makeRecordingDataFromDetails(details: thermalRecordingInfo) : any {
 
   return data;
 }
+
+function getDateForRecordings(details: thermalRecordingInfo) : Date {
+  let date = lastUsedTime;
+
+  cy.log("last used date " + lastUsedTime);
+  if( details.time ) {
+    date = details.time;
+  } else if (details.minsLater || details.secsLater) {
+    let secs = 0;
+    if (details.minsLater) {
+      secs += details.minsLater * 60;
+    }
+    if (details.secsLater) {
+      secs += details.secsLater;
+    }
+    date = new Date(date.getTime() + secs * 1000);
+    cy.log("last used date " + lastUsedTime);
+  } else {
+    // add a minute anyway so we don't get two overlapping recordings on the same camera
+    const MINUTE = 60;
+    date = new Date(date.getTime()  + MINUTE * 1000);
+  }
+
+  cy.log("new date " + date);
+  lastUsedTime = date;
+  return date;
+}
+
 
 function addTracksToRecording(data : thermalRecordingData, model: string, trackDetails?: trackInfo[]) : void {
   data.metadata = {

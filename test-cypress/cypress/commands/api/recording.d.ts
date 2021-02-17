@@ -14,7 +14,9 @@ interface thermalRecordingInfo {
     duration?: number, 
     model?: string,
     tracks? : trackInfo[], 
-    noTracks?: boolean      // by default there will normally be one track, set to true if you don't want tracks
+    noTracks?: boolean,      // by default there will normally be one track, set to true if you don't want tracks
+    minsLater?: number,      // minutes that later that the recording is taken
+    secsLater?: number,      // minutes that later that the recording is taken
 }
 
 declare namespace Cypress {
