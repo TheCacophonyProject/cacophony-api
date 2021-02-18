@@ -15,8 +15,8 @@ function alertBody(
   html += `<a  href="${config.server.recording_url_base}/${recording.id}?device=${recording.DeviceId}">View Recording</a>`;
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
 
-  let text = `${camera} has detected a ${tag.what} - ${dateTime}\n`;
-  text += `Go to ${config.server.recording_url_base}/${recording.id}?device=${recording.DeviceId} to view this recording\n`;
+  let text = `${camera} has detected a ${tag.what} - ${dateTime}\r\n`;
+  text += `Go to ${config.server.recording_url_base}/${recording.id}?device=${recording.DeviceId} to view this recording\r\n`;
   text += "Thanks, Cacophony Team";
   return [html, text];
 }
@@ -35,7 +35,7 @@ async function sendEmail(
       from: config.smtpDetails.from_name,
       to: to,
       subject: subject,
-      attachment: [{ data: text, alternative: true }]
+      attachment: [{ data: html, alternative: true }]
     });
     await client.sendAsync(message);
   } catch (err) {
