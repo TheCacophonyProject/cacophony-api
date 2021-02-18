@@ -43,6 +43,7 @@ import {
   DeviceVisitMap,
   Visit,
   DeviceSummary,
+  VisitSummary,
   isWithinVisitInterval
 } from "./Visits";
 import {Station, StationId} from "../../models/Station";
@@ -648,7 +649,7 @@ async function queryVisits(
   type?
 ): Promise<{
   visits: Visit[];
-  rows: DeviceVisitMap;
+  summary: DeviceSummary;
   hasMoreVisits: boolean;
   queryOffset: number;
   totalRecordings: number;
@@ -660,11 +661,13 @@ async function queryVisits(
     request.query.limit == null
       ? maxVisitQueryResults
       : (request.query.limit as number);
+
   let queryMax = maxVisitQueryResults * 2;
   let queryLimit = queryMax;
   if (request.query.limit) {
     queryLimit = Math.min(request.query.limit * 2, queryMax);
   }
+
   const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
@@ -707,7 +710,6 @@ async function queryVisits(
     for (const [i, rec] of recordings.entries()) {
       rec.filterData(filterOptions);
     }
-
     devSummary.generateVisits(
       recordings,
       request.query.offset || 0,
@@ -731,13 +733,12 @@ async function queryVisits(
   } else {
     devSummary.removeIncompleteVisits();
   }
-  const audioFileIds = devSummary.audiFileIds();
+  const audioFileIds = devSummary.allAudioFileIds();
 
   const visits = devSummary.completeVisits();
   visits.sort(function (a, b) {
     return b.start > a.start ? 1 : -1;
   });
-
   // get the offset to use for future queries
   queryOffset = devSummary.earliestIncompleteOffset();
   if (queryOffset == null && visits.length > 0) {
@@ -750,17 +751,16 @@ async function queryVisits(
     audioFileNames[f.id] = f.details.name;
   }
 
-  // this updates the references in deviceMap
+  // update the references in deviceMap
   for (const visit of visits) {
     for (const audioEvent of visit.audioBaitEvents) {
       audioEvent.dataValues.fileName =
         audioFileNames[audioEvent.EventDetail.details.fileId];
     }
   }
-
   return {
     visits: visits,
-    rows: devSummary.deviceMap,
+    summary: devSummary,
     hasMoreVisits: !gotAllRecordings,
     totalRecordings: totalCount,
     queryOffset: queryOffset,
@@ -788,8 +788,9 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
     ]
   ];
   const eventSum = (accumulator, visit) => accumulator + visit.events.length;
-  for (const deviceId in deviceMap) {
-    const deviceVisits = deviceMap[deviceId];
+  for (const [deviceId, deviceVisits] of Object.entries(deviceMap)) {
+    const animalSummary = deviceVisits.animalSummary();
+
     device_summary_out.push([
       deviceId,
       deviceVisits.deviceName,
@@ -801,27 +802,25 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
         Math.round((10 * deviceVisits.eventCount) / deviceVisits.visitCount) /
         10
       ).toString(),
-      Object.keys(deviceVisits.animals).join(";"),
-      Object.values(deviceVisits.animals)
-        .map((vis) => vis.visits.length)
+      Object.keys(animalSummary).join(";"),
+      Object.values(animalSummary)
+        .map((summary: VisitSummary) => summary.visitCount)
         .join(";"),
       deviceVisits.audioBait.toString()
     ]);
 
-    for (const [animal, visitSummary] of Object.entries(deviceVisits.animals)) {
+    for (const animal in animalSummary) {
+      const summary = animalSummary[animal];
       device_summary_out.push([
         deviceId,
-        deviceVisits.deviceName,
-        deviceVisits.groupName,
-        visitSummary.start.tz(config.timeZone).format("HH:mm:ss"),
-        visitSummary.end.tz(config.timeZone).format("HH:mm:ss"),
-        visitSummary.visits.length.toString(),
-        (
-          Number(visitSummary.visits.reduce(eventSum, 0)) /
-          visitSummary.visits.length
-        ).toString(),
+        summary.deviceName,
+        summary.groupName,
+        summary.start.tz(config.timeZone).format("HH:mm:ss"),
+        summary.end.tz(config.timeZone).format("HH:mm:ss"),
+        summary.visitCount.toString(),
+        (summary.visitCount / summary.eventCount).toString(),
         animal,
-        visitSummary.visits.length.toString(),
+        summary.visitCount.toString(),
         deviceVisits.audioBait.toString()
       ]);
     }
@@ -831,7 +830,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
 
 async function reportVisits(request) {
   const results = await queryVisits(request);
-  const out = reportDeviceVisits(results.rows);
+  const out = reportDeviceVisits(results.summary.deviceMap);
   const recordingUrlBase = config.server.recording_url_base || "";
   out.push([]);
   out.push([
@@ -839,6 +838,7 @@ async function reportVisits(request) {
     "Group",
     "Device",
     "Type",
+    "AssumedTag",
     "What",
     "Rec ID",
     "Date",
@@ -870,6 +870,8 @@ async function reportVisits(request) {
         audioEvent = audioEvents.pop();
         if (audioEvent) {
           audioTime = moment(audioEvent.dateTime);
+        } else {
+          audioTime = null;
         }
         audioBaitBefore = audioTime && audioTime.isAfter(event.start);
       }
@@ -891,6 +893,7 @@ function addVisitRow(out, visit) {
     visit.deviceName,
     visit.groupName,
     "Visit",
+    visit.assumedTag,
     visit.what,
     "",
     visit.start.tz(config.timeZone).format("YYYY-MM-DD"),
@@ -909,6 +912,7 @@ function addEventRow(out, visit, event, recordingUrlBase) {
     "",
     "",
     "Event",
+    event.assumedTag,
     event.what,
     event.recID.toString(),
     event.start.tz(config.timeZone).format("YYYY-MM-DD"),
@@ -932,6 +936,7 @@ function addAudioBaitRow(out, visit, audioBait) {
     "",
     "",
     "Audio Bait",
+    "",
     audioBait.dataValues.fileName,
     "",
     moment(audioBait.dateTime).tz(config.timeZone).format("YYYY-MM-DD"),
@@ -943,26 +948,6 @@ function addAudioBaitRow(out, visit, audioBait) {
     ""
   ]);
 }
-
-// any visits which have started more than the visit interval from firstStart are marked as completed
-// any remaining incomplete visits are returned
-function checkForCompleteVisits(
-  visits: Visit[],
-  incompleteVisits: Visit[],
-  firstStart: Moment
-): Visit[] {
-  let stillIncomplete: Visit[] = [];
-  for (const newVisit of incompleteVisits) {
-    if (isWithinVisitInterval(newVisit.start, firstStart)) {
-      stillIncomplete.push(newVisit);
-    } else {
-      newVisit.incomplete = false;
-      visits.push(newVisit);
-    }
-  }
-  return stillIncomplete;
-}
-
 export default {
   makeUploadHandler,
   query,

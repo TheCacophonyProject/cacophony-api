@@ -40,11 +40,11 @@ function generateText(
 ): string {
   let textBody = `Service Errors ${startDate.format(
     "MMM ddd Do ha"
-  )} - ${endDate.format("MMM ddd Do ha")}\n`;
+  )} - ${endDate.format("MMM ddd Do ha")}\r\n`;
   for (const [key, serviceError] of Object.entries(serviceErrors)) {
     let serviceText = `${key}\n`;
     let devices = serviceError.devices.join(", ");
-    serviceText += `Devices: ${devices}\n`;
+    serviceText += `Devices: ${devices}\r\n`;
     serviceText += "\n";
     for (const error of serviceError.errors) {
       devices = error.devices.join(", ");
@@ -57,14 +57,14 @@ function generateText(
         error.similar.length
       } Error${suffix} from ${firstError.format(
         "MMM ddd Do H:MMa"
-      )} - ${lastError.format("MMM ddd Do H:MMa")}\n`;
-      serviceText += ` ${error.similar[0].lines}\n`;
-      serviceText += `Devices Affected:\n`;
-      serviceText += `${devices}\n`;
-      serviceText += `\n`;
-      serviceText += "\n";
+      )} - ${lastError.format("MMM ddd Do H:MMa")}\r\n`;
+      serviceText += ` ${error.similar[0].lines}\r\n`;
+      serviceText += `Devices Affected:\r\n`;
+      serviceText += `${devices}\r\n`;
+      serviceText += `\r\n`;
+      serviceText += "\r\n";
     }
-    serviceText += "\n";
+    serviceText += "\r\n";
     textBody += serviceText;
   }
 
