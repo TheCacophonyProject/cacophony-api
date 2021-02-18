@@ -43,7 +43,7 @@ import {CreateStationData, Station, StationId} from "./Station";
 import {
   latLngApproxDistance,
   MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MIN_STATION_SEPARATION_METERS
+  MIN_STATION_SEPARATION_METERS, tryToMatchRecordingToStation
 } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
@@ -835,10 +835,16 @@ from (
 
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
-  Recording.prototype.mergeUpdate = function (newValues) {
+  Recording.prototype.mergeUpdate = async function (newValues) {
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
+      } else if (name === "location") {
+        // NOTE: When location gets updated, we need to update any matching stations for this recordings' group.
+        const matchingStation = await tryToMatchRecordingToStation(this);
+        if (matchingStation) {
+          this.set("StationId", matchingStation.id);
+        }
       } else {
         this.set(name, newValue);
       }

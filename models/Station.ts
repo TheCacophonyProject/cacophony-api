@@ -21,7 +21,6 @@ import { ModelCommon, ModelStaticCommon } from "./index";
 import util from "./util/util";
 import validation from "./util/validation";
 import {UserId} from "./User";
-//import log from "../../logging";
 
 export type StationId = number;
 
