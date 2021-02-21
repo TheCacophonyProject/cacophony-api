@@ -33,7 +33,6 @@ import {
   RecordingId,
   RecordingPermission,
   RecordingType,
-  SpeciesClassification,
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
@@ -41,14 +40,13 @@ import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
-  DeviceVisits,
-  VisitEvent,
   DeviceVisitMap,
   Visit,
   DeviceSummary,
   VisitSummary,
   isWithinVisitInterval
 } from "./Visits";
+import {Station, StationId} from "../../models/Station";
 
 export interface RecordingQuery {
   user: User;
@@ -64,6 +62,56 @@ export interface RecordingQuery {
   filterOptions: null | any;
 }
 
+// How close is a station allowed to be to another station?
+export const MIN_STATION_SEPARATION_METERS = 60;
+// The radius of the station is half the max distance between stations: any recording inside the radius can
+// be considered to belong to that station.
+export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING = MIN_STATION_SEPARATION_METERS / 2;
+
+export function latLngApproxDistance(a: [number, number], b: [number, number]): number {
+  const R = 6371e3;
+  // Using 'spherical law of cosines' from https://www.movable-type.co.uk/scripts/latlong.html
+  const lat1 = (a[0] * Math.PI) / 180;
+  const costLat1 = Math.cos(lat1);
+  const sinLat1 = Math.sin(lat1);
+  const lat2 = (b[0] * Math.PI) / 180;
+  const deltaLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const part1 = Math.acos(sinLat1 * Math.sin(lat2) + costLat1 * Math.cos(lat2) * Math.cos(deltaLng));
+  return part1 * R;
+}
+
+export async function tryToMatchRecordingToStation(recording: Recording, stations?: Station[]): Promise<Station | null> {
+  // If the recording does not yet have a location, return
+  if (!recording.location) {
+    return null;
+  }
+
+  // Match the recording to any stations that the group might have:
+  if (!stations) {
+    const group = await models.Group.getFromId(recording.GroupId);
+    stations = await group.getStations();
+  }
+  const stationDistances = [];
+  for (const station of stations) {
+    // See if any stations match: Looking at the location distance between this recording and the stations.
+    const distanceToStation = latLngApproxDistance(station.location.coordinates, recording.location.coordinates);
+    stationDistances.push({distanceToStation, station});
+  }
+  const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING);
+
+  // There shouldn't really ever be more than one station within our threshold distance,
+  // since we check that stations aren't too close together when we add them.  However, on the off
+  // chance we *do* get two or more valid stations for a recording, take the closest one.
+  validStationDistances.sort((a, b) => {
+    return b.distanceToStation - a.distanceToStation;
+  });
+  const closest = validStationDistances.pop();
+  if (closest) {
+    return closest.station;
+  }
+  return null;
+}
+
 function makeUploadHandler(mungeData?: (any) => any) {
   return util.multipartUpload("raw", async (request, data, key) => {
     if (mungeData) {
@@ -74,10 +122,18 @@ function makeUploadHandler(mungeData?: (any) => any) {
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
+    const matchingStation = await tryToMatchRecordingToStation(recording);
+    if (matchingStation) {
+      recording.StationId = matchingStation.id;
+    }
+
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }
+
     await recording.validate();
+    // NOTE: The documentation for save() claims that it also does validation,
+    //  so not sure if we really need the call to validate() here.
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
@@ -152,6 +208,11 @@ async function reportRecordings(request) {
     .addColumn("additionalMetadata")
     .addAudioEvents();
 
+  builder.query.include.push({
+    model: models.Station,
+    attributes: ["name"]
+  });
+
   // NOTE: Not even going to try to attempt to add typing info to this bundle
   //  of properties...
   const result: any[] = await models.Recording.findAll(builder.get());
@@ -195,6 +256,7 @@ async function reportRecordings(request) {
       "Type",
       "Group",
       "Device",
+      "Station",
       "Date",
       "Time",
       "Latitude",
@@ -257,6 +319,7 @@ async function reportRecordings(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
+      r.Station ? r.Station.name : "",
       moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
       moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
