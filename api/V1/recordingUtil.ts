@@ -81,6 +81,11 @@ export function latLngApproxDistance(a: [number, number], b: [number, number]): 
 }
 
 export async function tryToMatchRecordingToStation(recording: Recording, stations?: Station[]): Promise<Station | null> {
+  // If the recording does not yet have a location, return
+  if (!recording.location) {
+    return null;
+  }
+
   // Match the recording to any stations that the group might have:
   if (!stations) {
     const group = await models.Group.getFromId(recording.GroupId);

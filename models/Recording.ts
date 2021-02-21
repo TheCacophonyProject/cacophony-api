@@ -196,7 +196,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   type: RecordingType;
   duration: number;
   recordingDateTime: string;
-  location: { coordinates: [number, number] };
+  location?: { coordinates: [number, number] };
   relativeToDawn: number;
   relativeToDusk: number;
   version: string;

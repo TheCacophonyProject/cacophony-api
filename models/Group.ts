@@ -307,7 +307,6 @@ export default function (sequelize, DataTypes): GroupStatic {
     await Promise.all([...stationOpsPromises, ...retiredStations]);
     if (applyToRecordingsFromDate) {
       // After adding stations, we need to apply any station matches to recordings from a start date:
-      await Promise.all([...stationOpsPromises, ...retiredStations]);
       const updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(authUser, group, applyToRecordingsFromDate, allStations);
       await Promise.all(updatedRecordings);
     }
