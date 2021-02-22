@@ -13,7 +13,7 @@ python:
 install:
   - npm install -g apidoc
   - npm run apidoc
-  - npm install -g eslint
+  - npm install -g eslint eslint-plugin-cypress
   - sudo apt update
   - sudo apt install python3-pip
   - sudo apt-get install python3-setuptools
