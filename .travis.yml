@@ -34,6 +34,11 @@ script:
  - python3 -m pytest --log-api-on-fail
  - cd ..
 
+ - cd test-cypress
+ - cp cypress.json.TEMPLATE cypress.json 
+ - npm install
+ - npm run release
+
 before_deploy:
 - version=${TRAVIS_TAG/v/}
 # Install nfpm tool (for building debs)

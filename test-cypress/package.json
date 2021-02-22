@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "./node_modules/cypress/bin/cypress open",
     "release": "./node_modules/cypress/bin/cypress run $CYPRESS_RECORD",
-    "release:browse": "./node_modules/cypress/bin/cypress run --spec 'cypress/integration/browse/**/*' $CYPRESS_RECORD",
     "lint": "eslint ./cypress --ext .js,.vue",
     "lint:fix": "eslint ./cypress --fix --ext .js,.vue"
   },
