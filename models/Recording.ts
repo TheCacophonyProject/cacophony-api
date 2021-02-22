@@ -1413,7 +1413,9 @@ from (
     "processingMeta",
     "GroupId",
     "DeviceId",
-    "StationId"
+    "StationId",
+    "recordingDateTime",
+    "localtion",
   ];
 
   return Recording;
