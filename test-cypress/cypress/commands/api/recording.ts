@@ -6,7 +6,7 @@ import {logTestDescription} from "../descriptions";
 
 let lastUsedTime = DEFAULT_DATE;
 
-Cypress.Commands.add("uploadRecording", (cameraName: string, details: thermalRecordingInfo, log = true) => {
+Cypress.Commands.add("uploadRecording", (cameraName: string, details: ThermalRecordingInfo, log = true) => {
   const data = makeRecordingDataFromDetails(details);
 
   logTestDescription(`Upload '${JSON.stringify(details)}' recording to '${cameraName}'`,
@@ -23,25 +23,27 @@ Cypress.Commands.add("uploadRecording", (cameraName: string, details: thermalRec
   cy.wait(['@addRecording']);
 });
 
-interface trackData {
+type IsoFormattedDateString = string;
+
+interface TrackData {
   start_s? : number,
   end_s? : number,
   confident_tag?: string,
   confidence?: number,
 }
 
-interface algorithmMetadata {
+interface AlgorithmMetadata {
   model_name? : string
 }
 
-interface thermalRecordingMetaData {
-  algorithm? : algorithmMetadata,
-  tracks : trackData[]
+interface ThermalRecordingMetaData {
+  algorithm? : AlgorithmMetadata,
+  tracks : TrackData[]
 }
 
-interface thermalRecordingData {
+interface ThermalRecordingData {
   type: "thermalRaw",
-  recordingDateTime: string, 
+  recordingDateTime: IsoFormattedDateString, 
   duration: number, 
   comment? : string,
   batteryLevel? : number, 
@@ -49,11 +51,11 @@ interface thermalRecordingData {
   airplaneModeOn? : boolean, 
   version?: string, 
   additionalMetadata?: JSON,
-  metadata?: thermalRecordingMetaData
+  metadata?: ThermalRecordingMetaData
 }
 
-function makeRecordingDataFromDetails(details: thermalRecordingInfo) : any {
-  let data : thermalRecordingData = {
+function makeRecordingDataFromDetails(details: ThermalRecordingInfo) : ThermalRecordingData {
+  let data : ThermalRecordingData = {
     "type": "thermalRaw", 
     "recordingDateTime": "", 
     "duration": 12, 
@@ -74,7 +76,7 @@ function makeRecordingDataFromDetails(details: thermalRecordingInfo) : any {
   return data;
 }
 
-function getDateForRecordings(details: thermalRecordingInfo) : Date {
+function getDateForRecordings(details: ThermalRecordingInfo) : Date {
   let date = lastUsedTime;
 
   if( details.time ) {
@@ -99,7 +101,7 @@ function getDateForRecordings(details: thermalRecordingInfo) : Date {
 }
 
 
-function addTracksToRecording(data : thermalRecordingData, model: string, trackDetails?: trackInfo[]) : void {
+function addTracksToRecording(data : ThermalRecordingData, model: string, trackDetails?: TrackInfo[]) : void {
   data.metadata = {
     "algorithm": {
       "model_name": model
@@ -108,18 +110,14 @@ function addTracksToRecording(data : thermalRecordingData, model: string, trackD
   }
 
   if (trackDetails) {
-    trackDetails.forEach((track) => {
-      const fullTrack : trackData = {
+    trackDetails.map((track) => {
+      let tag = (track.tag) ? track.tag : "possum";
+      return {
         start_s : 2,
         end_s : 8,
-        confident_tag: "possum",
+        confident_tag: tag,
         confidence: .9,
       }
-      if (track.tag) {
-        fullTrack.confident_tag = track.tag;
-      }
-
-      data.metadata.tracks.push(fullTrack);
     }); 
   } else {
     data.metadata.tracks.push({

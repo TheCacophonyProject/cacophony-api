@@ -1,7 +1,7 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-interface trackInfo {
+interface TrackInfo {
     // start_s? : 10,
     // end_s? : 22.2,
     tag?: string,
@@ -9,11 +9,11 @@ interface trackInfo {
 }
 
 
-interface thermalRecordingInfo {
+interface ThermalRecordingInfo {
     time?: Date,
     duration?: number, 
     model?: string,
-    tracks? : trackInfo[], 
+    tracks? : TrackInfo[], 
     noTracks?: boolean,      // by default there will normally be one track, set to true if you don't want tracks
     minsLater?: number,      // minutes that later that the recording is taken
     secsLater?: number,      // minutes that later that the recording is taken
@@ -25,6 +25,6 @@ declare namespace Cypress {
         /**
          * upload a single recording to for a particular camera
         */
-       uploadRecording(cameraname: string, details : thermalRecordingInfo, log?: boolean): Chainable<Element>
+       uploadRecording(cameraName: string, details : ThermalRecordingInfo, log?: boolean): Chainable<Element>
     }
 }

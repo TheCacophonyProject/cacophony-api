@@ -1,4 +1,4 @@
-import crypto = require("crypto");
+import { randomBytes } from "crypto";
 
 const uniqueIdName = "uniqueId";
 
@@ -12,7 +12,7 @@ export function initializeTestNames(uniqueId = "") {
   if (typeof Cypress.config("env") === 'undefined' || 
       typeof Cypress.config("env")[uniqueIdName] === 'undefined')  {
     if (uniqueId.length < 1) {
-      uniqueId =  crypto.randomBytes(4).toString('hex');
+      uniqueId =  randomBytes(4).toString('hex');
     }
 
     cy.log(`Unique id for names for this run is '${uniqueId}'`);

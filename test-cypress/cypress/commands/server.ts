@@ -15,7 +15,7 @@ export function v1ApiPath(page: string, queryParams : any = {}) : string {
    return `${Cypress.env('cacophony-api-server')}${urlpage }`;
 }
 
-interface apiCreds {
+interface ApiCreds {
    name: string,
    headers: {
      'authorization': any
@@ -24,23 +24,24 @@ interface apiCreds {
    id: number
 }
 
-export function getCreds(username: string) : apiCreds {
-   return Cypress.env('testCreds')[username];
+export function getCreds(userName: string) : ApiCreds {
+   return Cypress.env('testCreds')[userName];
 }
 
 export function saveCreds(response: Cypress.Response, name: string, id = 0) {
    const creds = {
-      name: name,
+      name,
       headers: {
         'authorization': response.body.token
       },
       jwt: response.body.token,
-      id: id
+      id,
    }
    Cypress.env('testCreds')[name] = creds;
 }
 
 export function checkRequestFails(requestdetails: any) {
+   // must set failOnStatusCode to false, to stop cypress from failing the test due to a failed status code before the then is called.
    requestdetails.failOnStatusCode = false;
    cy.request(requestdetails).then((response) => expect(response.isOkStatusCode, "Request should return a failure status code.").to.be.false);
 }
@@ -82,4 +83,7 @@ export function uploadFile(url : string, credName : string, fileName : string, f
       })
    });
 };
+
+type IsoFormattedDateString = string;
+
  

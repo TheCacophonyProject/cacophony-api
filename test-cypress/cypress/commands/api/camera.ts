@@ -17,7 +17,7 @@ Cypress.Commands.add("apiCreateCamera", (cameraName: string, group: string, log 
 });
 
 Cypress.Commands.add("apiShouldFailToCreateCamera", (cameraName: string, group: string, log = true) => {
-  logTestDescription(`Check fails to create camera '${cameraName}' in group '${group}'`, {
+  logTestDescription(`Check that user cannot create camera '${cameraName}' in group '${group}'`, {
     camera: cameraName,
     group: group
   }, log);
