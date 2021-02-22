@@ -11,7 +11,7 @@ python:
   - "3.6.1"
 
 install:
-  - npm install -g apidoc
+  - npm install -g apidoc@0.20.0
   - npm run apidoc
   - npm install -g eslint
   - sudo apt update
