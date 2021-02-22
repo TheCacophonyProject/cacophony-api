@@ -293,7 +293,9 @@ export default function (
     return groups.map((g) => g.id);
   };
 
-  User.prototype.isInGroup = async function (groupId: number): Promise<boolean> {
+  User.prototype.isInGroup = async function (
+    groupId: number
+  ): Promise<boolean> {
     const groupIds = await this.getGroupsIds();
     return groupIds.includes(groupId) === true;
   };

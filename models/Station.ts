@@ -20,7 +20,7 @@ import Sequelize, { BuildOptions, ModelAttributes } from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import util from "./util/util";
 import validation from "./util/validation";
-import {UserId} from "./User";
+import { UserId } from "./User";
 
 export type StationId = number;
 
@@ -35,7 +35,7 @@ export interface Station extends Sequelize.Model, ModelCommon<Station> {
   id: StationId;
   name: string;
   location: {
-    coordinates: [number, number]
+    coordinates: [number, number];
   };
   lastUpdatedById: UserId;
   createdAt: Date;

@@ -39,11 +39,12 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
-import {CreateStationData, Station, StationId} from "./Station";
+import { CreateStationData, Station, StationId } from "./Station";
 import {
   latLngApproxDistance,
   MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MIN_STATION_SEPARATION_METERS, tryToMatchRecordingToStation
+  MIN_STATION_SEPARATION_METERS,
+  tryToMatchRecordingToStation
 } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
@@ -754,7 +755,7 @@ from (
   Recording.prototype.setStation = async function (station: { id: number }) {
     this.StationId = station.id;
     return this.save();
-  }
+  };
 
   Recording.prototype.getFileBaseName = function (): string {
     return moment(new Date(this.recordingDateTime))
@@ -1413,7 +1414,9 @@ from (
     "processingMeta",
     "GroupId",
     "DeviceId",
-    "StationId"
+    "StationId",
+    "recordingDateTime",
+    "location"
   ];
 
   return Recording;

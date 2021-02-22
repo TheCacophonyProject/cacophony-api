@@ -46,7 +46,7 @@ import {
   VisitSummary,
   isWithinVisitInterval
 } from "./Visits";
-import {Station, StationId} from "../../models/Station";
+import { Station, StationId } from "../../models/Station";
 
 export interface RecordingQuery {
   user: User;
@@ -66,9 +66,13 @@ export interface RecordingQuery {
 export const MIN_STATION_SEPARATION_METERS = 60;
 // The radius of the station is half the max distance between stations: any recording inside the radius can
 // be considered to belong to that station.
-export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING = MIN_STATION_SEPARATION_METERS / 2;
+export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING =
+  MIN_STATION_SEPARATION_METERS / 2;
 
-export function latLngApproxDistance(a: [number, number], b: [number, number]): number {
+export function latLngApproxDistance(
+  a: [number, number],
+  b: [number, number]
+): number {
   const R = 6371e3;
   // Using 'spherical law of cosines' from https://www.movable-type.co.uk/scripts/latlong.html
   const lat1 = (a[0] * Math.PI) / 180;
@@ -76,11 +80,16 @@ export function latLngApproxDistance(a: [number, number], b: [number, number]): 
   const sinLat1 = Math.sin(lat1);
   const lat2 = (b[0] * Math.PI) / 180;
   const deltaLng = ((b[1] - a[1]) * Math.PI) / 180;
-  const part1 = Math.acos(sinLat1 * Math.sin(lat2) + costLat1 * Math.cos(lat2) * Math.cos(deltaLng));
+  const part1 = Math.acos(
+    sinLat1 * Math.sin(lat2) + costLat1 * Math.cos(lat2) * Math.cos(deltaLng)
+  );
   return part1 * R;
 }
 
-export async function tryToMatchRecordingToStation(recording: Recording, stations?: Station[]): Promise<Station | null> {
+export async function tryToMatchRecordingToStation(
+  recording: Recording,
+  stations?: Station[]
+): Promise<Station | null> {
   // If the recording does not yet have a location, return
   if (!recording.location) {
     return null;
@@ -94,10 +103,16 @@ export async function tryToMatchRecordingToStation(recording: Recording, station
   const stationDistances = [];
   for (const station of stations) {
     // See if any stations match: Looking at the location distance between this recording and the stations.
-    const distanceToStation = latLngApproxDistance(station.location.coordinates, recording.location.coordinates);
-    stationDistances.push({distanceToStation, station});
+    const distanceToStation = latLngApproxDistance(
+      station.location.coordinates,
+      recording.location.coordinates
+    );
+    stationDistances.push({ distanceToStation, station });
   }
-  const validStationDistances = stationDistances.filter(({distanceToStation}) => distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING);
+  const validStationDistances = stationDistances.filter(
+    ({ distanceToStation }) =>
+      distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING
+  );
 
   // There shouldn't really ever be more than one station within our threshold distance,
   // since we check that stations aren't too close together when we add them.  However, on the off
