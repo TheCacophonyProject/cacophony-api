@@ -1416,7 +1416,7 @@ from (
     "DeviceId",
     "StationId",
     "recordingDateTime",
-    "localtion"
+    "location"
   ];
 
   return Recording;
