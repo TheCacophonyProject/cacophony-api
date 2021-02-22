@@ -140,13 +140,16 @@ function getGroupByNameOrId(checkFunc: ValidationChainBuilder): RequestHandler {
   );
 }
 
-function getGroupByNameOrIdDynamic(checkFunc: ValidationChainBuilder, fieldName: string): RequestHandler {
+function getGroupByNameOrIdDynamic(
+  checkFunc: ValidationChainBuilder,
+  fieldName: string
+): RequestHandler {
   return oneOf(
-      [
-        getModelById(models.Group, fieldName, checkFunc),
-        getModelByName(models.Group, fieldName, checkFunc)
-      ],
-      "Group doesn't exist or hasn't been specified."
+    [
+      getModelById(models.Group, fieldName, checkFunc),
+      getModelByName(models.Group, fieldName, checkFunc)
+    ],
+    "Group doesn't exist or hasn't been specified."
   );
 }
 

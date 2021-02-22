@@ -20,33 +20,36 @@ import middleware from "../middleware";
 import auth from "../auth";
 import models from "../../models";
 import responseUtil from "./responseUtil";
-import {body, param, query} from "express-validator/check";
+import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
 
 const JsonSchema = new Validator();
 
 const validateStationsJson = (val, { req }) => {
-    const  stations = JSON.parse(val);
+  const stations = JSON.parse(val);
 
-    // Validate json schema of input:
-    JsonSchema.validate(stations, {
-        type: "array",
-        minItems: 1,
-        uniqueItems: true,
-        items: {
-            properties: {
-                name: { type: "string" },
-                lat: { type: "number" },
-                lng: { type: "number" },
-            },
-            required: ["name", "lat", "lng"]
-        }
-    }, {throwFirst: true});
-    req.body.stations = stations;
-    return true;
+  // Validate json schema of input:
+  JsonSchema.validate(
+    stations,
+    {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: {
+        properties: {
+          name: { type: "string" },
+          lat: { type: "number" },
+          lng: { type: "number" }
+        },
+        required: ["name", "lat", "lng"]
+      }
+    },
+    { throwFirst: true }
+  );
+  req.body.stations = stations;
+  return true;
 };
-
 
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/groups`;
@@ -191,33 +194,30 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-  * @api {post} /api/v1/groups/{groupIdOrName}/stations Add, Update and retire current stations belonging to group
-  * @apiName PostStationsForGroup
-  * @apiGroup Group
-  * @apiDescription A group admin or an admin with globalWrite permissions can update stations for a group.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiParam {Number|String} group name or group id
-  * @apiParam {JSON} Json array of {name: string, lat: number, lng: number}
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiUse V1ResponseError
-  */
+   * @api {post} /api/v1/groups/{groupIdOrName}/stations Add, Update and retire current stations belonging to group
+   * @apiName PostStationsForGroup
+   * @apiGroup Group
+   * @apiDescription A group admin or an admin with globalWrite permissions can update stations for a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   * @apiParam {JSON} Json array of {name: string, lat: number, lng: number}
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.post(
     `${apiUrl}/:groupIdOrName/stations`,
     [
       auth.authenticateUser,
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
       body("stations")
-          .exists()
-          .isJSON()
-          .withMessage("Expected JSON array")
-          .custom(validateStationsJson),
-      body("fromDate")
-          .isISO8601()
-          .toDate()
-          .optional(),
+        .exists()
+        .isJSON()
+        .withMessage("Expected JSON array")
+        .custom(validateStationsJson),
+      body("fromDate").isISO8601().toDate().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const stationIds = await models.Group.addStationsToGroup(
@@ -235,19 +235,19 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-  * @api {get} /api/v1/groups/{groupIdOrName}/stations Retrieves all stations from a group, including retired ones.
-  * @apiName GetStationsForGroup
-  * @apiGroup Group
-  * @apiDescription A group member or an admin member with globalRead permissions can view stations that belong
-  * to a group.
-  *
-  * @apiUse V1UserAuthorizationHeader
-  *
-  * @apiParam {Number|String} group name or group id
-  *
-  * @apiUse V1ResponseSuccess
-  * @apiUse V1ResponseError
-  */
+   * @api {get} /api/v1/groups/{groupIdOrName}/stations Retrieves all stations from a group, including retired ones.
+   * @apiName GetStationsForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view stations that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.get(
     `${apiUrl}/:groupIdOrName/stations`,
     [
@@ -255,7 +255,10 @@ export default function (app: Application, baseUrl: string) {
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName")
     ],
     middleware.requestWrapper(async (request, response) => {
-      if (request.user.hasGlobalRead() || await request.user.isInGroup(request.body.group.id)) {
+      if (
+        request.user.hasGlobalRead() ||
+        (await request.user.isInGroup(request.body.group.id))
+      ) {
         const stations = await request.body.group.getStations();
         return responseUtil.send(response, {
           statusCode: 200,
@@ -265,7 +268,7 @@ export default function (app: Application, baseUrl: string) {
       } else {
         return responseUtil.send(response, {
           statusCode: 403,
-          messages: ["User is not member of group, can't list stations"],
+          messages: ["User is not member of group, can't list stations"]
         });
       }
     })

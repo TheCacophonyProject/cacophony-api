@@ -34,7 +34,7 @@ import { GroupStatic } from "./Group";
 import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleStatic } from "./Schedule";
-import {StationStatic} from "./Station";
+import { StationStatic } from "./Station";
 
 const basename = path.basename(module.filename);
 const dbConfig = config.database;
