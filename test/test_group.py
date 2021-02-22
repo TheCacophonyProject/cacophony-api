@@ -10,6 +10,7 @@ class TestGroup:
 
         print("   has a new group called 'clares group'", end="")
         claresGroup = helper.make_unique_group_name(self, "clares_group")
+
         clare.create_group(claresGroup)
         print("({})".format(claresGroup))
 

@@ -53,6 +53,7 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   isInGroup: (groupId: number) => Promise<boolean>;
   checkUserControlsDevices: (deviceIds: number[]) => Promise<void>;
   canAccessDevice: (deviceId: number) => Promise<bool>;
+  canAccessGroup: (groupId: number) => Promise<bool>;
   getDeviceIds: () => Promise<number>;
   admin: boolean;
   getGroupDeviceIds: () => Promise<number[]>;
@@ -292,9 +293,11 @@ export default function (
     return groups.map((g) => g.id);
   };
 
-  User.prototype.isInGroup = async function (groupId) {
+  User.prototype.isInGroup = async function (
+    groupId: number
+  ): Promise<boolean> {
     const groupIds = await this.getGroupsIds();
-    return groupIds.includes(groupId);
+    return groupIds.includes(groupId) === true;
   };
 
   // Returns the devices that are directly associated with this user

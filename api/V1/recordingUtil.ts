@@ -33,7 +33,6 @@ import {
   RecordingId,
   RecordingPermission,
   RecordingType,
-  SpeciesClassification,
   TagMode
 } from "../../models/Recording";
 import { Event } from "../../models/Event";
@@ -41,13 +40,13 @@ import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
-  DeviceVisits,
-  VisitEvent,
   DeviceVisitMap,
   Visit,
   DeviceSummary,
+  VisitSummary,
   isWithinVisitInterval
 } from "./Visits";
+import { Station, StationId } from "../../models/Station";
 
 export interface RecordingQuery {
   user: User;
@@ -63,6 +62,71 @@ export interface RecordingQuery {
   filterOptions: null | any;
 }
 
+// How close is a station allowed to be to another station?
+export const MIN_STATION_SEPARATION_METERS = 60;
+// The radius of the station is half the max distance between stations: any recording inside the radius can
+// be considered to belong to that station.
+export const MAX_DISTANCE_FROM_STATION_FOR_RECORDING =
+  MIN_STATION_SEPARATION_METERS / 2;
+
+export function latLngApproxDistance(
+  a: [number, number],
+  b: [number, number]
+): number {
+  const R = 6371e3;
+  // Using 'spherical law of cosines' from https://www.movable-type.co.uk/scripts/latlong.html
+  const lat1 = (a[0] * Math.PI) / 180;
+  const costLat1 = Math.cos(lat1);
+  const sinLat1 = Math.sin(lat1);
+  const lat2 = (b[0] * Math.PI) / 180;
+  const deltaLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const part1 = Math.acos(
+    sinLat1 * Math.sin(lat2) + costLat1 * Math.cos(lat2) * Math.cos(deltaLng)
+  );
+  return part1 * R;
+}
+
+export async function tryToMatchRecordingToStation(
+  recording: Recording,
+  stations?: Station[]
+): Promise<Station | null> {
+  // If the recording does not yet have a location, return
+  if (!recording.location) {
+    return null;
+  }
+
+  // Match the recording to any stations that the group might have:
+  if (!stations) {
+    const group = await models.Group.getFromId(recording.GroupId);
+    stations = await group.getStations();
+  }
+  const stationDistances = [];
+  for (const station of stations) {
+    // See if any stations match: Looking at the location distance between this recording and the stations.
+    const distanceToStation = latLngApproxDistance(
+      station.location.coordinates,
+      recording.location.coordinates
+    );
+    stationDistances.push({ distanceToStation, station });
+  }
+  const validStationDistances = stationDistances.filter(
+    ({ distanceToStation }) =>
+      distanceToStation <= MAX_DISTANCE_FROM_STATION_FOR_RECORDING
+  );
+
+  // There shouldn't really ever be more than one station within our threshold distance,
+  // since we check that stations aren't too close together when we add them.  However, on the off
+  // chance we *do* get two or more valid stations for a recording, take the closest one.
+  validStationDistances.sort((a, b) => {
+    return b.distanceToStation - a.distanceToStation;
+  });
+  const closest = validStationDistances.pop();
+  if (closest) {
+    return closest.station;
+  }
+  return null;
+}
+
 function makeUploadHandler(mungeData?: (any) => any) {
   return util.multipartUpload("raw", async (request, data, key) => {
     if (mungeData) {
@@ -73,10 +137,18 @@ function makeUploadHandler(mungeData?: (any) => any) {
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
     recording.GroupId = request.device.GroupId;
+    const matchingStation = await tryToMatchRecordingToStation(recording);
+    if (matchingStation) {
+      recording.StationId = matchingStation.id;
+    }
+
     if (typeof request.device.public === "boolean") {
       recording.public = request.device.public;
     }
+
     await recording.validate();
+    // NOTE: The documentation for save() claims that it also does validation,
+    //  so not sure if we really need the call to validate() here.
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
@@ -151,6 +223,11 @@ async function reportRecordings(request) {
     .addColumn("additionalMetadata")
     .addAudioEvents();
 
+  builder.query.include.push({
+    model: models.Station,
+    attributes: ["name"]
+  });
+
   // NOTE: Not even going to try to attempt to add typing info to this bundle
   //  of properties...
   const result: any[] = await models.Recording.findAll(builder.get());
@@ -194,6 +271,7 @@ async function reportRecordings(request) {
       "Type",
       "Group",
       "Device",
+      "Station",
       "Date",
       "Time",
       "Latitude",
@@ -256,6 +334,7 @@ async function reportRecordings(request) {
       r.type,
       r.Group.groupname,
       r.Device.devicename,
+      r.Station ? r.Station.name : "",
       moment(r.recordingDateTime).tz(config.timeZone).format("YYYY-MM-DD"),
       moment(r.recordingDateTime).tz(config.timeZone).format("HH:mm:ss"),
       r.location ? r.location.coordinates[0] : "",
@@ -590,7 +669,7 @@ async function queryVisits(
   type?
 ): Promise<{
   visits: Visit[];
-  rows: DeviceVisitMap;
+  summary: DeviceSummary;
   hasMoreVisits: boolean;
   queryOffset: number;
   totalRecordings: number;
@@ -602,11 +681,13 @@ async function queryVisits(
     request.query.limit == null
       ? maxVisitQueryResults
       : (request.query.limit as number);
+
   let queryMax = maxVisitQueryResults * 2;
   let queryLimit = queryMax;
   if (request.query.limit) {
     queryLimit = Math.min(request.query.limit * 2, queryMax);
   }
+
   const builder = await new models.Recording.queryBuilder().init(
     request.user,
     request.query.where,
@@ -649,7 +730,6 @@ async function queryVisits(
     for (const [i, rec] of recordings.entries()) {
       rec.filterData(filterOptions);
     }
-
     devSummary.generateVisits(
       recordings,
       request.query.offset || 0,
@@ -673,13 +753,12 @@ async function queryVisits(
   } else {
     devSummary.removeIncompleteVisits();
   }
-  const audioFileIds = devSummary.audiFileIds();
+  const audioFileIds = devSummary.allAudioFileIds();
 
   const visits = devSummary.completeVisits();
   visits.sort(function (a, b) {
     return b.start > a.start ? 1 : -1;
   });
-
   // get the offset to use for future queries
   queryOffset = devSummary.earliestIncompleteOffset();
   if (queryOffset == null && visits.length > 0) {
@@ -692,17 +771,16 @@ async function queryVisits(
     audioFileNames[f.id] = f.details.name;
   }
 
-  // this updates the references in deviceMap
+  // update the references in deviceMap
   for (const visit of visits) {
     for (const audioEvent of visit.audioBaitEvents) {
       audioEvent.dataValues.fileName =
         audioFileNames[audioEvent.EventDetail.details.fileId];
     }
   }
-
   return {
     visits: visits,
-    rows: devSummary.deviceMap,
+    summary: devSummary,
     hasMoreVisits: !gotAllRecordings,
     totalRecordings: totalCount,
     queryOffset: queryOffset,
@@ -730,8 +808,9 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
     ]
   ];
   const eventSum = (accumulator, visit) => accumulator + visit.events.length;
-  for (const deviceId in deviceMap) {
-    const deviceVisits = deviceMap[deviceId];
+  for (const [deviceId, deviceVisits] of Object.entries(deviceMap)) {
+    const animalSummary = deviceVisits.animalSummary();
+
     device_summary_out.push([
       deviceId,
       deviceVisits.deviceName,
@@ -743,27 +822,25 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
         Math.round((10 * deviceVisits.eventCount) / deviceVisits.visitCount) /
         10
       ).toString(),
-      Object.keys(deviceVisits.animals).join(";"),
-      Object.values(deviceVisits.animals)
-        .map((vis) => vis.visits.length)
+      Object.keys(animalSummary).join(";"),
+      Object.values(animalSummary)
+        .map((summary: VisitSummary) => summary.visitCount)
         .join(";"),
       deviceVisits.audioBait.toString()
     ]);
 
-    for (const [animal, visitSummary] of Object.entries(deviceVisits.animals)) {
+    for (const animal in animalSummary) {
+      const summary = animalSummary[animal];
       device_summary_out.push([
         deviceId,
-        deviceVisits.deviceName,
-        deviceVisits.groupName,
-        visitSummary.start.tz(config.timeZone).format("HH:mm:ss"),
-        visitSummary.end.tz(config.timeZone).format("HH:mm:ss"),
-        visitSummary.visits.length.toString(),
-        (
-          Number(visitSummary.visits.reduce(eventSum, 0)) /
-          visitSummary.visits.length
-        ).toString(),
+        summary.deviceName,
+        summary.groupName,
+        summary.start.tz(config.timeZone).format("HH:mm:ss"),
+        summary.end.tz(config.timeZone).format("HH:mm:ss"),
+        summary.visitCount.toString(),
+        (summary.visitCount / summary.eventCount).toString(),
         animal,
-        visitSummary.visits.length.toString(),
+        summary.visitCount.toString(),
         deviceVisits.audioBait.toString()
       ]);
     }
@@ -773,7 +850,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
 
 async function reportVisits(request) {
   const results = await queryVisits(request);
-  const out = reportDeviceVisits(results.rows);
+  const out = reportDeviceVisits(results.summary.deviceMap);
   const recordingUrlBase = config.server.recording_url_base || "";
   out.push([]);
   out.push([
@@ -781,6 +858,7 @@ async function reportVisits(request) {
     "Group",
     "Device",
     "Type",
+    "AssumedTag",
     "What",
     "Rec ID",
     "Date",
@@ -812,6 +890,8 @@ async function reportVisits(request) {
         audioEvent = audioEvents.pop();
         if (audioEvent) {
           audioTime = moment(audioEvent.dateTime);
+        } else {
+          audioTime = null;
         }
         audioBaitBefore = audioTime && audioTime.isAfter(event.start);
       }
@@ -833,6 +913,7 @@ function addVisitRow(out, visit) {
     visit.deviceName,
     visit.groupName,
     "Visit",
+    visit.assumedTag,
     visit.what,
     "",
     visit.start.tz(config.timeZone).format("YYYY-MM-DD"),
@@ -851,6 +932,7 @@ function addEventRow(out, visit, event, recordingUrlBase) {
     "",
     "",
     "Event",
+    event.assumedTag,
     event.what,
     event.recID.toString(),
     event.start.tz(config.timeZone).format("YYYY-MM-DD"),
@@ -874,6 +956,7 @@ function addAudioBaitRow(out, visit, audioBait) {
     "",
     "",
     "Audio Bait",
+    "",
     audioBait.dataValues.fileName,
     "",
     moment(audioBait.dateTime).tz(config.timeZone).format("YYYY-MM-DD"),
@@ -885,26 +968,6 @@ function addAudioBaitRow(out, visit, audioBait) {
     ""
   ]);
 }
-
-// any visits which have started more than the visit interval from firstStart are marked as completed
-// any remaining incomplete visits are returned
-function checkForCompleteVisits(
-  visits: Visit[],
-  incompleteVisits: Visit[],
-  firstStart: Moment
-): Visit[] {
-  let stillIncomplete: Visit[] = [];
-  for (const newVisit of incompleteVisits) {
-    if (isWithinVisitInterval(newVisit.start, firstStart)) {
-      stillIncomplete.push(newVisit);
-    } else {
-      newVisit.incomplete = false;
-      visits.push(newVisit);
-    }
-  }
-  return stillIncomplete;
-}
-
 export default {
   makeUploadHandler,
   query,

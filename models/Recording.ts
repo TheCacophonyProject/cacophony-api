@@ -39,6 +39,13 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
+import { CreateStationData, Station, StationId } from "./Station";
+import {
+  latLngApproxDistance,
+  MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
+  MIN_STATION_SEPARATION_METERS,
+  tryToMatchRecordingToStation
+} from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -90,8 +97,8 @@ interface RecordingQueryBuilder {
   init: (
     user: User,
     where: any,
-    tagMode: TagMode,
-    tags: string[], // AcceptableTag[]
+    tagMode?: TagMode,
+    tags?: string[], // AcceptableTag[]
     offset?: number,
     limit?: number,
     order?: Order
@@ -190,7 +197,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   type: RecordingType;
   duration: number;
   recordingDateTime: string;
-  location: { coordinates: [number, number] };
+  location?: { coordinates: [number, number] };
   relativeToDawn: number;
   relativeToDusk: number;
   version: string;
@@ -212,6 +219,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   DeviceId: DeviceIdAlias;
   GroupId: GroupIdAlias;
+  StationId: StationId;
   // Recording columns end
 
   getFileBaseName: () => string;
@@ -233,6 +241,8 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getTrack: (id: TrackId) => Promise<Track | null>;
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
+
+  setStation: (station: Station) => Promise<void>;
 }
 type Mp4File = "string";
 type CptvFile = "string";
@@ -373,6 +383,7 @@ export default function (
   Recording.addAssociations = function (models) {
     models.Recording.belongsTo(models.Group);
     models.Recording.belongsTo(models.Device);
+    models.Recording.belongsTo(models.Station);
     models.Recording.hasMany(models.Tag);
     models.Recording.hasMany(models.Track);
   };
@@ -591,8 +602,12 @@ export default function (
     if (user.hasGlobalRead()) {
       return null;
     }
-    const deviceIds = await user.getDeviceIds();
-    const groupIds = await user.getGroupsIds();
+
+    // FIXME(jon): Should really combine these into a single query?
+    const [deviceIds, groupIds] = await Promise.all([
+      user.getDeviceIds(),
+      user.getGroupsIds()
+    ]);
     return {
       [Op.or]: [
         {
@@ -737,6 +752,11 @@ from (
   // INSTANCE METHODS
   //------------------
 
+  Recording.prototype.setStation = async function (station: { id: number }) {
+    this.StationId = station.id;
+    return this.save();
+  };
+
   Recording.prototype.getFileBaseName = function (): string {
     return moment(new Date(this.recordingDateTime))
       .tz(config.timeZone)
@@ -816,10 +836,16 @@ from (
 
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
-  Recording.prototype.mergeUpdate = function (newValues) {
+  Recording.prototype.mergeUpdate = async function (newValues) {
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
+      } else if (name === "location") {
+        // NOTE: When location gets updated, we need to update any matching stations for this recordings' group.
+        const matchingStation = await tryToMatchRecordingToStation(this);
+        if (matchingStation) {
+          this.set("StationId", matchingStation.id);
+        }
       } else {
         this.set(name, newValue);
       }
@@ -993,6 +1019,10 @@ from (
       {
         model: models.Group,
         attributes: ["groupname"]
+      },
+      {
+        model: models.Station,
+        attributes: ["name", "location"]
       },
       {
         model: models.Tag,
@@ -1311,7 +1341,8 @@ from (
     "location",
     "batteryLevel",
     "DeviceId",
-    "GroupId"
+    "GroupId",
+    "StationId"
   ];
 
   // Attributes returned when looking up a single recording.
@@ -1332,6 +1363,7 @@ from (
     "type",
     "additionalMetadata",
     "GroupId",
+    "StationId",
     "fileKey",
     "comment"
   ];
@@ -1350,7 +1382,8 @@ from (
     "airplaneModeOn",
     "additionalMetadata",
     "processingMeta",
-    "comment"
+    "comment",
+    "StationId"
   ];
 
   // local
@@ -1380,7 +1413,10 @@ from (
     "processingState",
     "processingMeta",
     "GroupId",
-    "DeviceId"
+    "DeviceId",
+    "StationId",
+    "recordingDateTime",
+    "location"
   ];
 
   return Recording;
