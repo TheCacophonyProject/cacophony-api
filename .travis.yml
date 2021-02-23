@@ -13,7 +13,9 @@ python:
 install:
   - npm install -g apidoc@0.20.0
   - npm run apidoc
-  - npm install -g eslint
+  - npm install -g eslint 
+  # global eslint uses local plugins
+  - npm install eslint-plugin-cypress eslint-plugin-no-only-tests
   - sudo apt update
   - sudo apt install python3-pip
   - sudo apt-get install python3-setuptools
@@ -33,6 +35,11 @@ script:
  - cd test
  - python3 -m pytest --log-api-on-fail
  - cd ..
+
+ - cd test-cypress
+ - cp cypress.json.TEMPLATE cypress.json 
+ - npm install
+ - npm run release
 
 before_deploy:
 - version=${TRAVIS_TAG/v/}

@@ -9,3 +9,4 @@ api/**/*.js
 models/**/*.js
 /*.js
 dockerstart.log
+test-cypress/cypress.json

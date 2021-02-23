@@ -3,7 +3,12 @@ env:
   es6: true
 parserOptions:
   ecmaVersion: 8
-extends: 'eslint:recommended'
+plugins:
+  - 'cypress'
+  - 'no-only-tests'
+extends:
+  - 'eslint:recommended'
+  - 'plugin:cypress/recommended'  
 rules:
   indent:
     - error
@@ -25,4 +30,6 @@ rules:
   no-var:
     - error
   prefer-const:
+    - error
+  no-only-tests/no-only-tests:
     - error

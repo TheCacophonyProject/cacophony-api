@@ -1,0 +1,7 @@
+{
+  "projectId": "dyez6t",
+  "env" : {
+    "cacophony-api-server": "http://localhost:1080", 
+    "testCreds" : {}
+  }
+}
