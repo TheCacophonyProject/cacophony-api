@@ -16,18 +16,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import Sequelize, { Op } from "sequelize";
-import AllModels, { ModelCommon, ModelStaticCommon } from "./index";
-import { User, UserId } from "./User";
-import { CreateStationData, Station, StationId } from "./Station";
-import { Recording } from "./Recording";
+import Sequelize, {Op} from "sequelize";
+import AllModels, {ModelCommon, ModelStaticCommon} from "./index";
+import {User, UserId} from "./User";
+import {CreateStationData, Station, StationId} from "./Station";
+import {Recording, TagMode} from "./Recording";
 import {
   latLngApproxDistance,
   MIN_STATION_SEPARATION_METERS,
   tryToMatchRecordingToStation
 } from "../api/V1/recordingUtil";
-import { ClientError } from "../api/customErrors";
-import { AuthorizationError } from "../api/customErrors";
+import {AuthorizationError, ClientError} from "../api/customErrors";
+
 export type GroupId = number;
 
 const retireMissingStations = (
@@ -85,7 +85,7 @@ const checkThatStationsAreNotTooCloseTogether = (
           latLngApproxDistance(a.location, b.location) <
           MIN_STATION_SEPARATION_METERS
         ) {
-          throw new ClientError("Stations too close together");
+          throw new ClientError(`Stations too close together: '${a.name}' <-> '${b.name}': ${latLngApproxDistance(a.location, b.location)}m apart, must be at least ${MIN_STATION_SEPARATION_METERS}m apart.`);
         }
       }
     }
@@ -106,10 +106,12 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
   const builder = await new AllModels.Recording.queryBuilder().init(authUser, {
     // Group id, and after date
     GroupId: group.id,
-    createdAt: {
+    recordingDateTime: {
       [Op.gte]: fromDate.toISOString()
     }
   });
+  builder.query.distinct = true;
+  builder.query.limit = 10000000;
   const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(
     builder.get()
   );
