@@ -119,7 +119,7 @@ function addTracksToRecording(
   };
 
   if (trackDetails) {
-    trackDetails.map((track) => {
+    data.metadata.tracks = trackDetails.map((track) => {
       let tag = track.tag ? track.tag : "possum";
       return {
         start_s: 2,
