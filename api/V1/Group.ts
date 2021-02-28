@@ -23,6 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
+import logger from "../../logging";
 
 const JsonSchema = new Validator();
 
@@ -120,6 +121,47 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
+    app.get(
+    `${apiUrl}/:groupIdOrName/devices`,
+    [
+        auth.authenticateUser,
+        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+        auth.userHasReadAccessToGroup
+    ],
+    middleware.requestWrapper(async (request, response) => {
+        const devices = await request.body.group.getDevices({ where: { active: true}, attributes: ["id", "devicename" ]});
+        return responseUtil.send(response, {
+            statusCode: 200,
+            data: devices.map(({id, devicename}) => ({
+                id,
+                deviceName: devicename
+            })),
+            messages: ["Got devices for group"]
+        });
+    })
+    );
+
+  app.get(
+    `${apiUrl}/:groupIdOrName/users`,
+    [
+        auth.authenticateUser,
+        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+        auth.userHasReadAccessToGroup
+    ],
+    middleware.requestWrapper(async (request, response) => {
+        const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
+        return responseUtil.send(response, {
+            statusCode: 200,
+            data: users.map(({username, id, GroupUsers }) => ({
+                userName: username,
+                id,
+                isGroupAdmin: GroupUsers.admin
+            })),
+            messages: ["Got users for group"]
+        });
+    })
+  );
+
   /**
    * @api {post} /api/v1/groups/users Add a user to a group.
    * @apiName AddUserToGroup
@@ -212,6 +254,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+      auth.userHasWriteAccessToGroup,
       body("stations")
         .exists()
         .isJSON()
@@ -220,7 +263,7 @@ export default function (app: Application, baseUrl: string) {
       body("fromDate").isISO8601().toDate().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const stationIds = await models.Group.addStationsToGroup(
+      const stationsUpdated = await models.Group.addStationsToGroup(
         request.user,
         request.body.group,
         request.body.stations,
@@ -229,7 +272,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Added stations to group."],
-        stationIds
+        ...stationsUpdated
       });
     })
   );
@@ -252,25 +295,16 @@ export default function (app: Application, baseUrl: string) {
     `${apiUrl}/:groupIdOrName/stations`,
     [
       auth.authenticateUser,
-      middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName")
+      middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+      auth.userHasReadAccessToGroup
     ],
     middleware.requestWrapper(async (request, response) => {
-      if (
-        request.user.hasGlobalRead() ||
-        (await request.user.isInGroup(request.body.group.id))
-      ) {
         const stations = await request.body.group.getStations();
         return responseUtil.send(response, {
           statusCode: 200,
           messages: ["Got stations for group"],
           stations
         });
-      } else {
-        return responseUtil.send(response, {
-          statusCode: 403,
-          messages: ["User is not member of group, can't list stations"]
-        });
-      }
     })
   );
 }

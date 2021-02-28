@@ -101,7 +101,7 @@ export default function (app: Application) {
 
       // Process extra data from file processing
       if (result && result.fieldUpdates) {
-        recording.mergeUpdate(result.fieldUpdates);
+        await recording.mergeUpdate(result.fieldUpdates);
       }
 
       await recording.save();
