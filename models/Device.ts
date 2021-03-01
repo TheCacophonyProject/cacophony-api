@@ -56,7 +56,7 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     userToAdd: User,
     admin: boolean
   ) => Promise<boolean>;
-  allForUser: (user: User) => Promise<{ rows: Device[]; count: number }>;
+  allForUser: (user: User, onlyActive: boolean) => Promise<{ rows: Device[]; count: number }>;
   removeUserFromDevice: (
     authUser: User,
     device: Device,
@@ -259,15 +259,16 @@ export default function (
     });
   };
 
-  Device.allForUser = async function (user) {
+  Device.allForUser = async function (user, onlyActive: boolean) {
     const includeData = [
       {
         model: models.User,
         attributes: ["id", "username"]
       }
     ];
+    const includeOnlyActiveDevices = onlyActive ? { active: true } : null;
 
-    return this.onlyUsersDevicesMatching(user, null, includeData);
+    return this.onlyUsersDevicesMatching(user, includeOnlyActiveDevices, includeData);
   };
 
   Device.newUserPermissions = function (enabled) {

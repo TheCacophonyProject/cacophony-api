@@ -234,7 +234,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getUserPermissions: (user: User) => Promise<RecordingPermission[]>;
 
   reprocess: (user: User) => Promise<Recording>;
-  mergeUpdate: (updates: any) => void;
+  mergeUpdate: (updates: any) => Promise<void>;
   filterData: (options: any) => void;
   // NOTE: Implicitly created by sequelize associations (along with other
   //  potentially undocumented extension methods).
@@ -836,7 +836,7 @@ from (
 
   // Bulk update recording values. Any new additionalMetadata fields
   // will be merged.
-  Recording.prototype.mergeUpdate = async function (newValues) {
+  Recording.prototype.mergeUpdate = async function (newValues): Promise<void> {
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
