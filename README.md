@@ -35,6 +35,19 @@ To start psql to query the database in base use the alias `psqltest`
 
 ### Running the tests
 
+The Cacophony API server has two functional test suites.   
+
+The current tests are currently being rewritten using Cypress (typescript).
+There is also a legacy set of test in python.   
+
+Currently both sets of tests need to be run. 
+
+#### Running the cypress tests
+
+See [Cypress Tests](test-cypress/README.md) for details on running the cypress tests.
+
+#### Running the python tests
+
 The Cacophony API server has a comprehensive function test suite. This
 requires Python 3.
 

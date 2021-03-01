@@ -54,6 +54,7 @@ class TestDeviceGroupNames:
 
         helper.login_as_device(c_terminator.get_id(), None, helper._make_password(c_terminator.devicename))
 
+    # Now in cypress - but not running on server yet
     def test_unique_names(self, helper):
         print("If a new user Clare", end="")
         clare = helper.given_new_user(self, "clare")
