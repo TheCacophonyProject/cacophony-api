@@ -58,7 +58,9 @@ class TestStations:
         print("Added stations", added_station_ids["stationIdsAddedOrUpdated"])
         assert len(added_station_ids["stationIdsAddedOrUpdated"]) == 1
 
-        print("Make we warn about added stations that are too close to any others (we don't really want overlapping stations)")
+        print(
+            "Make we warn about added stations that are too close to any others (we don't really want overlapping stations)"
+        )
         too_close_warnings = station_user.add_stations_to_group(
             station_group["groupId"],
             json.dumps(
@@ -69,7 +71,6 @@ class TestStations:
             ),
         )
         assert too_close_warnings["warnings"]
-
 
         # Make a fresh group for the next part
         station_group_name = helper.make_unique_group_name(self, "stationGroup")
