@@ -121,7 +121,21 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
-    app.get(
+  /**
+   * @api {get} /api/v1/groups/{groupIdOrName}/devices Retrieves all active devices for a group.
+   * @apiName GetDevicesForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view devices that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
     `${apiUrl}/:groupIdOrName/devices`,
     [
         auth.authenticateUser,
@@ -139,8 +153,22 @@ export default function (app: Application, baseUrl: string) {
             messages: ["Got devices for group"]
         });
     })
-    );
+  );
 
+  /**
+   * @api {get} /api/v1/groups/{groupIdOrName}/users Retrieves all users for a group.
+   * @apiName GetUsersForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view users that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
   app.get(
     `${apiUrl}/:groupIdOrName/users`,
     [
