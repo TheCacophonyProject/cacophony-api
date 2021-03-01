@@ -266,14 +266,14 @@ const userCanAccessDevices = async (request, response, next) => {
 // A request wrapper that also checks if user should be playing around with the
 // the group before continuing.
 const userHasReadAccessToGroup = async (request, response, next) => {
-  if (request.body.hasOwnProperty("group")) {
+  if (request.body.group) {
     request.group = request.body.group;
   } else {
     next(new customErrors.ClientError("No group specified.", 422));
     return;
   }
 
-  if (!request.hasOwnProperty("user")) {
+  if (!request.user) {
     next(new customErrors.ClientError("No user specified.", 422));
     return;
   }
@@ -288,14 +288,14 @@ const userHasReadAccessToGroup = async (request, response, next) => {
 // A request wrapper that also checks if user should be playing around with the
 // the group before continuing.
 const userHasWriteAccessToGroup = async (request, response, next) => {
-  if (request.body.hasOwnProperty("group")) {
+  if (request.body.group) {
     request.group = request.body.group;
   } else {
     next(new customErrors.ClientError("No group specified.", 422));
     return;
   }
 
-  if (!request.hasOwnProperty("user")) {
+  if (!request.user) {
     next(new customErrors.ClientError("No user specified.", 422));
     return;
   }
