@@ -23,7 +23,6 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
-import { ClientError } from "../customErrors";
 
 const Op = Sequelize.Op;
 
@@ -86,6 +85,9 @@ export default function (app: Application, baseUrl: string) {
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
    * @apiGroup Device
+   * @apiParam onlyActive {Boolean} Only return active devices, defaults to 'true'
+   * If we want to return *all* devices this must be present and set to 'false'
+   *
    * @apiDescription Returns all devices the user can access
    * through both group membership and direct assignment.
    *
@@ -100,9 +102,13 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     apiUrl,
-    [auth.authenticateUser],
+    [
+        auth.authenticateUser,
+        param("onlyActive").optional().isBoolean().toBoolean(),
+    ],
     middleware.requestWrapper(async (request, response) => {
-      const devices = await models.Device.allForUser(request.user);
+      const onlyActiveDevices = request.param.onlyActive !== false;
+      const devices = await models.Device.allForUser(request.user, onlyActiveDevices);
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,

@@ -4,7 +4,7 @@
 FROM cacophonyproject/server-base
 
 # NOTE: Using locally for arm64
-# FROM cacophony-api
+#FROM cacophony-api
 
 WORKDIR /app
 COPY package*.json ./

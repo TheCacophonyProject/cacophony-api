@@ -23,7 +23,8 @@ RUN echo "host all all ::/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
 RUN curl --location --fail --silent --show-error --remote-name https://dl.minio.io/server/minio/release/linux-amd64/minio
 
 # Note: uncomment if you're developing on arm64
-# RUN curl --location --fail --silent --show-error --remote-name https://dl.minio.io/server/minio/release/linux-arm64/minio
+#RUN curl --location --fail --silent --show-error --remote-name https://dl.minio.io/server/minio/release/linux-arm64/minio
+
 RUN chmod +x minio
 
 # https://docs.minio.io/docs/minio-client-complete-guide
@@ -31,6 +32,7 @@ RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/r
 
 # Note: uncomment if you're developing on arm64
 #RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-arm64/mc > mc
+
 RUN chmod +x mc
 
 
