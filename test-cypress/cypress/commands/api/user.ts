@@ -2,7 +2,7 @@
 /// <reference types="cypress" />
 
 import { getTestName } from "../names";
-import { apiPath, getCreds, saveCreds } from "../server";
+import { apiPath, makeAuthorizedRequest, saveCreds, v1ApiPath } from "../server";
 import { logTestDescription } from "../descriptions";
 
 Cypress.Commands.add("apiCreateUser", (userName: string, log = true) => {
@@ -49,20 +49,11 @@ Cypress.Commands.add(
       log
     );
 
-    const user = getCreds(userName);
-    const fullGroupName = getTestName(group);
-    const groupURL = apiPath() + "/api/v1/groups";
-
-    const data = {
-      groupname: fullGroupName
-    };
-
-    cy.request({
+    makeAuthorizedRequest({
       method: "POST",
-      url: groupURL,
-      headers: user.headers,
-      body: data
-    });
+      url: v1ApiPath("groups"),
+      body: { groupname:  getTestName(group) }
+    }, userName);
   }
 );
 

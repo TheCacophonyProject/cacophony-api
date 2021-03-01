@@ -20,3 +20,18 @@ Cypress.Commands.add(
     }, user);
   }
 );
+
+Cypress.Commands.add(
+  "apiCheckStations",
+  (user: string, group: string) => {
+
+    logTestDescription(`Check stations for group ${group}`, {user, group});
+
+    const actualGroup = getTestName(group);
+
+    makeAuthorizedRequest({
+        method: "GET",
+        url: v1ApiPath(`groups/${actualGroup}/stations`),
+    }, user);
+  }
+);

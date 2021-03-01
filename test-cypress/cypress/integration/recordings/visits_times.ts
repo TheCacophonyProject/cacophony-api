@@ -1,6 +1,6 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Visit tests around times and groupings", () => {
+describe("Visits : times and recording groupings", () => {
   const Dee = "Dee_Visits";
   const group = "VisitTests";
 

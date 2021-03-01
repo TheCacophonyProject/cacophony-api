@@ -1,8 +1,8 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Device names", () => {
-  const Dee = "Dee_Visits";
-  const group = "VisitTests";
+describe("Visits : tracks and tags", () => {
+  const Dee = "Donna_visits";
+  const group = "VisitTags";
 
   before(() => {
     cy.apiCreateUserGroup(Dee, group);

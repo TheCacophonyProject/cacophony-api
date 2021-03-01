@@ -40,10 +40,10 @@ export function saveCreds(response: Cypress.Response, name: string, id = 0) {
   Cypress.env("testCreds")[name] = creds;
 }
 
-export function checkRequestFails(requestdetails: any) {
+export function checkRequestFails(requestDetails: Partial<Cypress.RequestOptions>) {
   // must set failOnStatusCode to false, to stop cypress from failing the test due to a failed status code before the then is called.
-  requestdetails.failOnStatusCode = false;
-  cy.request(requestdetails).then(
+  requestDetails.failOnStatusCode = false;
+  cy.request(requestDetails).then(
     (response) =>
       expect(
         response.isOkStatusCode,
