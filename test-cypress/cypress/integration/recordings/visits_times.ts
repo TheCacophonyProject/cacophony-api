@@ -3,7 +3,6 @@
 describe("Visit tests around times and groupings", () => {
   const Dee = "Dee_Visits";
   const group = "VisitTests";
-  const visitorCamera = "visitorH";
 
   before(() => {
     cy.apiCreateUserGroup(Dee, group);

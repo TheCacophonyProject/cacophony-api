@@ -58,5 +58,4 @@ export function makeAuthorizedRequest(requestDetails: Partial<Cypress.RequestOpt
   return cy.request(requestDetails);
 }
 
-
 type IsoFormattedDateString = string;

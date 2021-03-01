@@ -1,7 +1,6 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-import { format as urlFormat } from "url";
 import { getTestName } from "../names";
 import { apiPath, getCreds, saveCreds } from "../server";
 import { logTestDescription } from "../descriptions";
