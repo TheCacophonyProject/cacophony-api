@@ -87,6 +87,7 @@ export default function (
 
   Station.addAssociations = function (models) {
     models.Station.belongsTo(models.Group);
+    models.Station.hasMany(models.Recording);
   };
 
   Station.getFromId = async function (id) {

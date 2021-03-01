@@ -263,6 +263,50 @@ const userCanAccessDevices = async (request, response, next) => {
   next();
 };
 
+// A request wrapper that also checks if user should be playing around with the
+// the group before continuing.
+const userHasReadAccessToGroup = async (request, response, next) => {
+  if (request.body.group) {
+    request.group = request.body.group;
+  } else {
+    next(new customErrors.ClientError("No group specified.", 422));
+    return;
+  }
+
+  if (!request.user) {
+    next(new customErrors.ClientError("No user specified.", 422));
+    return;
+  }
+
+  if (request.user.hasGlobalRead() || await request.user.isInGroup(request.body.group.id)) {
+    next();
+  } else {
+    return response.status(403).json({ messages: ["User doesn't have permission to access group"] });
+  }
+};
+
+// A request wrapper that also checks if user should be playing around with the
+// the group before continuing.
+const userHasWriteAccessToGroup = async (request, response, next) => {
+  if (request.body.group) {
+    request.group = request.body.group;
+  } else {
+    next(new customErrors.ClientError("No group specified.", 422));
+    return;
+  }
+
+  if (!request.user) {
+    next(new customErrors.ClientError("No user specified.", 422));
+    return;
+  }
+
+  if (request.user.hasGlobalWrite() || await request.user.isGroupAdmin(request.body.group.id)) {
+    next();
+  } else {
+    return response.status(403).json({ messages: ["User doesn't have permission to access group"] });
+  }
+};
+
 export default {
   createEntityJWT,
   authenticateUser,
@@ -272,5 +316,7 @@ export default {
   authenticateAdmin,
   paramOrHeader,
   signedUrl,
-  userCanAccessDevices
+  userCanAccessDevices,
+  userHasReadAccessToGroup,
+  userHasWriteAccessToGroup
 };

@@ -16,18 +16,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import Sequelize, { Op } from "sequelize";
-import AllModels, { ModelCommon, ModelStaticCommon } from "./index";
-import { User, UserId } from "./User";
-import { CreateStationData, Station, StationId } from "./Station";
-import { Recording } from "./Recording";
+import Sequelize, {Op} from "sequelize";
+import AllModels, {ModelCommon, ModelStaticCommon} from "./index";
+import {User, UserId} from "./User";
+import {CreateStationData, Station, StationId} from "./Station";
+import {Recording, RecordingId, TagMode} from "./Recording";
 import {
   latLngApproxDistance,
   MIN_STATION_SEPARATION_METERS,
   tryToMatchRecordingToStation
 } from "../api/V1/recordingUtil";
-import { ClientError } from "../api/customErrors";
-import { AuthorizationError } from "../api/customErrors";
+import {AuthorizationError} from "../api/customErrors";
+import {Device} from "./Device";
+
 export type GroupId = number;
 
 const retireMissingStations = (
@@ -51,6 +52,12 @@ const retireMissingStations = (
 };
 
 const EPSILON = 0.000000000001;
+
+interface NamedLocation {
+  name: string;
+  location: [number, number]
+}
+
 const stationLocationHasChanged = (
   oldStation: Station,
   newStation: CreateStationData
@@ -61,7 +68,7 @@ const stationLocationHasChanged = (
 
 const checkThatStationsAreNotTooCloseTogether = (
   stations: Array<Station | CreateStationData>
-) => {
+): string | null => {
   const allStations = stations.map((s) => {
     if (s.hasOwnProperty("lat")) {
       return {
@@ -78,6 +85,7 @@ const checkThatStationsAreNotTooCloseTogether = (
       };
     }
   });
+  const tooClosePairs: Record<string, { station: NamedLocation, others: NamedLocation[] }> = {};
   for (const a of allStations) {
     for (const b of allStations) {
       if (a !== b && a.name !== b.name) {
@@ -85,11 +93,32 @@ const checkThatStationsAreNotTooCloseTogether = (
           latLngApproxDistance(a.location, b.location) <
           MIN_STATION_SEPARATION_METERS
         ) {
-          throw new ClientError("Stations too close together");
+          if (!tooClosePairs.hasOwnProperty(a.name)) {
+            tooClosePairs[a.name] = { station: a, others: [] };
+          }
+          if (!tooClosePairs[a.name].others.find((item) => item.name === b.name)) {
+            tooClosePairs[a.name].others.push(b);
+          }
         }
       }
     }
   }
+  if (Object.values(tooClosePairs).length !== 0) {
+    let pairs = {};
+    let warnings = "Stations too close together: ";
+    for (const {station, others} of Object.values(tooClosePairs)) {
+      for (const other of others) {
+        const first = station.name < other.name;
+        const key = first ? `${station.name}_${other.name}` : `${other.name}_${station.name}`;
+        if (!pairs.hasOwnProperty(key)) {
+          warnings += `\n'${station.name}', '${other.name}': ${latLngApproxDistance(station.location, other.location)}m apart, must be at least ${MIN_STATION_SEPARATION_METERS}m apart.`;
+          pairs[key] = true;
+        }
+      }
+    }
+    return warnings;
+  }
+  return null;
 };
 
 const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
@@ -97,7 +126,7 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
   group: Group,
   fromDate: Date,
   stations: Station[]
-): Promise<Promise<Station>[]> => {
+): Promise<Promise<{ station: Station, recording: Recording }>[]> => {
   // Now addedStations are properly resolved with ids:
   // Now we can look for all recordings in the group back to startDate, and check if any of them
   // should be assigned to any of our stations.
@@ -106,10 +135,12 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
   const builder = await new AllModels.Recording.queryBuilder().init(authUser, {
     // Group id, and after date
     GroupId: group.id,
-    createdAt: {
+    recordingDateTime: {
       [Op.gte]: fromDate.toISOString()
     }
   });
+  builder.query.distinct = true;
+  builder.query.limit = 10000000;
   const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(
     builder.get()
   );
@@ -122,7 +153,13 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
       stations
     );
     if (matchingStation !== null) {
-      recordingOpPromises.push(recording.setStation(matchingStation));
+      recordingOpPromises.push(new Promise(async (resolve) => {
+        await recording.setStation(matchingStation);
+        resolve({
+          station: matchingStation,
+          recording
+        })
+      }));
     }
   }
   return recordingOpPromises;
@@ -132,16 +169,16 @@ export interface Group extends Sequelize.Model, ModelCommon<Group> {
   id: GroupId;
   addUser: (userToAdd: User, through: any) => Promise<void>;
   addStation: (stationToAdd: CreateStationData) => Promise<void>;
-  getUsers: (options: any) => Promise<User[]>;
+  getUsers: (options?: { where?: any, attributes?: string[] }) => Promise<User[]>;
+  getDevices: (options?: { where?: any, attributes?: string[] }) => Promise<Device[]>;
   userPermissions: (
     user: User
   ) => Promise<{
     canAddUsers: boolean;
     canRemoveUsers: boolean;
-    canAddStations: boolean;
   }>;
 
-  getStations: () => Promise<Station[]>;
+  getStations: (options?: { where?: any, attributes?: string[] }) => Promise<Station[]>;
 }
 export interface GroupStatic extends ModelStaticCommon<Group> {
   addUserToGroup: (
@@ -165,7 +202,7 @@ export interface GroupStatic extends ModelStaticCommon<Group> {
     group: Group,
     stationsToAdd: CreateStationData[],
     applyToRecordingsFromDate: Date | undefined
-  ) => Promise<StationId[]>;
+  ) => Promise<{ stationIdsAddedOrUpdated: StationId[], updatedRecordingsPerStation: Record<StationId, number> }>;
 }
 
 export default function (sequelize, DataTypes): GroupStatic {
@@ -262,13 +299,11 @@ export default function (sequelize, DataTypes): GroupStatic {
     group,
     stationsToAdd,
     applyToRecordingsFromDate
-  ): Promise<StationId[]> {
-    if (!(await group.userPermissions(authUser)).canAddStations) {
-      throw new AuthorizationError(
-        "User doesn't belong to group and/or is not a group admin so cannot add stations"
-      );
-    }
-
+  ): Promise<{
+    stationIdsAddedOrUpdated: StationId[],
+    updatedRecordingsPerStation: Record<StationId, number>,
+    warnings?: string
+  }> {
     // Enforce name uniqueness to group here:
     let existingStations: Station[] = await group.getStations();
     // Filter out retired stations.
@@ -296,7 +331,7 @@ export default function (sequelize, DataTypes): GroupStatic {
     }
 
     // Make sure no two stations are too close to each other:
-    checkThatStationsAreNotTooCloseTogether([
+    const tooCloseWarning = checkThatStationsAreNotTooCloseTogether([
       ...existingStations,
       ...stationsToAdd
     ]);
@@ -337,17 +372,40 @@ export default function (sequelize, DataTypes): GroupStatic {
       allStations.push(stationToAddOrUpdate);
     }
     await Promise.all([...stationOpsPromises, ...retiredStations]);
+    let updatedRecordings = [];
     if (applyToRecordingsFromDate) {
       // After adding stations, we need to apply any station matches to recordings from a start date:
-      const updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
+      updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
         authUser,
         group,
         applyToRecordingsFromDate,
         allStations
       );
-      await Promise.all(updatedRecordings);
+      updatedRecordings = await Promise.all(updatedRecordings);
     }
-    return addedOrUpdatedStations.map(({ id }) => id);
+    const result: {
+      stationIdsAddedOrUpdated: StationId[],
+          updatedRecordingsPerStation: Record<StationId, number>,
+          warnings?: string
+    } = {
+      stationIdsAddedOrUpdated: addedOrUpdatedStations.map(({ id }) => id),
+      updatedRecordingsPerStation: (
+          updatedRecordings
+              .map(({ station, recording }) => ({ stationId: station.id }))
+              .reduce((acc, item) => {
+                if (!acc.hasOwnProperty(item.stationId)) {
+                  acc[item.stationId] = 1;
+                } else {
+                  acc[item.stationId]++;
+                }
+                return acc;
+              }, {})
+      )
+    };
+    if (tooCloseWarning !== null) {
+      result.warnings = tooCloseWarning;
+    }
+    return result;
   };
 
   /**
@@ -473,8 +531,7 @@ export default function (sequelize, DataTypes): GroupStatic {
   const newUserPermissions = function (enabled) {
     return {
       canAddUsers: enabled,
-      canRemoveUsers: enabled,
-      canAddStations: enabled
+      canRemoveUsers: enabled
     };
   };
 

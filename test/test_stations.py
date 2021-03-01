@@ -55,21 +55,22 @@ class TestStations:
             station_group["groupId"],
             json.dumps([{"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894}]),
         )
-        print("Added stations", added_station_ids["stationIds"])
-        assert len(added_station_ids["stationIds"]) == 1
+        print("Added stations", added_station_ids["stationIdsAddedOrUpdated"])
+        assert len(added_station_ids["stationIdsAddedOrUpdated"]) == 1
 
-        print("Make sure added stations are not too close to any others (we don't want overlapping stations)")
-        with pytest.raises(BadRequestError) as error:
-            station_user.add_stations_to_group(
-                station_group["groupId"],
-                json.dumps(
-                    [
-                        {"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894},
-                        {"name": "Too close station", "lat": -43.62367657911904, "lng": 172.62626365029485},
-                    ]
-                ),
-            )
-        print("Error", json.loads(str(error.value)))
+        print(
+            "Make we warn about added stations that are too close to any others (we don't really want overlapping stations)"
+        )
+        too_close_warnings = station_user.add_stations_to_group(
+            station_group["groupId"],
+            json.dumps(
+                [
+                    {"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894},
+                    {"name": "Too close station", "lat": -43.62367657911904, "lng": 172.62626365029485},
+                ]
+            ),
+        )
+        assert too_close_warnings["warnings"]
 
         # Make a fresh group for the next part
         station_group_name = helper.make_unique_group_name(self, "stationGroup")
@@ -86,14 +87,14 @@ class TestStations:
                 ]
             ),
         )
-        assert len(added_station_ids["stationIds"]) == 2
+        assert len(added_station_ids["stationIdsAddedOrUpdated"]) == 2
 
         added_station_ids = station_user.add_stations_to_group(
             station_group["groupId"],
             json.dumps([{"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894}]),
         )
-        assert len(added_station_ids["stationIds"]) == 1
-        added_station_id = added_station_ids["stationIds"][0]
+        assert len(added_station_ids["stationIdsAddedOrUpdated"]) == 1
+        added_station_id = added_station_ids["stationIdsAddedOrUpdated"][0]
         print("Added", added_station_ids, added_station_id)
 
         # Get stations and make sure that "Will be retired" exists and is retired
@@ -115,7 +116,7 @@ class TestStations:
         )
         print("Should Update lat lng", added_station_ids)
         # Id should not have changed, since the lat/lng was updated.
-        assert added_station_ids["stationIds"][0] == added_station_id
+        assert added_station_ids["stationIdsAddedOrUpdated"][0] == added_station_id
         print("Update lat lng", added_station_ids)
 
         other_station_user = helper.given_new_user(self, "other_station_admin")
@@ -133,7 +134,7 @@ class TestStations:
                 other_station_group["groupId"],
                 json.dumps([{"name": "Station name 2", "lat": -43.5338773, "lng": 172.6451473}]),
             )
-        print("Error:", json.loads(str(error.value))["message"])
+        print("Error:", json.loads(str(error.value))["messages"][0])
 
         other_station_user.add_to_group(station_user, other_station_group_name)
 
@@ -143,7 +144,7 @@ class TestStations:
                 other_station_group["groupId"],
                 json.dumps([{"name": "Station name 2", "lat": -43.5338773, "lng": 172.6451473}]),
             )
-        print("Error:", json.loads(str(error.value))["message"])
+        print("Error:", json.loads(str(error.value))["messages"][0])
 
         print("Try to add stations to a non-existing group id")
         with pytest.raises(UnprocessableError) as error:
@@ -192,10 +193,10 @@ class TestStations:
             station_group["groupId"],
             json.dumps([{"name": "Station name", "lat": -43.62367659982135, "lng": 172.62646754804894}]),
         )
-        print("Added stations", added_station_ids["stationIds"])
-        assert len(added_station_ids["stationIds"]) == 1
+        print("Added stations", added_station_ids["stationIdsAddedOrUpdated"])
+        assert len(added_station_ids["stationIdsAddedOrUpdated"]) == 1
 
-        station_to_match_id = added_station_ids["stationIds"][0]
+        station_to_match_id = added_station_ids["stationIdsAddedOrUpdated"][0]
         print("Create new recording that should match the 1 existing station, as it is close enough")
         created_recording = helper.given_a_recording(
             self, group=station_group_name, props={"location": [-43.623704659672676, 172.6267505162639]}
