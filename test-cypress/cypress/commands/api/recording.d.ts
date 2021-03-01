@@ -2,8 +2,8 @@
 /// <reference types="cypress" />
 
 interface TrackInfo {
-  // start_s? : 10,
-  // end_s? : 22.2,
+  start_s? : number,
+  end_s? : number,
   tag?: string;
   // confidence?: number,
 }

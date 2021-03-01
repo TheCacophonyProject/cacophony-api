@@ -85,6 +85,15 @@ function checkResponseMatches(response: any, expectedVisits: ComparableVisit[]) 
         []);
       simplifiedResponseVisit.recordings = uniqueRecordingIds.length;
     }
+    
+    if (expectedVisit.start) {
+      simplifiedResponseVisit.start = completeResponseVisit.start;
+    }
+
+    if (expectedVisit.end) {
+      simplifiedResponseVisit.end = completeResponseVisit.end;
+    }
+
     responseVisitsToCompare.push(simplifiedResponseVisit);
   }
   expect(JSON.stringify(responseVisitsToCompare)).to.eq(JSON.stringify(expectedVisits));

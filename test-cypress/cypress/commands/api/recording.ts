@@ -122,7 +122,7 @@ function makeRecordingDataFromDetails(
 
 function getDateForRecordings(details: ThermalRecordingInfo): Date {
   let date = lastUsedTime;
-
+  
   if (details.time) {
     date = details.time;
   } else if (details.minsLater || details.secsLater) {
@@ -161,12 +161,14 @@ function addTracksToRecording(
     trackDetails = tags.map((tag) => {return {tag};});
   }
 
+  
   if (trackDetails) {
+    let count = 0;
     data.metadata.tracks = trackDetails.map((track) => {
       let tag = track.tag ? track.tag : "possum";
       return {
-        start_s: 2,
-        end_s: 8,
+        start_s: track.start_s || 2 + count * 10,
+        end_s: track.end_s || 8 + count * 10,
         confident_tag: tag,
         confidence: 0.9
       };

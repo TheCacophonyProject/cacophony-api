@@ -19,10 +19,10 @@ export function sendMultipartMessage (
     xhr.onload = function () {
       onComplete(xhr);
   
-      // send request that cypress waits on to say request is completed.
-      const completedXhr = new XMLHttpRequest();
-      completedXhr.open("POST", v1ApiPath("uploadedFile"));
-      completedXhr.send(JSON.stringify(xhr.response.body));
+      // // send request that cypress waits on to say request is completed.
+      // const completedXhr = new XMLHttpRequest();
+      // completedXhr.open("POST", v1ApiPath("uploadedFile"));
+      // completedXhr.send(JSON.stringify(xhr.response.body));
     };
     xhr.onerror = function () {
       onComplete(xhr);

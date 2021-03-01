@@ -3,8 +3,8 @@
 
 
 interface ComparableVisit {
-  // start?: Date;
-  // end?: Date;
+  start?: Date;
+  end?: Date;
   tag?: string;
   recordings?: number;
 }
