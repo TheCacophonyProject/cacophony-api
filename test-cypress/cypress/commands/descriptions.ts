@@ -14,4 +14,3 @@ export function logTestDescription(
     consoleProps: () => consoleObject
   });
 }
-

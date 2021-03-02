@@ -8,30 +8,34 @@ import { getTestName } from "../names";
 Cypress.Commands.add(
   "apiUploadStations",
   (user: string, group: string, stations: CreateStationData[]) => {
-
-    logTestDescription(`Add stations ${JSON.stringify(stations)} to group ${group}`, {user, group, stations});
+    logTestDescription(
+      `Add stations ${JSON.stringify(stations)} to group ${group}`,
+      { user, group, stations }
+    );
 
     const actualGroup = getTestName(group);
 
-    makeAuthorizedRequest({
+    makeAuthorizedRequest(
+      {
         method: "POST",
         url: v1ApiPath(`groups/${actualGroup}/stations`),
         body: { stations: JSON.stringify(stations) }
-    }, user);
+      },
+      user
+    );
   }
 );
 
-Cypress.Commands.add(
-  "apiCheckStations",
-  (user: string, group: string) => {
+Cypress.Commands.add("apiCheckStations", (user: string, group: string) => {
+  logTestDescription(`Check stations for group ${group}`, { user, group });
 
-    logTestDescription(`Check stations for group ${group}`, {user, group});
+  const actualGroup = getTestName(group);
 
-    const actualGroup = getTestName(group);
-
-    makeAuthorizedRequest({
-        method: "GET",
-        url: v1ApiPath(`groups/${actualGroup}/stations`),
-    }, user);
-  }
-);
+  makeAuthorizedRequest(
+    {
+      method: "GET",
+      url: v1ApiPath(`groups/${actualGroup}/stations`)
+    },
+    user
+  );
+});

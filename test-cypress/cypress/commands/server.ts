@@ -40,7 +40,9 @@ export function saveCreds(response: Cypress.Response, name: string, id = 0) {
   Cypress.env("testCreds")[name] = creds;
 }
 
-export function checkRequestFails(requestDetails: Partial<Cypress.RequestOptions>) {
+export function checkRequestFails(
+  requestDetails: Partial<Cypress.RequestOptions>
+) {
   // must set failOnStatusCode to false, to stop cypress from failing the test due to a failed status code before the then is called.
   requestDetails.failOnStatusCode = false;
   cy.request(requestDetails).then(
@@ -52,8 +54,11 @@ export function checkRequestFails(requestDetails: Partial<Cypress.RequestOptions
   );
 }
 
-export function makeAuthorizedRequest(requestDetails: Partial<Cypress.RequestOptions>, credName: string): Cypress.Chainable<Cypress.Response> {
-  const creds = getCreds(credName); 
+export function makeAuthorizedRequest(
+  requestDetails: Partial<Cypress.RequestOptions>,
+  credName: string
+): Cypress.Chainable<Cypress.Response> {
+  const creds = getCreds(credName);
   requestDetails.headers = creds.headers;
   return cy.request(requestDetails);
 }

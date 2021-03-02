@@ -7,13 +7,18 @@ import { logTestDescription } from "../descriptions";
 Cypress.Commands.add(
   "checkVisitTags",
   (user: string, camera: string, expectedTags: string[]) => {
-    const expectedVisits = expectedTags.map((tag) => {return {tag}});
-
-    logTestDescription(`Check visit tags match ${JSON.stringify(expectedTags)}`, {
-      user,
-      camera,
-      expectedVisits
+    const expectedVisits = expectedTags.map((tag) => {
+      return { tag };
     });
+
+    logTestDescription(
+      `Check visit tags match ${JSON.stringify(expectedTags)}`,
+      {
+        user,
+        camera,
+        expectedVisits
+      }
+    );
 
     checkVisitsMatch(user, camera, expectedVisits);
   }
@@ -22,7 +27,6 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   "checkVisits",
   (user: string, camera: string, expectedVisits: ComparableVisit[]) => {
-
     logTestDescription(`Check visits match ${JSON.stringify(expectedVisits)}`, {
       user,
       camera,
@@ -33,8 +37,11 @@ Cypress.Commands.add(
   }
 );
 
-
-function checkVisitsMatch(user: string, camera: string, expectedVisits: ComparableVisit[]) {
+function checkVisitsMatch(
+  user: string,
+  camera: string,
+  expectedVisits: ComparableVisit[]
+) {
   const where: VisitsWhere = {
     duration: { $gte: "0" },
     type: "thermalRaw"
@@ -58,34 +65,42 @@ function checkVisitsMatch(user: string, camera: string, expectedVisits: Comparab
   });
 }
 
-function checkResponseMatches(response: any, expectedVisits: ComparableVisit[]) {
+function checkResponseMatches(
+  response: any,
+  expectedVisits: ComparableVisit[]
+) {
   const responseVisits = response.body.visits;
 
-  expect(responseVisits.length, `Number of visits to be ${responseVisits.length}`).to.eq(expectedVisits.length);
+  expect(
+    responseVisits.length,
+    `Number of visits to be ${responseVisits.length}`
+  ).to.eq(expectedVisits.length);
   const increasingDateResponseVisits = responseVisits.reverse();
 
   // pull out the bits we care about
-  const responseVisitsToCompare: ComparableVisit[] = []
+  const responseVisitsToCompare: ComparableVisit[] = [];
   for (var i = 0; i < expectedVisits.length; i++) {
     const expectedVisit = expectedVisits[i];
     const completeResponseVisit = increasingDateResponseVisits[i];
-    const simplifiedResponseVisit : ComparableVisit = {}
+    const simplifiedResponseVisit: ComparableVisit = {};
 
     if (expectedVisit.tag) {
       simplifiedResponseVisit.tag = completeResponseVisit.what;
     }
 
     if (expectedVisit.recordings) {
-      const recordingIds = completeResponseVisit.events.map((ev) =>  { return ev.recID });
-      const uniqueRecordingIds = recordingIds.reduce((acc, recId) => { 
-        if(!acc.includes(recId)) {
+      const recordingIds = completeResponseVisit.events.map((ev) => {
+        return ev.recID;
+      });
+      const uniqueRecordingIds = recordingIds.reduce((acc, recId) => {
+        if (!acc.includes(recId)) {
           acc.push(recId);
         }
-        return acc;}, 
-        []);
+        return acc;
+      }, []);
       simplifiedResponseVisit.recordings = uniqueRecordingIds.length;
     }
-    
+
     if (expectedVisit.start) {
       simplifiedResponseVisit.start = completeResponseVisit.start;
     }
@@ -96,9 +111,10 @@ function checkResponseMatches(response: any, expectedVisits: ComparableVisit[]) 
 
     responseVisitsToCompare.push(simplifiedResponseVisit);
   }
-  expect(JSON.stringify(responseVisitsToCompare)).to.eq(JSON.stringify(expectedVisits));
+  expect(JSON.stringify(responseVisitsToCompare)).to.eq(
+    JSON.stringify(expectedVisits)
+  );
 }
-
 
 interface VisitsWhere {
   type: string;

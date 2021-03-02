@@ -16,48 +16,66 @@ Cypress.Commands.add(
       `Upload recording ${JSON.stringify(details)}  to '${cameraName}'`,
       { camera: cameraName, requestData: data }
     );
-  
+
     const fileName = "invalid.cptv";
     const url = v1ApiPath("recordings");
     const fileType = "application/cptv";
-  
-    uploadFile(url, cameraName, fileName, fileType, data, "@addRecording").then((x) => {cy.wrap(x.response.body.recordingId);});
+
+    uploadFile(url, cameraName, fileName, fileType, data, "@addRecording").then(
+      (x) => {
+        cy.wrap(x.response.body.recordingId);
+      }
+    );
   }
 );
 
 Cypress.Commands.add(
   "userTagRecording",
   (recordingId: number, trackIndex: number, tagger: string, tag: string) => {
-
-    logTestDescription(
-      `User '${tagger}' tags recording as '${tag}'`,
-      { recordingId, trackIndex, tagger, tag }
-    );
-
-    makeAuthorizedRequest({
-      method: "GET",
-      url: v1ApiPath(`recordings/${recordingId}/tracks`)
-    }, tagger).then((response) => {
-      makeAuthorizedRequest({
-        method: "POST",
-        url: v1ApiPath(`recordings/${recordingId}/tracks/${response.body.tracks[trackIndex].id}/replaceTag`),
-        body: { what: tag, confidence: .7, automatic: false }
-      }, tagger);
+    logTestDescription(`User '${tagger}' tags recording as '${tag}'`, {
+      recordingId,
+      trackIndex,
+      tagger,
+      tag
     });
-  });
+
+    makeAuthorizedRequest(
+      {
+        method: "GET",
+        url: v1ApiPath(`recordings/${recordingId}/tracks`)
+      },
+      tagger
+    ).then((response) => {
+      makeAuthorizedRequest(
+        {
+          method: "POST",
+          url: v1ApiPath(
+            `recordings/${recordingId}/tracks/${response.body.tracks[trackIndex].id}/replaceTag`
+          ),
+          body: { what: tag, confidence: 0.7, automatic: false }
+        },
+        tagger
+      );
+    });
+  }
+);
 
 Cypress.Commands.add(
   "thenUserTagAs",
   { prevSubject: true },
   (subject, tagger: string, tag: string) => {
-    cy.userTagRecording(subject, 0, tagger, tag );
-  } 
+    cy.userTagRecording(subject, 0, tagger, tag);
+  }
 );
 
 Cypress.Commands.add(
   "uploadRecordingThenUserTag",
-  (camera: string, details: ThermalRecordingInfo, tagger: string, tag: string,) => {
-
+  (
+    camera: string,
+    details: ThermalRecordingInfo,
+    tagger: string,
+    tag: string
+  ) => {
     cy.uploadRecording(camera, details).then((inter) => {
       cy.log(`request is ${JSON.stringify(inter.response.body)}`);
       cy.userTagRecording(inter.response.body.recordingId, 0, tagger, tag);
@@ -122,7 +140,7 @@ function makeRecordingDataFromDetails(
 
 function getDateForRecordings(details: ThermalRecordingInfo): Date {
   let date = lastUsedTime;
-  
+
   if (details.time) {
     date = details.time;
   } else if (details.minsLater || details.secsLater) {
@@ -147,7 +165,7 @@ function getDateForRecordings(details: ThermalRecordingInfo): Date {
 function addTracksToRecording(
   data: ThermalRecordingData,
   model: string,
-  trackDetails?: TrackInfo[], 
+  trackDetails?: TrackInfo[],
   tags?: string[]
 ): void {
   data.metadata = {
@@ -158,10 +176,11 @@ function addTracksToRecording(
   };
 
   if (tags && !trackDetails) {
-    trackDetails = tags.map((tag) => {return {tag};});
+    trackDetails = tags.map((tag) => {
+      return { tag };
+    });
   }
 
-  
   if (trackDetails) {
     let count = 0;
     data.metadata.tracks = trackDetails.map((track) => {
