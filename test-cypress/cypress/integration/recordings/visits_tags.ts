@@ -17,6 +17,13 @@ describe("Visits : tracks and tags", () => {
     cy.checkVisits(Dee, camera, noVisits);
   });
 
+  it("all automatic tags other than master are ignored - to prevent wallaby ai being used on other projects", () => {
+    const camera = "only_master";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecording(camera, { model: "different",  tags: ["cat"] });
+    cy.checkVisitTags(Dee, camera, ["<null>"]);
+  });
+
   it("each recording contributes a vote for what the animal is", () => {
     const camera = "multiple_tracks";
     cy.apiCreateCamera(camera, group);

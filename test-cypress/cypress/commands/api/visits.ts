@@ -85,7 +85,7 @@ function checkResponseMatches(
     const simplifiedResponseVisit: ComparableVisit = {};
 
     if (expectedVisit.tag) {
-      simplifiedResponseVisit.tag = completeResponseVisit.what;
+      simplifiedResponseVisit.tag = completeResponseVisit.what || "<null>";
     }
 
     if (expectedVisit.recordings) {
