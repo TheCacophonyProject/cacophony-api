@@ -2,7 +2,7 @@
 
 import { add } from "cypress/types/lodash";
 
-describe("Add and remove stations for a group", () => {
+describe("Stations: add and remove", () => {
     const Josie = "Josie_stations";
   
     before(() => {
