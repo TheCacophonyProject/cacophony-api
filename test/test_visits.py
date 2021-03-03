@@ -64,7 +64,6 @@ class TestVisits:
         assert list(summary.keys()) == animals
         assert len(response["visits"]) == 9
 
-
     def test_visit_vote(self, helper):
         admin = helper.admin_user()
         cosmo = helper.given_new_user(self, "cosmo")
