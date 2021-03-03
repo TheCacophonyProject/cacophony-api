@@ -66,7 +66,7 @@ function checkVisitsMatch(
 }
 
 function checkResponseMatches(
-  response: any,
+  response: Cypress.Response,
   expectedVisits: ComparableVisit[]
 ) {
   const responseVisits = response.body.visits;
@@ -92,13 +92,8 @@ function checkResponseMatches(
       const recordingIds = completeResponseVisit.events.map((ev) => {
         return ev.recID;
       });
-      const uniqueRecordingIds = recordingIds.reduce((acc, recId) => {
-        if (!acc.includes(recId)) {
-          acc.push(recId);
-        }
-        return acc;
-      }, []);
-      simplifiedResponseVisit.recordings = uniqueRecordingIds.length;
+      const recordingIdsSet = new Set(recordingIds);
+      simplifiedResponseVisit.recordings = recordingIdsSet.size;
     }
 
     if (expectedVisit.start) {

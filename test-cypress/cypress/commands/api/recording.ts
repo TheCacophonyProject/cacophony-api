@@ -77,7 +77,6 @@ Cypress.Commands.add(
     tag: string
   ) => {
     cy.uploadRecording(camera, details).then((inter) => {
-      cy.log(`request is ${JSON.stringify(inter.response.body)}`);
       cy.userTagRecording(inter.response.body.recordingId, 0, tagger, tag);
     });
   }
@@ -176,9 +175,7 @@ function addTracksToRecording(
   };
 
   if (tags && !trackDetails) {
-    trackDetails = tags.map((tag) => {
-      return { tag };
-    });
+    trackDetails = tags.map((tag) => ({tag}));
   }
 
   if (trackDetails) {
@@ -192,6 +189,7 @@ function addTracksToRecording(
         confidence: 0.9
       };
     });
+    count++;
   } else {
     data.metadata.tracks.push({
       start_s: 2,

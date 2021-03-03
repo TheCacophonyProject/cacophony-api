@@ -6,9 +6,9 @@ To make it possible to rerun tests without restarting the database, user, group 
 
 Thus the username "grant" would become something like cy_grant_010c03fb.  
 * **cy_**  is prepended to indicate that it is a test artifact.  (This allows us to delete such artifacts from our test server)
-* **_xxxxxxxx**  A random string is postpended to make it unique accross test runs.  The same random string is used for all tests within the same test run.
+* **_xxxxxxxx**  A random string is postpended to make it unique across test runs.  The same random string is used for all tests within the same test run.
 
-Sometimes, when developing a test you might want to user the same user, group etc accross run.   You can do this by setting what the random string will be.   In the above case use:
+Sometimes, when developing a test you might want to user the same user, group etc across run.   You can do this by setting what the random string will be.   For example in the above case the code would be:
 ```
   // this must be done before any names are used. 
   initializeTestNames('010c03fb');
@@ -25,7 +25,7 @@ It goes without saying that all tests should run:
   * Individually - as single it(....)
   * As part of the suite of all tests
 
-You can reuse users, cameras etc within a file, but only if each of the individual tests don't rely object created by other parts of the test.
+You can reuse users, cameras etc within a file, but only if each of the individual tests don't rely on object created by other parts of the test.
 
 
 ## **TEST** logging to describe test.
@@ -41,5 +41,5 @@ When creating a **logTestDescription** you can also add a map of extra informati
 if the line is clicked.   So add any extra information that you think may be userful. 
 
 In the future we may also use these statements to describe what our tests do to document such behaviour as the criteria around visits.   In such areas the
-idea is quite simple, but there is enough complexity that only fine grain examples can really define what is happening. 
+idea is quite simple, but there is enough complexity that only fine grained examples can really define what is happening. 
 
