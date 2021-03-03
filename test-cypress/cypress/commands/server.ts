@@ -1,14 +1,14 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 export const DEFAULT_DATE = new Date(2021, 1, 16, 22);
-import url = require("url");
+import {format as urlFormat} from "url";
 
 export function apiPath(): string {
   return Cypress.env("cacophony-api-server");
 }
 
 export function v1ApiPath(page: string, queryParams: any = {}): string {
-  const urlpage = url.format({
+  const urlpage = urlFormat({
     pathname: `/api/v1/${page}`,
     query: queryParams
   });
