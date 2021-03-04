@@ -358,30 +358,44 @@ class Visit {
     this.addRecording(rec, userID);
   }
 
-  mostCommonTag(): string | null {
+  mostCommonTag(): [boolean| null, string | null] {
     // from all events in a visit, get the tag with the highest occurence that
     // isnt unidentified
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
-      if (a == unidentified) {
+      const [type_a, what_a] = a.split("-");
+      const [type_b, what_b] = b.split("-");
+      if(type_a != type_b){
+        // human tag takes precedence
+        if (type_a == "human"){
+          return -1;
+        }else{
+          return 1;
+        }
+      }
+      if (what_a == unidentified) {
         return 1;
-      } else if (b == unidentified) {
+      } else if (what_b == unidentified) {
         return -1;
       }
       return tagCount[b] - tagCount[a];
     });
+
     const maxVote = sortedKeys[0];
     if (maxVote) {
-      return maxVote;
+      const [type, what] = maxVote.split("-")
+      const humanTag = type == "human" ? true : false
+      return [humanTag, what];
     }
-    return null;
+    return [null,null];
   }
   completeVisit() {
     // assign the visit a tag based on the most common tag that isn't unidentified
-    const visitTag = this.mostCommonTag();
-    this.what = visitTag;
+    const [humanTag, what] = this.mostCommonTag();
+    this.what = what;
     for (const event of this.events) {
-      event.assumedTag = visitTag;
+      event.assumedTag = what;
+      event.assumedIsHuman = humanTag;
     }
     this.complete = true;
   }
@@ -428,10 +442,11 @@ class Visit {
     if (!event.what) {
       return;
     }
-    if (event.what in this.tagCount) {
-      this.tagCount[event.what] += 1;
+    const key = (event.automatic ? "ai" : "human") + "-" +  event.what
+    if (key in this.tagCount) {
+      this.tagCount[key] += 1;
     } else {
-      this.tagCount[event.what] = 1;
+      this.tagCount[key] = 1;
     }
   }
 
@@ -455,6 +470,7 @@ class VisitEvent {
   // e.g. if it was unidentified but grouped under a cat visit
   // assumedTag woudl be "cat"
   assumedTag: string;
+  assumedIsHuman: boolean;
   recID: number;
   recStart: Moment;
   trackID: number;
@@ -465,6 +481,7 @@ class VisitEvent {
   audioBaitEvents: Event[];
   audioBaitVisit: boolean;
   what: string;
+  automatic: boolean
   constructor(rec: Recording, track: Track, tag: TrackTag, taggedAs: TrackTag) {
     const trackTimes = new TrackStartEnd(rec, track);
     this.audioBaitDay = false;
@@ -475,6 +492,7 @@ class VisitEvent {
     this.trackID = track.id;
     if (taggedAs) {
       this.what = taggedAs.what;
+      this.automatic = taggedAs.automatic;
       this.confidence = Math.round(taggedAs.confidence * 100);
     } else {
       this.what = null;
