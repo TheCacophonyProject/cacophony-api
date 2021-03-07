@@ -309,7 +309,7 @@ export default function (sequelize, DataTypes): GroupStatic {
       where: {
         // Filter out retired stations.
         retiredAt: {
-          [Op.not]: null
+          [Op.eq]: null
         }
       }
     });
