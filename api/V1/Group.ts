@@ -92,7 +92,7 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/groups Get groups
+   * @api {get} /api/v1/groups Get all groups the user has access to
    * @apiName GetGroups
    * @apiGroup Group
    *
@@ -107,11 +107,16 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     apiUrl,
-    [auth.authenticateUser, middleware.parseJSON("where", query)],
+    [
+        auth.authenticateUser,
+        middleware.parseJSON("where", query).optional(),
+        middleware.viewMode()
+    ],
     middleware.requestWrapper(async (request, response) => {
       const groups = await models.Group.query(
-        request.query.where,
-        request.user
+        request.query.where || {},
+        request.user,
+        request.body.viewAsSuperAdmin
       );
       return responseUtil.send(response, {
         statusCode: 200,
@@ -120,6 +125,39 @@ export default function (app: Application, baseUrl: string) {
       });
     })
   );
+
+    /**
+     * @api {get} /api/v1/groups/{groupNameOrId} Get a group by name or id
+     * @apiName GetGroup
+     * @apiGroup Group
+     *
+     * @apiUse V1UserAuthorizationHeader
+     *
+     * @apiUse V1ResponseSuccess
+     * @apiSuccess {Group} groups Array of groups (but should only contain one item)
+     *
+     * @apiUse V1ResponseError
+     */
+    app.get(
+        `${apiUrl}/:groupIdOrName`,
+        [
+            auth.authenticateUser,
+            middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+            middleware.viewMode()
+        ],
+        middleware.requestWrapper(async (request, response) => {
+            const groups = await models.Group.query(
+                { "id": request.body.group.id },
+                request.user,
+                request.viewAsSuperAdmin
+            );
+            return responseUtil.send(response, {
+                statusCode: 200,
+                messages: [],
+                groups
+            });
+        })
+    );
 
   /**
    * @api {get} /api/v1/groups/{groupIdOrName}/devices Retrieves all active devices for a group.

@@ -256,7 +256,7 @@ const userCanAccessDevices = async (request, response, next) => {
   }
 
   try {
-    await request.user.checkUserControlsDevices(devices);
+    await request.user.checkUserControlsDevices(devices, request.body.viewAsSuperAdmin === true);
   } catch (e) {
     return response.status(403).json({ messages: [e.message] });
   }

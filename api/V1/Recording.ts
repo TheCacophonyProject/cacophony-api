@@ -221,6 +221,8 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryVisits
    * @apiGroup Recordings
    *
+   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
@@ -231,7 +233,11 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     apiUrl + "/visits",
-    [auth.authenticateUser, ...queryValidators],
+    [
+        auth.authenticateUser,
+        middleware.viewMode(),
+        ...queryValidators,
+    ],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.queryVisits(
@@ -259,6 +265,8 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryRecordings
    * @apiGroup Recordings
    *
+   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
@@ -269,7 +277,11 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     apiUrl,
-    [auth.authenticateUser, ...queryValidators],
+    [
+        auth.authenticateUser,
+        middleware.viewMode(),
+        ...queryValidators
+    ],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.query(
@@ -292,6 +304,8 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryRecordingsCount
    * @apiGroup Recordings
    *
+   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
    * @apiUse MoreQueryParams
@@ -301,7 +315,11 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/count`,
-    [auth.authenticateUser, ...queryValidators],
+    [
+        auth.authenticateUser,
+        middleware.viewMode(),
+        ...queryValidators
+    ],
     middleware.requestWrapper(
       async (request: RecordingQuery, response: e.Response) => {
         const user = request.user;
@@ -326,7 +344,7 @@ export default (app: Application, baseUrl: string) => {
             }
           ]
         };
-        if (user.hasGlobalRead()) {
+        if (request.body.viewAsSuperAdmin && user.hasGlobalRead()) {
           // Dont' filter on user if the user has global read permissons.
           delete countQuery.include[0].include;
         }

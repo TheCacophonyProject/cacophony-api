@@ -53,7 +53,7 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   getGroups: (options: { where: any, attributes: string[] }) => Promise<Group[]>;
   isInGroup: (groupId: number) => Promise<boolean>;
   isGroupAdmin: (groupId: number) => Promise<boolean>;
-  checkUserControlsDevices: (deviceIds: number[]) => Promise<void>;
+  checkUserControlsDevices: (deviceIds: number[], viewAsSuperAdmin?: boolean) => Promise<void>;
   canAccessDevice: (deviceId: number) => Promise<bool>;
   canAccessGroup: (groupId: number) => Promise<bool>;
   getDeviceIds: () => Promise<number>;
@@ -321,8 +321,8 @@ export default function (
     return deviceIds.includes(deviceId);
   };
 
-  User.prototype.checkUserControlsDevices = async function (deviceIds) {
-    if (!this.hasGlobalWrite()) {
+  User.prototype.checkUserControlsDevices = async function (deviceIds, viewAsSuperAdmin = true) {
+    if (!(viewAsSuperAdmin && this.hasGlobalWrite())) {
       const usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach((deviceId) => {
