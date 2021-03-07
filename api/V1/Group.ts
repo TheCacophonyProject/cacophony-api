@@ -229,6 +229,75 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
+   * @api {get} /api/v1/groups/{groupIdOrName}/devices Retrieves all active devices for a group.
+   * @apiName GetDevicesForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view devices that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:groupIdOrName/devices`,
+    [
+        auth.authenticateUser,
+        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+        auth.userHasReadAccessToGroup
+    ],
+    middleware.requestWrapper(async (request, response) => {
+        const devices = await request.body.group.getDevices({ where: { active: true}, attributes: ["id", "devicename" ]});
+        return responseUtil.send(response, {
+            statusCode: 200,
+            data: devices.map(({id, devicename}) => ({
+                id,
+                deviceName: devicename
+            })),
+            messages: ["Got devices for group"]
+        });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/groups/{groupIdOrName}/users Retrieves all users for a group.
+   * @apiName GetUsersForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view users that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:groupIdOrName/users`,
+    [
+        auth.authenticateUser,
+        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+        auth.userHasReadAccessToGroup
+    ],
+    middleware.requestWrapper(async (request, response) => {
+        const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
+        return responseUtil.send(response, {
+            statusCode: 200,
+            data: users.map(({username, id, GroupUsers }) => ({
+                userName: username,
+                id,
+                isGroupAdmin: GroupUsers.admin
+            })),
+            messages: ["Got users for group"]
+        });
+    })
+  );
+
+  /**
    * @api {post} /api/v1/groups/users Add a user to a group.
    * @apiName AddUserToGroup
    * @apiGroup Group
