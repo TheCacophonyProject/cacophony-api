@@ -45,7 +45,7 @@ export interface Event extends Sequelize.Model, ModelCommon<Event> {
 }
 
 export interface QueryOptions {
-  eventType: string;
+  eventType: string | string[];
   admin: boolean;
   useCreatedDate: boolean;
 }
@@ -123,7 +123,11 @@ export default function (sequelize, DataTypes) {
     }
     const eventWhere: any = {};
     if (options && options.eventType) {
-      eventWhere.type = options.eventType;
+      if (Array.isArray(options.eventType)){
+        eventWhere.type = {Op.in: options.eventType}
+      }else{
+        eventWhere.type = options.eventType;
+      }
     }
 
     let order: any[] = ["dateTime"];
