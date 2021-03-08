@@ -78,6 +78,13 @@ async function stoppedDevices(request: any, admin?: boolean) : Promise<DeviceSta
   options.admin = admin;
   options.useCreatedDate = false;
 
+  if (
+    query.startTime == undefined ||
+    query.startTime == null
+  ) {
+    query.startTime = moment().subtract(48, "hours");
+  }
+
   const result = await models.Event.query(
     request.user,
     query.startTime,
@@ -158,14 +165,15 @@ export class DeviceStartStop {
       // check that started hasn't occured after stopped
       if(this.stopped ==null || this.started.isAfter(this.stopped)){
         if(this.stopped == null){
-          hasStopped = true;
-          // hasStopped = moment().diff(this.started, "minutes") >12 * 60;;
+          // check that the started event was atleast 12 hours ago
+          hasStopped = moment().diff(this.started, "hours") >12;;
         }else{
             //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
             hasStopped= moment().diff(this.stopped, "minutes") > 24.5 * 60;
         }
       }else{
         // check this isn't yesterdays start stop events
+        console.log("has start and stop")
         hasStopped = moment().diff(this.started, "hours") > 24
       }
 
