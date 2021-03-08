@@ -363,8 +363,12 @@ class Visit {
     // isnt unidentified
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
-      const [type_a, what_a] = a.split("-");
-      const [type_b, what_b] = b.split("-");
+      let hyphen = a.indexOf("-");
+      const type_a = a.substring(0,hyphen);
+      const what_a = a.substring(hyphen+1);
+      hyphen = b.indexOf("-");
+      const type_b = b.substring(0,hyphen);
+      const what_b = b.substring(hyphen+1);
       if(type_a != type_b){
         // human tag takes precedence
         if (type_a == "human"){
@@ -383,8 +387,11 @@ class Visit {
 
     const maxVote = sortedKeys[0];
     if (maxVote) {
-      const [type, what] = maxVote.split("-")
+      let hyphen = maxVote.indexOf("-");
+      const type = maxVote.substring(0,hyphen);
+      const what = maxVote.substring(hyphen+1);
       const humanTag = type == "human" ? true : false
+
       return [humanTag, what];
     }
     return [null,null];
