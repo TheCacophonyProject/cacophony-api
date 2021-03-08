@@ -1,5 +1,8 @@
 import middleware from "../middleware";
 import models from "../../models";
+import { Device } from "../../models/Device";
+import { Event } from "../../models/Event";
+
 import { QueryOptions } from "../../models/Event";
 
 import responseUtil from "./responseUtil";
@@ -68,7 +71,7 @@ async function uploadEvent(request, response) {
   });
 }
 
-async function stoppedDevices(request: any, admin?: boolean) {
+async function stoppedDevices(request: any, admin?: boolean) : Promise<DeviceStartStop[]> {
   const query = request.query;
   let options = {} as QueryOptions;
   options.eventType = ["rpi-power-on","daytime-power-off","stop-reported"];
@@ -79,7 +82,7 @@ async function stoppedDevices(request: any, admin?: boolean) {
     request.user,
     query.startTime,
     query.endTime,
-    query.deviceId,
+    query.deviceID,
     query.offset,
     query.limit,
     false,
@@ -87,14 +90,14 @@ async function stoppedDevices(request: any, admin?: boolean) {
   );
 
   const startStopByDevice = {};
-  for(const event of result){
+   for(const event of result.rows){
     if(startStopByDevice.hasOwnProperty(event.DeviceId)){
       startStopByDevice[event.DeviceId].update(event);
     }else{
       startStopByDevice[event.DeviceId] =new DeviceStartStop(event);
     }
   }
-  const stoppedDevices = Object.values(startStopsByDevice).filter(device => device.unreportedStop());
+  const stoppedDevices = Object.values(startStopByDevice).filter(device => (device as DeviceStartStop).unreportedStop()) as DeviceStartStop[];
   return stoppedDevices;
 }
 
@@ -111,11 +114,11 @@ const eventAuth = [
   )
 ];
 
-class DeviceStartStop {
+export class DeviceStartStop {
   stopReported: Moment | null;
   started: Moment| null;
   stopped: Moment| null;
-  device: Device | null;
+  Device: Device | null;
   constructor(event: Event)
    {
     this.stopReported = null;
@@ -124,23 +127,25 @@ class DeviceStartStop {
     this.update(event);
   }
   update(event:Event){
-    if(!this.device){
-      this.deivce = event.Device;
+    if(!this.Device && event.Device){
+      this.Device = event.Device;
+      this.Device.id = event.DeviceId
     }
-    switch(event.type) {
+    const eventDate = moment(event.dateTime);
+    switch(event.EventDetail.type) {
       case "rpi-power-on":
-        if(this.started == null || moment(event.dateTime).isAfter(this.started)){
-          this.started = moment(event.dateTime);
+        if(this.started == null || eventDate.isAfter(this.started)){
+          this.started =eventDate;
         }
         break;
       case "daytime-power-off":
-        if(this.stopped == null || moment(event.dateTime).isAfter(this.stopped)){
-          this.stopped = moment(event.dateTime);
+        if(this.stopped == null || eventDate.isAfter(this.stopped)){
+          this.stopped =eventDate;
         }
         break;
       case "stop-reported":
-        if(this.stopReported == null || moment(event.stopReported).isAfter(this.stopReported)){
-          this.stopReported = moment(event.stopReported);
+        if(this.stopReported == null || eventDate.isAfter(this.stopReported)){
+          this.stopReported =eventDate;
         }
     }
   }
@@ -153,10 +158,11 @@ class DeviceStartStop {
       // check that started hasn't occured after stopped
       if(this.stopped ==null || this.started.isAfter(this.stopped)){
         if(this.stopped == null){
-        hasStopped = true;
+          hasStopped = true;
+          // hasStopped = moment().diff(this.started, "minutes") >12 * 60;;
         }else{
             //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
-            hasStopped= now().diff(this.stopped, "minutes") > 24.5 * 60;
+            hasStopped= moment().diff(this.stopped, "minutes") > 24.5 * 60;
         }
       }else{
         // check this isn't yesterdays start stop events
@@ -176,5 +182,5 @@ export default {
   eventAuth,
   uploadEvent,
   errors,
-  stoppedDevices
+  stoppedDevices,
 };

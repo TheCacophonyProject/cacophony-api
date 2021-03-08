@@ -6,6 +6,11 @@ from test.testexception import AuthorizationError
 
 
 class TestEvent:
+    def test_start_stop(self, helper):
+        user, device = helper.given_new_user_with_device(self, "error_maker")
+        device.record_event("rpi-power-on", {})
+        # device.record_event("daytime-power-off", {})
+
     def test_system_errors(self, helper):
         user, device = helper.given_new_user_with_device(self, "error_maker")
         new_event_name = "systemError"

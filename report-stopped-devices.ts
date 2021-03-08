@@ -1,9 +1,9 @@
 import config from "./config";
 const winston = require("winston");
-import eventUtil from "./api/V1/eventUtil";
+import eventUtil, {DeviceStartStop} from "./api/V1/eventUtil";
 import moment, { Moment } from "moment";
-import { ServiceErrorMap } from "./api/V1/systemError";
 import { sendEmail } from "./emailUtil";
+import models from "./models";
 
 async function main() {
   if (!config.smtpDetails) {
@@ -20,13 +20,36 @@ async function main() {
   }
   const html = generateHtml(startDate, stoppedDevices);
   const text = generateText(startDate, stoppedDevices);
+  //
+  // const success = await sendEmail(
+  //   html,
+  //   text,
+  //   "giampaolo@cacophony.org.nz",
+  //   "Stopped Devices in the last 24 hours"
+  // );
+  const success = true;
+  if(success){
+      const detail = await models.DetailSnapshot.getOrCreateMatching(
+        "stop-reported",
+        {}
+      );
+      const detailsId = detail.id;
+      const eventList = [];
+      const time = new Date();
 
-  await sendEmail(
-    html,
-    text,
-    "coredev@cacophony.org.nz",
-    "Stopped Devices in the last 24 hours"
-  );
+      for(const stoppedDevice of stoppedDevices){
+        eventList.push({
+          DeviceId: stoppedDevice.Device.id,
+          EventDetailId: detailsId,
+          dateTime: time
+        })
+      }
+      try {
+        await models.Event.bulkCreate(eventList);
+      } catch (exception) {
+        log.error("Failed to record stop-reported events.", exception.message)
+      }
+  }
 }
 
 function generateText(
@@ -36,7 +59,7 @@ function generateText(
   let textBody = `Stopped Devices ${startDate.format(
     "MMM ddd Do ha"
   )}\r\n`;
-  for (const event of stoppedDevice) {
+  for (const event of stoppedDevices) {
     let deviceText = `${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped\r\n`;
     textBody += deviceText;
   }
@@ -45,15 +68,15 @@ function generateText(
 }
 function generateHtml(
   startDate: Moment,
-  stoppedDevices: DeviceStartStop
+  stoppedDevices: DeviceStartStop[]
 ): string {
   let html = `<h1>Stopped Devices ${startDate.format(
     "MMM ddd Do ha"
-  )} - ${endDate.format("MMM ddd Do ha")}<h1>`;
+  )} <h1>`;
   html += '<li>'
-  for (const event of stoppedDevice) {
+  for (const event of stoppedDevices) {
     let deviceText = `<ul>${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped</ul>`;
-    textBody += deviceText;
+    html += deviceText;
   }
   html += '</li>'
   html += "<br><p>Thanks,<br> Cacophony Team</p>";

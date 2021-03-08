@@ -124,7 +124,8 @@ export default function (sequelize, DataTypes) {
     const eventWhere: any = {};
     if (options && options.eventType) {
       if (Array.isArray(options.eventType)){
-        eventWhere.type = {Op.in: options.eventType}
+        eventWhere.type = {};
+        eventWhere.type[Op.in] = options.eventType;
       }else{
         eventWhere.type = options.eventType;
       }
