@@ -4,6 +4,17 @@
 declare namespace Cypress {
   interface Chainable {
     /**
+     * Record a event for this device
+     */
+    recordEvent(
+      cameraName: string,
+      type: string,
+      details:any,
+      date: Date,
+      log?: boolean
+    ): Chainable<Element>;
+
+    /**
      * create a group for the given user (who has already been referenced in the test
      */
     apiCreateCamera(

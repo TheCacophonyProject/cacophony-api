@@ -6,10 +6,40 @@ from test.testexception import AuthorizationError
 
 
 class TestEvent:
-    def test_start_stop(self, helper):
-        user, device = helper.given_new_user_with_device(self, "error_maker")
+    def test_stopped_devices(self, helper):
+        user, device = helper.given_new_user_with_device(self, "first_timer")
         device.record_event("rpi-power-on", {})
-        # device.record_event("daytime-power-off", {})
+        stoppedDevices = user.stopped_devices()
+        print("A device that has just been turned on triggers no alert")
+        assert len(stoppedDevices) == 0
+
+        user, device = helper.given_new_user_with_device(self, "yesterdays_starter")
+        now = datetime.now(tz=timezone.utc)
+        yesterday = now - timedelta(days=1, hours=1)
+        device.record_event("rpi-power-on", {}, times=[yesterday])
+        device.record_event("daytime-power-off", {}, times=[yesterday + timedelta(hours=12)])
+        stoppedDevices = user.stopped_devices()
+        print(
+            "A device that has a on and off from yesterday and has been over 24 hours since powered on is considered stopped"
+        )
+        assert len(stoppedDevices) == 1
+
+        print("Device has been reported as stopped prior to on and off")
+        device.record_event("stop-reported", {}, times=[yesterday - timedelta(minutes=1)])
+        print("This device still is reported as stopped")
+        stoppedDevices = user.stopped_devices()
+        assert len(stoppedDevices) == 1
+
+        print("Device is reported as stopped, and will not trigger another report")
+        device.record_event("stop-reported", {})
+        stoppedDevices = user.stopped_devices()
+        assert len(stoppedDevices) == 0
+
+        user, device = helper.given_new_user_with_device(self, "battery_breaker")
+        print("Device is powers on yesterday but never powers off is reported")
+        device.record_event("rpi-power-on", {}, times=[yesterday])
+        stoppedDevices = user.stopped_devices()
+        assert len(stoppedDevices) == 1
 
     def test_system_errors(self, helper):
         user, device = helper.given_new_user_with_device(self, "error_maker")

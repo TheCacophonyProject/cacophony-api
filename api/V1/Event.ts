@@ -201,11 +201,7 @@ export default function (app: Application, baseUrl: string) {
      * @apiGroup Events
      *
      * @apiUse V1UserAuthorizationHeader
-     * @apiParam {Datetime} [startTime] Return only errors after this time
-     * @apiParam {Datetime} [endTime] Return only errors from before this time
      * @apiParam {Integer} [deviceId] Return only errors for this device id
-     * @apiParam {Integer} [limit] Limit returned errors to this number (default is 100)
-     * @apiParam {Integer} [offset] Offset returned errors by this amount (default is 0)
      *
      * @apiSuccess {JSON} map of Service Name to Service errors
      * @apiUse V1ResponseError
@@ -214,17 +210,7 @@ export default function (app: Application, baseUrl: string) {
       apiUrl + "/stoppedDevices",
       [
         auth.authenticateUser,
-        query("startTime")
-          // @ts-ignore
-          .isISO8601({ strict: true })
-          .optional(),
-        query("endTime")
-          // @ts-ignore
-          .isISO8601({ strict: true })
-          .optional(),
         query("deviceId").isInt().optional().toInt(),
-        query("offset").isInt().optional().toInt(),
-        query("limit").isInt().optional().toInt()
       ],
       middleware.requestWrapper(async (request, response) => {
         const result = await eventUtil.stoppedDevices(request);

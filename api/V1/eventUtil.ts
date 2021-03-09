@@ -78,24 +78,11 @@ async function stoppedDevices(request: any, admin?: boolean) : Promise<DeviceSta
   options.admin = admin;
   options.useCreatedDate = false;
 
-  if (
-    query.startTime == undefined ||
-    query.startTime == null
-  ) {
-    query.startTime = moment().subtract(48, "hours");
-  }
-
-  const result = await models.Event.query(
+  const result = await models.Event.latestPowerEvents(
     request.user,
-    query.startTime,
-    query.endTime,
     query.deviceID,
-    query.offset,
-    query.limit,
-    false,
     options
   );
-
   const startStopByDevice = {};
    for(const event of result.rows){
     if(startStopByDevice.hasOwnProperty(event.DeviceId)){
@@ -107,7 +94,6 @@ async function stoppedDevices(request: any, admin?: boolean) : Promise<DeviceSta
   const stoppedDevices = Object.values(startStopByDevice).filter(device => (device as DeviceStartStop).unreportedStop()) as DeviceStartStop[];
   return stoppedDevices;
 }
-
 
 const eventAuth = [
   middleware.getDetailSnapshotById(body, "eventDetailId").optional(),
@@ -136,7 +122,6 @@ export class DeviceStartStop {
   update(event:Event){
     if(!this.Device && event.Device){
       this.Device = event.Device;
-      this.Device.id = event.DeviceId
     }
     const eventDate = moment(event.dateTime);
     switch(event.EventDetail.type) {
@@ -166,14 +151,13 @@ export class DeviceStartStop {
       if(this.stopped ==null || this.started.isAfter(this.stopped)){
         if(this.stopped == null){
           // check that the started event was atleast 12 hours ago
-          hasStopped = moment().diff(this.started, "hours") >12;;
+          hasStopped = moment().diff(this.started, "hours") >12;
         }else{
-            //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
-            hasStopped= moment().diff(this.stopped, "minutes") > 24.5 * 60;
+          //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
+          hasStopped= moment().diff(this.stopped, "minutes") > 24.5 * 60;
         }
       }else{
         // check this isn't yesterdays start stop events
-        console.log("has start and stop")
         hasStopped = moment().diff(this.started, "hours") > 24
       }
 
