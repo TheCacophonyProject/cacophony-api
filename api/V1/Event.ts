@@ -222,7 +222,7 @@ export default function (app: Application, baseUrl: string) {
         query("deviceId").isInt().optional().toInt(),
       ],
       middleware.requestWrapper(async (request, response) => {
-        const result = await eventUtil.stoppedDevices(request);
+        const result = await eventUtil.powerEventsPerDevice(request);
         return responseUtil.send(response, {
           statusCode: 200,
           messages: ["Completed query."],

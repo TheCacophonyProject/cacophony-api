@@ -29,15 +29,15 @@ function checkDeviceStopped(
   camera: string,
   expected: boolean
 ) {
+	const params = {
+    deviceID:getCreds(camera).id
+  };
 
-	makeAuthorizedRequest(
-		{
-			method: "GET",
-	    url: v1ApiPath("events/powerEvents"),
-	    headers: getCreds(user).headers
-		},
-		camera
-	).then((response) => {
+  cy.request({
+    method: "GET",
+    url: v1ApiPath("events/powerEvents", params),
+    headers: getCreds(user).headers
+  }).then((response) => {
     checkResponseMatches(response, expected);
   });
 }
