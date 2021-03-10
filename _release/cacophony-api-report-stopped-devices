@@ -1,0 +1,4 @@
+#
+# cron.d/cacophony-api-report-errors
+# every day at 11
+0 11 * * * root (cd /srv/cacophony/api/ && node report-stopped-devices.js) 2>&1 | logger --tag report-errors
