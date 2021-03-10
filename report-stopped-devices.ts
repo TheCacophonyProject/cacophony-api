@@ -24,8 +24,8 @@ async function main() {
   const success = await sendEmail(
     html,
     text,
-    "giampaolo@cacophony.org.nz",
-    "Stopped Devices in the last 24 hours"
+    "coredev@cacophony.org.nz",
+    "Stopped Devices"
   );
   if(success){
       const detail = await models.DetailSnapshot.getOrCreateMatching(

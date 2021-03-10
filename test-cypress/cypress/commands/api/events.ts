@@ -1,7 +1,7 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-import { v1ApiPath, getCreds } from "../server";
+import { v1ApiPath, getCreds, makeAuthorizedRequest } from "../server";
 import { logTestDescription } from "../descriptions";
 
 
@@ -14,7 +14,7 @@ export const EventTypes = {
 Cypress.Commands.add(
   "checkStopped",
   (user: string, camera: string, expected: boolean) => {
-    logTestDescription(`Check that ${camera} is reported as ${expected ? 'stopped' : 'running'}`, {
+    logTestDescription(`Check that ${camera} is ${expected ? 'stopped' : 'running'}`, {
       user,
       camera,
       expected
@@ -30,15 +30,14 @@ function checkDeviceStopped(
   expected: boolean
 ) {
 
-  const params = {
-    deviceID:getCreds(camera).id
-  };
-
-  cy.request({
-    method: "GET",
-    url: v1ApiPath("events/powerEvents", params),
-    headers: getCreds(user).headers
-  }).then((response) => {
+	makeAuthorizedRequest(
+		{
+			method: "GET",
+	    url: v1ApiPath("events/powerEvents"),
+	    headers: getCreds(user).headers
+		},
+		camera
+	).then((response) => {
     checkResponseMatches(response, expected);
   });
 }
@@ -51,6 +50,6 @@ function checkResponseMatches(
   const powerEvents = response.body.rows[0];
   expect(
     powerEvents.hasStopped,
-    `Device should be reported as ${expected ? 'stopped' : 'running'}`
+    `Device should be ${expected ? 'stopped' : 'running'}`
   ).to.eq(expected);
 }
