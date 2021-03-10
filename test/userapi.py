@@ -335,11 +335,6 @@ class UserAPI(APIBase):
             "events/errors", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit
         )
 
-    def query_stopped_devices(self, deviceId=None, startTime=None, endTime=None, limit=20):
-        return self._query(
-            "events/stoppedDevices", deviceId=deviceId, startTime=startTime, endTime=endTime, limit=limit
-        )
-
     def query_events(self, deviceId=None, startTime=None, endTime=None, type=None, limit=20, latest=None):
 
         return self._query(
