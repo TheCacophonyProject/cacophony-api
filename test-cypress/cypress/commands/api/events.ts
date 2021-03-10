@@ -5,6 +5,11 @@ import { v1ApiPath, getCreds } from "../server";
 import { logTestDescription } from "../descriptions";
 
 
+export const EventTypes = {
+	POWERED_ON: "rpi-power-on",
+	POWERED_OFF: "daytime-power-off",
+	STOP_REPORTED: "stop-reported",
+}
 
 Cypress.Commands.add(
   "checkStopped",
@@ -26,12 +31,12 @@ function checkDeviceStopped(
 ) {
 
   const params = {
-    deviceId:getCreds(camera).id
+    deviceID:getCreds(camera).id
   };
 
   cy.request({
     method: "GET",
-    url: v1ApiPath("events/stoppedDevices", params),
+    url: v1ApiPath("events/powerEvents", params),
     headers: getCreds(user).headers
   }).then((response) => {
     checkResponseMatches(response, expected);
@@ -42,10 +47,10 @@ function checkResponseMatches(
   response: Cypress.Response,
   expected: boolean
 ) {
-  const responseVisits = response.body.rows;
 
+  const powerEvents = response.body.rows[0];
   expect(
-    responseVisits.length > 0,
+    powerEvents.hasStopped,
     `Device should be reported as ${expected ? 'stopped' : 'running'}`
   ).to.eq(expected);
 }

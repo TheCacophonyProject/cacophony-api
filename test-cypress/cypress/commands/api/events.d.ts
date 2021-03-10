@@ -1,4 +1,9 @@
 
+const EventTypes = {
+	POWERED_ON: "rpi-power-on",
+	POWERED_OFF: "daytime-power-off",
+	STOP_REPORTED: "stop-reported",
+}
 
 declare namespace Cypress {
   interface Chainable {

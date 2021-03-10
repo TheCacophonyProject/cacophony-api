@@ -4,9 +4,9 @@ import { logTestDescription } from "../descriptions";
 
 Cypress.Commands.add(
   "recordEvent",
-  (camera: string, type: string, details:any, date: Date, log = true) => {
+  (camera: string, type: string, details = {}, date = new Date(), log = true) => {
     const data = {dateTimes: [date.toISOString()], description: {type: type, details: details}};
-    logTestDescription(`Create ${type} event for ${camera} at ${date} with details ${details}`,
+    logTestDescription(`Create ${type} event for ${camera} at ${date}`,
       {data: data},
       log
     );

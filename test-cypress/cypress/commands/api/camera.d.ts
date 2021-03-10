@@ -9,8 +9,8 @@ declare namespace Cypress {
     recordEvent(
       cameraName: string,
       type: string,
-      details:any,
-      date: Date,
+      details?:any,
+      date?: Date,
       log?: boolean
     ): Chainable<Element>;
 

@@ -196,18 +196,27 @@ export default function (app: Application, baseUrl: string) {
   );
 
     /**
-     * @api {get} /api/v1/events/stoppedDevices Query stopped devices
-     * @apiName QueryErrors
+     * @api {get} /api/v1/events/powerEvents Query power events for devices
+     * @apiName QueryPower
      * @apiGroup Events
      *
      * @apiUse V1UserAuthorizationHeader
      * @apiParam {Integer} [deviceId] Return only errors for this device id
      *
-     * @apiSuccess {JSON} map of Service Name to Service errors
+     * @apiSuccess {JSON} array of device power events
+     * @apiSuccessExample {json} Success-Response:
+      *     HTTP/1.1 200 OK
+      *     "rows": [{
+      *       "lastReported": "2021-03-09 08:00:00",
+      *       "lastStarted": "2021-03-09 18:00:00",
+      *       "lastStopped": "2021-03-10 08:00:00",
+      *       "Device": {"id": 10, "devicename": "Camera2", "groupname": "examplegroup"},
+      *       "hasStopped": true
+      *     }]
      * @apiUse V1ResponseError
      */
     app.get(
-      apiUrl + "/stoppedDevices",
+      apiUrl + "/powerEvents",
       [
         auth.authenticateUser,
         query("deviceId").isInt().optional().toInt(),
@@ -217,8 +226,6 @@ export default function (app: Application, baseUrl: string) {
         return responseUtil.send(response, {
           statusCode: 200,
           messages: ["Completed query."],
-          limit: request.query.limit,
-          offset: request.query.offset,
           rows: result
         });
       })

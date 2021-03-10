@@ -1,6 +1,6 @@
 import config from "./config";
 const winston = require("winston");
-import eventUtil, {DeviceStartStop} from "./api/V1/eventUtil";
+import eventUtil, {PowerEvents} from "./api/V1/eventUtil";
 import moment, { Moment } from "moment";
 import { sendEmail } from "./emailUtil";
 import models from "./models";
@@ -54,7 +54,7 @@ async function main() {
 
 function generateText(
   startDate: Moment,
-  stoppedDevices: DeviceStartStop[]
+  stoppedDevices: PowerEvents[]
 ): string {
   let textBody = `Stopped Devices ${startDate.format(
     "MMM ddd Do ha"
@@ -68,7 +68,7 @@ function generateText(
 }
 function generateHtml(
   startDate: Moment,
-  stoppedDevices: DeviceStartStop[]
+  stoppedDevices: PowerEvents[]
 ): string {
   let html = `<h1>Stopped Devices ${startDate.format(
     "MMM ddd Do ha"
