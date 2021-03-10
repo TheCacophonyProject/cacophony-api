@@ -71,7 +71,7 @@ async function uploadEvent(request, response) {
   });
 }
 
-async function stoppedDevices(request: any, admin?: boolean) : Promise<PowerEvents[]> {
+async function powerEventsPerDevice(request: any, admin?: boolean) : Promise<PowerEvents[]> {
   const query = request.query;
   let options = {} as QueryOptions;
   options.eventType = ["rpi-power-on","daytime-power-off","stop-reported"];
@@ -82,19 +82,19 @@ async function stoppedDevices(request: any, admin?: boolean) : Promise<PowerEven
     query.deviceID,
     options
   );
-  const startStopByDevice = {};
+  const deviceEvents = {};
    for(const event of result.rows){
-    if(startStopByDevice.hasOwnProperty(event.DeviceId)){
-      startStopByDevice[event.DeviceId].update(event);
+    if(deviceEvents.hasOwnProperty(event.DeviceId)){
+      deviceEvents[event.DeviceId].update(event);
     }else{
-      startStopByDevice[event.DeviceId] =new PowerEvents(event);
+      deviceEvents[event.DeviceId] =new PowerEvents(event);
     }
   }
-  for (const id of Object.keys(startStopByDevice)) {
-    startStopByDevice[id].checkIfStopped();
+  for (const id of Object.keys(deviceEvents)) {
+    deviceEvents[id].checkIfStopped();
   }
 
-  return Object.values(startStopByDevice) as PowerEvents[];
+  return Object.values(deviceEvents) as PowerEvents[];
 }
 
 const eventAuth = [
@@ -182,5 +182,5 @@ export default {
   eventAuth,
   uploadEvent,
   errors,
-  stoppedDevices,
+  powerEventsPerDevice,
 };

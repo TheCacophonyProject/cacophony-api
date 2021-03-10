@@ -13,21 +13,20 @@ async function main() {
   const query = {
     startTime: startDate.toDate()
   };
-  const stoppedDevices = await eventUtil.stoppedDevices({ query: query }, true);
+  const stoppedDevices = (await eventUtil.powerEventsPerDevice({ query: query }, true)).filter((device : PowerEvents) => device.hasStopped == true);
   if (stoppedDevices.length == 0) {
     log.info("No stopped devices in the last 24 hours");
     return;
   }
   const html = generateHtml(startDate, stoppedDevices);
   const text = generateText(startDate, stoppedDevices);
-  //
-  // const success = await sendEmail(
-  //   html,
-  //   text,
-  //   "giampaolo@cacophony.org.nz",
-  //   "Stopped Devices in the last 24 hours"
-  // );
-  const success = true;
+
+  const success = await sendEmail(
+    html,
+    text,
+    "giampaolo@cacophony.org.nz",
+    "Stopped Devices in the last 24 hours"
+  );
   if(success){
       const detail = await models.DetailSnapshot.getOrCreateMatching(
         "stop-reported",
