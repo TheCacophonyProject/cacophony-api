@@ -71,10 +71,13 @@ async function uploadEvent(request, response) {
   });
 }
 
-async function powerEventsPerDevice(request: any, admin?: boolean) : Promise<PowerEvents[]> {
+async function powerEventsPerDevice(
+  request: any,
+  admin?: boolean
+): Promise<PowerEvents[]> {
   const query = request.query;
   let options = {} as QueryOptions;
-  options.eventType = ["rpi-power-on","daytime-power-off","stop-reported"];
+  options.eventType = ["rpi-power-on", "daytime-power-off", "stop-reported"];
   options.admin = admin;
   options.useCreatedDate = false;
   const result = await models.Event.latestEvents(
@@ -83,11 +86,11 @@ async function powerEventsPerDevice(request: any, admin?: boolean) : Promise<Pow
     options
   );
   const deviceEvents = {};
-   for(const event of result.rows){
-    if(deviceEvents.hasOwnProperty(event.DeviceId)){
+  for (const event of result.rows) {
+    if (deviceEvents.hasOwnProperty(event.DeviceId)) {
       deviceEvents[event.DeviceId].update(event);
-    }else{
-      deviceEvents[event.DeviceId] =new PowerEvents(event);
+    } else {
+      deviceEvents[event.DeviceId] = new PowerEvents(event);
     }
   }
   for (const id of Object.keys(deviceEvents)) {
@@ -111,76 +114,78 @@ const eventAuth = [
 
 export class PowerEvents {
   lastReported: Moment | null;
-  lastStarted: Moment| null;
-  lastStopped: Moment| null;
+  lastStarted: Moment | null;
+  lastStopped: Moment | null;
   Device: Device | null;
   hasStopped: boolean;
-  constructor(event: Event)
-   {
+  constructor(event: Event) {
     this.hasStopped = false;
     this.lastReported = null;
     this.lastStarted = null;
     this.lastStopped = null;
     this.update(event);
   }
-  update(event:Event){
-    if(!this.Device && event.Device){
+  update(event: Event) {
+    if (!this.Device && event.Device) {
       this.Device = event.Device;
     }
     const eventDate = moment(event.dateTime);
-    switch(event.EventDetail.type) {
+    switch (event.EventDetail.type) {
       case "rpi-power-on":
-        if(this.lastStarted == null || eventDate.isAfter(this.lastStarted)){
-          this.lastStarted =eventDate;
+        if (this.lastStarted == null || eventDate.isAfter(this.lastStarted)) {
+          this.lastStarted = eventDate;
         }
         break;
       case "daytime-power-off":
-        if(this.lastStopped == null || eventDate.isAfter(this.lastStopped)){
-          this.lastStopped =eventDate;
+        if (this.lastStopped == null || eventDate.isAfter(this.lastStopped)) {
+          this.lastStopped = eventDate;
         }
         break;
       case "stop-reported":
-        if(this.lastReported == null || eventDate.isAfter(this.lastReported)){
-          this.lastReported =eventDate;
+        if (this.lastReported == null || eventDate.isAfter(this.lastReported)) {
+          this.lastReported = eventDate;
         }
     }
   }
   checkIfStopped(): boolean {
-      if(this.lastStarted == null){
-        this.hasStopped = false;
-        return this.hasStopped;
-      }
-      let hasStopped = false;
-
-      // check that started hasn't occured after stopped
-      if(this.lastStopped ==null || this.lastStarted.isAfter(this.lastStopped)){
-        if(this.lastStopped == null){
-          // check that the started event was atleast 12 hours ago
-          hasStopped = moment().diff(this.lastStarted, "hours") >12;
-        }else{
-          //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
-          hasStopped= moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
-        }
-      }else{
-        // check this isn't yesterdays start stop events
-        hasStopped = moment().diff(this.lastStarted, "hours") > 24
-      }
-
-      // check we haven't already reported this event
-      if(hasStopped){
-        this.hasStopped =  this.lastReported == null || this.lastReported.isBefore(this.lastStarted);
-      }else{
-        this.hasStopped = false;
-      }
+    if (this.lastStarted == null) {
+      this.hasStopped = false;
       return this.hasStopped;
+    }
+    let hasStopped = false;
 
+    // check that started hasn't occured after stopped
+    if (
+      this.lastStopped == null ||
+      this.lastStarted.isAfter(this.lastStopped)
+    ) {
+      if (this.lastStopped == null) {
+        // check that the started event was atleast 12 hours ago
+        hasStopped = moment().diff(this.lastStarted, "hours") > 12;
+      } else {
+        //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
+        hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
+      }
+    } else {
+      // check this isn't yesterdays start stop events
+      hasStopped = moment().diff(this.lastStarted, "hours") > 24;
+    }
+
+    // check we haven't already reported this event
+    if (hasStopped) {
+      this.hasStopped =
+        this.lastReported == null ||
+        this.lastReported.isBefore(this.lastStarted);
+    } else {
+      this.hasStopped = false;
+    }
+    return this.hasStopped;
   }
 }
-
 
 export default {
   eventAuth,
   uploadEvent,
   errors,
-  powerEventsPerDevice,
+  powerEventsPerDevice
 };

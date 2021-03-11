@@ -1,13 +1,28 @@
 import { getTestName } from "../names";
-import { v1ApiPath, saveCreds, checkRequestFails, makeAuthorizedRequest } from "../server";
+import {
+  v1ApiPath,
+  saveCreds,
+  checkRequestFails,
+  makeAuthorizedRequest
+} from "../server";
 import { logTestDescription } from "../descriptions";
 
 Cypress.Commands.add(
   "recordEvent",
-  (camera: string, type: string, details = {}, date = new Date(), log = true) => {
-    const data = {dateTimes: [date.toISOString()], description: {type: type, details: details}};
-    logTestDescription(`Create ${type} event for ${camera} at ${date}`,
-      {data: data},
+  (
+    camera: string,
+    type: string,
+    details = {},
+    date = new Date(),
+    log = true
+  ) => {
+    const data = {
+      dateTimes: [date.toISOString()],
+      description: { type: type, details: details }
+    };
+    logTestDescription(
+      `Create ${type} event for ${camera} at ${date}`,
+      { data: data },
       log
     );
     makeAuthorizedRequest(

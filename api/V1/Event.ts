@@ -195,39 +195,36 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
-    /**
-     * @api {get} /api/v1/events/powerEvents Query power events for devices
-     * @apiName QueryPower
-     * @apiGroup Events
-     *
-     * @apiUse V1UserAuthorizationHeader
-     * @apiParam {Integer} [deviceId] Return only errors for this device id
-     *
-     * @apiSuccess {JSON} array of device power events
-     * @apiSuccessExample {json} Success-Response:
-      *     HTTP/1.1 200 OK
-      *     "rows": [{
-      *       "lastReported": "2021-03-09 08:00:00",
-      *       "lastStarted": "2021-03-09 18:00:00",
-      *       "lastStopped": "2021-03-10 08:00:00",
-      *       "Device": {"id": 10, "devicename": "Camera2", "groupname": "examplegroup"},
-      *       "hasStopped": true
-      *     }]
-     * @apiUse V1ResponseError
-     */
-    app.get(
-      apiUrl + "/powerEvents",
-      [
-        auth.authenticateUser,
-        query("deviceId").isInt().optional().toInt(),
-      ],
-      middleware.requestWrapper(async (request, response) => {
-        const result = await eventUtil.powerEventsPerDevice(request);
-        return responseUtil.send(response, {
-          statusCode: 200,
-          messages: ["Completed query."],
-          rows: result
-        });
-      })
-    );
+  /**
+   * @api {get} /api/v1/events/powerEvents Query power events for devices
+   * @apiName QueryPower
+   * @apiGroup Events
+   *
+   * @apiUse V1UserAuthorizationHeader
+   * @apiParam {Integer} [deviceId] Return only errors for this device id
+   *
+   * @apiSuccess {JSON} array of device power events
+   * @apiSuccessExample {json} Success-Response:
+   *     HTTP/1.1 200 OK
+   *     "rows": [{
+   *       "lastReported": "2021-03-09 08:00:00",
+   *       "lastStarted": "2021-03-09 18:00:00",
+   *       "lastStopped": "2021-03-10 08:00:00",
+   *       "Device": {"id": 10, "devicename": "Camera2", "groupname": "examplegroup"},
+   *       "hasStopped": true
+   *     }]
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    apiUrl + "/powerEvents",
+    [auth.authenticateUser, query("deviceId").isInt().optional().toInt()],
+    middleware.requestWrapper(async (request, response) => {
+      const result = await eventUtil.powerEventsPerDevice(request);
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Completed query."],
+        rows: result
+      });
+    })
+  );
 }
