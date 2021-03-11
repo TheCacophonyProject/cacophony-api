@@ -77,7 +77,7 @@ async function powerEventsPerDevice(request: any, admin?: boolean) : Promise<Pow
   options.eventType = ["rpi-power-on","daytime-power-off","stop-reported"];
   options.admin = admin;
   options.useCreatedDate = false;
-  const result = await models.Event.latestPowerEvents(
+  const result = await models.Event.latestEvents(
     request.user,
     query.deviceID,
     options
@@ -117,7 +117,7 @@ export class PowerEvents {
   hasStopped: boolean;
   constructor(event: Event)
    {
-     this.hasStopped = false;
+    this.hasStopped = false;
     this.lastReported = null;
     this.lastStarted = null;
     this.lastStopped = null;

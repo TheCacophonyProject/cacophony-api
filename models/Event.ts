@@ -61,7 +61,7 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     latest: boolean | null | undefined,
     options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
-  latestPowerEvents: (
+  latestEvents: (
     user: User,
     deviceId: DeviceId | null | undefined,
     options?: QueryOptions
@@ -169,10 +169,9 @@ export default function (sequelize, DataTypes) {
 
 
     /**
-     * Return one or more recordings for a user matching the query
-     * arguments given.
+     * Return the latest event of each type grouped by device id
      */
-    Event.latestPowerEvents = async function (
+    Event.latestEvents = async function (
       user,
       deviceId,
       options
@@ -216,7 +215,7 @@ export default function (sequelize, DataTypes) {
           }
         ],
         attributes:[
-          Sequelize.literal('DISTINCT ON("Event"."DeviceId","EventDetail"."type") 1'),
+          Sequelize.literal('DISTINCT ON("Event"."DeviceId","EventDetail"."type") 1'), // the 1 is some kind of hack that makes this work in sequelize
           "id",
           "dateTime",
           "DeviceId",
