@@ -15,6 +15,7 @@ describe("Device names", () => {
     cy.recordEvent(camera,EventTypes.POWERED_ON)
     cy.checkStopped(user,camera, false);
   });
+
   it("Device that has been on for longer than 12 hours and hasn't stopped is reported", () => {
     const camera = "c1"
     cy.apiCreateCamera(camera, group)
@@ -63,7 +64,7 @@ describe("Device names", () => {
     cy.checkStopped(user,camera, true);
   });
 
-  it("Device checked before it is expected to have powered down", () => {
+  it("Device checked before it is expected to have powered down is not reported", () => {
     const camera = "c6"
     cy.apiCreateCamera(camera, group)
     const priorOn = moment().subtract(36,"hours");
@@ -77,7 +78,7 @@ describe("Device names", () => {
   });
 
 
-  it("Device hasn't been checked for a long time", () => {
+  it("Device hasn't been checked for a long time is reported", () => {
     const camera = "c7"
     cy.apiCreateCamera(camera, group)
     const priorOn = moment().subtract(20,"days");
