@@ -155,6 +155,10 @@ export default function (sequelize, DataTypes) {
           as: "EventDetail",
           attributes: ["type", "details"],
           where: eventWhere
+        },
+        {
+          model: models.Device,
+          attributes: ["devicename"]
         }
       ],
       attributes: { exclude: ["updatedAt", "EventDetailId"] },
