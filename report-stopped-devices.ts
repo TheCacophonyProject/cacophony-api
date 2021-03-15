@@ -5,7 +5,7 @@ import moment, { Moment } from "moment";
 import { sendEmail } from "./emailUtil";
 import models from "./models";
 
-const ADMIN_EMAILS = ["coredev@cophony.org.nz", "support@2040.co.nz"]
+const ADMIN_EMAILS = ["coredev@cophony.org.nz", "support@2040.co.nz"];
 async function main() {
   if (!config.smtpDetails) {
     throw "No SMTP details found in config/app.js";
@@ -14,18 +14,38 @@ async function main() {
     await eventUtil.powerEventsPerDevice({ query: {} }, true)
   ).filter((device: PowerEvents) => device.hasStopped == true);
   if (stoppedDevices.length == 0) {
-    log.info("No stopped devices in the last 24 hours");
+    log.info("No new stopped devices");
     return;
   }
-  const html = generateHtml(stoppedDevices,);
-  const text = generateText(stoppedDevices);
 
-  const success = await sendEmail(
-    html,
-    text,
-    "coredev@cacophony.org.nz",
-    "Stopped Devices"
-  );
+  const userDevices = {};
+  for (const stoppedDevice of stoppedDevices) {
+    const users = (stoppedDevice.Device as any).Group.Users;
+    for (const user of users) {
+      if (userDevices.hasOwnProperty(user.id)) {
+        userDevices[user.id].stoppedDevices.push(stoppedDevice);
+      } else {
+        userDevices[user.id] = { user: user, stoppedDevices: [stoppedDevice] };
+      }
+    }
+  }
+  let success = false;
+  for (const userID in userDevices) {
+    const userInfo = userDevices[userID];
+
+    const html = generateHtml(userInfo.stoppedDevices);
+    const text = generateText(userInfo.stoppedDevices);
+    success =
+      success ||
+      (await sendEmail(html, text, userInfo.user.email, "Stopped Devices"));
+  }
+
+  for (const email of ADMIN_EMAILS) {
+    const html = generateHtml(stoppedDevices);
+    const text = generateText(stoppedDevices);
+    success =
+      success || (await sendEmail(html, text, email, "Stopped Devices"));
+  }
   if (success) {
     const detail = await models.DetailSnapshot.getOrCreateMatching(
       "stop-reported",
@@ -50,25 +70,31 @@ async function main() {
   }
 }
 
-function generateText(
-  stoppedDevices: PowerEvents[]
-): string {
+function generateText(stoppedDevices: PowerEvents[]): string {
   let textBody = `Stopped Devices ${moment().format("MMM ddd Do ha")}\r\n`;
   for (const event of stoppedDevices) {
-    let deviceText = `${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped, last powered on ${event.lastStarted.format("MMM ddd Do ha")}\r\n`;
+    let deviceText = `${event.Device.groupname}- ${event.Device.devicename} ${
+      event.Device.id
+    } has stopped, last powered on ${event.lastStarted.format(
+      "MMM ddd Do ha"
+    )}\r\n`;
     textBody += deviceText;
   }
   textBody += "Thanks, Cacophony Team";
   return textBody;
 }
 
-function generateHtml(
-  stoppedDevices: PowerEvents[]
-): string {
+function generateHtml(stoppedDevices: PowerEvents[]): string {
   let html = `<h1>Stopped Devices ${moment().format("MMM ddd Do ha")} <h1>`;
   html += "<li>";
   for (const event of stoppedDevices) {
-    let deviceText = `<ul>${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped, last powered on ${event.lastStarted.format("MMM ddd Do ha")}</ul>`;
+    let deviceText = `<ul>${event.Device.groupname}- ${
+      event.Device.devicename
+    } ${
+      event.Device.id
+    } has stopped, last powered on ${event.lastStarted.format(
+      "MMM ddd Do ha"
+    )}</ul>`;
     html += deviceText;
   }
   html += "</li>";

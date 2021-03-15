@@ -211,6 +211,10 @@ export default function (app: Application, baseUrl: string) {
    *       "lastStarted": "2021-03-09 18:00:00",
    *       "lastStopped": "2021-03-10 08:00:00",
    *       "Device": {"id": 10, "devicename": "Camera2", "groupname": "examplegroup"},
+   *       "AdminUsers":
+   *       [
+   *        {"id":2, "email": admin@pest.co.nz, "firstname": John, "lastname": Doe, admin: True}
+   *       ]
    *       "hasStopped": true
    *     }]
    * @apiUse V1ResponseError

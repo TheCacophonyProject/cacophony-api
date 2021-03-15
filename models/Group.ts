@@ -184,6 +184,7 @@ export interface Group extends Sequelize.Model, ModelCommon<Group> {
   addUser: (userToAdd: User, through: any) => Promise<void>;
   addStation: (stationToAdd: CreateStationData) => Promise<void>;
   getUsers: (options?: {
+    through?: any;
     where?: any;
     attributes?: string[];
   }) => Promise<User[]>;

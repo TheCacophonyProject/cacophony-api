@@ -2,6 +2,7 @@ import middleware from "../middleware";
 import models from "../../models";
 import { Device } from "../../models/Device";
 import { Event } from "../../models/Event";
+import { User } from "../../models/User";
 
 import { QueryOptions } from "../../models/Event";
 
@@ -90,7 +91,11 @@ async function powerEventsPerDevice(
     if (deviceEvents.hasOwnProperty(event.DeviceId)) {
       deviceEvents[event.DeviceId].update(event);
     } else {
-      deviceEvents[event.DeviceId] = new PowerEvents(event);
+      const group = await event.Device.getGroup();
+      const adminUsers = await group.getUsers({
+        through: { where: { admin: true } }
+      });
+      deviceEvents[event.DeviceId] = new PowerEvents(event, adminUsers);
     }
   }
   for (const id of Object.keys(deviceEvents)) {
@@ -118,7 +123,7 @@ export class PowerEvents {
   lastStopped: Moment | null;
   Device: Device | null;
   hasStopped: boolean;
-  constructor(event: Event) {
+  constructor(event: Event, public AdminUsers: User[]) {
     this.hasStopped = false;
     this.lastReported = null;
     this.lastStarted = null;
