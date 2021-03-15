@@ -28,7 +28,7 @@ describe("Device names", () => {
     cy.checkStopped(user, camera, true);
   });
 
-  it("Device started and stopped yesterday, and not today is reporterd", () => {
+  it("Device started and stopped yesterday, and not today is reported", () => {
     const camera = "c2";
     cy.apiCreateCamera(camera, group);
     const yesterdayStart = moment().subtract(40, "hours");
@@ -46,7 +46,7 @@ describe("Device names", () => {
     cy.checkStopped(user, camera, true);
   });
 
-  it("Once reported is not reported again", () => {
+  it("Once reported is not reported again, until powered on again", () => {
     const camera = "c4";
     cy.apiCreateCamera(camera, group);
     const yesterday = moment().subtract(13, "hours");

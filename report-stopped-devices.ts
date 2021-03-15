@@ -5,23 +5,20 @@ import moment, { Moment } from "moment";
 import { sendEmail } from "./emailUtil";
 import models from "./models";
 
+const ADMIN_EMAILS = ["coredev@cophony.org.nz", "support@2040.co.nz"]
 async function main() {
   if (!config.smtpDetails) {
     throw "No SMTP details found in config/app.js";
   }
-  const startDate = moment().tz(config.timeZone).subtract(48, "hours");
-  const query = {
-    startTime: startDate.toDate()
-  };
   const stoppedDevices = (
-    await eventUtil.powerEventsPerDevice({ query: query }, true)
+    await eventUtil.powerEventsPerDevice({ query: {} }, true)
   ).filter((device: PowerEvents) => device.hasStopped == true);
   if (stoppedDevices.length == 0) {
     log.info("No stopped devices in the last 24 hours");
     return;
   }
-  const html = generateHtml(startDate, stoppedDevices);
-  const text = generateText(startDate, stoppedDevices);
+  const html = generateHtml(stoppedDevices,);
+  const text = generateText(stoppedDevices);
 
   const success = await sendEmail(
     html,
@@ -54,25 +51,24 @@ async function main() {
 }
 
 function generateText(
-  startDate: Moment,
   stoppedDevices: PowerEvents[]
 ): string {
-  let textBody = `Stopped Devices ${startDate.format("MMM ddd Do ha")}\r\n`;
+  let textBody = `Stopped Devices ${moment().format("MMM ddd Do ha")}\r\n`;
   for (const event of stoppedDevices) {
-    let deviceText = `${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped\r\n`;
+    let deviceText = `${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped, last powered on ${event.lastStarted.format("MMM ddd Do ha")}\r\n`;
     textBody += deviceText;
   }
   textBody += "Thanks, Cacophony Team";
   return textBody;
 }
+
 function generateHtml(
-  startDate: Moment,
   stoppedDevices: PowerEvents[]
 ): string {
-  let html = `<h1>Stopped Devices ${startDate.format("MMM ddd Do ha")} <h1>`;
+  let html = `<h1>Stopped Devices ${moment().format("MMM ddd Do ha")} <h1>`;
   html += "<li>";
   for (const event of stoppedDevices) {
-    let deviceText = `<ul>${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped</ul>`;
+    let deviceText = `<ul>${event.Device.groupname}- ${event.Device.devicename} ${event.Device.id} has stopped, last powered on ${event.lastStarted.format("MMM ddd Do ha")}</ul>`;
     html += deviceText;
   }
   html += "</li>";

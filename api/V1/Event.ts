@@ -206,7 +206,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiSuccess {JSON} array of device power events
    * @apiSuccessExample {json} Success-Response:
    *     HTTP/1.1 200 OK
-   *     "rows": [{
+   *     "events": [{
    *       "lastReported": "2021-03-09 08:00:00",
    *       "lastStarted": "2021-03-09 18:00:00",
    *       "lastStopped": "2021-03-10 08:00:00",
@@ -223,7 +223,7 @@ export default function (app: Application, baseUrl: string) {
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Completed query."],
-        rows: result
+        events: result
       });
     })
   );

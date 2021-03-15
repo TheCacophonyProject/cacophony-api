@@ -158,7 +158,16 @@ export default function (sequelize, DataTypes) {
         },
         {
           model: models.Device,
-          attributes: ["devicename"]
+          attributes: ["devicename"],
+          include: {
+            model: models.Groups,
+            include: {
+              model: models.User,
+              as: "AdminUsers",
+              attributes: ["id","username","email","firstName","lastName"],
+              where: {admin:true}
+            }
+          }
         }
       ],
       attributes: { exclude: ["updatedAt", "EventDetailId"] },
