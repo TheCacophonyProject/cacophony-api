@@ -9,23 +9,27 @@ describe("Device names", () => {
     cy.apiCreateUserGroup(user, group);
   });
 
-  it.only("Events contain only admin users for this group", () => {
-    const camera = "Active";
+  it("Events contain only admin users for this group", () => {
+    const camera = "c0";
     cy.apiCreateCamera(camera, group);
+
     cy.apiCreateUser("John_Doe");
-    cy.apiAddUserToGroup(user, "John_Doe", group, true);
+    cy.apiAddUserToGroup(user, "John_Doe", group, false);
+
+    cy.apiCreateUser("Jain_Doe");
+    cy.apiAddUserToGroup(user, "Jain_Doe", group, true);
     cy.recordEvent(camera, EventTypes.POWERED_ON);
-    cy.checkPowerEvents(user, camera, false, [user, "John_Doe"]);
+    cy.checkPowerEvents(user, camera, false, [user, "Jain_Doe"]);
   });
 
-  it("New Device isn't reported", () => {
+  it("New Device isn't marked as stopped", () => {
     const camera = "Active";
     cy.apiCreateCamera(camera, group);
     cy.recordEvent(camera, EventTypes.POWERED_ON);
     cy.checkPowerEvents(user, camera, false);
   });
 
-  it("Device that has been on for longer than 12 hours and hasn't stopped is reported", () => {
+  it("Device that has been on for longer than 12 hours and hasn't stopped is marked as stopped", () => {
     const camera = "c1";
     cy.apiCreateCamera(camera, group);
     cy.recordEvent(
@@ -37,7 +41,7 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, true);
   });
 
-  it("Device started and stopped yesterday, and not today is reported", () => {
+  it("Device started and stopped yesterday, and not today is marked as stopped", () => {
     const camera = "c2";
     cy.apiCreateCamera(camera, group);
     const yesterdayStart = moment().subtract(40, "hours");
@@ -47,7 +51,7 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, true);
   });
 
-  it("Device started over 12 hours ago but never stopped is reported", () => {
+  it("Device started over 12 hours ago but never stopped is marked as stopped", () => {
     const camera = "c3";
     cy.apiCreateCamera(camera, group);
     const yesterday = moment().subtract(13, "hours");
@@ -55,7 +59,7 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, true);
   });
 
-  it("Once reported is not reported again, until powered on again", () => {
+  it("Once reported is not marked as stopped again, until powered on again", () => {
     const camera = "c4";
     cy.apiCreateCamera(camera, group);
     const yesterday = moment().subtract(13, "hours");
@@ -65,7 +69,7 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, false);
   });
 
-  it("Device powered on & off yesterday but only on last night", () => {
+  it("Device powered on & off yesterday but only on last night is marked as stopped", () => {
     const camera = "c5";
     cy.apiCreateCamera(camera, group);
     const priorOn = moment().subtract(37, "hours");
@@ -78,7 +82,7 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, true);
   });
 
-  it("Device checked before it is expected to have powered down is not reported", () => {
+  it("Device checked before it is expected to have powered down is not marked as stopped", () => {
     const camera = "c6";
     cy.apiCreateCamera(camera, group);
     const priorOn = moment().subtract(36, "hours");
@@ -91,28 +95,28 @@ describe("Device names", () => {
     cy.checkPowerEvents(user, camera, false);
   });
 
-  it("Device hasn't been checked for a long time is reported", () => {
+  it("Device hasn't been checked for a long time is marked as stopped", () => {
     const camera = "c7";
     cy.apiCreateCamera(camera, group);
     const priorOn = moment().subtract(20, "days");
-    const priorStop = moment().subtract(20, "days");
+    const priorStop = moment().subtract(20, "days").add(12, "hours");
     cy.recordEvent(camera, EventTypes.POWERED_ON, {}, priorOn);
     cy.recordEvent(camera, EventTypes.POWERED_OFF, {}, priorStop);
     cy.checkPowerEvents(user, camera, true);
   });
 
-  it("Device that has been reported, is reported again after new power cycles", () => {
+  it("Device that has been reported, is marked as stopped again after new power cycles", () => {
     const camera = "c8";
     cy.apiCreateCamera(camera, group);
     const priorOn = moment().subtract(5, "days");
-    const priorStop = moment().subtract(5, "days");
+    const priorStop = moment().subtract(5, "days").add(12, "hours");
     cy.recordEvent(camera, EventTypes.POWERED_ON, {}, priorOn);
     cy.recordEvent(camera, EventTypes.POWERED_OFF, {}, priorStop);
     cy.checkPowerEvents(user, camera, true);
     cy.recordEvent(camera, EventTypes.STOP_REPORTED, {}, priorStop);
 
     const newOn = moment().subtract(3, "days");
-    const newOff = moment().subtract(3, "days");
+    const newOff = moment().subtract(3, "days").add(12, "hours");
     cy.recordEvent(camera, EventTypes.POWERED_ON, {}, newOn);
     cy.recordEvent(camera, EventTypes.POWERED_OFF, {}, newOff);
     cy.checkPowerEvents(user, camera, true);

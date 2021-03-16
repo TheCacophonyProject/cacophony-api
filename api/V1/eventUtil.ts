@@ -160,17 +160,12 @@ export class PowerEvents {
     let hasStopped = false;
 
     // check that started hasn't occured after stopped
-    if (
-      this.lastStopped == null ||
-      this.lastStarted.isAfter(this.lastStopped)
-    ) {
-      if (this.lastStopped == null) {
-        // check that the started event was atleast 12 hours ago
-        hasStopped = moment().diff(this.lastStarted, "hours") > 12;
-      } else {
-        //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
-        hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
-      }
+    if (this.lastStopped == null) {
+      // check that the started event was atleast 12 hours ago
+      hasStopped = moment().diff(this.lastStarted, "hours") > 12;
+    } else if (this.lastStarted.isAfter(this.lastStopped)) {
+      //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
+      hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
     } else {
       // check this isn't yesterdays start stop events
       hasStopped = moment().diff(this.lastStarted, "hours") > 24;
