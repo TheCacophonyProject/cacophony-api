@@ -118,7 +118,7 @@ export default function (app: Application, baseUrl: string) {
       query("deviceId").isInt().optional().toInt(),
       query("offset").isInt().optional().toInt(),
       query("limit").isInt().optional().toInt(),
-      query("type").isAlpha().optional()
+      query("type").matches(eventUtil.EVENT_TYPE_REGEXP).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       const query = request.query;

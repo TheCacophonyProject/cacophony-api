@@ -6,6 +6,8 @@ import responseUtil from "./responseUtil";
 import { body, oneOf } from "express-validator/check";
 import { groupSystemErrors } from "./systemError";
 
+const EVENT_TYPE_REGEXP = /^[A-Z0-9/-]+$/i;
+
 async function errors(request: any, admin?: boolean) {
   const query = request.query;
   let options = {} as QueryOptions;
@@ -73,14 +75,16 @@ const eventAuth = [
     "dateTimes",
     "List of times event occured is required."
   ),
+  body("description.type").matches(EVENT_TYPE_REGEXP).optional(), 
   oneOf(
     [body("eventDetailId").exists(), body("description.type").exists()],
-    "Either 'eventDetailId' or 'description.type' must be specified."
+    "Either 'eventDetailId' or 'description.type' must be specified.  Description"
   )
 ];
 
 export default {
   eventAuth,
   uploadEvent,
-  errors
+  errors, 
+  EVENT_TYPE_REGEXP
 };
