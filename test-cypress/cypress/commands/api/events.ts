@@ -61,19 +61,4 @@ function checkResponseMatches(
       expectedEvent.hasAlerted ? "alerted" : "not alerted"
     }`
   ).to.eq(expectedEvent.hasAlerted);
-
-  if (powerEvent.users != null) {
-    const expectedUsers = expectedEvent.users.map((user) => getTestName(user));
-    const reportedUsers = powerEvent.UsersToAlert.map((user) => user.username);
-    expect(
-      reportedUsers,
-      `Device should have ${expectedUsers} as admin users but got
-      ${reportedUsers}`
-    ).to.include.members(expectedUsers);
-    expect(
-      reportedUsers,
-      `Device should only have ${expectedUsers.length}( ${expectedUsers} ) as admin users but got
-      ${reportedUsers.length}(${reportedUsers})`
-    ).lengthOf(expectedUsers.length);
-  }
 }

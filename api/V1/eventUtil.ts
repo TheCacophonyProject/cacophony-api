@@ -172,7 +172,7 @@ export class PowerEvents {
       this.hasStopped = moment().diff(this.lastStarted, "hours") > 24;
     }
 
-    // check we haven't already reported this event
+    // check if we have already reported this event
     if (this.hasStopped) {
       this.hasAlerted =
         this.lastReported != null &&

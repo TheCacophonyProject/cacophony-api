@@ -1,7 +1,6 @@
 interface ComparablePowerEvent {
   hasStopped: boolean;
   hasAlerted: boolean;
-  users?: any[];
 }
 
 declare namespace Cypress {
