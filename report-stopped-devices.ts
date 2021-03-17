@@ -45,7 +45,7 @@ async function main() {
     return;
   }
 
-  const userEvents = getUserEvents(powerEvents);
+  const userEvents = await getUserEvents(powerEvents);
 
   let success = false;
   for (const userID in userEvents) {
