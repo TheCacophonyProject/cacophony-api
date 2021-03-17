@@ -12,28 +12,24 @@ export const EventTypes = {
 
 Cypress.Commands.add(
   "checkPowerEvents",
-  (user: string, camera: string, expected: boolean, adminUsers = null) => {
+  (user: string, camera: string, expectedEvent: ComparablePowerEvent) => {
     logTestDescription(
-      `Check that ${camera} is ${
-        expected ? "stopped" : "running"
-      } with admin users ${adminUsers}`,
+      `Check power events for ${camera} is ${JSON.stringify(expectedEvent)}}`,
       {
         user,
         camera,
-        expected,
-        adminUsers
+        expectedEvent
       }
     );
 
-    checkEvents(user, camera, expected, adminUsers);
+    checkEvents(user, camera, expectedEvent);
   }
 );
 
 function checkEvents(
   user: string,
   camera: string,
-  stopped: boolean,
-  adminUsers: string[] = null
+  expectedEvent: ComparablePowerEvent
 ) {
   const params = {
     deviceID: getCreds(camera).id
@@ -44,24 +40,31 @@ function checkEvents(
     url: v1ApiPath("events/powerEvents", params),
     headers: getCreds(user).headers
   }).then((response) => {
-    checkResponseMatches(response, stopped, adminUsers);
+    checkResponseMatches(response, expectedEvent);
   });
 }
 
 function checkResponseMatches(
   response: Cypress.Response,
-  stopped: boolean,
-  adminUsers: string[] = null
+  expectedEvent: ComparablePowerEvent
 ) {
-  const powerEvents = response.body.events[0];
-  expect(
-    powerEvents.hasStopped,
-    `Device should be ${stopped ? "stopped" : "running"}`
-  ).to.eq(stopped);
+  expect(response.body.events.length, `Expected 1 event`).to.eq(1);
+  const powerEvent = response.body.events[0];
 
-  if (adminUsers != null) {
-    const expectedUsers = adminUsers.map((user) => getTestName(user));
-    const reportedUsers = powerEvents.AdminUsers.map((user) => user.username);
+  expect(
+    powerEvent.hasStopped,
+    `Device should be ${expectedEvent.hasStopped ? "stopped" : "running"}`
+  ).to.eq(expectedEvent.hasStopped);
+  expect(
+    powerEvent.hasAlerted,
+    `Device should have been ${
+      expectedEvent.hasAlerted ? "alerted" : "not alerted"
+    }`
+  ).to.eq(expectedEvent.hasAlerted);
+
+  if (powerEvent.users != null) {
+    const expectedUsers = expectedEvent.users.map((user) => getTestName(user));
+    const reportedUsers = powerEvent.UsersToAlert.map((user) => user.username);
     expect(
       reportedUsers,
       `Device should have ${expectedUsers} as admin users but got

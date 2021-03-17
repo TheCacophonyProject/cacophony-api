@@ -181,6 +181,7 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
 
 export interface Group extends Sequelize.Model, ModelCommon<Group> {
   id: GroupId;
+  groupname: string;
   addUser: (userToAdd: User, through: any) => Promise<void>;
   addStation: (stationToAdd: CreateStationData) => Promise<void>;
   getUsers: (options?: {

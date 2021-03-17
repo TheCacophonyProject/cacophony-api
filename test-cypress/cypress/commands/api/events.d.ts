@@ -1,3 +1,9 @@
+interface ComparablePowerEvent {
+  hasStopped: boolean;
+  hasAlerted: boolean;
+  users?: any[];
+}
+
 declare namespace Cypress {
   interface Chainable {
     /**
@@ -7,8 +13,7 @@ declare namespace Cypress {
     checkPowerEvents(
       user: string,
       camera: string,
-      stopoped: boolean,
-      adminUsers?: string[] | null
+      expectedEvent: ComparablePowerEvent
     ): Chainable<Element>;
   }
 }

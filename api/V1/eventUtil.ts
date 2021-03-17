@@ -93,11 +93,7 @@ async function powerEventsPerDevice(
     if (deviceEvents.hasOwnProperty(event.DeviceId)) {
       deviceEvents[event.DeviceId].update(event);
     } else {
-      const group = await event.Device.getGroup();
-      const adminUsers = await group.getUsers({
-        through: { where: { admin: true } }
-      });
-      deviceEvents[event.DeviceId] = new PowerEvents(event, adminUsers);
+      deviceEvents[event.DeviceId] = new PowerEvents(event);
     }
   }
   for (const id of Object.keys(deviceEvents)) {
@@ -126,11 +122,14 @@ export class PowerEvents {
   lastStopped: Moment | null;
   Device: Device | null;
   hasStopped: boolean;
-  constructor(event: Event, public AdminUsers: User[]) {
+  hasAlerted: boolean;
+
+  constructor(event: Event) {
     this.hasStopped = false;
     this.lastReported = null;
     this.lastStarted = null;
     this.lastStopped = null;
+    this.hasAlerted = false;
     this.update(event);
   }
   update(event: Event) {
@@ -160,27 +159,24 @@ export class PowerEvents {
       this.hasStopped = false;
       return this.hasStopped;
     }
-    let hasStopped = false;
 
     // check that started hasn't occured after stopped
     if (this.lastStopped == null) {
       // check that the started event was atleast 12 hours ago
-      hasStopped = moment().diff(this.lastStarted, "hours") > 12;
+      this.hasStopped = moment().diff(this.lastStarted, "hours") > 12;
     } else if (this.lastStarted.isAfter(this.lastStopped)) {
       //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
-      hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
+      this.hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
     } else {
       // check this isn't yesterdays start stop events
-      hasStopped = moment().diff(this.lastStarted, "hours") > 24;
+      this.hasStopped = moment().diff(this.lastStarted, "hours") > 24;
     }
 
     // check we haven't already reported this event
-    if (hasStopped) {
-      this.hasStopped =
-        this.lastReported == null ||
-        this.lastReported.isBefore(this.lastStarted);
-    } else {
-      this.hasStopped = false;
+    if (this.hasStopped) {
+      this.hasAlerted =
+        this.lastReported != null &&
+        this.lastReported.isAfter(this.lastStarted);
     }
     return this.hasStopped;
   }
