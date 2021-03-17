@@ -210,7 +210,7 @@ export default function (app: Application, baseUrl: string) {
    *       "lastReported": "2021-03-09 08:00:00",
    *       "lastStarted": "2021-03-09 18:00:00",
    *       "lastStopped": "2021-03-10 08:00:00",
-   *       "Device": {"id": 10, "devicename": "Camera2", "groupname": "examplegroup", "Group":{"id": 2}},
+   *       "Device": {"id": 10, "devicename": "Camera2", "GroupId": 22, "Group":{"groupname": "examplegroup"}},
    *       "hasStopped": true
    *       "hasAlerted": true
    *     }]
