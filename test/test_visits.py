@@ -46,11 +46,11 @@ class TestVisits:
         rec, track, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=False)
         cosmo.can_tag_track(track, what="unicorn", automatic=False)
 
-        print("Cosmos tags take precedence and visit is unicorn")
+        print("Visit is considered conflicting")
         response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
         visit = response["visits"][0]
         print("THe highest human tag count cat takes precedence")
-        assert visit["what"] == "unicorn"
+        assert visit["what"] == "conflicting tags"
 
     def test_no_tag(self, helper):
         admin = helper.admin_user()
@@ -59,10 +59,12 @@ class TestVisits:
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
         # check that a recording with 1 untagged track, 1 unidentified and 1 cat, assumes the unidentified and untagged is a cat
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "unidentified")
+        rec, track, _ = helper.upload_recording_with_tag(device, admin, "unidentified", automatic=False)
+        cosmo.can_tag_track(track, what="cat", automatic=False)
+
         track = admin.can_add_track_to_recording(rec, start_s=80)
         track = admin.can_add_track_to_recording(rec, start_s=80)
-        admin.can_tag_track(track, what="cat")
+        admin.can_tag_track(track, what="cat", automatic=False)
 
         response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
         assert response["numVisits"] == 1
@@ -214,7 +216,7 @@ class TestVisits:
             device, admin, "unidentified", time=now - timedelta(minutes=114), automatic=True
         )
         helper.upload_recording_with_tag(
-            device, admin, "false-positive", time=now - timedelta(minutes=113), duration=10, automatic=False
+            device, admin, "unidentified", time=now - timedelta(minutes=113), duration=10, automatic=True
         )
 
         # an event that should not show up in the visits

@@ -50,7 +50,10 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   comparePassword: (password: string) => Promise<boolean>;
   getAllDeviceIds: () => Promise<number[]>;
   getGroupsIds: () => Promise<number[]>;
-  getGroups: (options: { where: any, attributes: string[] }) => Promise<Group[]>;
+  getGroups: (options: {
+    where: any;
+    attributes: string[];
+  }) => Promise<Group[]>;
   isInGroup: (groupId: number) => Promise<boolean>;
   isGroupAdmin: (groupId: number) => Promise<boolean>;
   checkUserControlsDevices: (deviceIds: number[]) => Promise<void>;
@@ -303,10 +306,12 @@ export default function (
   };
 
   User.prototype.isGroupAdmin = async function (
-      groupId: number
+    groupId: number
   ): Promise<boolean> {
     const groupIds = await this.getGroups();
-    return groupIds.some(({id, GroupUsers}) => id === groupId && GroupUsers.admin === true);
+    return groupIds.some(
+      ({ id, GroupUsers }) => id === groupId && GroupUsers.admin === true
+    );
   };
 
   // Returns the devices that are directly associated with this user

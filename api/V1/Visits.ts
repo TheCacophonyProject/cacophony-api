@@ -19,6 +19,10 @@ let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Master";
 const unidentified = "unidentified";
+const conflictingTag = "conflicting tags";
+
+const nonAnimalTags = ["unknown", "part", "poor tracking", unidentified];
+
 const audioBaitInterval = 60 * 10;
 
 function sortTracks(tracks: Track[]) {
@@ -50,12 +54,19 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   }
   const manualTags = trackTags.filter((tag) => tag.automatic == false);
   if (manualTags.length > 0) {
-    const userTag = manualTags.find((tag) => tag.UserId == userID);
-    if (userTag) {
-      return userTag;
-    } else {
-      return manualTags[0];
+    const animalTags = manualTags.filter(
+      (tag) => !nonAnimalTags.includes(tag.what)
+    );
+    const uniqueTags = new Set(animalTags.map((tag) => tag.what));
+    if (uniqueTags.size > 1) {
+      const conflict = {
+        what: conflictingTag,
+        confidence: manualTags[0].confidence,
+        automatic: false
+      };
+      return conflict as TrackTag;
     }
+    return animalTags[0];
   }
   const masterTag = trackTags.filter((tag) => tag.data == aiName);
   if (masterTag.length > 0) {
@@ -358,22 +369,22 @@ class Visit {
     this.addRecording(rec, userID);
   }
 
-  mostCommonTag(): [boolean| null, string | null] {
+  mostCommonTag(): [boolean | null, string | null] {
     // from all events in a visit, get the tag with the highest occurence that
     // isnt unidentified
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
       let hyphen = a.indexOf("-");
-      const type_a = a.substring(0,hyphen);
-      const what_a = a.substring(hyphen+1);
+      const type_a = a.substring(0, hyphen);
+      const what_a = a.substring(hyphen + 1);
       hyphen = b.indexOf("-");
-      const type_b = b.substring(0,hyphen);
-      const what_b = b.substring(hyphen+1);
-      if(type_a != type_b){
+      const type_b = b.substring(0, hyphen);
+      const what_b = b.substring(hyphen + 1);
+      if (type_a != type_b) {
         // human tag takes precedence
-        if (type_a == "human"){
+        if (type_a == "human") {
           return -1;
-        }else{
+        } else {
           return 1;
         }
       }
@@ -382,19 +393,19 @@ class Visit {
       } else if (what_b == unidentified) {
         return -1;
       }
+
       return tagCount[b] - tagCount[a];
     });
-
     const maxVote = sortedKeys[0];
     if (maxVote) {
       let hyphen = maxVote.indexOf("-");
-      const type = maxVote.substring(0,hyphen);
-      const what = maxVote.substring(hyphen+1);
-      const humanTag = type == "human" ? true : false
+      const type = maxVote.substring(0, hyphen);
+      const what = maxVote.substring(hyphen + 1);
+      const humanTag = type == "human" ? true : false;
 
       return [humanTag, what];
     }
-    return [null,null];
+    return [null, null];
   }
   completeVisit() {
     // assign the visit a tag based on the most common tag that isn't unidentified
@@ -449,7 +460,7 @@ class Visit {
     if (!event.what) {
       return;
     }
-    const key = (event.automatic ? "ai" : "human") + "-" +  event.what
+    const key = (event.automatic ? "ai" : "human") + "-" + event.what;
     if (key in this.tagCount) {
       this.tagCount[key] += 1;
     } else {
@@ -488,7 +499,7 @@ class VisitEvent {
   audioBaitEvents: Event[];
   audioBaitVisit: boolean;
   what: string;
-  automatic: boolean
+  automatic: boolean;
   constructor(rec: Recording, track: Track, tag: TrackTag, taggedAs: TrackTag) {
     const trackTimes = new TrackStartEnd(rec, track);
     this.audioBaitDay = false;
