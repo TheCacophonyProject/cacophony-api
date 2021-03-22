@@ -206,17 +206,11 @@ class TestVisits:
         # visit 4 - 1 hour ago
         # future 3 unidentified gets grouped with cat
 
+        helper.upload_recording_with_tag(device, admin, "cat", time=now - timedelta(minutes=120, seconds=10))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=117))
+        helper.upload_recording_with_tag(device, admin, "unidentified", time=now - timedelta(minutes=114))
         helper.upload_recording_with_tag(
-            device, admin, "cat", time=now - timedelta(minutes=120, seconds=10), automatic=True
-        )
-        helper.upload_recording_with_tag(
-            device, admin, "unidentified", time=now - timedelta(minutes=117), automatic=True
-        )
-        helper.upload_recording_with_tag(
-            device, admin, "unidentified", time=now - timedelta(minutes=114), automatic=True
-        )
-        helper.upload_recording_with_tag(
-            device, admin, "unidentified", time=now - timedelta(minutes=113), duration=10, automatic=True
+            device, admin, "unidentified", time=now - timedelta(minutes=113), duration=10
         )
 
         # an event that should not show up in the visits
