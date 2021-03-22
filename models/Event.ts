@@ -65,7 +65,7 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     user: User,
     deviceId: DeviceId | null | undefined,
     options?: QueryOptions
-  ) => Promise<{ rows: Event[]; count: number }>;
+  ) => Promise<Event[]>;
 }
 
 export default function (sequelize, DataTypes) {
@@ -192,7 +192,7 @@ export default function (sequelize, DataTypes) {
       ["dateTime", "DESC"]
     ];
 
-    return this.findAndCountAll({
+    return this.findAll({
       where: {
         [Op.and]: [
           where, // User query
@@ -209,8 +209,7 @@ export default function (sequelize, DataTypes) {
         },
         {
           model: models.Device,
-          attributes: ["id", "devicename", "GroupId"],
-          include: [{ model: models.Group, attributes: ["groupname"] }]
+          attributes: ["id", "devicename", "GroupId"]
         }
       ],
       attributes: [

@@ -89,7 +89,7 @@ async function powerEventsPerDevice(
     options
   );
   const deviceEvents = {};
-  for (const event of result.rows) {
+  for (const event of result) {
     if (deviceEvents.hasOwnProperty(event.DeviceId)) {
       deviceEvents[event.DeviceId].update(event);
     } else {
@@ -168,7 +168,7 @@ export class PowerEvents {
       //check we are atleast 30 minutes after expected stopped time (based of yesterdays)
       this.hasStopped = moment().diff(this.lastStopped, "minutes") > 24.5 * 60;
     } else {
-      // check this isn't yesterdays start stop events
+      // check it started in the last 24 hours
       this.hasStopped = moment().diff(this.lastStarted, "hours") > 24;
     }
 

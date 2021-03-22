@@ -14,6 +14,7 @@ async function getUserEvents(powerEvents: PowerEvents[]) {
   for (const event of powerEvents) {
     if (!groupAdmins.hasOwnProperty(event.Device.GroupId)) {
       const group = await event.Device.getGroup();
+      event.Device.groupname = group.groupname;
       const adminUsers = await group.getUsers({
         through: { where: { admin: true } }
       });
