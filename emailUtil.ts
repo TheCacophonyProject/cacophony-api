@@ -30,7 +30,7 @@ async function sendEmail(
   subject: string
 ): Promise<boolean> {
   const client = new SMTPClient(config.smtpDetails);
-
+  log.info(`Sending  email with subject ${subject} to ${to}`);
   try {
     const message = new Message({
       text: text,

@@ -45,8 +45,10 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
     group: Group,
     newPassword: string
   ) => Promise<Device>;
-
+  Group: Group;
+  GroupId: number;
   getEvents: (options: FindOptions) => Promise<Event[]>;
+  getGroup: () => Promise<Group>;
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {

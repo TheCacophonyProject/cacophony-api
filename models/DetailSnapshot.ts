@@ -27,7 +27,7 @@ export interface DetailSnapShot
     ModelCommon<DetailSnapShot> {
   getFile: () => Promise<File>;
   id: DetailSnapshotId;
-  type: "algorithm" | "throttle" | "audioBait" | "systemError";
+  type: string;
   details: any; // JSON
 }
 

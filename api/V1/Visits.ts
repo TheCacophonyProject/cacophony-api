@@ -19,7 +19,7 @@ let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Master";
 const unidentified = "unidentified";
-const conflictingTag = "conflicting tags";
+const conflictTag = "conflicting tags";
 
 const nonAnimalTags = ["unknown", "part", "poor tracking", unidentified];
 
@@ -60,7 +60,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
     const uniqueTags = new Set(animalTags.map((tag) => tag.what));
     if (uniqueTags.size > 1) {
       const conflict = {
-        what: conflictingTag,
+        what: conflictTag,
         confidence: manualTags[0].confidence,
         automatic: false
       };
@@ -371,7 +371,8 @@ class Visit {
 
   mostCommonTag(): [boolean | null, string | null] {
     // from all events in a visit, get the tag with the highest occurence that
-    // isnt unidentified
+    // isnt unidentified, preferring human tags over ai
+    // returns [boolean desciribing if human tag, the tag]
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
       let hyphen = a.indexOf("-");
