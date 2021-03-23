@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import {
   body,
   oneOf,
+  query,
   ValidationChain,
   ValidationChainBuilder,
   validationResult
@@ -215,6 +216,17 @@ const checkNewPassword = function (field: string): ValidationChain {
   });
 };
 
+const viewMode = function(): ValidationChain {
+  // All api listing commands will automatically return all results if the user is a super-admin
+  // There is now an optional "view-mode" query param to these APIs, which, if set to "user",
+  // will restrict results to items only directly viewable by the super-admin user.
+  // The default behaviour remains unchanged, and this will do nothing for non-admin users.
+  return query("view-mode").custom((value, {req}) => {
+    req.body.viewAsSuperAdmin = value !== "user";
+    return true;
+  });
+};
+
 /**
  * Extract and decode a JSON object from the request object.
  * If the entry is a string, it will be converted to a proper object,
@@ -334,5 +346,6 @@ export default {
   requestWrapper,
   isDateArray,
   getUserByEmail,
-  setGroupName
+  setGroupName,
+  viewMode
 };

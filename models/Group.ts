@@ -152,7 +152,7 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
     }
   });
   builder.query.distinct = true;
-  builder.query.limit = 10000000;
+  delete builder.query.limit;
   const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(
     builder.get()
   );
@@ -217,7 +217,7 @@ export interface GroupStatic extends ModelStaticCommon<Group> {
     group: Group,
     userToRemove: User
   ) => Promise<void>;
-  query: (where: any, user: User) => Promise<Group[]>;
+  query: (where: any, user: User, viewAsSuperAdmin: boolean) => Promise<Group[]>;
   getFromId: (id: GroupId) => Promise<Group>;
   freeGroupname: (groupname: string) => Promise<boolean>;
   getIdFromName: (groupname: string) => Promise<GroupId | null>;
@@ -333,11 +333,14 @@ export default function (sequelize, DataTypes): GroupStatic {
     warnings?: string;
   }> {
     // Enforce name uniqueness to group here:
-    let existingStations: Station[] = await group.getStations();
-    // Filter out retired stations.
-    existingStations = existingStations.filter(
-      (station) => station.retiredAt === null
-    );
+    let existingStations: Station[] = await group.getStations({
+      where: {
+        // Filter out retired stations.
+        retiredAt: {
+          [Op.eq]: null
+        }
+      }
+    });
 
     const existingStationsByName: Record<string, Station> = {};
     const newStationsByName: Record<string, CreateStationData> = {};
@@ -438,9 +441,9 @@ export default function (sequelize, DataTypes): GroupStatic {
    * Return one or more groups matching the where condition. Only get groups
    * that the user belongs if user does not have global read/write permission.
    */
-  Group.query = async function (where, user: User) {
+  Group.query = async function (where, user: User, viewAsSuperAdmin: boolean) {
     let userWhere = { id: user.id };
-    if (user.hasGlobalRead()) {
+    if (viewAsSuperAdmin && user.hasGlobalRead()) {
       userWhere = null;
     }
     return await models.Group.findAll({
