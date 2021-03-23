@@ -69,7 +69,7 @@ export function uploadFile(
         }
       });
 
-      // Don't want the expect statement to show in the cypress UI unless it fails. 
+      // Don't want the expect statement to show in the cypress UI unless it fails.
       if (xhr.status != 200) {
         expect(xhr.status, "Check response from uploading file").to.eq(200);
       }

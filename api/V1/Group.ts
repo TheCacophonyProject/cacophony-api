@@ -138,20 +138,23 @@ export default function (app: Application, baseUrl: string) {
   app.get(
     `${apiUrl}/:groupIdOrName/devices`,
     [
-        auth.authenticateUser,
-        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
-        auth.userHasReadAccessToGroup
+      auth.authenticateUser,
+      middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+      auth.userHasReadAccessToGroup
     ],
     middleware.requestWrapper(async (request, response) => {
-        const devices = await request.body.group.getDevices({ where: { active: true}, attributes: ["id", "devicename" ]});
-        return responseUtil.send(response, {
-            statusCode: 200,
-            data: devices.map(({id, devicename}) => ({
-                id,
-                deviceName: devicename
-            })),
-            messages: ["Got devices for group"]
-        });
+      const devices = await request.body.group.getDevices({
+        where: { active: true },
+        attributes: ["id", "devicename"]
+      });
+      return responseUtil.send(response, {
+        statusCode: 200,
+        data: devices.map(({ id, devicename }) => ({
+          id,
+          deviceName: devicename
+        })),
+        messages: ["Got devices for group"]
+      });
     })
   );
 
@@ -172,21 +175,23 @@ export default function (app: Application, baseUrl: string) {
   app.get(
     `${apiUrl}/:groupIdOrName/users`,
     [
-        auth.authenticateUser,
-        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
-        auth.userHasReadAccessToGroup
+      auth.authenticateUser,
+      middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+      auth.userHasReadAccessToGroup
     ],
     middleware.requestWrapper(async (request, response) => {
-        const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
-        return responseUtil.send(response, {
-            statusCode: 200,
-            data: users.map(({username, id, GroupUsers }) => ({
-                userName: username,
-                id,
-                isGroupAdmin: GroupUsers.admin
-            })),
-            messages: ["Got users for group"]
-        });
+      const users = await request.body.group.getUsers({
+        attributes: ["id", "username"]
+      });
+      return responseUtil.send(response, {
+        statusCode: 200,
+        data: users.map(({ username, id, GroupUsers }) => ({
+          userName: username,
+          id,
+          isGroupAdmin: GroupUsers.admin
+        })),
+        messages: ["Got users for group"]
+      });
     })
   );
 
@@ -327,12 +332,12 @@ export default function (app: Application, baseUrl: string) {
       auth.userHasReadAccessToGroup
     ],
     middleware.requestWrapper(async (request, response) => {
-        const stations = await request.body.group.getStations();
-        return responseUtil.send(response, {
-          statusCode: 200,
-          messages: ["Got stations for group"],
-          stations
-        });
+      const stations = await request.body.group.getStations();
+      return responseUtil.send(response, {
+        statusCode: 200,
+        messages: ["Got stations for group"],
+        stations
+      });
     })
   );
 }
