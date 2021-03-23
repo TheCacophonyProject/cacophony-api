@@ -66,6 +66,9 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
       };
       return conflict as TrackTag;
     }
+    if (animalTags.length == 0) {
+      return manualTags[0];
+    }
     return animalTags[0];
   }
   const masterTag = trackTags.filter((tag) => tag.data == aiName);

@@ -7,51 +7,6 @@ from dateutil.parser import parse as parsedate
 class TestVisits:
     VISIT_INTERVAL_SECONDS = 600
 
-    def test_human_tag(self, helper):
-        admin = helper.admin_user()
-        cosmo = helper.given_new_user(self, "cosmo")
-        cosmo_group = helper.make_unique_group_name(self, "cosmos_group")
-        cosmo.create_group(cosmo_group)
-        device = helper.given_new_device(self, "cosmo_device", cosmo_group)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=True)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=True)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "possum", automatic=False)
-        print("3 recordings are uploaded 2 ai has tagged as cat and one as possum")
-        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
-        visit = response["visits"][0]
-        print("THe human tag possum takes precedence")
-        assert visit["what"] == "possum"
-
-        device = helper.given_new_device(self, "cosmo_second_device", cosmo_group)
-
-        rec, track, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=False)
-        rec, track, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=False)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "possum", automatic=False)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "rodent", automatic=True)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "rodent", automatic=True)
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "rodent", automatic=True)
-        print(
-            "6 recordings are uploaded 2 human has tagged as cat and one human has tagged as possum, 3 AI has tagged as rodent"
-        )
-        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
-        visit = response["visits"][0]
-        print("THe highest human tag count cat takes precedence")
-        assert visit["what"] == "cat"
-
-        print("2 recordings with unicorn tags from cosmo and cat tags from admin")
-        device = helper.given_new_device(self, "cosmo_third_device", cosmo_group)
-        rec, track, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=False)
-        cosmo.can_tag_track(track, what="unicorn", automatic=False)
-
-        rec, track, _ = helper.upload_recording_with_tag(device, admin, "cat", automatic=False)
-        cosmo.can_tag_track(track, what="unicorn", automatic=False)
-
-        print("Visit is considered conflicting")
-        response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
-        visit = response["visits"][0]
-        print("THe highest human tag count cat takes precedence")
-        assert visit["what"] == "conflicting tags"
-
     def test_no_tag(self, helper):
         admin = helper.admin_user()
         cosmo = helper.given_new_user(self, "cosmo")
