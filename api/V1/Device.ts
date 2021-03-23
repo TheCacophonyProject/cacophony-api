@@ -87,7 +87,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiGroup Device
    * @apiParam onlyActive {Boolean} Only return active devices, defaults to 'true'
    * If we want to return *all* devices this must be present and set to 'false'
-   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   * @apiParam {string} view-mode (Optional) - can be set to "user"
    *
    * @apiDescription Returns all devices the user can access
    * through both group membership and direct assignment.

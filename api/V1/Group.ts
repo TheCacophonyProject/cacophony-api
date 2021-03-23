@@ -23,8 +23,6 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
-import logger from "../../logging";
-
 const JsonSchema = new Validator();
 
 const validateStationsJson = (val, { req }) => {
@@ -184,7 +182,7 @@ export default function (app: Application, baseUrl: string) {
         const devices = await request.body.group.getDevices({ where: { active: true}, attributes: ["id", "devicename" ]});
         return responseUtil.send(response, {
             statusCode: 200,
-            data: devices.map(({id, devicename}) => ({
+            devices: devices.map(({id, devicename}) => ({
                 id,
                 deviceName: devicename
             })),
@@ -218,7 +216,7 @@ export default function (app: Application, baseUrl: string) {
         const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
         return responseUtil.send(response, {
             statusCode: 200,
-            data: users.map(({username, id, GroupUsers }) => ({
+            users: users.map(({username, id, GroupUsers }) => ({
                 userName: username,
                 id,
                 isGroupAdmin: GroupUsers.admin
@@ -229,40 +227,6 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/groups/{groupIdOrName}/devices Retrieves all active devices for a group.
-   * @apiName GetDevicesForGroup
-   * @apiGroup Group
-   * @apiDescription A group member or an admin member with globalRead permissions can view devices that belong
-   * to a group.
-   *
-   * @apiUse V1UserAuthorizationHeader
-   *
-   * @apiParam {Number|String} group name or group id
-   *
-   * @apiUse V1ResponseSuccess
-   * @apiUse V1ResponseError
-   */
-  app.get(
-    `${apiUrl}/:groupIdOrName/devices`,
-    [
-        auth.authenticateUser,
-        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
-        auth.userHasReadAccessToGroup
-    ],
-    middleware.requestWrapper(async (request, response) => {
-        const devices = await request.body.group.getDevices({ where: { active: true}, attributes: ["id", "devicename" ]});
-        return responseUtil.send(response, {
-            statusCode: 200,
-            data: devices.map(({id, devicename}) => ({
-                id,
-                deviceName: devicename
-            })),
-            messages: ["Got devices for group"]
-        });
-    })
-  );
-
-  /**
    * @api {get} /api/v1/groups/{groupIdOrName}/users Retrieves all users for a group.
    * @apiName GetUsersForGroup
    * @apiGroup Group
@@ -287,7 +251,7 @@ export default function (app: Application, baseUrl: string) {
         const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
         return responseUtil.send(response, {
             statusCode: 200,
-            data: users.map(({username, id, GroupUsers }) => ({
+            users: users.map(({username, id, GroupUsers }) => ({
                 userName: username,
                 id,
                 isGroupAdmin: GroupUsers.admin

@@ -221,7 +221,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryVisits
    * @apiGroup Recordings
    *
-   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   * @apiParam {string} view-mode (Optional) - can be set to "user"
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
@@ -265,7 +265,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryRecordings
    * @apiGroup Recordings
    *
-   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   * @apiParam {string} view-mode (Optional) - can be set to "user"
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
@@ -304,7 +304,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiName QueryRecordingsCount
    * @apiGroup Recordings
    *
-   * @apiParam {string} view-mode (Optional) - can be set to "limited"
+   * @apiParam {string} view-mode (Optional) - can be set to "user"
    *
    * @apiUse V1UserAuthorizationHeader
    * @apiUse BaseQueryParams
