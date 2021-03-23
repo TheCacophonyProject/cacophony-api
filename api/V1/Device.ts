@@ -104,13 +104,16 @@ export default function (app: Application, baseUrl: string) {
   app.get(
     apiUrl,
     [
-        auth.authenticateUser,
-        middleware.viewMode(),
-        query("onlyActive").optional().isBoolean().toBoolean(),
+      auth.authenticateUser,
+      middleware.viewMode(),
+        query("onlyActive").optional().isBoolean().toBoolean()
     ],
     middleware.requestWrapper(async (request, response) => {
       const onlyActiveDevices = request.query.onlyActive !== false;
-      const devices = await models.Device.allForUser(request.user, onlyActiveDevices, request.body.viewAsSuperAdmin);
+      const devices = await models.Device.allForUser(
+        request.user,
+        onlyActiveDevices
+      , request.body.viewAsSuperAdmin);
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,

@@ -6,6 +6,7 @@ import "../commands/api/camera";
 import "../commands/api/recording";
 import "../commands/api/visits";
 import "../commands/api/stations";
+import "../commands/api/events";
 
 beforeEach(function () {
   // This runs before each test file, eg once per file.

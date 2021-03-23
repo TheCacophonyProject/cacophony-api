@@ -35,5 +35,13 @@ declare namespace Cypress {
      * create user group and camera at the same time
      */
     apiCreateUserGroup(userName: string, group: string): Chainable<Element>;
+
+    apiAddUserToGroup(
+      groupAdminUser: string,
+      userName: string,
+      groupName: string,
+      admin?: boolean,
+      log?: boolean
+    ): Chainable<Element>;
   }
 }

@@ -891,7 +891,6 @@ export default (app: Application, baseUrl: string) => {
         return;
       }
     } catch (e) {
-      console.log(e, jwtDecoded);
       responseUtil.send(response, {
         statusCode: 401,
         messages: ["Failed to verify JWT."]

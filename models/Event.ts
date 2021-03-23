@@ -45,7 +45,7 @@ export interface Event extends Sequelize.Model, ModelCommon<Event> {
 }
 
 export interface QueryOptions {
-  eventType: string;
+  eventType: string | string[];
   admin: boolean;
   useCreatedDate: boolean;
 }
@@ -61,6 +61,11 @@ export interface EventStatic extends ModelStaticCommon<Event> {
     latest: boolean | null | undefined,
     options?: QueryOptions
   ) => Promise<{ rows: Event[]; count: number }>;
+  latestEvents: (
+    user: User,
+    deviceId: DeviceId | null | undefined,
+    options?: QueryOptions
+  ) => Promise<Event[]>;
 }
 
 export default function (sequelize, DataTypes) {
@@ -123,7 +128,12 @@ export default function (sequelize, DataTypes) {
     }
     const eventWhere: any = {};
     if (options && options.eventType) {
-      eventWhere.type = options.eventType;
+      if (Array.isArray(options.eventType)) {
+        eventWhere.type = {};
+        eventWhere.type[Op.in] = options.eventType;
+      } else {
+        eventWhere.type = options.eventType;
+      }
     }
 
     let order: any[] = ["dateTime"];
@@ -157,5 +167,60 @@ export default function (sequelize, DataTypes) {
     });
   };
 
+  /**
+   * Return the latest event of each type grouped by device id
+   */
+  Event.latestEvents = async function (user, deviceId, options) {
+    const where: any = {};
+
+    if (deviceId) {
+      where.DeviceId = deviceId;
+    }
+    const eventWhere: any = {};
+    if (options && options.eventType) {
+      if (Array.isArray(options.eventType)) {
+        eventWhere.type = {};
+        eventWhere.type[Op.in] = options.eventType;
+      } else {
+        eventWhere.type = options.eventType;
+      }
+    }
+
+    let order: any[] = [
+      ["EventDetail", "type", "DESC"],
+      ["DeviceId", "DESC"],
+      ["dateTime", "DESC"]
+    ];
+
+    return this.findAll({
+      where: {
+        [Op.and]: [
+          where, // User query
+          options && options.admin ? "" : await user.getWhereDeviceVisible() // can only see devices they should
+        ]
+      },
+      order: order,
+      include: [
+        {
+          model: models.DetailSnapshot,
+          as: "EventDetail",
+          attributes: ["type", "details"],
+          where: eventWhere
+        },
+        {
+          model: models.Device,
+          attributes: ["id", "devicename", "GroupId"]
+        }
+      ],
+      attributes: [
+        Sequelize.literal(
+          'DISTINCT ON("Event"."DeviceId","EventDetail"."type") 1'
+        ), // the 1 is some kind of hack that makes this work in sequelize
+        "id",
+        "dateTime",
+        "DeviceId"
+      ]
+    });
+  };
   return Event;
 }

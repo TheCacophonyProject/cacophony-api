@@ -1,1 +1,1 @@
-declare module "jsonschema"
+declare module "jsonschema";
