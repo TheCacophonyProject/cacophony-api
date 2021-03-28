@@ -18,10 +18,12 @@ import { Event } from "../../models/Event";
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Master";
-const unidentified = "unidentified";
 const conflictTag = "conflicting tags";
 
-const nonAnimalTags = ["unknown", "part", "poor tracking", unidentified];
+const metaTags = [ "part", "poor tracking"];
+const unidentifiedTags = ["unidentified","unknown"];
+const nonAnimalTags = [...metaTags]
+nonAnimalTags.push(...unidentifiedTags);
 
 const audioBaitInterval = 60 * 10;
 
@@ -66,17 +68,11 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
       };
       return conflict as TrackTag;
     }
-    if (animalTags.length == 0) {
-      return manualTags[0];
-    }
-    return animalTags[0];
+
+    return animalTags.length == 0?  manualTags[0]: animalTags[0];
   }
   const masterTag = trackTags.filter((tag) => tag.data == aiName);
-  if (masterTag.length > 0) {
-    return masterTag[0];
-  } else {
-    return null;
-  }
+  return masterTag.length == 0 ? null : masterTag[0];
 }
 
 class DeviceSummary {
@@ -138,7 +134,6 @@ class DeviceSummary {
     }
   }
   markCompleted() {
-    var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
       for (var i = device.visits.length - 1; i >= 0; i--) {
         const visit = device.visits[i];
@@ -384,6 +379,7 @@ class Visit {
       hyphen = b.indexOf("-");
       const type_b = b.substring(0, hyphen);
       const what_b = b.substring(hyphen + 1);
+
       if (type_a != type_b) {
         // human tag takes precedence
         if (type_a == "human") {
@@ -392,9 +388,9 @@ class Visit {
           return 1;
         }
       }
-      if (what_a == unidentified) {
+      if (unidentifiedTags.includes(what_a)) {
         return 1;
-      } else if (what_b == unidentified) {
+      } else if (unidentifiedTags.includes(what_b)) {
         return -1;
       }
 

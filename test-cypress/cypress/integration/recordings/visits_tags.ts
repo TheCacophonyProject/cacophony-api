@@ -84,7 +84,19 @@ describe("Visits : tracks and tags", () => {
     cy.checkVisitTags(Dee, camera, ["rabbit"]);
   });
 
-  it.only("User tags conflict", () => {
+  it("User animal tag is preferred over user unknown tag", () => {
+    const camera = "userAnimalUnknown";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecording(camera, { tags: ["unidentified","unidentified","unidentified"] }).then((recID: number) => {
+      cy.userTagRecording(recID, 0, Dee, "possum");
+      cy.userTagRecording(recID, 1, Dee, "unknown");
+      cy.userTagRecording(recID, 2, Dee, "unknown");
+
+    });
+    cy.checkVisitTags(Dee, camera, ["possum"]);;
+
+  });
+  it("User tags conflict", () => {
     const camera = "conflicter";
     cy.apiCreateUser(Gee);
     cy.apiAddUserToGroup(Dee, Gee, group, true);
