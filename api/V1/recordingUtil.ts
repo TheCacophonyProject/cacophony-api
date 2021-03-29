@@ -26,7 +26,7 @@ import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import { Response } from "express";
+import { Response, Request } from "express";
 import {
   AudioRecordingMetadata,
   Recording,
@@ -48,7 +48,7 @@ import {
 } from "./Visits";
 import { Station, StationId } from "../../models/Station";
 
-export interface RecordingQuery {
+export interface RecordingQuery extends Request {
   user: User;
   query: {
     where: null | any;
@@ -181,7 +181,8 @@ async function query(
     request.query.tags,
     request.query.offset,
     request.query.limit,
-    request.query.order
+    request.query.order,
+    request.body.viewAsSuperAdmin
   );
   builder.query.distinct = true;
   const result = await models.Recording.findAndCountAll(builder.get());
@@ -695,7 +696,8 @@ async function queryVisits(
     request.query.tags,
     request.query.offset,
     queryLimit,
-    null
+    null,
+    request.body.viewAsSuperAdmin
   );
   builder.query.distinct = true;
   builder.addAudioEvents(

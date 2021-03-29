@@ -23,8 +23,6 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
-import logger from "../../logging";
-
 const JsonSchema = new Validator();
 
 const validateStationsJson = (val, { req }) => {
@@ -92,7 +90,7 @@ export default function (app: Application, baseUrl: string) {
   );
 
   /**
-   * @api {get} /api/v1/groups Get groups
+   * @api {get} /api/v1/groups Get all groups the user has access to
    * @apiName GetGroups
    * @apiGroup Group
    *
@@ -107,11 +105,16 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     apiUrl,
-    [auth.authenticateUser, middleware.parseJSON("where", query)],
+    [
+        auth.authenticateUser,
+        middleware.parseJSON("where", query).optional(),
+        middleware.viewMode()
+    ],
     middleware.requestWrapper(async (request, response) => {
       const groups = await models.Group.query(
-        request.query.where,
-        request.user
+        request.query.where || {},
+        request.user,
+        request.body.viewAsSuperAdmin
       );
       return responseUtil.send(response, {
         statusCode: 200,
@@ -120,6 +123,39 @@ export default function (app: Application, baseUrl: string) {
       });
     })
   );
+
+    /**
+     * @api {get} /api/v1/groups/{groupNameOrId} Get a group by name or id
+     * @apiName GetGroup
+     * @apiGroup Group
+     *
+     * @apiUse V1UserAuthorizationHeader
+     *
+     * @apiUse V1ResponseSuccess
+     * @apiSuccess {Group} groups Array of groups (but should only contain one item)
+     *
+     * @apiUse V1ResponseError
+     */
+    app.get(
+        `${apiUrl}/:groupIdOrName`,
+        [
+            auth.authenticateUser,
+            middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+            middleware.viewMode()
+        ],
+        middleware.requestWrapper(async (request, response) => {
+            const groups = await models.Group.query(
+                { "id": request.body.group.id },
+                request.user,
+                request.viewAsSuperAdmin
+            );
+            return responseUtil.send(response, {
+                statusCode: 200,
+                messages: [],
+                groups
+            });
+        })
+    );
 
   /**
    * @api {get} /api/v1/groups/{groupIdOrName}/devices Retrieves all active devices for a group.
@@ -149,7 +185,7 @@ export default function (app: Application, baseUrl: string) {
       });
       return responseUtil.send(response, {
         statusCode: 200,
-        data: devices.map(({ id, devicename }) => ({
+        devices: devices.map(({ id, devicename }) => ({
           id,
           deviceName: devicename
         })),
@@ -185,7 +221,42 @@ export default function (app: Application, baseUrl: string) {
       });
       return responseUtil.send(response, {
         statusCode: 200,
-        data: users.map(({ username, id, GroupUsers }) => ({
+        users: users.map(({username, id, GroupUsers }) => ({
+                userName: username,
+                id,
+                isGroupAdmin: GroupUsers.admin
+            })),
+            messages: ["Got users for group"]
+        });
+    })
+  );
+
+  /**
+   * @api {get} /api/v1/groups/{groupIdOrName}/users Retrieves all users for a group.
+   * @apiName GetUsersForGroup
+   * @apiGroup Group
+   * @apiDescription A group member or an admin member with globalRead permissions can view users that belong
+   * to a group.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiParam {Number|String} group name or group id
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:groupIdOrName/users`,
+    [
+        auth.authenticateUser,
+        middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+        auth.userHasReadAccessToGroup
+    ],
+    middleware.requestWrapper(async (request, response) => {
+        const users = await request.body.group.getUsers({ attributes: ["id", "username"] });
+        return responseUtil.send(response, {
+            statusCode: 200,
+            users: users.map(({ username, id, GroupUsers }) => ({
           userName: username,
           id,
           isGroupAdmin: GroupUsers.admin
