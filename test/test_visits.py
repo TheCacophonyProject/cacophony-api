@@ -115,7 +115,7 @@ class TestVisits:
         assert visit["audioBaitVisit"]
         assert len(visit["audioBaitEvents"]) == 2
 
-    def test_visits2(self, helper):
+    def test_visit_tags(self, helper):
         # init device and sounds
         admin = helper.admin_user()
         sound1_name = "rodent-scream"
@@ -156,7 +156,7 @@ class TestVisits:
             [now - timedelta(minutes=29)],
         )
         track = admin.can_add_track_to_recording(rec, start_s=80)
-        admin.can_tag_track(track, what="unidentified")
+        admin.can_tag_track(track, what="unidentified", automatic=True)
 
         # visit 4 - 1 hour ago
         # future 3 unidentified gets grouped with cat
