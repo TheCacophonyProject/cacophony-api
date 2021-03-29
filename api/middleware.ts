@@ -21,7 +21,8 @@ import {
   oneOf,
   ValidationChain,
   ValidationChainBuilder,
-  validationResult
+  validationResult,
+  query
 } from "express-validator/check";
 import models, { ModelStaticCommon } from "../models";
 import { format } from "util";
@@ -47,7 +48,7 @@ const getModelById = function <T>(
 };
 
 const getModelByName = function <T>(
-  modelType: ModelStaticCommon<T>,
+  modelType: ModelStaticCommon<T>,  
   fieldName: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
@@ -81,6 +82,54 @@ const getUserByEmail = function (
 function modelTypeName(modelType: ModelStaticCommon<any>): string {
   return modelType.options.name.singular.toLowerCase();
 }
+
+const ID_OR_ID_ARRAY_REGEXP = /^\[[0-9,]+\]$|^[0-9]+$/;
+const ID_OR_ID_ARRAY_MESSAGE = "Must be an id, or an array of ids.  For example, '32' or '[32, 33, 34]'";
+
+export const toIdArray = function (fieldName: string) : ValidationChain {
+  return query(fieldName, ID_OR_ID_ARRAY_MESSAGE)
+    .matches(ID_OR_ID_ARRAY_REGEXP)
+    .customSanitizer((value) => convertToIdArray(value));
+}
+
+const convertToIdArray = function(idsAsString: string) : number[] {
+  if (idsAsString) {
+    console.log(`value is ${idsAsString}`);
+    try {
+      const val = JSON.parse(idsAsString);
+      if (Array.isArray(val)) {
+        return val;
+      }
+      else {
+        return [val];
+      }
+    }
+    catch (error) {
+
+    }
+  } 
+  return [];
+}
+
+export const toDateInMillisecs  = function (fieldName: string) : ValidationChain {
+  return query(fieldName, DATE_ERROR)
+    .customSanitizer((value) =>{
+      return getAsDate(value);
+    })
+    .isInt();
+} 
+
+const getAsDate = function(dateAsString: string) : number {
+  try {
+    console.log("date is " + dateAsString );
+    return Date.parse(dateAsString);
+  }
+  catch (error) {
+  }
+  return NaN;
+}
+
+const DATE_ERROR = "Must be a date or timestamp.   For example, '2017-11-13' or '2017-11-13T00:47:51.160Z'."
 
 const isDateArray = function (fieldName: string, customError): ValidationChain {
   return body(fieldName, customError)
