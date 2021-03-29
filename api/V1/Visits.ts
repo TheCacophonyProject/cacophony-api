@@ -20,9 +20,9 @@ const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Master";
 const conflictTag = "conflicting tags";
 
-const metaTags = [ "part", "poor tracking"];
-const unidentifiedTags = ["unidentified","unknown"];
-const nonAnimalTags = [...metaTags]
+const metaTags = ["part", "poor tracking"];
+const unidentifiedTags = ["unidentified", "unknown"];
+const nonAnimalTags = [...metaTags];
 nonAnimalTags.push(...unidentifiedTags);
 
 const audioBaitInterval = 60 * 10;
@@ -69,7 +69,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
       return conflict as TrackTag;
     }
 
-    return animalTags.length == 0?  manualTags[0]: animalTags[0];
+    return animalTags.length == 0 ? manualTags[0] : animalTags[0];
   }
   const masterTag = trackTags.filter((tag) => tag.data == aiName);
   return masterTag.length == 0 ? null : masterTag[0];
