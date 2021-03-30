@@ -65,10 +65,5 @@ export default function (
   TrackTag.prototype.isAdditionalTag = function () {
     return additionalTags.includes(this.what);
   };
-
-  TrackTag.prototype.toString = function () {
-    return `${this.automatic ? "ai" : "human"}-${this.what}`;
-  };
-
   return TrackTag;
 }

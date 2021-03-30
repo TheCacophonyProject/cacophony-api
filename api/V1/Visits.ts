@@ -452,7 +452,9 @@ class Visit {
     if (!event.trackTag) {
       return;
     }
-    const key = event.trackTag.toString();
+    const key = `${event.trackTag.automatic ? "ai" : "human"}-${
+      event.trackTag.what
+    }`;
     if (key in this.tagCount) {
       this.tagCount[key].count += 1;
     } else {
