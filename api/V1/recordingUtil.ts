@@ -935,7 +935,7 @@ function addEventRow(out, visit, event, recordingUrlBase) {
     "",
     "Event",
     event.assumedTag,
-    event.what,
+    event.trackTag.what,
     event.recID.toString(),
     event.start.tz(config.timeZone).format("YYYY-MM-DD"),
     event.start.tz(config.timeZone).format("HH:mm:ss"),

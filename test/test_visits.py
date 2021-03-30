@@ -203,8 +203,8 @@ class TestVisits:
         print("The last visit from a cat has 3 unidentified")
         cat_visit = response["visits"][-1]
         events = cat_visit["events"]
-        cat_events = [event for event in events if event["what"] == "cat"]
-        unidentified_events = [event for event in events if event["what"] == "unidentified"]
+        cat_events = [event for event in events if event["trackTag"]["what"] == "cat"]
+        unidentified_events = [event for event in events if event["trackTag"]["what"] == "unidentified"]
         assert len(cat_events) == 1
         assert len(unidentified_events) == 3
 
