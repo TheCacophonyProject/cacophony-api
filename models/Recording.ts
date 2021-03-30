@@ -841,13 +841,14 @@ from (
     for (const [name, newValue] of Object.entries(newValues)) {
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
-      } else if (name === "location") {
-        // NOTE: When location gets updated, we need to update any matching stations for this recordings' group.
-        const matchingStation = await tryToMatchRecordingToStation(this);
-        if (matchingStation) {
-          this.set("StationId", matchingStation.id);
-        }
       } else {
+        if (name === "location") {
+          // NOTE: When location gets updated, we need to update any matching stations for this recordings' group.
+          const matchingStation = await tryToMatchRecordingToStation(this);
+          if (matchingStation) {
+            this.set("StationId", matchingStation.id);
+          }
+        }
         this.set(name, newValue);
       }
     }
