@@ -18,7 +18,12 @@ import { Event } from "../../models/Event";
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
 const aiName = "Master";
-const unidentified = "unidentified";
+const conflictTag = "conflicting tags";
+
+const metaTags = ["part", "poor tracking"];
+const unidentifiedTags = ["unidentified", "unknown"];
+const nonAnimalTags = [...metaTags, ...unidentifiedTags];
+
 const audioBaitInterval = 60 * 10;
 
 function sortTracks(tracks: Track[]) {
@@ -48,21 +53,27 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   if (trackTags.length == 0) {
     return null;
   }
-  const manualTags = trackTags.filter((tag) => tag.automatic == false);
+  const manualTags = trackTags.filter(
+    (tag) => tag.automatic == false && !metaTags.includes(tag.what)
+  );
   if (manualTags.length > 0) {
-    const userTag = manualTags.find((tag) => tag.UserId == userID);
-    if (userTag) {
-      return userTag;
-    } else {
-      return manualTags[0];
+    const animalTags = manualTags.filter(
+      (tag) => !nonAnimalTags.includes(tag.what)
+    );
+    const uniqueTags = new Set(animalTags.map((tag) => tag.what));
+    if (uniqueTags.size > 1) {
+      const conflict = {
+        what: conflictTag,
+        confidence: manualTags[0].confidence,
+        automatic: false
+      };
+      return conflict as TrackTag;
     }
+
+    return animalTags.length == 0 ? manualTags[0] : animalTags[0];
   }
   const masterTag = trackTags.filter((tag) => tag.data == aiName);
-  if (masterTag.length > 0) {
-    return masterTag[0];
-  } else {
-    return null;
-  }
+  return masterTag.length == 0 ? null : masterTag[0];
 }
 
 class DeviceSummary {
@@ -124,7 +135,6 @@ class DeviceSummary {
     }
   }
   markCompleted() {
-    var visits = 0;
     for (const device of Object.values(this.deviceMap)) {
       for (var i = device.visits.length - 1; i >= 0; i--) {
         const visit = device.visits[i];
@@ -358,30 +368,44 @@ class Visit {
     this.addRecording(rec, userID);
   }
 
-  mostCommonTag(): string | null {
+  mostCommonTag(): TrackTag | null {
     // from all events in a visit, get the tag with the highest occurence that
-    // isnt unidentified
+    // isnt unidentified, preferring human tags over ai
+    // returns [boolean desciribing if human tag, the tag]
     const tagCount = this.tagCount;
     const sortedKeys = Object.keys(tagCount).sort(function (a, b) {
-      if (a == unidentified) {
+      const count_a = tagCount[a];
+      const count_b = tagCount[b];
+
+      if (count_a.tag.automatic != count_b.tag.automatic) {
+        // human tag takes precedence
+        if (!count_a.tag.automatic) {
+          return -1;
+        } else {
+          return 1;
+        }
+      }
+      if (unidentifiedTags.includes(count_a.tag.what)) {
         return 1;
-      } else if (b == unidentified) {
+      } else if (unidentifiedTags.includes(count_b.tag.what)) {
         return -1;
       }
-      return tagCount[b] - tagCount[a];
+
+      return count_b.count - count_a.count;
     });
     const maxVote = sortedKeys[0];
     if (maxVote) {
-      return maxVote;
+      return tagCount[maxVote].tag;
     }
     return null;
   }
   completeVisit() {
     // assign the visit a tag based on the most common tag that isn't unidentified
-    const visitTag = this.mostCommonTag();
-    this.what = visitTag;
+    const trackTag = this.mostCommonTag();
+    this.what = trackTag ? trackTag.what : null;
     for (const event of this.events) {
-      event.assumedTag = visitTag;
+      event.assumedTag = trackTag ? trackTag.what : null;
+      event.assumedIsHuman = !trackTag?.automatic;
     }
     this.complete = true;
   }
@@ -425,13 +449,16 @@ class Visit {
   }
 
   updateTagCount(event: VisitEvent) {
-    if (!event.what) {
+    if (!event.trackTag) {
       return;
     }
-    if (event.what in this.tagCount) {
-      this.tagCount[event.what] += 1;
+    const key = `${event.trackTag.automatic ? "ai" : "human"}-${
+      event.trackTag.what
+    }`;
+    if (key in this.tagCount) {
+      this.tagCount[key].count += 1;
     } else {
-      this.tagCount[event.what] = 1;
+      this.tagCount[key] = { tag: event.trackTag, count: 1 };
     }
   }
 
@@ -455,16 +482,16 @@ class VisitEvent {
   // e.g. if it was unidentified but grouped under a cat visit
   // assumedTag woudl be "cat"
   assumedTag: string;
+  assumedIsHuman: boolean;
   recID: number;
   recStart: Moment;
   trackID: number;
-  confidence: number;
   start: Moment;
   end: Moment;
   audioBaitDay: boolean;
   audioBaitEvents: Event[];
   audioBaitVisit: boolean;
-  what: string;
+  trackTag: TrackTag;
   constructor(rec: Recording, track: Track, tag: TrackTag, taggedAs: TrackTag) {
     const trackTimes = new TrackStartEnd(rec, track);
     this.audioBaitDay = false;
@@ -474,10 +501,9 @@ class VisitEvent {
     this.recStart = trackTimes.recStart;
     this.trackID = track.id;
     if (taggedAs) {
-      this.what = taggedAs.what;
-      this.confidence = Math.round(taggedAs.confidence * 100);
+      this.trackTag = taggedAs;
     } else {
-      this.what = null;
+      this.trackTag = null;
     }
     if (tag) {
       this.assumedTag = tag.what;

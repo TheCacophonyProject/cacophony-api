@@ -60,8 +60,9 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
   ) => Promise<boolean>;
   allForUser: (
     user: User,
-    onlyActive: boolean
-  , viewAsSuperAdmin: boolean) => Promise<{ rows: Device[]; count: number }>;
+    onlyActive: boolean,
+    viewAsSuperAdmin: boolean
+  ) => Promise<{ rows: Device[]; count: number }>;
   removeUserFromDevice: (
     authUser: User,
     device: Device,
@@ -255,7 +256,11 @@ export default function (
       });
     }
 
-    const whereQuery = await addUserAccessQuery(user, conditions, viewAsSuperAdmin);
+    const whereQuery = await addUserAccessQuery(
+      user,
+      conditions,
+      viewAsSuperAdmin
+    );
 
     return this.findAndCountAll({
       where: whereQuery,
@@ -265,7 +270,11 @@ export default function (
     });
   };
 
-  Device.allForUser = async function (user, onlyActive: boolean, viewAsSuperAdmin: boolean) {
+  Device.allForUser = async function (
+    user,
+    onlyActive: boolean,
+    viewAsSuperAdmin: boolean
+  ) {
     const includeData = [
       {
         model: models.User,
@@ -277,8 +286,9 @@ export default function (
     return this.onlyUsersDevicesMatching(
       user,
       includeOnlyActiveDevices,
-      includeData
-    , viewAsSuperAdmin);
+      includeData,
+      viewAsSuperAdmin
+    );
   };
 
   Device.newUserPermissions = function (enabled) {
@@ -667,7 +677,11 @@ order by hour;
 *
 filters the supplied query by devices and groups authUser is authorized to access
 */
-async function addUserAccessQuery(authUser, whereQuery, viewAsSuperAdmin = true) {
+async function addUserAccessQuery(
+  authUser,
+  whereQuery,
+  viewAsSuperAdmin = true
+) {
   if (viewAsSuperAdmin && authUser.hasGlobalRead()) {
     return whereQuery;
   }
