@@ -4,6 +4,7 @@
 import { getTestName } from "../names";
 import {
   apiPath,
+  getCreds,
   makeAuthorizedRequest,
   saveCreds,
   v1ApiPath
@@ -96,11 +97,12 @@ Cypress.Commands.add(
     admin = false,
     log = true
   ) => {
+    const adminStr = admin ? " as admin " : "";
     logTestDescription(
-      `${groupAdminUser} Adding user '${userName}' to group '${group}' ${
+      `${groupAdminUser} Adding user '${userName}' ${adminStr} to group '${group}' ${
         admin ? "as admin" : ""
       }`,
-      { user: userName, group: group },
+      { user: userName, group, isAdmin : admin },
       log
     );
 
@@ -115,6 +117,33 @@ Cypress.Commands.add(
         }
       },
       groupAdminUser
+    );
+  }
+);
+
+Cypress.Commands.add(
+  "apiAddUserToDevice",
+  (
+    deviceAdminUser: string,
+    userName: string,
+    device: string,
+  ) => {
+    logTestDescription(
+      `${deviceAdminUser} Adding user '${userName}' to device '${device}'`,
+      { user: userName, device },
+    );
+
+    makeAuthorizedRequest(
+      {
+        method: "POST",
+        url: v1ApiPath("devices/users"),
+        body: {
+          deviceId: getCreds(device).id,
+          admin: false,
+          username: getTestName(userName)
+        }
+      },
+      deviceAdminUser
     );
   }
 );

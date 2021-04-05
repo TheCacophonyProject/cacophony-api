@@ -23,6 +23,9 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
+import { ACCESS_ADMIN, ACCESS_READ } from "../../models/GroupUsers";
+import { AuthorizationError } from "../customErrors";
+import DeviceUsers from "../../models/DeviceUsers";
 
 const Op = Sequelize.Op;
 
@@ -47,7 +50,7 @@ export default function (app: Application, baseUrl: string) {
     apiUrl,
     [
       middleware.getGroupByName(body),
-      middleware.checkNewName("devicename"),
+      middleware.isValidName(body, "devicename"),
       middleware.checkNewPassword("password")
     ],
     middleware.requestWrapper(async (request, response) => {
@@ -122,6 +125,66 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
+/**
+ * @api {get} /api/v1/devices/:deviceName/inGroup/:groupIdOrName Get a single device
+ * @apiName GetDeviceInGroup
+ * @apiGroup Device
+ * @apiParam {string} deviceName Name of the device
+ * @apiParam {string | int} groupIdOrName Identifier of group device belongs to
+ *
+ * @apiDescription Returns the device if the user can access it either through
+ * through both group membership and direct assignment.
+ *
+ * @apiUse V1UserAuthorizationHeader
+ *
+ * @apiUse V1ResponseSuccess
+ * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), '
+ *
+ * @apgroupName' {string} and `Users` which is an array of Users with permissions on that device.iUse V1ResponseError
+ */
+    app.get(
+    `${apiUrl}/:deviceName/inGroup/:groupIdOrName`,
+    [
+      auth.authenticateUser,
+      middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
+      middleware.isValidName(param, "deviceName"),
+    ],
+    middleware.requestWrapper(async (request, response) => {
+      const device = await models.Device.findOne({
+        where: { devicename: request.params.deviceName, GroupId: request.body.group.id },
+        include: [
+          {
+            model: models.User,
+            attributes: ["id", "username"]
+          }
+        ]
+      });
+
+      let deviceReturn : any  = {};
+      console.log(`here is device ${JSON.stringify(device)}`);
+      if (device ) {
+        const accessLevel = await device.getAccessLevel(request.user);
+        if (accessLevel < ACCESS_READ) {
+          throw new AuthorizationError(
+            "User is not authorized to access device"
+          );        
+        }
+
+        deviceReturn = {
+          id: device.id,
+          deviceName: device.devicename,
+          groupName: request.body.group.groupname,
+          users : (accessLevel == ACCESS_ADMIN) ? device.Users : []
+        };
+      }
+      return responseUtil.send(response, {
+        statusCode: 200,
+        device: deviceReturn,
+        messages: ["Request succesful"]
+      });
+    })
+  );
+
   /**
    * @api {get} /api/v1/devices/users Get all users who can access a device.
    * @apiName GetDeviceUsers
@@ -141,10 +204,12 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     `${apiUrl}/users`,
-    [auth.authenticateUser, middleware.getDeviceById(query)],
+    [auth.authenticateUser, 
+    middleware.getDeviceById(query),
+    auth.userCanAccessDevices],
     middleware.requestWrapper(async (request, response) => {
       let users = await request.body.device.users(request.user);
-
+      
       users = users.map((u) => {
         u = u.get({ plain: true });
 
@@ -281,7 +346,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateDevice,
       middleware.getGroupByName(body, "newGroup"),
-      middleware.checkNewName("newName"),
+      middleware.isValidName(body, "newName"),
       middleware.checkNewPassword("newPassword")
     ],
     middleware.requestWrapper(async function (request, response) {
@@ -326,7 +391,6 @@ export default function (app: Application, baseUrl: string) {
     [
       middleware.parseJSON("devices", query).optional(),
       middleware.parseArray("groups", query).optional(),
-
       query("operator").isIn(["or", "and", "OR", "AND"]).optional(),
       auth.authenticateAccess(["user"], { devices: "r" })
     ],

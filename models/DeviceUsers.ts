@@ -20,12 +20,14 @@ import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { UserId } from "./User";
 import { DeviceId } from "./Device";
+import { ACCESS_NONE, ACCESS_READ, ACCESS_ADMIN} from "./GroupUsers"
 
 export interface DeviceUsers
   extends Sequelize.Model,
     ModelCommon<DeviceUsers> {}
 export interface DeviceUsersStatic extends ModelStaticCommon<DeviceUsers> {
   isAdmin: (deviceId: DeviceId, userId: UserId) => Promise<boolean>;
+  getAccessLevel: (deviceId: DeviceId, userId: UserId) => Promise<number>;
 }
 
 export default function (
@@ -53,14 +55,24 @@ export default function (
   DeviceUsers.addAssociations = function () {};
 
   DeviceUsers.isAdmin = async function (deviceId, userId) {
+    return (await this.getAccessLevel(deviceId, userId)) == ACCESS_ADMIN;
+  };
+
+    /**
+   * Checks if a user is a admin of a group.
+   */
+  DeviceUsers.getAccessLevel = async function (deviceId, userId) {
     const deviceUser = await this.findOne({
       where: {
         DeviceId: deviceId,
         UserId: userId,
-        admin: true
       }
     });
-    return deviceUser != null;
+
+    if (deviceUser == null) {
+      return ACCESS_NONE;
+    }
+    return (deviceUser.admin) ? ACCESS_ADMIN : ACCESS_READ;
   };
 
   return DeviceUsers;

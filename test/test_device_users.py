@@ -91,5 +91,5 @@ class TestDeviceUsers:
         # Ensure another user who is not a member of the group can't
         # list the users.
         hacker = helper.given_new_user(self, "Hacker")
-        hacker.device_has_group_users(device)
-        hacker.device_has_device_users(device)
+        with pytest.raises(AuthorizationError):
+            hacker.device_has_group_users(device)

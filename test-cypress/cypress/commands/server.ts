@@ -40,18 +40,21 @@ export function saveCreds(response: Cypress.Response, name: string, id = 0) {
   Cypress.env("testCreds")[name] = creds;
 }
 
+export function checkAuthorizedRequestFails(
+  requestDetails: Partial<Cypress.RequestOptions>,
+  credName: string
+) {
+  // must set failOnStatusCode to false, to stop cypress from failing the test due to a failed status code before the then is called.
+  requestDetails.failOnStatusCode = false;
+  makeAuthorizedRequest(requestDetails, credName).then(expectRequestHasFailed);
+}
+
 export function checkRequestFails(
   requestDetails: Partial<Cypress.RequestOptions>
 ) {
   // must set failOnStatusCode to false, to stop cypress from failing the test due to a failed status code before the then is called.
   requestDetails.failOnStatusCode = false;
-  cy.request(requestDetails).then(
-    (response) =>
-      expect(
-        response.isOkStatusCode,
-        "Request should return a failure status code."
-      ).to.be.false
-  );
+  cy.request(requestDetails).then(expectRequestHasFailed);
 }
 
 export function makeAuthorizedRequest(
@@ -61,6 +64,13 @@ export function makeAuthorizedRequest(
   const creds = getCreds(credName);
   requestDetails.headers = creds.headers;
   return cy.request(requestDetails);
+}
+
+function expectRequestHasFailed(response) {
+  expect(
+    response.isOkStatusCode,
+    "Request should return a failure status code."
+  ).to.be.false;
 }
 
 type IsoFormattedDateString = string;

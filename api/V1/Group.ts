@@ -23,6 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import { Application } from "express";
 import { Validator } from "jsonschema";
+
 const JsonSchema = new Validator();
 
 const validateStationsJson = (val, { req }) => {
@@ -72,7 +73,7 @@ export default function (app: Application, baseUrl: string) {
     apiUrl,
     [
       auth.authenticateUser,
-      middleware.checkNewName("groupname").custom((value) => {
+      middleware.isValidName(body, "groupname").custom((value) => {
         return models.Group.freeGroupname(value);
       })
     ],

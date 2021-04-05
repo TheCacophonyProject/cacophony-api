@@ -21,9 +21,15 @@ import { ModelCommon, ModelStaticCommon } from "./index";
 import { GroupId } from "./Group";
 import { UserId } from "./User";
 
+export const ACCESS_NONE : number = 0;
+export const ACCESS_READ : number = 1;
+export const ACCESS_ADMIN : number = 2;
+export type ACCESS_LEVEL = number;
+
 export interface GroupUsers extends Sequelize.Model, ModelCommon<GroupUsers> {}
 export interface GroupUsersStatic extends ModelStaticCommon<GroupUsers> {
   isAdmin: (groupId: GroupId, userId: UserId) => Promise<boolean>;
+  getAccessLevel: (groupId: GroupId, userId: UserId) => Promise<ACCESS_LEVEL>;
 }
 
 export default function (sequelize, DataTypes): GroupUsersStatic {
@@ -49,14 +55,24 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
    * Checks if a user is a admin of a group.
    */
   GroupUsers.isAdmin = async function (groupId, userId) {
+    return (await this.getAccessLevel(groupId, userId)) == ACCESS_ADMIN;
+  };
+  
+  /**
+   * Checks if a user is a admin of a group.
+   */
+  GroupUsers.getAccessLevel = async function (groupId, userId) {
     const groupUsers = await this.findOne({
       where: {
         GroupId: groupId,
         UserId: userId,
-        admin: true
       }
     });
-    return groupUsers != null;
+
+    if (groupUsers == null) {
+      return ACCESS_NONE;
+    }
+    return (groupUsers.admin) ? ACCESS_ADMIN : ACCESS_READ;
   };
 
   return GroupUsers;
