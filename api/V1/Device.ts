@@ -126,7 +126,7 @@ export default function (app: Application, baseUrl: string) {
   );
 
 /**
- * @api {get} /api/v1/devices/:deviceName/inGroup/:groupIdOrName Get a single device
+ * @api {get} /api/v1/devices/:deviceName/in-group/:groupIdOrName Get a single device
  * @apiName GetDeviceInGroup
  * @apiGroup Device
  * @apiParam {string} deviceName Name of the device
@@ -138,9 +138,9 @@ export default function (app: Application, baseUrl: string) {
  * @apiUse V1UserAuthorizationHeader
  *
  * @apiUse V1ResponseSuccess
- * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), '
- *
- * @apgroupName' {string} and `Users` which is an array of Users with permissions on that device.iUse V1ResponseError
+ * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), and device users (if authorized) '
+ * 
+ * @apiUse V1ResponseError
  */
     app.get(
     `${apiUrl}/:deviceName/in-group/:groupIdOrName`,
