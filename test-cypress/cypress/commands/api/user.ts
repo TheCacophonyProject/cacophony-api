@@ -112,7 +112,7 @@ Cypress.Commands.add(
         url: v1ApiPath("groups/users"),
         body: {
           group: getTestName(group),
-          admin: admin,
+          admin: admin ? "true" : "false",
           username: getTestName(userName)
         }
       },
@@ -139,7 +139,7 @@ Cypress.Commands.add(
         url: v1ApiPath("devices/users"),
         body: {
           deviceId: getCreds(device).id,
-          admin: false,
+          admin: "false",
           username: getTestName(userName)
         }
       },

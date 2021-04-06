@@ -143,7 +143,7 @@ export default function (app: Application, baseUrl: string) {
  * @apgroupName' {string} and `Users` which is an array of Users with permissions on that device.iUse V1ResponseError
  */
     app.get(
-    `${apiUrl}/:deviceName/inGroup/:groupIdOrName`,
+    `${apiUrl}/:deviceName/in-group/:groupIdOrName`,
     [
       auth.authenticateUser,
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
@@ -174,8 +174,16 @@ export default function (app: Application, baseUrl: string) {
           id: device.id,
           deviceName: device.devicename,
           groupName: request.body.group.groupname,
-          users : (accessLevel == ACCESS_ADMIN) ? device.Users : []
+          userIsAdmin: (accessLevel == ACCESS_ADMIN)
         };
+        if (accessLevel == ACCESS_ADMIN) {
+          deviceReturn.users = device.Users.map((user) => {
+            return  {
+              userName: user.username, 
+              admin: user.DeviceUsers.admin, 
+              id: user.DeviceUsers.UserId}
+          })
+        }
       }
       return responseUtil.send(response, {
         statusCode: 200,
@@ -308,7 +316,7 @@ export default function (app: Application, baseUrl: string) {
     middleware.requestWrapper(async function (request, response) {
       const removed = await models.Device.removeUserFromDevice(
         request.user,
-        request.body.device,
+        request.body.device,  
         request.body.user
       );
 

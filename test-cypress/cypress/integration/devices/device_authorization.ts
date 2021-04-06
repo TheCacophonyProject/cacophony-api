@@ -23,18 +23,15 @@ describe("Device authorization", () => {
     });
   
     it("Admin group member should see everything", () => {
-      checkDeviceRequestSucceeds(admin);
-
-      logTestDescription(`Check that ${admin} can also see device users`, {});
-      makeAuthorizedRequest(deviceRequest(group, camera), admin).its('body.device.users').should('have.length', 1);
+      checkDeviceRequestSucceeds(admin, true);
     });
 
     it("Group member should be able to read most things", () => {
-      checkDeviceRequestSucceeds(member);
+      checkDeviceRequestSucceeds(member, NOT_ADMIN);
     });
     
     it("Device member should be able to read most things", () => {
-      checkDeviceRequestSucceeds(device_member);
+      checkDeviceRequestSucceeds(device_member, NOT_ADMIN);
     });
     
     it("Hacker should not have any access", () => {
@@ -42,9 +39,16 @@ describe("Device authorization", () => {
       checkAuthorizedRequestFails(deviceRequest(group, camera), hacker);
     });
 
-    function checkDeviceRequestSucceeds(username) {    
+    function checkDeviceRequestSucceeds(username: string, isAdmin: boolean ) {    
       logTestDescription(`Check that ${username} can get device`, {});
       makeAuthorizedRequest(deviceRequest(group, camera), username).its('body.device').should('have.nested.property', 'id');
+
+      logTestDescription(`Check that ${username} ${isAdmin?"can":"cannot"} see device users`, {});
+      if (isAdmin) {
+        makeAuthorizedRequest(deviceRequest(group, camera), username).its('body.device.users').should('have.length', 1);
+      } else {
+        makeAuthorizedRequest(deviceRequest(group, camera), username).its('body.device.users').should('not.exist');
+      }     
     }
 });
   
@@ -54,6 +58,6 @@ describe("Device authorization", () => {
       
     return {
         method: "GET",
-        url: v1ApiPath(`devices/${deviceName}/inGroup/${groupName}`),
+        url: v1ApiPath(`devices/${deviceName}/in-group/${groupName}`),
     };
   }
