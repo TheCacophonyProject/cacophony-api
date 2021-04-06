@@ -130,7 +130,7 @@ export default function (app: Application, baseUrl: string) {
  * @apiName GetDeviceInGroup
  * @apiGroup Device
  * @apiParam {string} deviceName Name of the device
- * @apiParam {string | int} groupIdOrName Identifier of group device belongs to
+ * @apiParam {stringOrInt} groupIdOrName Identifier of group device belongs to
  *
  * @apiDescription Returns the device if the user can access it either through
  * through both group membership and direct assignment.
