@@ -23,6 +23,8 @@ import models from "../../models";
 const GROUPS_AND_DEVICES = "GROUPS_AND_DEVICES";
 const USER_PERMISSIONS = "USER_PERMISSIONS";
 const DATE_SELECTION = "DATE_SELECTION";
+const PAGING = "PAGING";
+const BEFORE_CACOPHONY = new Date(2017, 1, 1);
 
 const LAST_TIMES_TABLE = `with lasttimes as                                    
 (select "recordingDateTime", "DeviceId", "GroupId",
@@ -45,8 +47,8 @@ const VISITS_COUNT_SQL = `${LAST_TIMES_TABLE} select count(*) from "lasttimes" $
 const VISIT_STARTS_SQL = `${LAST_TIMES_TABLE} 
 select * from "lasttimes" 
 ${WHERE_IS_VISIT_START}
-order by "recordingDateTime" desc 
-limit 10;`;
+order by "recordingDateTime" desc
+{${PAGING}}`;
 
 export interface MonitoringParams {
     user : User;
@@ -54,21 +56,81 @@ export interface MonitoringParams {
     devices? : number[];
     from? : Date;
     until? : Date;
+    page? : number;
+    pageSize?: number;
 }
+
+export interface SearchCriteria {
+    page: number,
+    estimatedCount: number,
+    estimatedPages: number,
+    from?: Date;
+    until?: Date;
+    /// this is temp
+    results: any;
+    all: boolean;
+    search: boolean;
+}
+
 
 async function monitoringData(
     params?: MonitoringParams
 )
 {
+    const criteria = getDatesForSearch(params);
+    return criteria;
+}
+async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCriteria> {
+    
+    // wrong values of page size must be accounted for. 
+
     const replacements = {
         GROUPS_AND_DEVICES : makeGroupsAndDevicesCriteria(params.devices, params.groups),
         USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(params.user),
-        DATE_SELECTION: makeDatesCriteria(params)
+        DATE_SELECTION: makeDatesCriteria(params),
+        PAGING: null
     }
 
-    const count = await models.sequelize.query(replaceInSQL(VISITS_COUNT_SQL, replacements), { type: QueryTypes.SELECT });
-    const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
-    return { count: count[0].count, visitStarts: results};
+    const countRet = await models.sequelize.query(replaceInSQL(VISITS_COUNT_SQL, replacements), { type: QueryTypes.SELECT });
+    const count = parseInt(countRet[0].count);
+
+    const returnVal : SearchCriteria = {
+        page: params.page, 
+        estimatedCount: count,
+        estimatedPages: Math.ceil(count / params.pageSize),
+        from: params.from || BEFORE_CACOPHONY, 
+        until: params.until || new Date(), 
+        results: {},
+        all: false,
+        search: true
+    }
+
+    if (count < params.pageSize) {
+        returnVal.all = true;
+    } else if (params.page == 1) {
+        replacements.PAGING = ` LIMIT ${ params.pageSize } `;
+        const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
+        console.log(`result is ${JSON.stringify(results)}`);
+        if (results.length > 0) {
+            returnVal.from = results[results.length - 1].recordingDateTime;
+        }
+    } else if (params.page > returnVal.estimatedPages) {
+        returnVal.search = false;
+        returnVal.until = BEFORE_CACOPHONY;
+    } else {
+        replacements.PAGING = ` LIMIT ${params.pageSize + 1 } OFFSET ${(params.page - 1) * params.pageSize - 1}`;
+        const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
+
+        if (results.length > 0) {
+            returnVal.until = results[0].recordingDateTime;
+
+            if (params.page != returnVal.estimatedPages) {
+                returnVal.from = results[results.length - 1].recordingDateTime;
+            }
+        }
+    }
+
+    return returnVal;
 }
 
 function replaceInSQL(sql: string, replacements: { [key: string]: string} ) : string {
@@ -124,129 +186,3 @@ export default {
     monitoringData,
 };
   
-// Returns a promise for the recordings visits query specified in the
-// request.
-// async function queryVisits(
-//     request: RecordingQuery,
-//     type?
-//   ): Promise<{
-//     visits: Visit[];
-//     summary: DeviceSummary;
-//     hasMoreVisits: boolean;
-//     queryOffset: number;
-//     totalRecordings: number;
-//     numRecordings: number;
-//     numVisits: number;
-//   }> {
-//     const maxVisitQueryResults = 5000;
-//     const requestVisits =
-//       request.query.limit == null
-//         ? maxVisitQueryResults
-//         : (request.query.limit as number);
-  
-//     let queryMax = maxVisitQueryResults * 2;
-//     let queryLimit = queryMax;
-//     if (request.query.limit) {
-//       queryLimit = Math.min(request.query.limit * 2, queryMax);
-//     }
-  
-//     const builder = await new models.Recording.queryBuilder().init(
-//       request.user,
-//       request.query.where,
-//       request.query.tagMode,
-//       request.query.tags,
-//       request.query.offset,
-//       queryLimit,
-//       null
-//     );
-//     builder.query.distinct = true;
-//     builder.addAudioEvents(  
-//       '"Recording"."recordingDateTime" - interval \'1 day\'',
-//       '"Recording"."recordingDateTime" + interval \'1 day\''
-//     );
-  
-//     const devSummary = new DeviceSummary();
-//     const filterOptions = models.Recording.makeFilterOptions(
-//       request.user,
-//       request.filterOptions
-//     );
-//     let numRecordings = 0;
-//     let remainingVisits = requestVisits;
-//     let totalCount, recordings, gotAllRecordings;
-  
-//     while (gotAllRecordings || remainingVisits > 0) {
-//       if (totalCount) {
-//         recordings = await models.Recording.findAll(builder.get());
-//       } else {
-//         const result = await models.Recording.findAndCountAll(builder.get());
-//         totalCount = result.count;
-//         recordings = result.rows;
-//       }
-  
-//       numRecordings += recordings.length;
-//       gotAllRecordings = recordings.length + builder.query.offset >= recordings;
-//       if (recordings.length == 0) {
-//         break;
-//       }
-  
-//       for (const [i, rec] of recordings.entries()) {
-//         rec.filterData(filterOptions);
-//       }
-//       devSummary.generateVisits(
-//         recordings,
-//         request.query.offset || 0,
-//         gotAllRecordings,
-//         request.user.id
-//       );
-  
-//       if (!gotAllRecordings) {
-//         devSummary.checkForCompleteVisits();
-//       }
-  
-//       remainingVisits = requestVisits - devSummary.completeVisitsCount();
-//       builder.query.limit = Math.min(remainingVisits * 2, queryMax);
-//       builder.query.offset += recordings.length;
-//     }
-  
-//     let queryOffset = 0;
-//     // mark all as complete
-//     if (gotAllRecordings) {
-//       devSummary.markCompleted();
-//     } else {
-//       devSummary.removeIncompleteVisits();
-//     }
-//     const audioFileIds = devSummary.allAudioFileIds();
-  
-//     const visits = devSummary.completeVisits();
-//     visits.sort(function (a, b) {
-//       return b.start > a.start ? 1 : -1;
-//     });
-//     // get the offset to use for future queries
-//     queryOffset = devSummary.earliestIncompleteOffset();
-//     if (queryOffset == null && visits.length > 0) {
-//       queryOffset = visits[visits.length - 1].queryOffset + 1;
-//     }
-  
-//     // Bulk look up file details of played audio events.
-//     const audioFileNames = new Map();
-//     for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
-//       audioFileNames[f.id] = f.details.name;
-//     }
-  
-//     // update the references in deviceMap
-//     for (const visit of visits) {
-//       for (const audioEvent of visit.audioBaitEvents) {
-//         audioEvent.dataValues.fileName =
-//           audioFileNames[audioEvent.EventDetail.details.fileId];
-//       }
-//     }
-//     return {
-//       visits: visits,
-//       summary: devSummary,
-//       hasMoreVisits: !gotAllRecordings,
-//       totalRecordings: totalCount,
-//       queryOffset: queryOffset,
-//       numRecordings: numRecordings,
-//       numVisits: visits.length
-//     };
-//   }
