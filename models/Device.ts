@@ -45,8 +45,10 @@ export interface Device extends Sequelize.Model, ModelCommon<Device> {
     group: Group,
     newPassword: string
   ) => Promise<Device>;
-
+  Group: Group;
+  GroupId: number;
   getEvents: (options: FindOptions) => Promise<Event[]>;
+  getGroup: () => Promise<Group>;
 }
 
 export interface DeviceStatic extends ModelStaticCommon<Device> {
@@ -56,7 +58,11 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     userToAdd: User,
     admin: boolean
   ) => Promise<boolean>;
-  allForUser: (user: User, onlyActive: boolean) => Promise<{ rows: Device[]; count: number }>;
+  allForUser: (
+    user: User,
+    onlyActive: boolean,
+    viewAsSuperAdmin: boolean
+  ) => Promise<{ rows: Device[]; count: number }>;
   removeUserFromDevice: (
     authUser: User,
     device: Device,
@@ -237,10 +243,11 @@ export default function (
   Device.onlyUsersDevicesMatching = async function (
     user,
     conditions = null,
-    includeData = null
+    includeData = null,
+    viewAsSuperAdmin = true
   ) {
     // Return all devices if user has global write/read permission.
-    if (user.hasGlobalRead()) {
+    if (viewAsSuperAdmin && user.hasGlobalRead()) {
       return this.findAndCountAll({
         where: conditions,
         attributes: ["devicename", "id", "GroupId", "active"],
@@ -249,7 +256,11 @@ export default function (
       });
     }
 
-    const whereQuery = await addUserAccessQuery(user, conditions);
+    const whereQuery = await addUserAccessQuery(
+      user,
+      conditions,
+      viewAsSuperAdmin
+    );
 
     return this.findAndCountAll({
       where: whereQuery,
@@ -259,7 +270,11 @@ export default function (
     });
   };
 
-  Device.allForUser = async function (user, onlyActive: boolean) {
+  Device.allForUser = async function (
+    user,
+    onlyActive: boolean,
+    viewAsSuperAdmin: boolean
+  ) {
     const includeData = [
       {
         model: models.User,
@@ -268,7 +283,12 @@ export default function (
     ];
     const includeOnlyActiveDevices = onlyActive ? { active: true } : null;
 
-    return this.onlyUsersDevicesMatching(user, includeOnlyActiveDevices, includeData);
+    return this.onlyUsersDevicesMatching(
+      user,
+      includeOnlyActiveDevices,
+      includeData,
+      viewAsSuperAdmin
+    );
   };
 
   Device.newUserPermissions = function (enabled) {
@@ -657,8 +677,12 @@ order by hour;
 *
 filters the supplied query by devices and groups authUser is authorized to access
 */
-async function addUserAccessQuery(authUser, whereQuery) {
-  if (authUser.hasGlobalRead()) {
+async function addUserAccessQuery(
+  authUser,
+  whereQuery,
+  viewAsSuperAdmin = true
+) {
+  if (viewAsSuperAdmin && authUser.hasGlobalRead()) {
     return whereQuery;
   }
   const deviceIds = await authUser.getDeviceIds();

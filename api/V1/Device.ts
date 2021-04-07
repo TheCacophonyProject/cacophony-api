@@ -87,6 +87,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiGroup Device
    * @apiParam onlyActive {Boolean} Only return active devices, defaults to 'true'
    * If we want to return *all* devices this must be present and set to 'false'
+   * @apiParam {string} view-mode (Optional) - can be set to "user"
    *
    * @apiDescription Returns all devices the user can access
    * through both group membership and direct assignment.
@@ -103,12 +104,17 @@ export default function (app: Application, baseUrl: string) {
   app.get(
     apiUrl,
     [
-        auth.authenticateUser,
-        param("onlyActive").optional().isBoolean().toBoolean(),
+      auth.authenticateUser,
+      middleware.viewMode(),
+      query("onlyActive").optional().isBoolean().toBoolean()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const onlyActiveDevices = request.param.onlyActive !== false;
-      const devices = await models.Device.allForUser(request.user, onlyActiveDevices);
+      const onlyActiveDevices = request.query.onlyActive !== false;
+      const devices = await models.Device.allForUser(
+        request.user,
+        onlyActiveDevices,
+        request.body.viewAsSuperAdmin
+      );
       return responseUtil.send(response, {
         devices: devices,
         statusCode: 200,

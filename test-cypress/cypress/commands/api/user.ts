@@ -86,3 +86,35 @@ Cypress.Commands.add("apiCreateUserGroup", (userName, group) => {
   cy.apiCreateUser(userName, false);
   cy.apiCreateGroup(userName, group, false);
 });
+
+Cypress.Commands.add(
+  "apiAddUserToGroup",
+  (
+    groupAdminUser: string,
+    userName: string,
+    group: string,
+    admin = false,
+    log = true
+  ) => {
+    logTestDescription(
+      `${groupAdminUser} Adding user '${userName}' to group '${group}' ${
+        admin ? "as admin" : ""
+      }`,
+      { user: userName, group: group },
+      log
+    );
+
+    makeAuthorizedRequest(
+      {
+        method: "POST",
+        url: v1ApiPath("groups/users"),
+        body: {
+          group: getTestName(group),
+          admin: admin,
+          username: getTestName(userName)
+        }
+      },
+      groupAdminUser
+    );
+  }
+);

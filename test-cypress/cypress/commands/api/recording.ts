@@ -175,7 +175,7 @@ function addTracksToRecording(
   };
 
   if (tags && !trackDetails) {
-    trackDetails = tags.map((tag) => ({tag}));
+    trackDetails = tags.map((tag) => ({ tag }));
   }
 
   if (trackDetails) {

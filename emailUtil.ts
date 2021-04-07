@@ -10,7 +10,9 @@ function alertBody(
   tag: TrackTag,
   camera: String
 ): string[] {
-  const dateTime = moment(recording.recordingDateTime).tz(config.timeZone).format("h:mma Do MMM");
+  const dateTime = moment(recording.recordingDateTime)
+    .tz(config.timeZone)
+    .format("h:mma Do MMM");
   let html = `<h1>${camera} has detected a ${tag.what} - ${dateTime}</h1>`;
   html += `<a  href="${config.server.recording_url_base}/${recording.id}?device=${recording.DeviceId}">View Recording</a>`;
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
@@ -28,7 +30,7 @@ async function sendEmail(
   subject: string
 ): Promise<boolean> {
   const client = new SMTPClient(config.smtpDetails);
-
+  log.info(`Sending  email with subject ${subject} to ${to}`);
   try {
     const message = new Message({
       text: text,

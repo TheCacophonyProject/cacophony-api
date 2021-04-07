@@ -1,5 +1,4 @@
 import csv
-
 from datetime import datetime, timedelta
 import dateutil.parser
 from dateutil.parser import parse as parsedate
@@ -15,10 +14,12 @@ class TestVisits:
         cosmo.create_group(cosmo_group)
         device = helper.given_new_device(self, "cosmo_device", cosmo_group)
         # check that a recording with 1 untagged track, 1 unidentified and 1 cat, assumes the unidentified and untagged is a cat
-        rec, _, _ = helper.upload_recording_with_tag(device, admin, "unidentified")
+        rec, track, _ = helper.upload_recording_with_tag(device, admin, "unidentified", automatic=False)
+        cosmo.can_tag_track(track, what="cat", automatic=False)
+
         track = admin.can_add_track_to_recording(rec, start_s=80)
         track = admin.can_add_track_to_recording(rec, start_s=80)
-        admin.can_tag_track(track, what="cat")
+        admin.can_tag_track(track, what="cat", automatic=False)
 
         response = cosmo.query_visits(return_json=True, deviceIds=device.get_id())
         assert response["numVisits"] == 1
@@ -114,7 +115,7 @@ class TestVisits:
         assert visit["audioBaitVisit"]
         assert len(visit["audioBaitEvents"]) == 2
 
-    def test_visits2(self, helper):
+    def test_visit_tags(self, helper):
         # init device and sounds
         admin = helper.admin_user()
         sound1_name = "rodent-scream"
@@ -155,7 +156,7 @@ class TestVisits:
             [now - timedelta(minutes=29)],
         )
         track = admin.can_add_track_to_recording(rec, start_s=80)
-        admin.can_tag_track(track, what="unidentified")
+        admin.can_tag_track(track, what="unidentified", automatic=True)
 
         # visit 4 - 1 hour ago
         # future 3 unidentified gets grouped with cat
@@ -202,8 +203,8 @@ class TestVisits:
         print("The last visit from a cat has 3 unidentified")
         cat_visit = response["visits"][-1]
         events = cat_visit["events"]
-        cat_events = [event for event in events if event["what"] == "cat"]
-        unidentified_events = [event for event in events if event["what"] == "unidentified"]
+        cat_events = [event for event in events if event["trackTag"]["what"] == "cat"]
+        unidentified_events = [event for event in events if event["trackTag"]["what"] == "unidentified"]
         assert len(cat_events) == 1
         assert len(unidentified_events) == 3
 

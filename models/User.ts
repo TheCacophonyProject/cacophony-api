@@ -50,10 +50,16 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   comparePassword: (password: string) => Promise<boolean>;
   getAllDeviceIds: () => Promise<number[]>;
   getGroupsIds: () => Promise<number[]>;
-  getGroups: (options: { where: any, attributes: string[] }) => Promise<Group[]>;
+  getGroups: (options: {
+    where: any;
+    attributes: string[];
+  }) => Promise<Group[]>;
   isInGroup: (groupId: number) => Promise<boolean>;
   isGroupAdmin: (groupId: number) => Promise<boolean>;
-  checkUserControlsDevices: (deviceIds: number[]) => Promise<void>;
+  checkUserControlsDevices: (
+    deviceIds: number[],
+    viewAsSuperAdmin?: boolean
+  ) => Promise<void>;
   canAccessDevice: (deviceId: number) => Promise<bool>;
   canAccessGroup: (groupId: number) => Promise<bool>;
   getDeviceIds: () => Promise<number[]>;
@@ -303,10 +309,12 @@ export default function (
   };
 
   User.prototype.isGroupAdmin = async function (
-      groupId: number
+    groupId: number
   ): Promise<boolean> {
     const groupIds = await this.getGroups();
-    return groupIds.some(({id, GroupUsers}) => id === groupId && GroupUsers.admin === true);
+    return groupIds.some(
+      ({ id, GroupUsers }) => id === groupId && GroupUsers.admin === true
+    );
   };
 
   // Returns the devices that are directly associated with this user
@@ -321,8 +329,11 @@ export default function (
     return deviceIds.includes(deviceId);
   };
 
-  User.prototype.checkUserControlsDevices = async function (deviceIds) {
-    if (!this.hasGlobalWrite()) {
+  User.prototype.checkUserControlsDevices = async function (
+    deviceIds,
+    viewAsSuperAdmin = true
+  ) {
+    if (!(viewAsSuperAdmin && this.hasGlobalWrite())) {
       const usersDevices = await this.getAllDeviceIds();
 
       deviceIds.forEach((deviceId) => {

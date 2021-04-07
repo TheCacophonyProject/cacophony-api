@@ -256,7 +256,10 @@ const userCanAccessDevices = async (request, response, next) => {
   }
 
   try {
-    await request.user.checkUserControlsDevices(devices);
+    await request.user.checkUserControlsDevices(
+      devices,
+      request.body.viewAsSuperAdmin
+    );
   } catch (e) {
     return response.status(403).json({ messages: [e.message] });
   }
@@ -278,10 +281,15 @@ const userHasReadAccessToGroup = async (request, response, next) => {
     return;
   }
 
-  if (request.user.hasGlobalRead() || await request.user.isInGroup(request.body.group.id)) {
+  if (
+    request.user.hasGlobalRead() ||
+    (await request.user.isInGroup(request.body.group.id))
+  ) {
     next();
   } else {
-    return response.status(403).json({ messages: ["User doesn't have permission to access group"] });
+    return response
+      .status(403)
+      .json({ messages: ["User doesn't have permission to access group"] });
   }
 };
 
@@ -300,10 +308,15 @@ const userHasWriteAccessToGroup = async (request, response, next) => {
     return;
   }
 
-  if (request.user.hasGlobalWrite() || await request.user.isGroupAdmin(request.body.group.id)) {
+  if (
+    request.user.hasGlobalWrite() ||
+    (await request.user.isGroupAdmin(request.body.group.id))
+  ) {
     next();
   } else {
-    return response.status(403).json({ messages: ["User doesn't have permission to access group"] });
+    return response
+      .status(403)
+      .json({ messages: ["User doesn't have permission to access group"] });
   }
 };
 

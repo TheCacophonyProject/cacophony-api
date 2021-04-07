@@ -38,7 +38,7 @@ declare namespace Cypress {
 
     userTagRecording(
       recordingId: number,
-      recordingIndex: number,
+      trackIndex: number,
       tagger: string,
       tag: string
     );
