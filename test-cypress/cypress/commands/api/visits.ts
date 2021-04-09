@@ -42,23 +42,19 @@ function checkVisitsMatch(
   camera: string,
   expectedVisits: ComparableVisit[]
 ) {
-  const where: VisitsWhere = {
-    duration: { $gte: "0" },
-    type: "thermalRaw"
+  
+  const params : any = {
+    page: 1,
+    "page-size": 100,
   };
-
+  
   if (camera) {
-    where.DeviceId = getCreds(camera).id;
+    params.devices = getCreds(camera).id;
   }
-
-  const params = {
-    where: JSON.stringify(where),
-    limit: 100
-  };
 
   cy.request({
     method: "GET",
-    url: v1ApiPath("recordings/visits", params),
+    url: v1ApiPath("monitoring/page", params),
     headers: getCreds(user).headers
   }).then((response) => {
     checkResponseMatches(response, expectedVisits);
@@ -69,7 +65,7 @@ function checkResponseMatches(
   response: Cypress.Response,
   expectedVisits: ComparableVisit[]
 ) {
-  const responseVisits = response.body.visits;
+  const responseVisits = response.body.result.results;
 
   expect(
     responseVisits.length,
@@ -89,11 +85,7 @@ function checkResponseMatches(
     }
 
     if (expectedVisit.recordings) {
-      const recordingIds = completeResponseVisit.events.map((ev) => {
-        return ev.recID;
-      });
-      const recordingIdsSet = new Set(recordingIds);
-      simplifiedResponseVisit.recordings = recordingIdsSet.size;
+      simplifiedResponseVisit.recordings =  completeResponseVisit.recordings.length;
     }
 
     if (expectedVisit.start) {

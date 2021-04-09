@@ -23,10 +23,10 @@ describe("Visits : tracks and tags", () => {
     const camera = "only_master";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { model: "different", tags: ["cat"] });
-    cy.checkVisitTags(Dee, camera, ["<null>"]);
+    cy.checkVisitTags(Dee, camera, ["none"]);
   });
 
-  it("each recording contributes a vote for what the animal is", () => {
+  it("each recording contributes votes for what the animal is", () => {
     const camera = "multiple_tracks";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { tags: ["possum", "rat"] });
@@ -103,7 +103,7 @@ describe("Visits : tracks and tags", () => {
     cy.apiCreateCamera(camera, group);
     const recording = cy.uploadRecording(camera, {
       time: new Date(2021, 1, 20, 21),
-      tags: ["possum"]
+      tags: ["possum", "rabbit"]
     });
     recording.then((recID: number) => {
       cy.userTagRecording(recID, 0, Dee, "possum");

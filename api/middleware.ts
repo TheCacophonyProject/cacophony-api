@@ -23,7 +23,6 @@ import {
   ValidationChain,
   ValidationChainBuilder,
   validationResult,
-  query
 } from "express-validator/check";
 import models, { ModelStaticCommon } from "../models";
 import { format } from "util";

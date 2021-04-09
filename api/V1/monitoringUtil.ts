@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { User } from "../../models/User";
 import {QueryTypes} from "sequelize";
 import models from "../../models";
+import { generateVisits } from "./monitoringVisit";
 
 const GROUPS_AND_DEVICES = "GROUPS_AND_DEVICES";
 const USER_PERMISSIONS = "USER_PERMISSIONS";
@@ -77,8 +78,12 @@ async function monitoringData(
     params?: MonitoringParams
 )
 {
-    const criteria = getDatesForSearch(params);
-    return criteria;
+    const searchDetails = await getDatesForSearch(params);
+    if (searchDetails.search) {
+        searchDetails.results = await generateVisits(params, searchDetails);
+    }
+
+    return searchDetails;
 }
 async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCriteria> {
     
