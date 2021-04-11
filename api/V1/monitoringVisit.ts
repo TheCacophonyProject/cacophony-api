@@ -35,7 +35,6 @@ class Visit {
             return true;
         }
         
-        console.log(`time is ${Math.abs(moment(recording.recordingDateTime).diff(this.start, "seconds"))}`);
         return Math.abs(moment(recording.recordingDateTime).diff(this.start, "seconds")) < MAX_SECS_BETWEEN_RECORDINGS;
     }
 
@@ -97,7 +96,7 @@ class Visit {
                 aiTag: aiTag.length > 0 ? aiTag[0].what : null,
                 start: (track.data) ? track.data.start_s : "",
                 end: (track.data) ? track.data.end_s : "",
-                orig: bestTag.data,
+                orig: null
             });
         }
         return newVisitRecording;
@@ -125,8 +124,11 @@ function countTags(allTracks : VisitTrack[], isAi : boolean) : [TagName, Count][
     const counts  = {};
     tracks.forEach(track => {
         const tag = track.tag;
-        counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
+        if (tag) {
+            counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
+        }
     });
+
     return Object.entries(counts);
 }
 
@@ -134,7 +136,9 @@ function getBestGuessFromSpecifiedAi(tracks : VisitTrack[]) : string[] {
     const counts  = {};
     tracks.forEach(track => {
         const tag = track.aiTag;
-        counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
+        if (tag) {
+            counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
+        }        
     });
     
     return getBestGuess(Object.entries(counts));
