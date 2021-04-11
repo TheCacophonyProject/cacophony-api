@@ -112,7 +112,7 @@ Cypress.Commands.add(
         url: v1ApiPath("groups/users"),
         body: {
           group: getTestName(group),
-          admin: admin ? "true" : "false",
+          admin: admin.toString(),
           username: getTestName(userName)
         }
       },

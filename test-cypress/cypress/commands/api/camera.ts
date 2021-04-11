@@ -58,7 +58,7 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "apiShouldFailToCreateCamera",
-  (cameraName: string, group: string, makeCamerNameTestName = true, log = true) => {
+  (cameraName: string, group: string, makeCameraATestName = true, log = true) => {
     logTestDescription(
       `Check that user cannot create camera '${cameraName}' in group '${group} '`,
       {
@@ -68,7 +68,7 @@ Cypress.Commands.add(
       log
     );
 
-    const request = createCameraDetails(cameraName, group, makeCamerNameTestName);
+    const request = createCameraDetails(cameraName, group, makeCameraATestName);
     checkRequestFails(request);
   }
 );

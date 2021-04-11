@@ -24,14 +24,14 @@ import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleId } from "./Schedule";
 import { Event } from "./Event";
-import { ACCESS_READ, ACCESS_ADMIN, ACCESS_LEVEL } from "./GroupUsers"
+import { AccessLevel } from "./GroupUsers"
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
 
 export interface Device extends Sequelize.Model, ModelCommon<Device> {
   id: DeviceId;
-  getAccessLevel: (user: User) => ACCESS_LEVEL;
+  getAccessLevel: (user: User) => AccessLevel;
   addUser: (userId: UserId, options: any) => any;
   devicename: string;
   groupname: string;
@@ -181,7 +181,7 @@ export default function (
     if (device == null || userToAdd == null) {
       return false;
     }
-    if ((await device.getAccessLevel(authUser)) != ACCESS_ADMIN) {
+    if ((await device.getAccessLevel(authUser)) != AccessLevel.Admin) {
       throw new AuthorizationError(
         "User is not a group, device, or global admin so cannot add users to this device"
       );
@@ -216,7 +216,7 @@ export default function (
     if (device == null || userToRemove == null) {
       return false;
     }
-    if ((await device.getAccessLevel(authUser)) != ACCESS_ADMIN) {
+    if ((await device.getAccessLevel(authUser)) != AccessLevel.Admin) {
       throw new AuthorizationError(
         "User is not a group, device, or global admin so cannot remove users from this device"
       );
@@ -541,7 +541,7 @@ order by hour;
 
   Device.prototype.getAccessLevel = async function (user) {
     if (user.hasGlobalWrite()) {
-      return ACCESS_ADMIN;
+      return AccessLevel.Admin;
     }
 
     const groupAccessLevel = await (models.GroupUsers as GroupUsersStatic).getAccessLevel(
@@ -582,7 +582,7 @@ order by hour;
     authUser,
     attrs = ["id", "username", "email"]
   ) {
-    if (!(await this.getAccessLevel(authUser) == ACCESS_ADMIN)) {
+    if (!(await this.getAccessLevel(authUser) == AccessLevel.Admin)) {
       return [];
     }
 

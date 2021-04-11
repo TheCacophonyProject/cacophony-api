@@ -20,7 +20,7 @@ import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { UserId } from "./User";
 import { DeviceId } from "./Device";
-import { ACCESS_NONE, ACCESS_READ, ACCESS_ADMIN} from "./GroupUsers"
+import { AccessLevel } from "./GroupUsers"
 
 export interface DeviceUsers
   extends Sequelize.Model,
@@ -55,7 +55,7 @@ export default function (
   DeviceUsers.addAssociations = function () {};
 
   DeviceUsers.isAdmin = async function (deviceId, userId) {
-    return (await this.getAccessLevel(deviceId, userId)) == ACCESS_ADMIN;
+    return (await this.getAccessLevel(deviceId, userId)) == AccessLevel.Admin;
   };
 
     /**
@@ -70,9 +70,9 @@ export default function (
     });
 
     if (deviceUser == null) {
-      return ACCESS_NONE;
+      return AccessLevel.None;
     }
-    return (deviceUser.admin) ? ACCESS_ADMIN : ACCESS_READ;
+    return (deviceUser.admin) ? AccessLevel.Admin : AccessLevel.Read;
   };
 
   return DeviceUsers;

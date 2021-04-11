@@ -23,7 +23,7 @@ import responseUtil from "./responseUtil";
 import { body, param, query } from "express-validator/check";
 import Sequelize from "sequelize";
 import { Application } from "express";
-import { ACCESS_ADMIN, ACCESS_READ } from "../../models/GroupUsers";
+import { AccessLevel } from "../../models/GroupUsers";
 import { AuthorizationError } from "../customErrors";
 import DeviceUsers from "../../models/DeviceUsers";
 
@@ -161,10 +161,9 @@ export default function (app: Application, baseUrl: string) {
       });
 
       let deviceReturn : any  = {};
-      console.log(`here is device ${JSON.stringify(device)}`);
       if (device ) {
         const accessLevel = await device.getAccessLevel(request.user);
-        if (accessLevel < ACCESS_READ) {
+        if (accessLevel < AccessLevel.Read) {
           throw new AuthorizationError(
             "User is not authorized to access device"
           );        
@@ -174,9 +173,9 @@ export default function (app: Application, baseUrl: string) {
           id: device.id,
           deviceName: device.devicename,
           groupName: request.body.group.groupname,
-          userIsAdmin: (accessLevel == ACCESS_ADMIN)
+          userIsAdmin: (accessLevel == AccessLevel.Admin)
         };
-        if (accessLevel == ACCESS_ADMIN) {
+        if (accessLevel == AccessLevel.Admin) {
           deviceReturn.users = device.Users.map((user) => {
             return  {
               userName: user.username, 
