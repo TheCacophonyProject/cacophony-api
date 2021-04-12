@@ -102,7 +102,7 @@ Cypress.Commands.add(
       `${groupAdminUser} Adding user '${userName}' ${adminStr} to group '${group}' ${
         admin ? "as admin" : ""
       }`,
-      { user: userName, group, isAdmin : admin },
+      { user: userName, group, isAdmin: admin },
       log
     );
 
@@ -123,14 +123,10 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "apiAddUserToDevice",
-  (
-    deviceAdminUser: string,
-    userName: string,
-    device: string,
-  ) => {
+  (deviceAdminUser: string, userName: string, device: string) => {
     logTestDescription(
       `${deviceAdminUser} Adding user '${userName}' to device '${device}'`,
-      { user: userName, device },
+      { user: userName, device }
     );
 
     makeAuthorizedRequest(

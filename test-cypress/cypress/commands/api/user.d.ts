@@ -50,7 +50,7 @@ declare namespace Cypress {
     apiAddUserToDevice(
       deviceAdminUser: string,
       user: string,
-      device: string,
+      device: string
     ): Chainable<Element>;
   }
 }

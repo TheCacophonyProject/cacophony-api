@@ -20,7 +20,7 @@ import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { UserId } from "./User";
 import { DeviceId } from "./Device";
-import { AccessLevel } from "./GroupUsers"
+import { AccessLevel } from "./GroupUsers";
 
 export interface DeviceUsers
   extends Sequelize.Model,
@@ -58,21 +58,21 @@ export default function (
     return (await this.getAccessLevel(deviceId, userId)) == AccessLevel.Admin;
   };
 
-    /**
+  /**
    * Checks if a user is a admin of a group.
    */
   DeviceUsers.getAccessLevel = async function (deviceId, userId) {
     const deviceUser = await this.findOne({
       where: {
         DeviceId: deviceId,
-        UserId: userId,
+        UserId: userId
       }
     });
 
     if (deviceUser == null) {
       return AccessLevel.None;
     }
-    return (deviceUser.admin) ? AccessLevel.Admin : AccessLevel.Read;
+    return deviceUser.admin ? AccessLevel.Admin : AccessLevel.Read;
   };
 
   return DeviceUsers;

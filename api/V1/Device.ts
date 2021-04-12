@@ -126,33 +126,36 @@ export default function (app: Application, baseUrl: string) {
     })
   );
 
-/**
- * @api {get} /api/v1/devices/:deviceName/in-group/:groupIdOrName Get a single device
- * @apiName GetDeviceInGroup
- * @apiGroup Device
- * @apiParam {string} deviceName Name of the device
- * @apiParam {stringOrInt} groupIdOrName Identifier of group device belongs to
- *
- * @apiDescription Returns the device if the user can access it either through
- * through both group membership and direct assignment.
- *
- * @apiUse V1UserAuthorizationHeader
- *
- * @apiUse V1ResponseSuccess
- * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), and device users (if authorized) '
- * 
- * @apiUse V1ResponseError
- */
-    app.get(
+  /**
+   * @api {get} /api/v1/devices/:deviceName/in-group/:groupIdOrName Get a single device
+   * @apiName GetDeviceInGroup
+   * @apiGroup Device
+   * @apiParam {string} deviceName Name of the device
+   * @apiParam {stringOrInt} groupIdOrName Identifier of group device belongs to
+   *
+   * @apiDescription Returns the device if the user can access it either through
+   * through both group membership and direct assignment.
+   *
+   * @apiUse V1UserAuthorizationHeader
+   *
+   * @apiUse V1ResponseSuccess
+   * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), and device users (if authorized) '
+   *
+   * @apiUse V1ResponseError
+   */
+  app.get(
     `${apiUrl}/:deviceName/in-group/:groupIdOrName`,
     [
       auth.authenticateUser,
       middleware.getGroupByNameOrIdDynamic(param, "groupIdOrName"),
-      middleware.isValidName(param, "deviceName"),
+      middleware.isValidName(param, "deviceName")
     ],
     middleware.requestWrapper(async (request, response) => {
       const device = await models.Device.findOne({
-        where: { devicename: request.params.deviceName, GroupId: request.body.group.id },
+        where: {
+          devicename: request.params.deviceName,
+          GroupId: request.body.group.id
+        },
         include: [
           {
             model: models.User,
@@ -161,28 +164,29 @@ export default function (app: Application, baseUrl: string) {
         ]
       });
 
-      let deviceReturn : any  = {};
-      if (device ) {
+      let deviceReturn: any = {};
+      if (device) {
         const accessLevel = await device.getAccessLevel(request.user);
         if (accessLevel < AccessLevel.Read) {
           throw new AuthorizationError(
             "User is not authorized to access device"
-          );        
+          );
         }
 
         deviceReturn = {
           id: device.id,
           deviceName: device.devicename,
           groupName: request.body.group.groupname,
-          userIsAdmin: (accessLevel == AccessLevel.Admin)
+          userIsAdmin: accessLevel == AccessLevel.Admin
         };
         if (accessLevel == AccessLevel.Admin) {
           deviceReturn.users = device.Users.map((user) => {
-            return  {
-              userName: user.username, 
-              admin: user.DeviceUsers.admin, 
-              id: user.DeviceUsers.UserId}
-          })
+            return {
+              userName: user.username,
+              admin: user.DeviceUsers.admin,
+              id: user.DeviceUsers.UserId
+            };
+          });
         }
       }
       return responseUtil.send(response, {
@@ -212,12 +216,14 @@ export default function (app: Application, baseUrl: string) {
    */
   app.get(
     `${apiUrl}/users`,
-    [auth.authenticateUser, 
-    middleware.getDeviceById(query),
-    auth.userCanAccessDevices],
+    [
+      auth.authenticateUser,
+      middleware.getDeviceById(query),
+      auth.userCanAccessDevices
+    ],
     middleware.requestWrapper(async (request, response) => {
       let users = await request.body.device.users(request.user);
-      
+
       users = users.map((u) => {
         u = u.get({ plain: true });
 
@@ -316,7 +322,7 @@ export default function (app: Application, baseUrl: string) {
     middleware.requestWrapper(async function (request, response) {
       const removed = await models.Device.removeUserFromDevice(
         request.user,
-        request.body.device,  
+        request.body.device,
         request.body.user
       );
 

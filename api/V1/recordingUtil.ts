@@ -35,7 +35,7 @@ import {
   RecordingType,
   TagMode
 } from "../../models/Recording";
-import { Event } from "../../models/Event";
+import { Event, QueryOptions } from "../../models/Event";
 import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
@@ -702,10 +702,6 @@ async function queryVisits(
     request.body.viewAsSuperAdmin
   );
   builder.query.distinct = true;
-  builder.addAudioEvents(
-    '"Recording"."recordingDateTime" - interval \'1 day\'',
-    '"Recording"."recordingDateTime" + interval \'1 day\''
-  );
 
   const devSummary = new DeviceSummary();
   const filterOptions = models.Recording.makeFilterOptions(
@@ -757,6 +753,27 @@ async function queryVisits(
   } else {
     devSummary.removeIncompleteVisits();
   }
+
+  for (const devId in devSummary.deviceMap) {
+    const devVisits = devSummary.deviceMap[devId];
+    if (devVisits.visitCount == 0) {
+      continue;
+    }
+    const events = await models.Event.query(
+      request.user,
+      devVisits.startTime.clone().startOf("day").toISOString(),
+      devVisits.endTime.toISOString(),
+      parseInt(devId),
+      0,
+      1000,
+      false,
+      { eventType: "audioBait" } as QueryOptions
+    );
+    if (events.rows) {
+      devVisits.addAudioBaitEvents(events.rows);
+    }
+  }
+
   const audioFileIds = devSummary.allAudioFileIds();
 
   const visits = devSummary.completeVisits();
