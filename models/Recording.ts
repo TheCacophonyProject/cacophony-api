@@ -842,6 +842,7 @@ from (
       if (name == "additionalMetadata") {
         this.mergeAdditionalMetadata(newValue);
       } else {
+        this.set(name, newValue);
         if (name === "location") {
           // NOTE: When location gets updated, we need to update any matching stations for this recordings' group.
           const matchingStation = await tryToMatchRecordingToStation(this);
@@ -849,7 +850,6 @@ from (
             this.set("StationId", matchingStation.id);
           }
         }
-        this.set(name, newValue);
       }
     }
   };
@@ -1308,7 +1308,7 @@ from (
           {
             model: models.DetailSnapshot,
             as: "EventDetail",
-            required: true,
+            required: false,
             where: {
               type: "audioBait"
             },
