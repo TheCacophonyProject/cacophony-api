@@ -233,11 +233,7 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     apiUrl + "/visits",
-    [
-        auth.authenticateUser,
-        middleware.viewMode(),
-        ...queryValidators,
-    ],
+    [auth.authenticateUser, middleware.viewMode(), ...queryValidators],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.queryVisits(
@@ -277,11 +273,7 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     apiUrl,
-    [
-        auth.authenticateUser,
-        middleware.viewMode(),
-        ...queryValidators
-    ],
+    [auth.authenticateUser, middleware.viewMode(), ...queryValidators],
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.query(
@@ -315,11 +307,7 @@ export default (app: Application, baseUrl: string) => {
    */
   app.get(
     `${apiUrl}/count`,
-    [
-        auth.authenticateUser,
-        middleware.viewMode(),
-        ...queryValidators
-    ],
+    [auth.authenticateUser, middleware.viewMode(), ...queryValidators],
     middleware.requestWrapper(
       async (request: RecordingQuery, response: e.Response) => {
         const user = request.user;

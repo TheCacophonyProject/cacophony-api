@@ -216,12 +216,12 @@ const checkNewPassword = function (field: string): ValidationChain {
   });
 };
 
-const viewMode = function(): ValidationChain {
+const viewMode = function (): ValidationChain {
   // All api listing commands will automatically return all results if the user is a super-admin
   // There is now an optional "view-mode" query param to these APIs, which, if set to "user",
   // will restrict results to items only directly viewable by the super-admin user.
   // The default behaviour remains unchanged, and this will do nothing for non-admin users.
-  return query("view-mode").custom((value, {req}) => {
+  return query("view-mode").custom((value, { req }) => {
     req.body.viewAsSuperAdmin = value !== "user";
     return true;
   });
