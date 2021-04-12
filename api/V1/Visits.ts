@@ -428,9 +428,6 @@ class Visit {
   addAudioBaitEvents(allEvents: Event[]) {
     // add all audio bait events that occur within audioBaitInterval of this visit
     // and before the end of the visit
-    if (!allEvents) {
-      return null;
-    }
 
     const newEvents = allEvents.filter(
       (e) => !this.audioBaitEvents.find((existing) => e.id == existing.id)

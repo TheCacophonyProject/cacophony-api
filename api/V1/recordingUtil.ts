@@ -756,6 +756,9 @@ async function queryVisits(
 
   for (const devId in devSummary.deviceMap) {
     const devVisits = devSummary.deviceMap[devId];
+    if (devVisits.visitCount == 0) {
+      continue;
+    }
     const events = await models.Event.query(
       request.user,
       devVisits.startTime.clone().startOf("day").toISOString(),
@@ -766,7 +769,9 @@ async function queryVisits(
       false,
       { eventType: "audioBait" } as QueryOptions
     );
-    devVisits.addAudioBaitEvents(events.rows);
+    if (events.rows){
+      devVisits.addAudioBaitEvents(events.rows);
+    }
   }
 
   const audioFileIds = devSummary.allAudioFileIds();
