@@ -702,10 +702,6 @@ async function queryVisits(
     request.body.viewAsSuperAdmin
   );
   builder.query.distinct = true;
-  // builder.addAudioEvents(
-  //   '"Recording"."recordingDateTime" - interval \'1 day\'',
-  //   '"Recording"."recordingDateTime" + interval \'1 day\''
-  // );
 
   const devSummary = new DeviceSummary();
   const filterOptions = models.Recording.makeFilterOptions(
@@ -770,7 +766,7 @@ async function queryVisits(
       false,
       { eventType: "audioBait" } as QueryOptions
     );
-    devVisits.addAudioBait(events.rows);
+    devVisits.addAudioBaitEvents(events.rows);
   }
 
   const audioFileIds = devSummary.allAudioFileIds();

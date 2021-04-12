@@ -330,17 +330,18 @@ class DeviceVisits {
     return this.visits;
   }
 
-  addAudioBait(events: Event[]) {
+  addAudioBaitEvents(events: Event[]) {
     for (const visit of this.visits) {
       visit.addAudioBaitEvents(events);
       this.addAudioFileIds(visit.audioBaitEvents);
       this.audioBait = this.audioBait || visit.audioBaitDay;
     }
   }
-  addAudioFileIds(audioEvents: any) {
-    audioEvents.forEach((audioEvent) => {
+
+  addAudioFileIds(audioEvents: Event[]) {
+    for (const audioEvent of audioEvents) {
       this.audioFileIds.add(audioEvent.EventDetail.details.fileId);
-    });
+    }
   }
 }
 
