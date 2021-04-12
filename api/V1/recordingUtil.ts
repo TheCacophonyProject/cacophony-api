@@ -769,7 +769,7 @@ async function queryVisits(
       false,
       { eventType: "audioBait" } as QueryOptions
     );
-    if (events.rows){
+    if (events.rows) {
       devVisits.addAudioBaitEvents(events.rows);
     }
   }
