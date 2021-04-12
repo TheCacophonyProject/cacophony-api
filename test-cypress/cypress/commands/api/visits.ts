@@ -1,8 +1,8 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-import { v1ApiPath, getCreds } from "../server";
-import { logTestDescription } from "../descriptions";
+import { v1ApiPath, getCreds, convertToDate } from "../server";
+import { logTestDescription, prettyLog } from "../descriptions";
 
 Cypress.Commands.add(
   "checkVisitTags",
@@ -12,7 +12,7 @@ Cypress.Commands.add(
     });
 
     logTestDescription(
-      `Check visit tags match ${JSON.stringify(expectedTags)}`,
+      `Check visit tags match ${prettyLog(expectedTags)}`,
       {
         user,
         camera,
@@ -20,34 +20,59 @@ Cypress.Commands.add(
       }
     );
 
-    checkVisitsMatch(user, camera, expectedVisits);
+    checkVisitsMatch(user, camera, {}, expectedVisits);
   }
 );
 
 Cypress.Commands.add(
   "checkVisits",
   (user: string, camera: string, expectedVisits: ComparableVisit[]) => {
-    logTestDescription(`Check visits match ${JSON.stringify(expectedVisits)}`, {
+    logTestDescription(`Check visits match ${prettyLog(expectedVisits)}`, {
       user,
       camera,
       expectedVisits
     });
 
-    checkVisitsMatch(user, camera, expectedVisits);
+    checkVisitsMatch(user, camera, {}, expectedVisits);
+  }
+);
+
+Cypress.Commands.add(
+  "checkVisitsWithFilter",
+  (user: string, camera: string, searchParams: VisitSearchParams, expectedVisits: ComparableVisit[]) => {
+    logTestDescription(`Check visits match ${prettyLog(expectedVisits)} `, {
+      user,
+      camera,
+      expectedVisits, 
+      searchParams
+    });
+
+    if (searchParams.from) {
+      searchParams.from = convertToDate(searchParams.from).toISOString();
+    }
+
+    if (searchParams.until) {
+      searchParams.until = convertToDate(searchParams.until).toISOString();
+    }
+
+    checkVisitsMatch(user, camera , searchParams, expectedVisits);
   }
 );
 
 function checkVisitsMatch(
   user: string,
   camera: string,
+  specialParams: VisitSearchParams,
   expectedVisits: ComparableVisit[]
 ) {
   
-  const params : any = {
+  const params : VisitSearchParams = {
     page: 1,
     "page-size": 100,
   };
-  
+
+  Object.assign(params, specialParams);
+
   if (camera) {
     params.devices = getCreds(camera).id;
   }
@@ -71,7 +96,8 @@ function checkResponseMatches(
     responseVisits.length,
     `Number of visits to be ${responseVisits.length}`
   ).to.eq(expectedVisits.length);
-  const increasingDateResponseVisits = responseVisits.reverse();
+  // const increasingDateResponseVisits = responseVisits.reverse();
+  const increasingDateResponseVisits = responseVisits;
 
   // pull out the bits we care about
   const responseVisitsToCompare: ComparableVisit[] = [];
@@ -89,11 +115,21 @@ function checkResponseMatches(
     }
 
     if (expectedVisit.start) {
-      simplifiedResponseVisit.start = completeResponseVisit.start;
+      if (expectedVisit.start instanceof Date) {
+        // full date
+        simplifiedResponseVisit.start = completeResponseVisit.start;
+      } else {
+        // just time
+        simplifiedResponseVisit.start = new Date(completeResponseVisit.start).toTimeString().substring(0, 5);
+      }
     }
 
     if (expectedVisit.end) {
       simplifiedResponseVisit.end = completeResponseVisit.end;
+    }
+
+    if (expectedVisit.incomplete) {
+      simplifiedResponseVisit.incomplete = completeResponseVisit.incomplete.toString();
     }
 
     responseVisitsToCompare.push(simplifiedResponseVisit);

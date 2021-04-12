@@ -14,3 +14,7 @@ export function logTestDescription(
     consoleProps: () => consoleObject
   });
 }
+
+export function prettyLog(object: any) {
+  return (JSON.stringify(object)).replaceAll('"', "").replaceAll("},", "} -  ");
+}

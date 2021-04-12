@@ -3,7 +3,8 @@
 
 import { uploadFile } from "../fileUpload";
 import { v1ApiPath, DEFAULT_DATE, makeAuthorizedRequest } from "../server";
-import { logTestDescription } from "../descriptions";
+import { logTestDescription, prettyLog } from "../descriptions";
+import { convertToDate } from "../server";
 
 let lastUsedTime = DEFAULT_DATE;
 
@@ -13,7 +14,7 @@ Cypress.Commands.add(
     const data = makeRecordingDataFromDetails(details);
 
     logTestDescription(
-      `Upload recording ${JSON.stringify(details)}  to '${cameraName}'`,
+      `Upload recording ${prettyLog(details)}  to '${cameraName}'`,
       { camera: cameraName, requestData: data }
     );
 
@@ -141,8 +142,9 @@ function getDateForRecordings(details: ThermalRecordingInfo): Date {
   let date = lastUsedTime;
 
   if (details.time) {
-    date = details.time;
-  } else if (details.minsLater || details.secsLater) {
+    date = convertToDate(details.time);
+  }
+  else if (details.minsLater || details.secsLater) {
     let secs = 0;
     if (details.minsLater) {
       secs += details.minsLater * 60;

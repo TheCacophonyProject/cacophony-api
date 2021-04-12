@@ -112,28 +112,26 @@ async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCrit
 
     if (count < params.pageSize) {
         returnVal.all = true;
-    } else if (params.page == 1) {
-        replacements.PAGING = ` LIMIT ${ params.pageSize } `;
-        const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
-        console.log(`result is ${JSON.stringify(results)}`);
-        if (results.length > 0) {
-            returnVal.from = results[results.length - 1].recordingDateTime;
-        }
-    } else if (params.page > returnVal.estimatedPages) {
-        returnVal.search = false;
-        returnVal.until = BEFORE_CACOPHONY;
-    } else {
-        replacements.PAGING = ` LIMIT ${params.pageSize + 1 } OFFSET ${(params.page - 1) * params.pageSize - 1}`;
+    } else if (params.page <= returnVal.estimatedPages ) {
+        const limit : number = params.pageSize * 1 + 1;
+        const offset : number = (params.page - 1) * params.pageSize;
+        replacements.PAGING = ` LIMIT ${ limit } OFFSET ${ offset }`;
         const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
 
         if (results.length > 0) {
-            returnVal.until = results[0].recordingDateTime;
+            if (params.page > 1) {
+                returnVal.until = results[0].recordingDateTime;
+            }
 
-            if (params.page != returnVal.estimatedPages) {
+            if (params.page < returnVal.estimatedPages) {
                 returnVal.from = results[results.length - 1].recordingDateTime;
             }
         }
-    }
+    } else if (params.page > returnVal.estimatedPages) {
+        console.log(' paage > results');
+        returnVal.search = false;
+        returnVal.until = BEFORE_CACOPHONY;
+    } 
 
     return returnVal;
 }

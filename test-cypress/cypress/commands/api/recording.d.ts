@@ -9,7 +9,7 @@ interface TrackInfo {
 }
 
 interface ThermalRecordingInfo {
-  time?: Date;
+  time? : Date | string;
   duration?: number;
   model?: string;
   tracks?: TrackInfo[];

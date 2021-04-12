@@ -6,7 +6,9 @@ import { getTrackTag, unidentifiedTags } from "./Visits";
 
 const MINUTE = 60;
 const MAX_SECS_BETWEEN_RECORDINGS = 10 * MINUTE;
+const MAX_SECS_VIDEO_LENGTH = 10 * MINUTE;
 const LIMIT_RECORDINGS = 2000;
+const MAX_MINS_AFTER_TIME = 70;
 
 type TagName = string;
 type Count = number; 
@@ -22,37 +24,38 @@ class Visit {
     end?: Moment;
     start?: Moment; 
     device: any;
+    incomplete: boolean;
     
-    constructor(device: any) {
+    constructor(device, recording:Recording) {
         this.device = device;
         this.recordings = [];
         this.rawRecordings = [];
+        this.incomplete = false;
+
+        this.rawRecordings.push(recording);
+        this.start = moment(recording.recordingDateTime);
+        this.end = moment(this.start).add(recording.duration, "seconds");
     }
 
-    isEarlierRecordingInSameVisit(recording : Recording) {
-        // this could be make a lot specific by taking into account the length of the recording/tracks.
-        if (!this.start) {
+    // note this function assumes that the recording starts after the recordings alreayd in the visit.  
+    isRecordingInVisit(recording : Recording) {
+        if (!this.end) {
             return true;
         }
+
+        const cutoff = moment(this.end).add(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
         
-        return Math.abs(moment(recording.recordingDateTime).diff(this.start, "seconds")) < MAX_SECS_BETWEEN_RECORDINGS;
+        return cutoff.isAfter(recording.recordingDateTime);
     }
 
-    addRecording(recording: Recording) : boolean {
-        if (!this.isEarlierRecordingInSameVisit(recording)) {
+
+    addRecordingIfWithinTimeLimits(recording: Recording) : boolean {
+        if (!this.isRecordingInVisit(recording)) {
             return false;
         }
-        this.rawRecordings.push(recording);
-        let startTime = moment(recording.recordingDateTime);
 
-        if (!this.start || this.start.isAfter(startTime)) {
-            this.start = moment(startTime)
-        }
-        
-        // update times
-        if (!this.end) {
-            this.end = moment(startTime).add(recording.duration, "seconds");
-        }
+        this.rawRecordings.push(recording);
+        this.end = moment(recording.recordingDateTime).add(recording.duration, "seconds");
         
         return true;
     }
@@ -108,6 +111,10 @@ class Visit {
             allVisitTracks.push(...recording.tracks);
         });
         return allVisitTracks;
+    }
+
+    markIfPossiblyIncomplete(cutoff: Moment) {
+        this.incomplete = (!this.end || this.end.isAfter(cutoff));
     }
 };
 
@@ -182,29 +189,31 @@ interface VisitTrack {
 }
 
 export async function generateVisits(params: MonitoringParams, search: SearchCriteria) {
-    const recordings = await getRecordings(params, search);
+    const search_start = moment(search.from).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
+    const search_end = moment(search.until).add(MAX_MINS_AFTER_TIME, "minutes");
+
+    const recordings = await getRecordings(params, search_start, search_end);
     // what if count is too above limit? LIMIT_RECORDING
 
-    const allVisits = groupRecordingsIntoVisits(recordings);
+    const visits = groupRecordingsIntoVisits(recordings, moment(search.from), moment(search.until));
 
-    // allVisits.filter(visits that start too early);
+    console.log('start time is ' + search.from);
+
+    const incompleteCutoff = moment(search_end).subtract(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
     
-    allVisits.forEach(visit => {
+    visits.forEach(visit => {
         visit.calculateTags("Master");
-        // visit.markIfUnfinished();
+        visit.markIfPossiblyIncomplete(incompleteCutoff);
     });
 
-    // recordingsSimp = recordings.map((rec) => { return {time: rec.recordingDateTime, device: rec.DeviceId}});
-
-    return allVisits;
+    return visits;
 };
 
-async function getRecordings(params: MonitoringParams, search: SearchCriteria) {
+async function getRecordings(params: MonitoringParams, from : Moment, until : Moment) {
     const where : any = {
         duration: {"$gte":"0"},
         type:"thermalRaw",
-        // should be $lte for initial search?
-        recordingDateTime: {"$gte":  search.from, "$lt" : search.until}
+        recordingDateTime: {"$gte": from, "$lt" : until}
     }
     if (params.devices) {
         where.DeviceId = params.devices;
@@ -212,20 +221,8 @@ async function getRecordings(params: MonitoringParams, search: SearchCriteria) {
     if (params.groups) {
         where.GroupId = params.groups;
     }
+    const order = [["recordingDateTime", "ASC"]];
 
-    // order = [
-    //     // Sort by recordingDatetime but handle the case of the
-    //     // timestamp being missing and fallback to sorting by id.
-    //     [
-    //       Sequelize.fn(
-    //         "COALESCE",
-    //         Sequelize.col("recordingDateTime"),
-    //         "1970-01-01"
-    //       ),
-    //       "DESC"
-    //     ],
-    //     ["id", "DESC"]
-    //   ];
     const builder = await new models.Recording.queryBuilder().init(
         params.user,
         where,
@@ -233,28 +230,37 @@ async function getRecordings(params: MonitoringParams, search: SearchCriteria) {
         null,
         null,
         LIMIT_RECORDINGS,
-        null,
+        order,
         true // superAdmin fix later
     );
 
     return models.Recording.findAll(builder.get());
 }
 
-// generates visits from a list of recordings in ascending date time order
-export function groupRecordingsIntoVisits(recordings: Recording[]) : Visit[] {
+function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: Moment) : Visit[] {
     const currentVisitForDevice : { [key: number]: Visit; } = {};
     const allVisits : Visit[] = [];
     
     recordings.forEach(rec => {
         const currentVisit : Visit = currentVisitForDevice[rec.DeviceId];
-        if (!currentVisit || !currentVisit.addRecording(rec)) {
-            const newVisit = new Visit((rec as any).device);
-            allVisits.push(newVisit);
-            newVisit.addRecording(rec);
-            currentVisitForDevice[rec.DeviceId] = newVisit;            
+        if (!currentVisit || !currentVisit.addRecordingIfWithinTimeLimits(rec)) {
+            if (end.isSameOrAfter(rec.recordingDateTime)) {
+                const newVisit = new Visit((rec as any).device, rec);
+                // we want to keep adding recordings to this visit even it started too early
+                // before the official time period
+                currentVisitForDevice[rec.DeviceId] = newVisit;            
+                
+                if (start.isBefore(rec.recordingDateTime)) {
+                    // only want to return visits that start between the start and end times.
+                    allVisits.push(newVisit);
+                } 
+            }
+            else {
+                // visit actually starts after the time period so we don't want to know.  
+                currentVisitForDevice[rec.DeviceId] = null;            
+            }
         }
     });
 
     return allVisits;
 }
-

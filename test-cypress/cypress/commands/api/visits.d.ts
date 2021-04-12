@@ -2,11 +2,22 @@
 /// <reference types="cypress" />
 
 interface ComparableVisit {
-  start?: Date;
-  end?: Date;
+  // either a date object or a string representing the time of day (enough for most tests)
+  start?: Date | string;
+  end?: Date | string;
   tag?: string;
   recordings?: number;
+  incomplete? : string;  
 }
+
+interface VisitSearchParams { 
+  from?: Date | string;
+  until?: Date | string;
+  devices?: number | number[], 
+  page?: number;
+  "page-size"? : number;
+}
+
 
 declare namespace Cypress {
   interface Chainable {
@@ -20,9 +31,21 @@ declare namespace Cypress {
       user: string,
       camera: string,
       expectedVisits: ComparableVisit[]
-    ): Chainable<Element>;
-
+    );
+    
     /**
+     * check the visits returned match the listed visits specified. Only the specified information will be checked.
+     *
+     * Please note:  visits must be listed in order of oldest to newest start dates.
+     *
+     */
+    checkVisitsWithFilter(
+      user: string,
+      camera: string,
+      searchParams: VisitSearchParams ,
+      expectedVisits: ComparableVisit[]
+    );
+    /*
      * check the visits returned match the listed visits specified. Only the specified information will be checked.
      *
      * Please note:  visits must be listed in order of oldest to newest start dates.
@@ -32,6 +55,6 @@ declare namespace Cypress {
       user: string,
       camera: string,
       expectedTags: string[]
-    ): Chainable<Element>;
+    );
   }
 }
