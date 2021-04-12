@@ -204,8 +204,14 @@ function getRecordingById(checkFunc: ValidationChainBuilder): ValidationChain {
   return getModelById(models.Recording, "id", checkFunc);
 }
 
-const isValidName = function (checkFunc: ValidationChainBuilder, field: string): ValidationChain {
-  return checkFunc(field, `${field} must only contain letters, numbers, dash, underscore and space.  It must contain at least one letter`)
+const isValidName = function (
+  checkFunc: ValidationChainBuilder,
+  field: string
+): ValidationChain {
+  return checkFunc(
+    field,
+    `${field} must only contain letters, numbers, dash, underscore and space.  It must contain at least one letter`
+  )
     .isLength({ min: 3 })
     .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ \-a-zA-Z0-9])*$/);
 };

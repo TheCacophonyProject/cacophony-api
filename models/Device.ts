@@ -24,7 +24,7 @@ import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleId } from "./Schedule";
 import { Event } from "./Event";
-import { AccessLevel } from "./GroupUsers"
+import { AccessLevel } from "./GroupUsers";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
@@ -592,7 +592,7 @@ order by hour;
     authUser,
     attrs = ["id", "username", "email"]
   ) {
-    if (!(await this.getAccessLevel(authUser) == AccessLevel.Admin)) {
+    if (!((await this.getAccessLevel(authUser)) == AccessLevel.Admin)) {
       return [];
     }
 

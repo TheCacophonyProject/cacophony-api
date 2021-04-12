@@ -58,7 +58,7 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
   GroupUsers.isAdmin = async function (groupId, userId) {
     return (await this.getAccessLevel(groupId, userId)) == AccessLevel.Admin;
   };
-  
+
   /**
    * Checks if a user is a admin of a group.
    */
@@ -66,14 +66,14 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
     const groupUsers = await this.findOne({
       where: {
         GroupId: groupId,
-        UserId: userId,
+        UserId: userId
       }
     });
 
     if (groupUsers == null) {
       return AccessLevel.None;
     }
-    return (groupUsers.admin) ? AccessLevel.Admin : AccessLevel.Read;
+    return groupUsers.admin ? AccessLevel.Admin : AccessLevel.Read;
   };
 
   return GroupUsers;

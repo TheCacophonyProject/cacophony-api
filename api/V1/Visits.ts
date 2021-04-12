@@ -330,7 +330,7 @@ class DeviceVisits {
     return this.visits;
   }
 
-  addAudioBait(events: any) {
+  addAudioBait(events: Event[]) {
     for (const visit of this.visits) {
       visit.addAudioBaitEvents(events);
       this.addAudioFileIds(visit.audioBaitEvents);
@@ -424,29 +424,34 @@ class Visit {
     }
   }
 
-  addAudioBaitEvents(allEvents) {
+  addAudioBaitEvents(allEvents: Event[]) {
     // add all audio bait events that occur within audioBaitInterval of this visit
     // and before the end of the visit
     // let events = rec.Device.Events;
     if (!allEvents) {
       return null;
     }
-    const events = allEvents.filter(
+
+    const newEvents = allEvents.filter(
       (e) => !this.audioBaitEvents.find((existing) => e.id == existing.id)
     );
-    for (const event of events) {
-      const eventTime = moment(event.dateTime);
-      this.audioBaitDay =
-        this.audioBaitDay ||
-        eventTime.isSame(moment(this.start), "day") ||
-        eventTime.isSame(moment(this.end), "day");
-      if (
-        Math.abs(eventTime.diff(this.start, "seconds")) <= audioBaitInterval &&
-        eventTime.isBefore(this.end)
-      ) {
-        this.audioBaitVisit = true;
-        this.audioBaitEvents.push(event);
-      }
+    const startDay = this.start.clone().startOf("day");
+    const endDay = this.start.clone().endOf("day");
+    const audioBaitDay = newEvents.some(
+      (e) =>
+        moment(e.dateTime).isAfter(startDay) &&
+        moment(e.dateTime).isBefore(endDay)
+    );
+    this.audioBaitDay = this.audioBaitDay || audioBaitDay;
+
+    const recEvents = newEvents.filter(
+      (e) =>
+        Math.abs(moment(e.dateTime).diff(this.start, "seconds")) <=
+        audioBaitInterval
+    );
+    if (recEvents.length > 0) {
+      this.audioBaitVisit = true;
+      this.audioBaitEvents.push(...recEvents);
     }
   }
 

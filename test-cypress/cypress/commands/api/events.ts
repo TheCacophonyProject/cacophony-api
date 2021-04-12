@@ -34,8 +34,10 @@ function checkEvents(
     deviceID: getCreds(camera).id
   };
 
-  makeAuthorizedRequest({url: v1ApiPath("events/powerEvents", params)}, user)
-  .then((response) => {
+  makeAuthorizedRequest(
+    { url: v1ApiPath("events/powerEvents", params) },
+    user
+  ).then((response) => {
     checkResponseMatches(response, expectedEvent);
   });
 }
