@@ -1,8 +1,9 @@
 import moment, { Moment } from "moment";
-import { SearchCriteria, MonitoringParams } from "./monitoringUtil";
+import { MonitoringPageCriteria, MonitoringParams } from "./monitoringPage";
 import models from "../../models";
 import { Recording } from "../../models/Recording";
 import { getTrackTag, unidentifiedTags } from "./Visits";
+import { User } from "../../models/User";
 
 const MINUTE = 60;
 const MAX_SECS_BETWEEN_RECORDINGS = 10 * MINUTE;
@@ -188,16 +189,14 @@ interface VisitTrack {
     orig: any;
 }
 
-export async function generateVisits(params: MonitoringParams, search: SearchCriteria) {
-    const search_start = moment(search.from).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
-    const search_end = moment(search.until).add(MAX_MINS_AFTER_TIME, "minutes");
+export async function generateVisits(user: User, search: MonitoringPageCriteria) {
+    const search_start = moment(search.pageFrom).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
+    const search_end = moment(search.pageTo).add(MAX_MINS_AFTER_TIME, "minutes");
 
-    const recordings = await getRecordings(params, search_start, search_end);
+    const recordings = await getRecordings(user, search, search_start, search_end);
     // what if count is too above limit? LIMIT_RECORDING
 
-    const visits = groupRecordingsIntoVisits(recordings, moment(search.from), moment(search.until));
-
-    console.log('start time is ' + search.from);
+    const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageTo));
 
     const incompleteCutoff = moment(search_end).subtract(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
     
@@ -209,7 +208,7 @@ export async function generateVisits(params: MonitoringParams, search: SearchCri
     return visits;
 };
 
-async function getRecordings(params: MonitoringParams, from : Moment, until : Moment) {
+async function getRecordings(user: User, params: MonitoringPageCriteria, from : Moment, until : Moment) {
     const where : any = {
         duration: {"$gte":"0"},
         type:"thermalRaw",
@@ -224,7 +223,7 @@ async function getRecordings(params: MonitoringParams, from : Moment, until : Mo
     const order = [["recordingDateTime", "ASC"]];
 
     const builder = await new models.Recording.queryBuilder().init(
-        params.user,
+        user,
         where,
         null,
         null,

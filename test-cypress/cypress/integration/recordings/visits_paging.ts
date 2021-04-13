@@ -25,6 +25,7 @@ describe("Visits : pagings", () => {
     cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{}, {}, {}]);
     cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{}, {}, {}]);
     cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{}, {}]);
+    cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 4}, []);
   });
 
 
@@ -55,7 +56,6 @@ describe("Visits : pagings", () => {
     cy.checkVisitsWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: recording1}]);
   });
 
-
   it("vists can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
     const Bobletta = "Bobletta";
     const group = "visits-same-time";
@@ -78,5 +78,4 @@ describe("Visits : pagings", () => {
     cy.checkVisitsWithFilter(Bobletta, null, {"page-size": 2, page: 2}, [{ start: visitTime}, { start: visitTime}, { start: visitTime}]);
     cy.checkVisitsWithFilter(Bobletta, null, {"page-size": 2, page: 1}, [{ start: nextVisitTime}]);
   });
-
 });

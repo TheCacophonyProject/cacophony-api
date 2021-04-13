@@ -90,7 +90,7 @@ function checkResponseMatches(
   response: Cypress.Response,
   expectedVisits: ComparableVisit[]
 ) {
-  const responseVisits = response.body.result.results;
+  const responseVisits = response.body.visits;
 
   expect(
     responseVisits.length,

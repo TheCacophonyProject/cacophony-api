@@ -57,35 +57,30 @@ export interface MonitoringParams {
     devices? : number[];
     from? : Date;
     until? : Date;
-    page? : number;
-    pageSize?: number;
+    page : number;
+    pageSize: number;
 }
 
-export interface SearchCriteria {
+export interface MonitoringPageCriteria {
     page: number,
     estimatedCount: number,
     estimatedPages: number,
+    groups? : number[];
+    devices? : number[];
     from?: Date;
     until?: Date;
-    /// this is temp
-    results: any;
+    pageFrom?: Date;
+    pageTo?: Date;
     all: boolean;
     search: boolean;
 }
 
 
-async function monitoringData(
-    params?: MonitoringParams
-)
-{
-    const searchDetails = await getDatesForSearch(params);
-    if (searchDetails.search) {
-        searchDetails.results = await generateVisits(params, searchDetails);
-    }
-
-    return searchDetails;
+export async function getMonitoringPageCriteria(params : MonitoringParams) : Promise<MonitoringPageCriteria> {
+    return getDatesForSearch(params);
 }
-async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCriteria> {
+
+async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringPageCriteria> {
     
     // wrong values of page size must be accounted for. 
 
@@ -97,21 +92,13 @@ async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCrit
     }
 
     const countRet = await models.sequelize.query(replaceInSQL(VISITS_COUNT_SQL, replacements), { type: QueryTypes.SELECT });
-    const count = parseInt(countRet[0].count);
+    const approxVisitCount = parseInt(countRet[0].count);
+    const returnVal = createPageCriteria(params, approxVisitCount);
 
-    const returnVal : SearchCriteria = {
-        page: params.page, 
-        estimatedCount: count,
-        estimatedPages: Math.ceil(count / params.pageSize),
-        from: params.from || BEFORE_CACOPHONY, 
-        until: params.until || new Date(), 
-        results: {},
-        all: false,
-        search: true
-    }
-
-    if (count < params.pageSize) {
+    if (approxVisitCount < params.pageSize) {
         returnVal.all = true;
+        returnVal.pageFrom = returnVal.from;
+        returnVal.pageTo = returnVal.until;        
     } else if (params.page <= returnVal.estimatedPages ) {
         const limit : number = params.pageSize * 1 + 1;
         const offset : number = (params.page - 1) * params.pageSize;
@@ -119,21 +106,40 @@ async function getDatesForSearch(params?: MonitoringParams) : Promise<SearchCrit
         const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
 
         if (results.length > 0) {
-            if (params.page > 1) {
-                returnVal.until = results[0].recordingDateTime;
-            }
-
+            returnVal.pageTo = (params.page == 1) ? returnVal.until : results[0].recordingDateTime;
             if (params.page < returnVal.estimatedPages) {
-                returnVal.from = results[results.length - 1].recordingDateTime;
+                returnVal.pageFrom = results[results.length - 1].recordingDateTime;
+            } else {
+                returnVal.pageFrom = returnVal.from;
             }
         }
     } else if (params.page > returnVal.estimatedPages) {
-        console.log(' paage > results');
         returnVal.search = false;
-        returnVal.until = BEFORE_CACOPHONY;
     } 
 
     return returnVal;
+}
+
+function createPageCriteria(params: MonitoringParams, count: number) : MonitoringPageCriteria {
+    const criteria : MonitoringPageCriteria = {
+        page: params.page, 
+        estimatedCount: count,
+        estimatedPages: Math.ceil(count / params.pageSize),
+        from: params.from || BEFORE_CACOPHONY, 
+        until: params.until || new Date(), 
+        all: false,
+        search: true
+    }
+
+    if (params.devices) {
+        criteria.devices = params.devices;
+    }
+
+    if (params.groups) {
+        criteria.groups = params.groups;
+    }
+
+    return criteria;
 }
 
 function replaceInSQL(sql: string, replacements: { [key: string]: string} ) : string {
@@ -184,8 +190,3 @@ async function makeGroupsAndDevicesPermissions(user: User): Promise<string> {
     return makeGroupsAndDevicesCriteria(deviceIds, groupIds);
 }
 
-
-export default {
-    monitoringData,
-};
-  

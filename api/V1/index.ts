@@ -27,7 +27,7 @@ export default function (app: Application) {
     "responseUtil.js",
     "recordingUtil.js",
     "eventUtil.js",
-    "monitoringUtil.js",
+    "monitoringPage.js",
     "monitoringVisit.js",
     "apidoc.js"
   ];
