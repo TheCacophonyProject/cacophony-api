@@ -1,6 +1,5 @@
 // load the global Cypress types
 /// <reference types="cypress" />
-import { getTestName } from "../names";
 import { v1ApiPath, getCreds, makeAuthorizedRequest } from "../server";
 import { logTestDescription, prettyLog } from "../descriptions";
 
@@ -35,11 +34,10 @@ function checkEvents(
     deviceID: getCreds(camera).id
   };
 
-  cy.request({
-    method: "GET",
-    url: v1ApiPath("events/powerEvents", params),
-    headers: getCreds(user).headers
-  }).then((response) => {
+  makeAuthorizedRequest(
+    { url: v1ApiPath("events/powerEvents", params) },
+    user
+  ).then((response) => {
     checkResponseMatches(response, expectedEvent);
   });
 }
