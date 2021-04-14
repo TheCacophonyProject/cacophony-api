@@ -244,7 +244,7 @@ function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: 
         const currentVisit : Visit = currentVisitForDevice[rec.DeviceId];
         if (!currentVisit || !currentVisit.addRecordingIfWithinTimeLimits(rec)) {
             if (end.isSameOrAfter(rec.recordingDateTime)) {
-                const newVisit = new Visit((rec as any).device, rec);
+                const newVisit = new Visit((rec as any).Device, rec);
                 // we want to keep adding recordings to this visit even it started too early
                 // before the official time period
                 currentVisitForDevice[rec.DeviceId] = newVisit;            

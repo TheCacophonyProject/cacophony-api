@@ -95,11 +95,14 @@ async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringP
     const approxVisitCount = parseInt(countRet[0].count);
     const returnVal = createPageCriteria(params, approxVisitCount);
 
-    if (approxVisitCount < params.pageSize) {
+    if (params.page > returnVal.estimatedPages) {
+        returnVal.search = false;
+    }
+    else if (approxVisitCount < params.pageSize) {
         returnVal.all = true;
         returnVal.pageFrom = returnVal.from;
         returnVal.pageTo = returnVal.until;        
-    } else if (params.page <= returnVal.estimatedPages ) {
+    } else {
         const limit : number = params.pageSize * 1 + 1;
         const offset : number = (params.page - 1) * params.pageSize;
         replacements.PAGING = ` LIMIT ${ limit } OFFSET ${ offset }`;
@@ -113,8 +116,6 @@ async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringP
                 returnVal.pageFrom = returnVal.from;
             }
         }
-    } else if (params.page > returnVal.estimatedPages) {
-        returnVal.search = false;
     } 
 
     return returnVal;

@@ -1,6 +1,6 @@
 // load the global Cypress types
 /// <reference types="cypress" />
-export const DEFAULT_DATE = new Date(2021, 1, 16, 22);
+export const DEFAULT_DATE = new Date(2021, 3, 12, 22);
 import { format as urlFormat } from "url";
 
 
