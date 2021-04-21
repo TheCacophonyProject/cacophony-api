@@ -640,8 +640,9 @@ select
   g."TrackData",
   g."TId" as "TrackId",
   g."TaggedBy",
-  g."fileKey",
-  g."fileMimeType",
+  g."rawFileKey",
+  g."rawMimeType",
+  g."duration",     
   g."recordingDateTime"
 from (
   select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
@@ -702,7 +703,7 @@ from (
     );
     // Sort tracks by time, so that the front-end doesn't have to.
     flattenedResult.tracks.sort((a, b) => a.data.start_s - b.data.start_s);
-    // We need to retrive the content length of the media file in order to sign
+    // We need to retrieve the content length of the media file in order to sign
     // the JWT token for it.
     let ContentLength = 0;
     try {
