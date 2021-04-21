@@ -645,7 +645,7 @@ select
   g."recordingDateTime"
 from (
   select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
-    select id as "RId", "DeviceId", "fileKey", "fileMimeType", "recordingDateTime" from "Recordings" inner join (
+    select id as "RId", "DeviceId", "rawFileKey", "rawMimeType", "recordingDateTime", "duration" from "Recordings" inner join (
       (select distinct("RecordingId") from "Tracks" inner join
         (select tId as "TrackId" from
           (
@@ -675,8 +675,9 @@ from (
         acc.RecordingId = item.RecordingId;
         acc.DeviceId = item.DeviceId;
         acc.fileKey = item.fileKey;
-        acc.fileMimeType = item.fileMimeType;
+        acc.fileMimeType = item.rawMimeType;
         acc.recordingDateTime = item.recordingDateTime;
+        acc.duration = item.duration;
         acc.tracks.push({
           TrackId: item.TrackId,
           data: {
@@ -693,6 +694,7 @@ from (
         RecordingId: 0,
         DeviceId: 0,
         tracks: [],
+        duration: 0,
         fileKey: "",
         fileMimeType: "",
         recordingDateTime: ""
@@ -726,7 +728,7 @@ from (
     const downloadFileData = {
       _type: "fileDownload",
       key: flattenedResult.fileKey,
-      filename: `${fileName}.mp4`,
+      filename: `${fileName}.cptv`,
       mimeType: flattenedResult.fileMimeType
     };
 
@@ -746,7 +748,7 @@ from (
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return { ...flattenedResult, recordingJWT, tagJWT };
+    return { ...flattenedResult, recordingJWT, tagJWT, fileSize: ContentLength };
   };
 
   //------------------
