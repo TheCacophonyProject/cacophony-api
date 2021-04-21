@@ -640,12 +640,13 @@ select
   g."TrackData",
   g."TId" as "TrackId",
   g."TaggedBy",
-  g."fileKey",
-  g."fileMimeType",
+  g."rawFileKey",
+  g."rawMimeType",
+  g."duration",     
   g."recordingDateTime"
 from (
   select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
-    select id as "RId", "DeviceId", "fileKey", "fileMimeType", "recordingDateTime" from "Recordings" inner join (
+    select id as "RId", "DeviceId", "rawFileKey", "rawMimeType", "recordingDateTime", "duration" from "Recordings" inner join (
       (select distinct("RecordingId") from "Tracks" inner join
         (select tId as "TrackId" from
           (
@@ -675,8 +676,9 @@ from (
         acc.RecordingId = item.RecordingId;
         acc.DeviceId = item.DeviceId;
         acc.fileKey = item.fileKey;
-        acc.fileMimeType = item.fileMimeType;
+        acc.fileMimeType = item.rawMimeType;
         acc.recordingDateTime = item.recordingDateTime;
+        acc.duration = item.duration;
         acc.tracks.push({
           TrackId: item.TrackId,
           data: {
@@ -693,6 +695,7 @@ from (
         RecordingId: 0,
         DeviceId: 0,
         tracks: [],
+        duration: 0,
         fileKey: "",
         fileMimeType: "",
         recordingDateTime: ""
@@ -700,7 +703,7 @@ from (
     );
     // Sort tracks by time, so that the front-end doesn't have to.
     flattenedResult.tracks.sort((a, b) => a.data.start_s - b.data.start_s);
-    // We need to retrive the content length of the media file in order to sign
+    // We need to retrieve the content length of the media file in order to sign
     // the JWT token for it.
     let ContentLength = 0;
     try {
@@ -726,7 +729,7 @@ from (
     const downloadFileData = {
       _type: "fileDownload",
       key: flattenedResult.fileKey,
-      filename: `${fileName}.mp4`,
+      filename: `${fileName}.cptv`,
       mimeType: flattenedResult.fileMimeType
     };
 
@@ -746,7 +749,7 @@ from (
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return { ...flattenedResult, recordingJWT, tagJWT };
+    return { ...flattenedResult, recordingJWT, tagJWT, fileSize: ContentLength };
   };
 
   //------------------
