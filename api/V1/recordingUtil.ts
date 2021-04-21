@@ -35,13 +35,14 @@ import {
   RecordingType,
   TagMode
 } from "../../models/Recording";
-import { Event } from "../../models/Event";
+import { Event, QueryOptions } from "../../models/Event";
 import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
   DeviceVisitMap,
   Visit,
+  VisitEvent,
   DeviceSummary,
   VisitSummary,
   isWithinVisitInterval
@@ -58,6 +59,7 @@ export interface RecordingQuery extends Request {
     limit: null | number;
     order: null | Order;
     distinct: boolean;
+    type: string;
   };
   filterOptions: null | any;
 }
@@ -201,14 +203,14 @@ async function query(
 
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
-async function report(request) {
+async function report(request: RecordingQuery) {
   if (request.query.type == "visits") {
     return reportVisits(request);
   }
   return reportRecordings(request);
 }
 
-async function reportRecordings(request) {
+async function reportRecordings(request: RecordingQuery) {
   const builder = (
     await new models.Recording.queryBuilder().init(
       request.user,
@@ -700,10 +702,6 @@ async function queryVisits(
     request.body.viewAsSuperAdmin
   );
   builder.query.distinct = true;
-  builder.addAudioEvents(
-    '"Recording"."recordingDateTime" - interval \'1 day\'',
-    '"Recording"."recordingDateTime" + interval \'1 day\''
-  );
 
   const devSummary = new DeviceSummary();
   const filterOptions = models.Recording.makeFilterOptions(
@@ -755,6 +753,27 @@ async function queryVisits(
   } else {
     devSummary.removeIncompleteVisits();
   }
+
+  for (const devId in devSummary.deviceMap) {
+    const devVisits = devSummary.deviceMap[devId];
+    if (devVisits.visitCount == 0) {
+      continue;
+    }
+    const events = await models.Event.query(
+      request.user,
+      devVisits.startTime.clone().startOf("day").toISOString(),
+      devVisits.endTime.toISOString(),
+      parseInt(devId),
+      0,
+      1000,
+      false,
+      { eventType: "audioBait" } as QueryOptions
+    );
+    if (events.rows) {
+      devVisits.addAudioBaitEvents(events.rows);
+    }
+  }
+
   const audioFileIds = devSummary.allAudioFileIds();
 
   const visits = devSummary.completeVisits();
@@ -850,7 +869,7 @@ function reportDeviceVisits(deviceMap: DeviceVisitMap) {
   return device_summary_out;
 }
 
-async function reportVisits(request) {
+async function reportVisits(request: RecordingQuery) {
   const results = await queryVisits(request);
   const out = reportDeviceVisits(results.summary.deviceMap);
   const recordingUrlBase = config.server.recording_url_base || "";
@@ -888,7 +907,7 @@ async function reportVisits(request) {
     for (const event of visit.events) {
       audioBaitBefore = audioTime && audioTime.isAfter(event.start);
       while (audioBaitBefore) {
-        addAudioBaitRow(out, visit, audioEvent);
+        addAudioBaitRow(out, audioEvent);
         audioEvent = audioEvents.pop();
         if (audioEvent) {
           audioTime = moment(audioEvent.dateTime);
@@ -897,25 +916,25 @@ async function reportVisits(request) {
         }
         audioBaitBefore = audioTime && audioTime.isAfter(event.start);
       }
-      addEventRow(out, visit, event, recordingUrlBase);
+      addEventRow(out, event, recordingUrlBase);
     }
     if (audioEvent) {
       audioEvents.push(audioEvent);
     }
     for (const audioEvent of audioEvents.reverse()) {
-      addAudioBaitRow(out, visit, audioEvent);
+      addAudioBaitRow(out, audioEvent);
     }
   }
   return out;
 }
 
-function addVisitRow(out, visit) {
+function addVisitRow(out: any, visit: Visit) {
   out.push([
     visit.visitID.toString(),
     visit.deviceName,
     visit.groupName,
     "Visit",
-    visit.assumedTag,
+    visit.what,
     visit.what,
     "",
     visit.start.tz(config.timeZone).format("YYYY-MM-DD"),
@@ -928,27 +947,27 @@ function addVisitRow(out, visit) {
   ]);
 }
 
-function addEventRow(out, visit, event, recordingUrlBase) {
+function addEventRow(out: any, event: VisitEvent, recordingUrlBase: string) {
   out.push([
     "",
     "",
     "",
     "Event",
     event.assumedTag,
-    event.what,
+    event.trackTag ? event.trackTag.what : "",
     event.recID.toString(),
     event.start.tz(config.timeZone).format("YYYY-MM-DD"),
     event.start.tz(config.timeZone).format("HH:mm:ss"),
 
     event.end.tz(config.timeZone).format("HH:mm:ss"),
-    event.confidence + "%",
+    event.trackTag ? event.trackTag.confidence + "%" : "",
     "",
     "",
     urljoin(recordingUrlBase, event.recID.toString(), event.trackID.toString())
   ]);
 }
 
-function addAudioBaitRow(out, visit, audioBait) {
+function addAudioBaitRow(out: any, audioBait: Event) {
   let audioPlayed = audioBait.dataValues.fileName;
   if (audioBait.EventDetail.details.volume) {
     audioPlayed += " vol " + audioBait.EventDetail.details.volume;

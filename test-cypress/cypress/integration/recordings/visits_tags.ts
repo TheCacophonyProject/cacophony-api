@@ -2,6 +2,8 @@
 
 describe("Visits : tracks and tags", () => {
   const Dee = "Donna_visits";
+  const Gee = "Gee_visits";
+
   const group = "VisitTags";
 
   before(() => {
@@ -71,7 +73,7 @@ describe("Visits : tracks and tags", () => {
     cy.checkVisitTags(Dee, camera, ["rabbit"]);
   });
 
-  it.skip("unfortunately user tags only count as much as one computer tag so this could be a problem..soo", () => {
+  it("User tag is preferred over AI tag", () => {
     const camera = "userVsMultiple";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, {
@@ -80,5 +82,33 @@ describe("Visits : tracks and tags", () => {
     }).thenUserTagAs(Dee, "rabbit");
     cy.uploadRecording(camera, { tags: ["possum"] });
     cy.checkVisitTags(Dee, camera, ["rabbit"]);
+  });
+
+  it("User animal tag is preferred over user unknown tag", () => {
+    const camera = "userAnimalUnknown";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecording(camera, {
+      tags: ["unidentified", "unidentified", "unidentified"]
+    }).then((recID: number) => {
+      cy.userTagRecording(recID, 0, Dee, "possum");
+      cy.userTagRecording(recID, 1, Dee, "unknown");
+      cy.userTagRecording(recID, 2, Dee, "unknown");
+    });
+    cy.checkVisitTags(Dee, camera, ["possum"]);
+  });
+  it("User tags conflict", () => {
+    const camera = "conflicter";
+    cy.apiCreateUser(Gee);
+    cy.apiAddUserToGroup(Dee, Gee, group, true);
+    cy.apiCreateCamera(camera, group);
+    const recording = cy.uploadRecording(camera, {
+      time: new Date(2021, 1, 20, 21),
+      tags: ["possum"]
+    });
+    recording.then((recID: number) => {
+      cy.userTagRecording(recID, 0, Dee, "possum");
+      cy.userTagRecording(recID, 0, Gee, "rat");
+    });
+    cy.checkVisitTags(Dee, camera, ["conflicting tags"]);
   });
 });

@@ -65,6 +65,5 @@ export default function (
   TrackTag.prototype.isAdditionalTag = function () {
     return additionalTags.includes(this.what);
   };
-
   return TrackTag;
 }

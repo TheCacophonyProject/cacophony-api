@@ -25,10 +25,13 @@ declare namespace Cypress {
 
     /**
      * use to test when a camera should not be able to be created.
+     *
+     * Use makeCameraNameTestName = false if you don't want cy_ etc added to the camera name
      */
     apiShouldFailToCreateCamera(
       cameraName: string,
-      group: string
+      group: string,
+      makeCameraNameTestName?: boolean
     ): Chainable<Element>;
   }
 }

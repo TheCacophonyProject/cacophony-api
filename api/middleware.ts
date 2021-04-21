@@ -204,10 +204,16 @@ function getRecordingById(checkFunc: ValidationChainBuilder): ValidationChain {
   return getModelById(models.Recording, "id", checkFunc);
 }
 
-const checkNewName = function (field: string): ValidationChain {
-  return body(field, "Invalid " + field)
+const isValidName = function (
+  checkFunc: ValidationChainBuilder,
+  field: string
+): ValidationChain {
+  return checkFunc(
+    field,
+    `${field} must only contain letters, numbers, dash, underscore and space.  It must contain at least one letter`
+  )
     .isLength({ min: 3 })
-    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$/);
+    .matches(/(?=.*[A-Za-z])^[a-zA-Z0-9]+([_ \-a-zA-Z0-9])*$/);
 };
 
 const checkNewPassword = function (field: string): ValidationChain {
@@ -216,12 +222,12 @@ const checkNewPassword = function (field: string): ValidationChain {
   });
 };
 
-const viewMode = function(): ValidationChain {
+const viewMode = function (): ValidationChain {
   // All api listing commands will automatically return all results if the user is a super-admin
   // There is now an optional "view-mode" query param to these APIs, which, if set to "user",
   // will restrict results to items only directly viewable by the super-admin user.
   // The default behaviour remains unchanged, and this will do nothing for non-admin users.
-  return query("view-mode").custom((value, {req}) => {
+  return query("view-mode").custom((value, { req }) => {
     req.body.viewAsSuperAdmin = value !== "user";
     return true;
   });
@@ -338,7 +344,7 @@ export default {
   getDetailSnapshotById,
   getFileById,
   getRecordingById,
-  checkNewName,
+  isValidName,
   checkNewPassword,
   parseJSON,
   parseArray,

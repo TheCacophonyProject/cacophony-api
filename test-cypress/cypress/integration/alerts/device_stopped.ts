@@ -2,7 +2,7 @@
 import moment from "moment";
 import { EventTypes } from "../../commands/api/events";
 
-describe("Device names", () => {
+describe("Devices stopped alerts", () => {
   const group = "stoppers";
   const user = "Jerry";
   before(() => {

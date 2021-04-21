@@ -217,7 +217,11 @@ export interface GroupStatic extends ModelStaticCommon<Group> {
     group: Group,
     userToRemove: User
   ) => Promise<void>;
-  query: (where: any, user: User, viewAsSuperAdmin: boolean) => Promise<Group[]>;
+  query: (
+    where: any,
+    user: User,
+    viewAsSuperAdmin: boolean
+  ) => Promise<Group[]>;
   getFromId: (id: GroupId) => Promise<Group>;
   freeGroupname: (groupname: string) => Promise<boolean>;
   getIdFromName: (groupname: string) => Promise<GroupId | null>;

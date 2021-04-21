@@ -43,5 +43,14 @@ declare namespace Cypress {
       admin?: boolean,
       log?: boolean
     ): Chainable<Element>;
+
+    /**
+     * Add a user to a device
+     */
+    apiAddUserToDevice(
+      deviceAdminUser: string,
+      user: string,
+      device: string
+    ): Chainable<Element>;
   }
 }
