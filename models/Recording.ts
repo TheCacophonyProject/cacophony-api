@@ -675,7 +675,7 @@ from (
       (acc, item) => {
         acc.RecordingId = item.RecordingId;
         acc.DeviceId = item.DeviceId;
-        acc.fileKey = item.rawFileKey;
+        acc.fileKey = item.fileKey;
         acc.fileMimeType = item.rawMimeType;
         acc.recordingDateTime = item.recordingDateTime;
         acc.duration = item.duration;
