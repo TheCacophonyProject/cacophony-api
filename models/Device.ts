@@ -24,17 +24,14 @@ import { GroupUsersStatic } from "./GroupUsers";
 import { DeviceUsersStatic } from "./DeviceUsers";
 import { ScheduleId } from "./Schedule";
 import { Event } from "./Event";
+import { AccessLevel } from "./GroupUsers";
 
 const Op = Sequelize.Op;
 export type DeviceId = number;
-type UserDevicePermissions = {
-  canListUsers: boolean;
-  canAddUsers: boolean;
-  canRemoveUsers: boolean;
-};
+
 export interface Device extends Sequelize.Model, ModelCommon<Device> {
   id: DeviceId;
-  userPermissions: (user: User) => UserDevicePermissions;
+  getAccessLevel: (user: User) => AccessLevel;
   addUser: (userId: UserId, options: any) => any;
   devicename: string;
   groupname: string;
@@ -75,7 +72,6 @@ export interface DeviceStatic extends ModelStaticCommon<Device> {
     includeData?: any
   ) => Promise<{ rows: Device[]; count: number }>;
   freeDevicename: (name: string, id: number) => Promise<boolean>;
-  newUserPermissions: (enabled: boolean) => UserDevicePermissions;
   getFromId: (id: DeviceId) => Promise<Device>;
   findDevice: (
     deviceID?: DeviceId,
@@ -186,7 +182,7 @@ export default function (
     if (device == null || userToAdd == null) {
       return false;
     }
-    if (!(await device.userPermissions(authUser)).canAddUsers) {
+    if ((await device.getAccessLevel(authUser)) != AccessLevel.Admin) {
       throw new AuthorizationError(
         "User is not a group, device, or global admin so cannot add users to this device"
       );
@@ -221,7 +217,7 @@ export default function (
     if (device == null || userToRemove == null) {
       return false;
     }
-    if (!(await device.userPermissions(authUser)).canRemoveUsers) {
+    if ((await device.getAccessLevel(authUser)) != AccessLevel.Admin) {
       throw new AuthorizationError(
         "User is not a group, device, or global admin so cannot remove users from this device"
       );
@@ -289,14 +285,6 @@ export default function (
       includeData,
       viewAsSuperAdmin
     );
-  };
-
-  Device.newUserPermissions = function (enabled) {
-    return {
-      canListUsers: enabled,
-      canAddUsers: enabled,
-      canRemoveUsers: enabled
-    };
   };
 
   Device.freeDevicename = async function (devicename, groupId) {
@@ -561,20 +549,20 @@ order by hour;
   // INSTANCE METHODS
   //------------------
 
-  Device.prototype.userPermissions = async function (user) {
+  Device.prototype.getAccessLevel = async function (user) {
     if (user.hasGlobalWrite()) {
-      return Device.newUserPermissions(true);
+      return AccessLevel.Admin;
     }
 
-    const isGroupAdmin = await (models.GroupUsers as GroupUsersStatic).isAdmin(
+    const groupAccessLevel = await (models.GroupUsers as GroupUsersStatic).getAccessLevel(
       this.GroupId,
       user.id
     );
-    const isDeviceAdmin = await (models.DeviceUsers as DeviceUsersStatic).isAdmin(
+    const deviceAccessLevel = await (models.DeviceUsers as DeviceUsersStatic).getAccessLevel(
       this.id,
       user.id
     );
-    return Device.newUserPermissions(isGroupAdmin || isDeviceAdmin);
+    return Math.max(groupAccessLevel, deviceAccessLevel);
   };
 
   Device.prototype.getJwtDataValues = function () {
@@ -604,7 +592,7 @@ order by hour;
     authUser,
     attrs = ["id", "username", "email"]
   ) {
-    if (!(await this.userPermissions(authUser)).canListUsers) {
+    if (!((await this.getAccessLevel(authUser)) == AccessLevel.Admin)) {
       return [];
     }
 

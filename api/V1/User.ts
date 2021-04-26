@@ -50,7 +50,7 @@ export default function (app: Application, baseUrl: string) {
   app.post(
     apiUrl,
     [
-      middleware.checkNewName("username").custom((value) => {
+      middleware.isValidName(body, "username").custom((value) => {
         return models.User.freeUsername(value);
       }),
       body("email")
@@ -99,7 +99,7 @@ export default function (app: Application, baseUrl: string) {
     [
       auth.authenticateUser,
       middleware
-        .checkNewName("username")
+        .isValidName(body, "username")
         .custom((value) => {
           return models.User.freeUsername(value);
         })
