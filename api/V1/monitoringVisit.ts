@@ -26,12 +26,14 @@ class Visit {
     start?: Moment; 
     device: any;
     incomplete: boolean;
+    trackCount: number;
     
     constructor(device, recording:Recording) {
         this.device = device;
         this.recordings = [];
         this.rawRecordings = [];
         this.incomplete = false;
+        this.trackCount = 0;
 
         this.rawRecordings.push(recording);
         this.start = moment(recording.recordingDateTime);
@@ -45,7 +47,6 @@ class Visit {
         }
 
         const cutoff = moment(this.end).add(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
-        
         return cutoff.isAfter(recording.recordingDateTime);
     }
 
@@ -66,6 +67,7 @@ class Visit {
         this.rawRecordings = [];
 
         const allVisitTracks = this.getAllTracks();
+        this.trackCount = allVisitTracks.length;
         const bestHumanTags = getBestGuessOverall(allVisitTracks, HUMAN_ONLY);
 
         if (bestHumanTags.length > 0) {
@@ -87,7 +89,7 @@ class Visit {
             start : recording.recordingDateTime,
             tracks : [],
         } 
-        for (const track of (recording as any).Tracks) {
+       for (const track of (recording as any).Tracks) {
             const bestTag = getTrackTag(track.TrackTags, 0);
             let aiTag = [];
             if (track.TrackTags) {
@@ -159,16 +161,18 @@ function getBestGuessOverall(allTracks : VisitTrack[], isAi : boolean) : string[
 }
 
 
-function getBestGuess(counts : [TagName, Count][]) : string[] {
+function getBestGuess(counts : [TagName, Count][]) : TagName[] {
 
-    const animalCounts = counts.filter((tc) => { return !unidentifiedTags.includes(tc[TAG]); });
+    const animalOnlyCounts = counts.filter(tc => !unidentifiedTags.includes(tc[TAG]));
 
-    const tagCounts = (animalCounts.length > 0) ? animalCounts : counts;
+    if (animalOnlyCounts) {
+        // there are animal tags
+        const maxCount = Math.max(...animalOnlyCounts.map((tc) => tc[COUNT]));
+        const tagsWithMaxCount = animalOnlyCounts.filter((tc) => tc[COUNT] === maxCount).map((tc) => tc[TAG]);
+    }
 
-    const maxCount = Math.max(...tagCounts.map((tc) => tc[COUNT]));
-    const tagsWithMaxCount = tagCounts.filter((tc) => tc[COUNT] === maxCount).map((tc) => tc[TAG]);
-
-    return tagsWithMaxCount;
+    // return
+   return animalOnlyCounts.map((tc) => tc[TAG]);
 }
 
 interface VisitRecording {
