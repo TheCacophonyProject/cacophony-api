@@ -46,7 +46,8 @@ export enum AcceptableTag {
   InteractionWithTrap = "interaction with trap",
   MissedTrack = "missed track",
   MultipleAnimals = "multiple animals",
-  TrappedInTrap = "trapped in trap"
+  TrappedInTrap = "trapped in trap",
+  MissedRecording = "missed recording"
 }
 
 export const AcceptableTags = new Set(Object.values(AcceptableTag));
