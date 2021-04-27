@@ -7,6 +7,8 @@ export function logTestDescription(
     return;
   }
 
+  message = message.trim();  // needed to make sure the message shows in bold
+
   Cypress.log({
     name: "Test description",
     displayName: "TEST",
@@ -16,5 +18,17 @@ export function logTestDescription(
 }
 
 export function prettyLog(object: any) {
-  return (JSON.stringify(object)).replaceAll('"', "").replaceAll("},", "} -  ");
+  if (!(object instanceof Array)) {
+    const objectCopy : any = Object.assign({}, object);
+  
+    Object.keys(objectCopy).forEach(key => {
+      if (objectCopy[key] instanceof Date) {
+        const date = objectCopy[key] as Date;
+        objectCopy[key] = `${date.toLocaleDateString("en-NZ")} ${date.toLocaleTimeString("en-NZ")}`;
+      }
+    });
+    object = objectCopy;
+  }
+
+  return JSON.stringify(object).replaceAll('"', "").replaceAll("},", "} -  ");
 }

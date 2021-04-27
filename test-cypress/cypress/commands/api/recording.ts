@@ -207,16 +207,4 @@ function addTracksToRecording(
   }
 }
 
-export function checkRecording(user: string, recordingId: number, checkFunction: any) {
-  makeAuthorizedRequest( 
-    {
-      url: v1ApiPath(`recordings`)
-    },
-    user
-  ).then(response => {
-    const recordings = response.body.rows.filter(x => x.id = recordingId);
-    if (recordings.length > 0) {
-      checkFunction(recordings[0]);
-    }
-  })
-}
+
