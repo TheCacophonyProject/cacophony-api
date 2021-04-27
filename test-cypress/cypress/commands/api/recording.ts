@@ -112,6 +112,7 @@ interface ThermalRecordingData {
   version?: string;
   additionalMetadata?: JSON;
   metadata?: ThermalRecordingMetaData;
+  location?: number[];
 }
 
 function makeRecordingDataFromDetails(
@@ -133,6 +134,10 @@ function makeRecordingDataFromDetails(
   if (!details.noTracks) {
     const model = details.model ? details.model : "Master";
     addTracksToRecording(data, model, details.tracks, details.tags);
+  }
+
+  if (details.lat && details.lng) {
+    data.location = [details.lat, details.lng];
   }
 
   return data;
@@ -200,4 +205,18 @@ function addTracksToRecording(
       confidence: 0.5
     });
   }
+}
+
+export function checkRecording(user: string, recordingId: number, checkFunction: any) {
+  makeAuthorizedRequest( 
+    {
+      url: v1ApiPath(`recordings`)
+    },
+    user
+  ).then(response => {
+    const recordings = response.body.rows.filter(x => x.id = recordingId);
+    if (recordings.length > 0) {
+      checkFunction(recordings[0]);
+    }
+  })
 }

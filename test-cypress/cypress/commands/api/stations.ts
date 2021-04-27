@@ -4,6 +4,7 @@
 import { v1ApiPath, makeAuthorizedRequest } from "../server";
 import { logTestDescription, prettyLog } from "../descriptions";
 import { getTestName } from "../names";
+import { checkRecording } from "./recording";
 
 Cypress.Commands.add(
   "apiUploadStations",
@@ -38,4 +39,23 @@ Cypress.Commands.add("apiCheckStations", (user: string, group: string) => {
     },
     user
   );
+});
+
+Cypress.Commands.add(
+  "thenCheckStationIs",
+  { prevSubject: true },
+  (subject, user: string, station: string) => {
+    const text = station === "" ? "not assigned to a station" : `assigned to station '${station}'`;
+    const stationWithQuotes = ` '${station}'`;
+    logTestDescription(`and check recording is ${text}`, {
+      user,
+    });
+    checkRecording(user, subject, (recording => {
+      if (recording.Station) {
+        expect (recording.Station.name).equals(station); 
+      }
+      else {
+        expect ("").equals(station);
+      }
+    })); 
 });

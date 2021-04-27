@@ -17,6 +17,8 @@ interface ThermalRecordingInfo {
   minsLater?: number; // minutes that later that the recording is taken
   secsLater?: number; // minutes that later that the recording is taken
   tags?: string[]; // short cut for defining tags for each track
+  lat?: number; // Latitude position for the recording
+  lng?: number; // Longitude position for the recording
 }
 
 declare namespace Cypress {
@@ -43,6 +45,7 @@ declare namespace Cypress {
       tag: string
     );
 
+    // to be run straight after an uploadRecording
     thenUserTagAs(tagger: string, tag: string);
   }
 }

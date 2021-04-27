@@ -27,5 +27,10 @@ declare namespace Cypress {
       group: string,
       stations: CreateStationData[]
     );
+
+    // to be run straight after an uploadRecording
+    // check that the recording has been assigned the right station name. sS
+    thenCheckStationIs(user: string, station: string);
+
   }
 }
