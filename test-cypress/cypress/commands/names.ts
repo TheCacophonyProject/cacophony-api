@@ -24,3 +24,8 @@ export function initializeTestNames(uniqueId = "") {
     Cypress.config("env")[uniqueIdName] = uniqueId;
   }
 }
+
+export function stripBackName(testName: string) {
+  const uniqueId = Cypress.config("env")[uniqueIdName];
+  return testName.substring(3,  testName.length - uniqueId.length - 1);
+}

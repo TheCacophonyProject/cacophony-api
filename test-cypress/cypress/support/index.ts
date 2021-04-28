@@ -4,6 +4,7 @@
 import "../commands/api/user";
 import "../commands/api/camera";
 import "../commands/api/recording";
+import "../commands/api/recordings";
 import "../commands/api/visits";
 import "../commands/api/stations";
 import "../commands/api/events";

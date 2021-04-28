@@ -90,28 +90,6 @@ describe("Visits : times and recording groupings", () => {
     ]);
   });
 
-  it.skip("test start and end date of visits with first track finishing later than second", () => {
-    const camera = "dateTimes2";
-    const videoStart = new Date(2021, 1, 20, 21);
-    cy.apiCreateCamera(camera, group);
-    cy.uploadRecording(camera, {
-      time: videoStart,
-      tracks: [
-        {
-          start_s: 3,
-          end_s: 14
-        },
-        {
-          start_s: 5,
-          end_s: 12
-        }
-      ]
-    });
-    cy.checkVisits(Dee, camera, [
-      { start: addSeconds(videoStart, 3), end: addSeconds(videoStart, 14) }
-    ]);
-  });
-
   it("test start and end date of visits with multiple videos", () => {
     const camera = "dateTimes3";
     const videoStart = new Date(2021, 1, 20, 21);

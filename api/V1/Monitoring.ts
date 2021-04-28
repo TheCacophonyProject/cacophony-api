@@ -44,7 +44,8 @@ export default function (app: Application, baseUrl: string) {
         toDateInMillisecs("from").optional(),
         toDateInMillisecs("until").optional(), 
         query("page").isInt(),
-        query("page-size").isInt()],
+        query("page-size").isInt(),
+        middleware.isValidName(query, "ai").optional()],
         middleware.requestWrapper(
         async (request: e.Request, response: e.Response) => {
             const user = (request as any).user;
@@ -66,7 +67,8 @@ export default function (app: Application, baseUrl: string) {
 
             const searchDetails = await getMonitoringPageCriteria(params)
             
-            const visits = await generateVisits(user, searchDetails);
+            const aiModel = request.query["ai"] || "Master";
+            const visits = await generateVisits(user, searchDetails, aiModel);
         
             responseUtil.send(response, {
                 statusCode: 200,

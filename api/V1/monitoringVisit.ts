@@ -4,6 +4,7 @@ import models from "../../models";
 import { Recording } from "../../models/Recording";
 import { getTrackTag, unidentifiedTags } from "./Visits";
 import { User } from "../../models/User";
+import { Json } from "sequelize/types/lib/utils";
 
 const MINUTE = 60;
 const MAX_SECS_BETWEEN_RECORDINGS = 10 * MINUTE;
@@ -25,19 +26,27 @@ class Visit {
     end?: Moment;
     start?: Moment; 
     device: any;
+    stationId: number;
+    station: string;
     incomplete: boolean;
     trackCount: number;
     
-    constructor(device, recording:Recording) {
+    constructor(device, stationId : number , station, recording:Recording) {
         this.device = device;
         this.recordings = [];
         this.rawRecordings = [];
         this.incomplete = false;
         this.trackCount = 0;
+        this.station = (station) ? station.name: "";
+        this.stationId = stationId || 0;
 
         this.rawRecordings.push(recording);
         this.start = moment(recording.recordingDateTime);
         this.end = moment(this.start).add(recording.duration, "seconds");
+    }
+
+    stationsMatch(stationId: number) {
+        return this.stationId == stationId;
     }
 
     // note this function assumes that the recording starts after the recordings alreayd in the visit.  
@@ -128,7 +137,19 @@ const HUMAN_ONLY = false;
 const AI_ONLY = true;
 
 
-function countTags(allTracks : VisitTrack[], isAi : boolean) : [TagName, Count][] {
+function getBestGuessFromSpecifiedAi(tracks : VisitTrack[]) : string[] {
+    const counts  = {};
+    tracks.forEach(track => {
+        const tag = track.aiTag;
+        if (tag) {
+            counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
+        }        
+    });
+    return getBestGuess(Object.entries(counts));
+}
+
+
+function getBestGuessOverall(allTracks : VisitTrack[], isAi : boolean) : string[] {
     const tracks = allTracks.filter((track) => track.isAITagged == isAi);
     
     const counts  = {};
@@ -139,40 +160,21 @@ function countTags(allTracks : VisitTrack[], isAi : boolean) : [TagName, Count][
         }
     });
 
-    return Object.entries(counts);
-}
-
-function getBestGuessFromSpecifiedAi(tracks : VisitTrack[]) : string[] {
-    const counts  = {};
-    tracks.forEach(track => {
-        const tag = track.aiTag;
-        if (tag) {
-            counts[tag] = counts[tag] ? (counts[tag] += 1) : 1;
-        }        
-    });
-    
     return getBestGuess(Object.entries(counts));
 }
 
 
-function getBestGuessOverall(allTracks : VisitTrack[], isAi : boolean) : string[] {
-    const counts = countTags(allTracks, isAi);
-    return getBestGuess(counts);
-}
-
-
 function getBestGuess(counts : [TagName, Count][]) : TagName[] {
-
+    
     const animalOnlyCounts = counts.filter(tc => !unidentifiedTags.includes(tc[TAG]));
-
-    if (animalOnlyCounts) {
+    if (animalOnlyCounts.length > 0) {
         // there are animal tags
-        const maxCount = Math.max(...animalOnlyCounts.map((tc) => tc[COUNT]));
+        const maxCount = animalOnlyCounts.reduce((max, item) => Math.max(max, item[COUNT]), 0);
         const tagsWithMaxCount = animalOnlyCounts.filter((tc) => tc[COUNT] === maxCount).map((tc) => tc[TAG]);
+        return tagsWithMaxCount;
+    } else {
+        return counts.map((tc) => tc[TAG]);
     }
-
-    // return
-   return animalOnlyCounts.map((tc) => tc[TAG]);
 }
 
 interface VisitRecording {
@@ -193,7 +195,7 @@ interface VisitTrack {
     orig: any;
 }
 
-export async function generateVisits(user: User, search: MonitoringPageCriteria) {
+export async function generateVisits(user: User, search: MonitoringPageCriteria, aiModel: string) {
     const search_start = moment(search.pageFrom).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
     const search_end = moment(search.pageTo).add(MAX_MINS_AFTER_TIME, "minutes");
 
@@ -205,7 +207,7 @@ export async function generateVisits(user: User, search: MonitoringPageCriteria)
     const incompleteCutoff = moment(search_end).subtract(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
     
     visits.forEach(visit => {
-        visit.calculateTags("Master");
+        visit.calculateTags(aiModel);
         visit.markIfPossiblyIncomplete(incompleteCutoff);
     });
 
@@ -245,10 +247,15 @@ function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: 
     const allVisits : Visit[] = [];
     
     recordings.forEach(rec => {
+        const recording = rec as any;
+        const stationId = recording.StationId || 0;
         const currentVisit : Visit = currentVisitForDevice[rec.DeviceId];
-        if (!currentVisit || !currentVisit.addRecordingIfWithinTimeLimits(rec)) {
+        const matchingVisit = (currentVisit && currentVisit.stationsMatch(stationId)) ? currentVisit : null;
+        if (!matchingVisit || !matchingVisit.addRecordingIfWithinTimeLimits(rec)) {
             if (end.isSameOrAfter(rec.recordingDateTime)) {
-                const newVisit = new Visit((rec as any).Device, rec);
+                
+                // start a new visit
+                const newVisit = new Visit(recording.Device, stationId, recording.Station, rec);
                 // we want to keep adding recordings to this visit even it started too early
                 // before the official time period
                 currentVisitForDevice[rec.DeviceId] = newVisit;            

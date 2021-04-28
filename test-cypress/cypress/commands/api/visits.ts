@@ -3,6 +3,7 @@
 
 import { v1ApiPath, getCreds, convertToDate } from "../server";
 import { logTestDescription, prettyLog } from "../descriptions";
+import { stripBackName } from "../names";
 
 Cypress.Commands.add(
   "checkVisitTags",
@@ -94,8 +95,8 @@ function checkResponseMatches(
 
   expect(
     responseVisits.length,
-    `Number of visits to be ${responseVisits.length}`
-  ).to.eq(expectedVisits.length);
+    `Number of visits is ${responseVisits.length}`
+  ).to.be.equal(expectedVisits.length);
   // const increasingDateResponseVisits = responseVisits.reverse();
   const increasingDateResponseVisits = responseVisits;
 
@@ -106,8 +107,20 @@ function checkResponseMatches(
     const completeResponseVisit = increasingDateResponseVisits[i];
     const simplifiedResponseVisit: ComparableVisit = {};
 
+    if (expectedVisit.station) {
+      simplifiedResponseVisit.station = completeResponseVisit.station;
+    }
+
+    if (expectedVisit.camera) {
+      simplifiedResponseVisit.camera = stripBackName(completeResponseVisit.device.devicename);
+    }
+
     if (expectedVisit.tag) {
-      simplifiedResponseVisit.tag = completeResponseVisit.what || "<null>";
+      simplifiedResponseVisit.tag = completeResponseVisit.what || "<none>";
+    }
+
+    if (expectedVisit.aiTag) {
+      simplifiedResponseVisit.aiTag = completeResponseVisit.aiWhat || "<none>";
     }
 
     if (expectedVisit.recordings) {

@@ -10,7 +10,9 @@ describe("Visits : tracks and tags", () => {
     cy.apiCreateUserGroup(Donna, group);
   });
 
-  it("recordings with no tracks do not create a visit", () => {
+  // at the moment many tracks are being missed so we can't do this.  
+  // it is also a bit confusing for users - where did my recording go?
+  it.skip ("recordings with no tracks do not create a visit", () => {
     const camera = "no_tracks";
     const notracks = [];
     const noVisits = [];

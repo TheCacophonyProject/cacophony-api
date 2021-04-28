@@ -8,6 +8,9 @@ interface ComparableVisit {
   tag?: string;
   recordings?: number;
   incomplete? : string;  
+  aiTag? : string;
+  camera? : string;
+  station? : string;
 }
 
 interface VisitSearchParams { 
@@ -16,6 +19,7 @@ interface VisitSearchParams {
   devices?: number | number[], 
   page?: number;
   "page-size"? : number;
+  ai?: string;
 }
 
 
