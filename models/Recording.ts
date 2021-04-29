@@ -1074,7 +1074,14 @@ from (
               "TrackId",
               "confidence",
               "UserId",
-              [Sequelize.json("data.name"), "aiName"]
+              [
+                Sequelize.fn(
+                  "json_build_object",
+                  "name",
+                  Sequelize.literal(`"Tracks->TrackTags"."data"#>'{name}'`)
+                ),
+                "data"
+              ]
             ],
             include: [
               {
