@@ -642,7 +642,7 @@ select
   g."TaggedBy",
   g."rawFileKey",
   g."rawMimeType",
-  g."duration",     
+  g."duration",
   g."recordingDateTime"
 from (
   select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
@@ -1074,7 +1074,7 @@ from (
               "TrackId",
               "confidence",
               "UserId",
-              [Sequelize.json("data.name"), "data"]
+              [Sequelize.json("data.name"), "aiName"]
             ],
             include: [
               {

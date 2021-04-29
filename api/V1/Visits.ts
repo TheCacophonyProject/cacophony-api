@@ -72,7 +72,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
 
     return animalTags.length == 0 ? manualTags[0] : animalTags[0];
   }
-  const masterTag = trackTags.filter((tag) => tag.data == AI_MASTER);
+  const masterTag = trackTags.filter((tag) => (tag as any).aiName == AI_MASTER);
   return masterTag.length == 0 ? null : masterTag[0];
 }
 
