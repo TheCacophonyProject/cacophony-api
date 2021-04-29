@@ -642,7 +642,7 @@ select
   g."TaggedBy",
   g."rawFileKey",
   g."rawMimeType",
-  g."duration",     
+  g."duration",
   g."recordingDateTime"
 from (
   select *, "Tracks"."data" as "TrackData", "Tracks".id as "TId", "TrackTags".automatic as "TaggedBy" from (
@@ -749,7 +749,12 @@ from (
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return { ...flattenedResult, recordingJWT, tagJWT, fileSize: ContentLength };
+    return {
+      ...flattenedResult,
+      recordingJWT,
+      tagJWT,
+      fileSize: ContentLength
+    };
   };
 
   //------------------

@@ -20,6 +20,7 @@ import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
 import { UserId as UserIdAlias } from "./User";
 
+export const AI_MASTER = "Master";
 export type TrackTagId = number;
 export interface TrackTag extends Sequelize.Model, ModelCommon<TrackTag> {
   isAdditionalTag: () => boolean;

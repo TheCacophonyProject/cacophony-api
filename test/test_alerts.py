@@ -52,6 +52,18 @@ class TestAlert:
         assert len(alert_event) == 1
         check_event(alert_event[0], alert_id, rec.id_, track.id_)
 
+        new_rec, new_track, _ = helper.upload_recording_with_tag(
+            colonel_device, colonel, "possum", automatic=True, ai_name="not master"
+        )
+        alert_event = colonel.can_see_events(device=colonel_device, type="alert", latest=True)
+        print("Anyone AI but master tags as possum no new alert has occured")
+        check_event(alert_event[0], alert_id, rec.id_, track.id_)
+
+        print("ai master tags as possum")
+        tag = colonel.can_tag_track(new_track, what="possum", automatic=True)
+        alert_event = colonel.can_see_events(device=colonel_device, type="alert", latest=True)
+        check_event(alert_event[0], alert_id, new_rec.id_, new_track.id_)
+
     def test_alert_human(self, helper):
         colonel = helper.given_new_user(self, "colonel")
         colonel_group = helper.make_unique_group_name(self, "colonelGroup")
