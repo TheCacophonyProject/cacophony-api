@@ -749,7 +749,12 @@ from (
     delete flattenedResult.fileKey;
     delete flattenedResult.fileMimeType;
     delete flattenedResult.recordingDateTime;
-    return { ...flattenedResult, recordingJWT, tagJWT, fileSize: ContentLength };
+    return {
+      ...flattenedResult,
+      recordingJWT,
+      tagJWT,
+      fileSize: ContentLength
+    };
   };
 
   //------------------

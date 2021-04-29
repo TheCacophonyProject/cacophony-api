@@ -113,8 +113,8 @@ export default function (
   // INSTANCE
   //---------------
   async function sendAlerts(track: Track, tag: TrackTag) {
-    if (tag.automatic && tag.data.name != AI_MASTER ){
-        return
+    if (tag.automatic && tag.data.name != AI_MASTER) {
+      return;
     }
 
     const recording = await track.getRecording();
