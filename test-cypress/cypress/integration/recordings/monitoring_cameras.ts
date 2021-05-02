@@ -14,7 +14,7 @@ describe("Visits : multiple cameras and stations", () => {
       cy.apiCreateCamera(cameraB, group);
       cy.uploadRecording(cameraA, { tags: ["possum"] });
       cy.uploadRecording(cameraB, { tags: ["cat"] });
-      cy.checkVisits(Penny, null, [{camera: cameraA, tag: "possum"}, {camera: cameraB, tag: "cat"}]);
+      cy.checkMonitoring(Penny, null, [{camera: cameraA, tag: "possum"}, {camera: cameraB, tag: "cat"}]);
     });
     
     it("Stations should be recorded, and reported", () => {
@@ -30,7 +30,7 @@ describe("Visits : multiple cameras and stations", () => {
         cy.apiUploadStations(Penny, group, stations);
         cy.uploadRecording(camera, { tags: ["possum"], lat: -44.0, lng: 172.7 });
         cy.uploadRecording(camera, { tags: ["cat"], lat: -44.0, lng: 172.7 });
-        cy.checkVisits(Penny, camera, [{station: "forest"}]);
+        cy.checkMonitoring(Penny, camera, [{station: "forest"}]);
     });
 
     it("If station changes the a new visit should be created", () => {
@@ -46,6 +46,6 @@ describe("Visits : multiple cameras and stations", () => {
         cy.apiUploadStations(Penny, group, stations);
         cy.uploadRecording(camera, { tags: ["possum"], lat: -44.0, lng: 172.7 });
         cy.uploadRecording(camera, { tags: ["cat"], lat: -43.6, lng: 172.8});
-        cy.checkVisits(Penny, camera, [{station: "forest"}, {station: "waterfall"}]);
+        cy.checkMonitoring(Penny, camera, [{station: "forest"}, {station: "waterfall"}]);
     })
 });

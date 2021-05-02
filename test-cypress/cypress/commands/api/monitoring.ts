@@ -21,12 +21,12 @@ Cypress.Commands.add(
       }
     );
 
-    checkVisitsMatch(user, camera, {}, expectedVisits);
+    checkMonitoringMatches(user, camera, {}, expectedVisits);
   }
 );
 
 Cypress.Commands.add(
-  "checkVisits",
+  "checkMonitoring",
   (user: string, camera: string, expectedVisits: ComparableVisit[]) => {
     logTestDescription(`Check visits match ${prettyLog(expectedVisits)}`, {
       user,
@@ -34,12 +34,12 @@ Cypress.Commands.add(
       expectedVisits
     });
 
-    checkVisitsMatch(user, camera, {}, expectedVisits);
+    checkMonitoringMatches(user, camera, {}, expectedVisits);
   }
 );
 
 Cypress.Commands.add(
-  "checkVisitsWithFilter",
+  "checkMonitoringWithFilter",
   (user: string, camera: string, searchParams: VisitSearchParams, expectedVisits: ComparableVisit[]) => {
     logTestDescription(`Check visits match ${prettyLog(expectedVisits)} `, {
       user,
@@ -56,11 +56,11 @@ Cypress.Commands.add(
       searchParams.until = convertToDate(searchParams.until).toISOString();
     }
 
-    checkVisitsMatch(user, camera , searchParams, expectedVisits);
+    checkMonitoringMatches(user, camera , searchParams, expectedVisits);
   }
 );
 
-function checkVisitsMatch(
+function checkMonitoringMatches(
   user: string,
   camera: string,
   specialParams: VisitSearchParams,

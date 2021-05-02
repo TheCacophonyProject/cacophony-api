@@ -31,7 +31,7 @@ declare namespace Cypress {
      * Please note:  visits must be listed in order of oldest to newest start dates.
      *
      */
-    checkVisits(
+    checkMonitoring(
       user: string,
       camera: string,
       expectedVisits: ComparableVisit[]
@@ -43,7 +43,7 @@ declare namespace Cypress {
      * Please note:  visits must be listed in order of oldest to newest start dates.
      *
      */
-    checkVisitsWithFilter(
+    checkMonitoringWithFilter(
       user: string,
       camera: string,
       searchParams: VisitSearchParams ,

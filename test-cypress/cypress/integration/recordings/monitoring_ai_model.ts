@@ -13,7 +13,7 @@ describe("Visits : evaluate ai model", () => {
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { model: "Master", tags: ["possum"] });
     cy.uploadRecording(camera, { model: "Catter", tags: ["cat"] });
-    cy.checkVisits(Claris, camera, [{tag: "possum", aiTag: "possum"}]);
+    cy.checkMonitoring(Claris, camera, [{tag: "possum", aiTag: "possum"}]);
   });
 
   it("If an ai model is specified then it uses that model to calculate the results.  ", () => {
@@ -21,7 +21,7 @@ describe("Visits : evaluate ai model", () => {
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { model: "Master", tags: ["possum"] });
     cy.uploadRecording(camera, { model: "Catter", tags: ["cat"] });
-    cy.checkVisitsWithFilter(Claris, camera, {ai: "Catter"}, [{tag: "possum", aiTag: "cat"}]);
+    cy.checkMonitoringWithFilter(Claris, camera, {ai: "Catter"}, [{tag: "possum", aiTag: "cat"}]);
   });
 
   it("If an ai model is specified then it uses that model to calculate the results.  ", () => {
@@ -30,7 +30,7 @@ describe("Visits : evaluate ai model", () => {
     cy.uploadRecording(camera, { model: "Catter", tags: ["rat"] });
     cy.uploadRecording(camera, { model: "Catter", tags: ["cat"] });
     cy.uploadRecording(camera, { model: "Catter", tags: ["cat"] });
-    cy.checkVisitsWithFilter(Claris, camera, {ai: "Catter"}, [{tag: "none", aiTag: "cat"}]);
+    cy.checkMonitoringWithFilter(Claris, camera, {ai: "Catter"}, [{tag: "none", aiTag: "cat"}]);
   });
 
 });

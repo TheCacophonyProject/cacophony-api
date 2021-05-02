@@ -22,10 +22,10 @@ describe("Visits : pagings", () => {
     cy.uploadRecording(camera, {minsLater: 20});
     cy.uploadRecording(camera, {minsLater: 20});
 
-    cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{}, {}, {}]);
-    cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{}, {}, {}]);
-    cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{}, {}]);
-    cy.checkVisitsWithFilter(Veronica, camera, {"page-size": 3, page: 4}, []);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{}, {}, {}]);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{}, {}, {}]);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{}, {}]);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 4}, []);
   });
 
 
@@ -52,8 +52,8 @@ describe("Visits : pagings", () => {
     cy.uploadRecording(camera1, { time: recording4 });
     cy.uploadRecording(camera2, { time: recording2c });
 
-    cy.checkVisitsWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: recording2a,}, { recordings: 1, start: recording3}, { recordings: 1, start: recording4}]);
-    cy.checkVisitsWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: recording1}]);
+    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: recording2a,}, { recordings: 1, start: recording3}, { recordings: 1, start: recording4}]);
+    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: recording1}]);
   });
 
   it("vists can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
@@ -75,7 +75,7 @@ describe("Visits : pagings", () => {
     cy.uploadRecording(camera3, { time: visitTime });
     cy.uploadRecording(camera1, { time: nextVisitTime });
 
-    cy.checkVisitsWithFilter(Bobletta, null, {"page-size": 2, page: 2}, [{ start: visitTime}, { start: visitTime}, { start: visitTime}]);
-    cy.checkVisitsWithFilter(Bobletta, null, {"page-size": 2, page: 1}, [{ start: nextVisitTime}]);
+    cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 2}, [{ start: visitTime}, { start: visitTime}, { start: visitTime}]);
+    cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 1}, [{ start: nextVisitTime}]);
   });
 });

@@ -18,7 +18,7 @@ describe("Visits : tracks and tags", () => {
     const noVisits = [];
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { tracks: notracks });
-    cy.checkVisits(Donna, camera, noVisits);
+    cy.checkMonitoring(Donna, camera, noVisits);
   });
 
   it("all automatic tags other than master are ignored - to prevent wallaby ai being used on other projects", () => {
