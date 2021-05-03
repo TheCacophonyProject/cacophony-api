@@ -25,7 +25,7 @@ if [[ `stat -c '%U' node_modules` != "fullnoise" ]]; then
 fi
 
 section "Installing dependencies"
-su fullnoise -s /bin/sh -c "npm install"
+su fullnoise -s /bin/sh -c "npm install --no-package-lock"
 
 section "Pruning unused dependencies"
 su fullnoise -s /bin/sh -c "npm prune"
