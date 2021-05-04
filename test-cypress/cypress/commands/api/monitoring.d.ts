@@ -20,6 +20,7 @@ interface VisitSearchParams {
   page?: number;
   "page-size"? : number;
   ai?: string;
+  groups?: number | number[],
 }
 
 
@@ -34,7 +35,8 @@ declare namespace Cypress {
     checkMonitoring(
       user: string,
       camera: string,
-      expectedVisits: ComparableVisit[]
+      expectedVisits: ComparableVisit[],
+      log?: boolean
     );
     
     /**
@@ -55,7 +57,7 @@ declare namespace Cypress {
      * Please note:  visits must be listed in order of oldest to newest start dates.
      *
      */
-    checkVisitTags(
+    checkMonitoringTags(
       user: string,
       camera: string,
       expectedTags: string[]

@@ -207,4 +207,7 @@ function addTracksToRecording(
   }
 }
 
-
+export function addSeconds(initialTime: Date, secondsToAdd: number): Date {
+  const AS_MILLISECONDS = 1000;
+  return new Date(initialTime.getTime() + secondsToAdd * AS_MILLISECONDS);
+}

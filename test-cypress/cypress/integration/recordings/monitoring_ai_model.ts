@@ -1,6 +1,6 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Visits : evaluate ai model", () => {  
+describe("Monitoring : evaluate ai model", () => {  
   const Claris = "Claris";
   const group = "Visit-ai";
   
@@ -8,7 +8,7 @@ describe("Visits : evaluate ai model", () => {
       cy.apiCreateUserGroup(Claris, group);
     });
     
-  it("By default, AI-tag returns what the AI MAster model produces.  ", () => {
+  it("By default, AI-tag returns what the AI Master model produces.  ", () => {
     const camera = "ai-default";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { model: "Master", tags: ["possum"] });

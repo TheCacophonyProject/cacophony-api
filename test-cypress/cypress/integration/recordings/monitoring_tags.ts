@@ -1,13 +1,13 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Visits : tracks and tags", () => {
-  const Donna = "Donna_visits";
-  const Gee = "Gee_visits";
+describe("Monitoring : tracks and tags", () => {
+  const Damian = "Damian";
+  const Gerry = "Gerry";
 
-  const group = "VisitTags";
+  const group = "MonitoringTags";
 
   before(() => {
-    cy.apiCreateUserGroup(Donna, group);
+    cy.apiCreateUserGroup(Damian, group);
   });
 
   // at the moment many tracks are being missed so we can't do this.  
@@ -18,14 +18,14 @@ describe("Visits : tracks and tags", () => {
     const noVisits = [];
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { tracks: notracks });
-    cy.checkMonitoring(Donna, camera, noVisits);
+    cy.checkMonitoring(Damian, camera, noVisits);
   });
 
   it("all automatic tags other than master are ignored - to prevent wallaby ai being used on other projects", () => {
     const camera = "only_master";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { model: "different", tags: ["cat"] });
-    cy.checkVisitTags(Donna, camera, ["none"]);
+    cy.checkMonitoringTags(Damian, camera, ["none"]);
   });
 
   it("each recording contributes votes for what the animal is", () => {
@@ -34,7 +34,7 @@ describe("Visits : tracks and tags", () => {
     cy.uploadRecording(camera, { tags: ["possum", "rat"] });
     cy.uploadRecording(camera, { tags: ["cat"] });
     cy.uploadRecording(camera, { tags: ["cat"] });
-    cy.checkVisitTags(Donna, camera, ["cat"]);
+    cy.checkMonitoringTags(Damian, camera, ["cat"]);
   });
 
   it("each track in a recording gets contributes a vote for what the animal is", () => {
@@ -43,7 +43,7 @@ describe("Visits : tracks and tags", () => {
     cy.uploadRecording(camera, { tags: ["possum", "rat", "rat", "rat"] });
     cy.uploadRecording(camera, { tags: ["cat"] });
     cy.uploadRecording(camera, { tags: ["cat"] });
-    cy.checkVisitTags(Donna, camera, ["rat"]);
+    cy.checkMonitoringTags(Damian, camera, ["rat"]);
   });
 
   it("track tag 'unidentified` is ignored when deciding label to use", () => {
@@ -52,27 +52,27 @@ describe("Visits : tracks and tags", () => {
     cy.uploadRecording(camera, {
       tags: ["possum", "unidentified", "unidentified", "unidentified"]
     });
-    cy.checkVisitTags(Donna, camera, ["possum"]);
+    cy.checkMonitoringTags(Damian, camera, ["possum"]);
   });
 
   it("What happens when user tags as 'unidentified`?", () => {
     const camera = "user_unidentified_tracks";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { tags: ["possum"] }).thenUserTagAs(
-      Donna,
+      Damian,
       "unidentified"
     );
-    cy.checkVisitTags(Donna, camera, ["unidentified"]);
+    cy.checkMonitoringTags(Damian, camera, ["unidentified"]);
   });
 
   it("if a user tags a track then this is what should be used as the track tag", () => {
     const camera = "userTagged";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { tracks: [{ tag: "cat" }] }).thenUserTagAs(
-      Donna,
+      Damian,
       "rabbit"
     );
-    cy.checkVisitTags(Donna, camera, ["rabbit"]);
+    cy.checkMonitoringTags(Damian, camera, ["rabbit"]);
   });
 
   it("User tag is preferred over AI tag", () => {
@@ -80,9 +80,9 @@ describe("Visits : tracks and tags", () => {
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, {
       tags: ["possum", "rat", "rat"]
-    }).thenUserTagAs(Donna, "rabbit");
+    }).thenUserTagAs(Damian, "rabbit");
     cy.uploadRecording(camera, { tags: ["possum"] });
-    cy.checkVisitTags(Donna, camera, ["rabbit"]);
+    cy.checkMonitoringTags(Damian, camera, ["rabbit"]);
   });
 
   it("User animal tag is preferred over user unknown tag", () => {
@@ -91,24 +91,24 @@ describe("Visits : tracks and tags", () => {
     cy.uploadRecording(camera, {
       tags: ["unidentified", "unidentified", "unidentified"]
     }).then((recID: number) => {
-      cy.userTagRecording(recID, 0, Donna, "possum");
-      cy.userTagRecording(recID, 1, Donna, "unknown");
-      cy.userTagRecording(recID, 2, Donna, "unknown");
+      cy.userTagRecording(recID, 0, Damian, "possum");
+      cy.userTagRecording(recID, 1, Damian, "unknown");
+      cy.userTagRecording(recID, 2, Damian, "unknown");
     });
-    cy.checkVisitTags(Donna, camera, ["possum"]);
+    cy.checkMonitoringTags(Damian, camera, ["possum"]);
   });
   it("User tags conflict", () => {
     const camera = "conflicter";
-    cy.apiCreateUser(Gee);
-    cy.apiAddUserToGroup(Donna, Gee, group, true);
+    cy.apiCreateUser(Gerry);
+    cy.apiAddUserToGroup(Damian, Gerry, group, true);
     cy.apiCreateCamera(camera, group);
     const recording = cy.uploadRecording(camera, {
       tags: ["possum", "rabbit"]
     });
     recording.then((recID: number) => {
-      cy.userTagRecording(recID, 0, Donna, "possum");
-      cy.userTagRecording(recID, 0, Gee, "rat");
+      cy.userTagRecording(recID, 0, Damian, "possum");
+      cy.userTagRecording(recID, 0, Gerry, "rat");
     });
-    cy.checkVisitTags(Donna, camera, ["conflicting tags"]);
+    cy.checkMonitoringTags(Damian, camera, ["conflicting tags"]);
   });
 });

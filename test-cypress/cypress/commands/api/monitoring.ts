@@ -6,7 +6,7 @@ import { logTestDescription, prettyLog } from "../descriptions";
 import { stripBackName } from "../names";
 
 Cypress.Commands.add(
-  "checkVisitTags",
+  "checkMonitoringTags",
   (user: string, camera: string, expectedTags: string[]) => {
     const expectedVisits = expectedTags.map((tag) => {
       return { tag };
@@ -27,12 +27,12 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "checkMonitoring",
-  (user: string, camera: string, expectedVisits: ComparableVisit[]) => {
+  (user: string, camera: string, expectedVisits: ComparableVisit[], log = true) => {
     logTestDescription(`Check visits match ${prettyLog(expectedVisits)}`, {
       user,
       camera,
       expectedVisits
-    });
+    }, log);
 
     checkMonitoringMatches(user, camera, {}, expectedVisits);
   }
@@ -112,15 +112,15 @@ function checkResponseMatches(
     }
 
     if (expectedVisit.camera) {
-      simplifiedResponseVisit.camera = stripBackName(completeResponseVisit.device.devicename);
+      simplifiedResponseVisit.camera = stripBackName(completeResponseVisit.device);
     }
 
     if (expectedVisit.tag) {
-      simplifiedResponseVisit.tag = completeResponseVisit.what || "<none>";
+      simplifiedResponseVisit.tag = completeResponseVisit.classification || "<none>";
     }
 
     if (expectedVisit.aiTag) {
-      simplifiedResponseVisit.aiTag = completeResponseVisit.aiWhat || "<none>";
+      simplifiedResponseVisit.aiTag = completeResponseVisit.classificationAi || "<none>";
     }
 
     if (expectedVisit.recordings) {
@@ -130,15 +130,15 @@ function checkResponseMatches(
     if (expectedVisit.start) {
       if (expectedVisit.start instanceof Date) {
         // full date
-        simplifiedResponseVisit.start = completeResponseVisit.start;
+        simplifiedResponseVisit.start = completeResponseVisit.timeStart;
       } else {
         // just time
-        simplifiedResponseVisit.start = new Date(completeResponseVisit.start).toTimeString().substring(0, 5);
+        simplifiedResponseVisit.start = new Date(completeResponseVisit.timeStart).toTimeString().substring(0, 5);
       }
     }
 
     if (expectedVisit.end) {
-      simplifiedResponseVisit.end = completeResponseVisit.end;
+      simplifiedResponseVisit.end = completeResponseVisit.timeEnd;
     }
 
     if (expectedVisit.incomplete) {

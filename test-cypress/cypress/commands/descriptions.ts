@@ -1,3 +1,5 @@
+export const NO_LOG_MESSAGE = false;
+
 export function logTestDescription(
   message: string,
   consoleObject: any,

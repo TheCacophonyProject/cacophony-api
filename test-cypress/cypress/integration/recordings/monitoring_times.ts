@@ -1,11 +1,13 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Visits : times and recording groupings", () => {
-  const Dee = "Dee_Visits";
-  const group = "VisitTests";
+import { addSeconds } from "../../commands/api/recording";
+
+describe("Monitoring : times and recording groupings", () => {
+  const Dexter = "Dexter";
+  const group = "Monitoring_visits";
 
   before(() => {
-    cy.apiCreateUserGroup(Dee, group);
+    cy.apiCreateUserGroup(Dexter, group);
   });
 
   it("recordings less than 10 mins apart are considered a single visit", () => {
@@ -14,7 +16,7 @@ describe("Visits : times and recording groupings", () => {
     cy.uploadRecording(camera, {});
     cy.uploadRecording(camera, { minsLater: 9 });
     cy.uploadRecording(camera, { minsLater: 9 });
-    cy.checkMonitoring(Dee, camera, [{ recordings: 3 }]);
+    cy.checkMonitoring(Dexter, camera, [{ recordings: 3 }]);
   });
 
   it("recordings more 10 mins apart are different visits", () => {
@@ -22,7 +24,7 @@ describe("Visits : times and recording groupings", () => {
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, {});
     cy.uploadRecording(camera, { minsLater: 11 });
-    cy.checkMonitoring(Dee, camera, [{ recordings: 1 }, { recordings: 1 }]);
+    cy.checkMonitoring(Dexter, camera, [{ recordings: 1 }, { recordings: 1 }]);
   });
   
   it("recordings can start more than 10 mins apart so long as gap between one finishing and the next starting is less than 10 mins", () => {
@@ -30,7 +32,7 @@ describe("Visits : times and recording groupings", () => {
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { duration: 90 });
     cy.uploadRecording(camera, { minsLater: 11 });
-    cy.checkMonitoring(Dee, camera, [{ recordings: 2 }]);
+    cy.checkMonitoring(Dexter, camera, [{ recordings: 2 }]);
   });
 
   it("Visits where the first recording is before the start time are ignored", () => {
@@ -44,7 +46,7 @@ describe("Visits : times and recording groupings", () => {
       from: "21:00"
     };
 
-    cy.checkMonitoringWithFilter(Dee, camera, filter, [{recordings: 1, start:"21:22" }]);
+    cy.checkMonitoringWithFilter(Dexter, camera, filter, [{recordings: 1, start:"21:22" }]);
   });
 
   it("Visits where the first recording is after the end time are ignored", () => {
@@ -57,7 +59,7 @@ describe("Visits : times and recording groupings", () => {
       until: "21:00"
     };
 
-    cy.checkMonitoringWithFilter(Dee, camera, filter, []);
+    cy.checkMonitoringWithFilter(Dexter, camera, filter, []);
   });
 
   it("Visits where maybe there are even more recordings than collected are marked as incomplete", () => {
@@ -74,7 +76,7 @@ describe("Visits : times and recording groupings", () => {
     };
 
     // only 9 recordings are collected from the database
-    cy.checkMonitoringWithFilter(Dee, camera, filter, [{ recordings: 9, incomplete: "true" }]);
+    cy.checkMonitoringWithFilter(Dexter, camera, filter, [{ recordings: 9, incomplete: "true" }]);
   });
 
   it("test start and end date of visits", () => {
@@ -85,7 +87,7 @@ describe("Visits : times and recording groupings", () => {
       time: videoStart,
       duration: 15,
     });
-    cy.checkMonitoring(Dee, camera, [
+    cy.checkMonitoring(Dexter, camera, [
       { start: videoStart, end: addSeconds(videoStart, 15) }
     ]);
   });
@@ -102,14 +104,8 @@ describe("Visits : times and recording groupings", () => {
       secsLater: 66,
       duration:41
     });
-    cy.checkMonitoring(Dee, camera, [
+    cy.checkMonitoring(Dexter, camera, [
       { start: videoStart, end: addSeconds(videoStart, 66 + 41) }
     ]);
   });
 });
-
-
-function addSeconds(initialTime: Date, secondsToAdd: number): Date {
-  const AS_MILLISECONDS = 1000;
-  return new Date(initialTime.getTime() + secondsToAdd * AS_MILLISECONDS);
-}

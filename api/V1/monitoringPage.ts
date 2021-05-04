@@ -62,21 +62,20 @@ export interface MonitoringParams {
 }
 
 export interface MonitoringPageCriteria {
-    page: number,
-    estimatedCount: number,
-    estimatedPages: number,
-    groups? : number[];
-    devices? : number[];
-    from?: Date;
-    until?: Date;
-    pageFrom?: Date;
-    pageTo?: Date;
     all: boolean;
-    search: boolean;
+    compareAi: string;
+    devices? : number[];
+    groups? : number[];
+    page: number,
+    pagesEstimate: number,
+    pageFrom?: Date;
+    pageUntil?: Date;
+    searchFrom?: Date;
+    searchUntil?: Date;
 }
 
 
-export async function getMonitoringPageCriteria(params : MonitoringParams) : Promise<MonitoringPageCriteria> {
+export async function calculateMonitoringPageCriteria(params : MonitoringParams) : Promise<MonitoringPageCriteria> {
     return getDatesForSearch(params);
 }
 
@@ -95,25 +94,22 @@ async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringP
     const approxVisitCount = parseInt(countRet[0].count);
     const returnVal = createPageCriteria(params, approxVisitCount);
 
-    if (params.page > returnVal.estimatedPages) {
-        returnVal.search = false;
-    }
-    else if (approxVisitCount < params.pageSize) {
+    if (approxVisitCount < params.pageSize) {
         returnVal.all = true;
-        returnVal.pageFrom = returnVal.from;
-        returnVal.pageTo = returnVal.until;        
-    } else {
+        returnVal.pageFrom = returnVal.searchFrom;
+        returnVal.pageUntil = returnVal.searchUntil;        
+    } else if (params.page <= returnVal.pagesEstimate ) {
         const limit : number = params.pageSize * 1 + 1;
         const offset : number = (params.page - 1) * params.pageSize;
         replacements.PAGING = ` LIMIT ${ limit } OFFSET ${ offset }`;
         const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
 
         if (results.length > 0) {
-            returnVal.pageTo = (params.page == 1) ? returnVal.until : results[0].recordingDateTime;
-            if (params.page < returnVal.estimatedPages) {
+            returnVal.pageUntil = (params.page == 1) ? returnVal.searchUntil : results[0].recordingDateTime;
+            if (params.page < returnVal.pagesEstimate) {
                 returnVal.pageFrom = results[results.length - 1].recordingDateTime;
             } else {
-                returnVal.pageFrom = returnVal.from;
+                returnVal.pageFrom = returnVal.searchFrom;
             }
         }
     } 
@@ -123,13 +119,12 @@ async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringP
 
 function createPageCriteria(params: MonitoringParams, count: number) : MonitoringPageCriteria {
     const criteria : MonitoringPageCriteria = {
-        page: params.page, 
-        estimatedCount: count,
-        estimatedPages: Math.ceil(count / params.pageSize),
-        from: params.from || BEFORE_CACOPHONY, 
-        until: params.until || new Date(), 
+        page: params.page,
+        pagesEstimate: Math.ceil(count / params.pageSize),
+        searchFrom: params.from || BEFORE_CACOPHONY, 
+        searchUntil: params.until || new Date(), 
         all: false,
-        search: true
+        compareAi: "Master"
     }
 
     if (params.devices) {

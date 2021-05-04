@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import middleware, { toIdArray, toDateInMillisecs }  from "../middleware";
 import auth from "../auth";
 import e, { Application } from "express";
-import {getMonitoringPageCriteria, MonitoringParams}  from "./monitoringPage";
+import {calculateMonitoringPageCriteria, MonitoringParams}  from "./monitoringPage";
 import {generateVisits}  from "./monitoringVisit";
 import responseUtil from "./responseUtil";
 import { query } from "express-validator/check";
@@ -65,10 +65,10 @@ export default function (app: Application, baseUrl: string) {
                 params.until = new Date(request.query.until);
             }
 
-            const searchDetails = await getMonitoringPageCriteria(params)
+            const searchDetails = await calculateMonitoringPageCriteria(params)
+            searchDetails.compareAi = request.query["ai"] || "Master";
             
-            const aiModel = request.query["ai"] || "Master";
-            const visits = await generateVisits(user, searchDetails, aiModel);
+            const visits = await generateVisits(user, searchDetails);
         
             responseUtil.send(response, {
                 statusCode: 200,

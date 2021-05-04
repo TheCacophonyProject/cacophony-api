@@ -43,6 +43,18 @@ interface ApiCreds {
   id: number;
 }
 
+export function saveIdOnly (name: string, id: number) {
+  const creds = {
+    name,
+    headers: {
+      authorization: ""
+    },
+    jwt: "",
+    id
+  };
+  Cypress.env("testCreds")[name] = creds;
+}
+
 export function getCreds(userName: string): ApiCreds {
   return Cypress.env("testCreds")[userName];
 }

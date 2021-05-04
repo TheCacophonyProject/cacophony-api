@@ -1,4 +1,4 @@
-describe("Visits : multiple cameras and stations", () => {  
+describe("Monitoring : multiple cameras and stations", () => {  
     const Penny = "Penny";
     
     before(() => {
@@ -9,19 +9,16 @@ describe("Visits : multiple cameras and stations", () => {
       const group = "cameras-2";
       const cameraA = "cameraA"
       const cameraB = "cameraB";
-      cy.apiCreateGroup(Penny, group);
-      cy.apiCreateCamera(cameraA, group);
-      cy.apiCreateCamera(cameraB, group);
+      cy.apiCreateGroupAndCameras(Penny, group, cameraA, cameraB);
       cy.uploadRecording(cameraA, { tags: ["possum"] });
       cy.uploadRecording(cameraB, { tags: ["cat"] });
       cy.checkMonitoring(Penny, null, [{camera: cameraA, tag: "possum"}, {camera: cameraB, tag: "cat"}]);
     });
     
-    it("Stations should be recorded, and reported", () => {
+    it("Station name should be recorded, and reported", () => {
         const group = "stations";
         const camera = "camera"
-        cy.apiCreateGroup(Penny, group);
-        cy.apiCreateCamera(camera, group);
+        cy.apiCreateGroupAndCameras(Penny, group, camera);
     
         const stations = [
             { name: "forest", lat: -44.0, lng: 172.7},
@@ -36,8 +33,7 @@ describe("Visits : multiple cameras and stations", () => {
     it("If station changes the a new visit should be created", () => {
         const group = "stations-diff";
         const camera = "camera"
-        cy.apiCreateGroup(Penny, group);
-        cy.apiCreateCamera(camera, group);
+        cy.apiCreateGroupAndCameras(Penny, group, camera);
     
         const stations = [
             { name: "forest", lat: -44.0, lng: 172.7},

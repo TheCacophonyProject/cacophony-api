@@ -17,32 +17,33 @@ type Count = number;
 
 
 class Visit {
-    
-    rawRecordings: Recording[];
+    rawRecordings?: Recording[];
+    classification?: string;
+    classificationAi? : string;
+    classFromUserTag?: boolean;
+    deviceId: number;
+    device: string
+    incomplete: boolean;
+    timeStart?: Moment;
+    timeEnd?: Moment; 
     recordings: VisitRecording[];
-    what?: string;
-    isUserTagged: boolean;
-    aiWhat? : string;
-    end?: Moment;
-    start?: Moment; 
-    device: any;
     stationId: number;
     station: string;
-    incomplete: boolean;
-    trackCount: number;
+    tracks: number;
     
     constructor(device, stationId : number , station, recording:Recording) {
-        this.device = device;
+        this.device = device.devicename;
+        this.deviceId = device.id;
         this.recordings = [];
         this.rawRecordings = [];
         this.incomplete = false;
-        this.trackCount = 0;
+        this.tracks = 0;
         this.station = (station) ? station.name: "";
         this.stationId = stationId || 0;
 
         this.rawRecordings.push(recording);
-        this.start = moment(recording.recordingDateTime);
-        this.end = moment(this.start).add(recording.duration, "seconds");
+        this.timeStart = moment(recording.recordingDateTime);
+        this.timeEnd = moment(this.timeStart).add(recording.duration, "seconds");
     }
 
     stationsMatch(stationId: number) {
@@ -51,11 +52,11 @@ class Visit {
 
     // note this function assumes that the recording starts after the recordings alreayd in the visit.  
     isRecordingInVisit(recording : Recording) {
-        if (!this.end) {
+        if (!this.timeEnd) {
             return true;
         }
 
-        const cutoff = moment(this.end).add(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
+        const cutoff = moment(this.timeEnd).add(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
         return cutoff.isAfter(recording.recordingDateTime);
     }
 
@@ -66,7 +67,7 @@ class Visit {
         }
 
         this.rawRecordings.push(recording);
-        this.end = moment(recording.recordingDateTime).add(recording.duration, "seconds");
+        this.timeEnd = moment(recording.recordingDateTime).add(recording.duration, "seconds");
         
         return true;
     }
@@ -76,20 +77,20 @@ class Visit {
         this.rawRecordings = [];
 
         const allVisitTracks = this.getAllTracks();
-        this.trackCount = allVisitTracks.length;
+        this.tracks = allVisitTracks.length;
         const bestHumanTags = getBestGuessOverall(allVisitTracks, HUMAN_ONLY);
 
         if (bestHumanTags.length > 0) {
-            this.what = bestHumanTags[0];
-            this.isUserTagged = true;
+            this.classification = bestHumanTags[0];
+            this.classFromUserTag = true;
         } else {
             const bestAiTags = getBestGuessOverall(allVisitTracks, AI_ONLY);
-            this.what = bestAiTags.length > 0 ? bestAiTags[0] : "none";
-            this.isUserTagged = false;
+            this.classification = bestAiTags.length > 0 ? bestAiTags[0] : "none";
+            this.classFromUserTag = false;
         }
 
         const aiGuess = getBestGuessFromSpecifiedAi(allVisitTracks);
-        this.aiWhat = aiGuess.length > 0 ? aiGuess[0] : "none";
+        this.classificationAi = aiGuess.length > 0 ? aiGuess[0] : "none";
     }
 
     calculateTrackTags(recording, aiModel: string) : VisitRecording {
@@ -126,7 +127,7 @@ class Visit {
     }
 
     markIfPossiblyIncomplete(cutoff: Moment) {
-        this.incomplete = (!this.end || this.end.isAfter(cutoff));
+        this.incomplete = (!this.timeEnd || this.timeEnd.isAfter(cutoff));
     }
 };
 
@@ -195,19 +196,19 @@ interface VisitTrack {
     orig: any;
 }
 
-export async function generateVisits(user: User, search: MonitoringPageCriteria, aiModel: string) {
+export async function generateVisits(user: User, search: MonitoringPageCriteria) {
     const search_start = moment(search.pageFrom).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
-    const search_end = moment(search.pageTo).add(MAX_MINS_AFTER_TIME, "minutes");
+    const search_end = moment(search.pageUntil).add(MAX_MINS_AFTER_TIME, "minutes");
 
     const recordings = await getRecordings(user, search, search_start, search_end);
     // what if count is too above limit? LIMIT_RECORDING
 
-    const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageTo));
+    const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageUntil));
 
     const incompleteCutoff = moment(search_end).subtract(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
     
     visits.forEach(visit => {
-        visit.calculateTags(aiModel);
+        visit.calculateTags(search.compareAi);
         visit.markIfPossiblyIncomplete(incompleteCutoff);
     });
 

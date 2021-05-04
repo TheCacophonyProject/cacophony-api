@@ -1,6 +1,6 @@
 /// <reference path="../../support/index.d.ts" />
 
-describe("Visits : pagings", () => {
+describe("Monitoring : pagings", () => {
   const Veronica = "Veronica_visits";
 
   const group = "visits-paging";
@@ -59,15 +59,13 @@ describe("Visits : pagings", () => {
   it("vists can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
     const Bobletta = "Bobletta";
     const group = "visits-same-time";
-    cy.apiCreateUserGroup(Bobletta, group);
     const camera1 = "cam-1";
     const camera2 = "cam-2";
     const camera3 = "cam-3";
     const visitTime = "21:10";
     const nextVisitTime = "21:33";
-    cy.apiCreateCamera(camera1, group);
-    cy.apiCreateCamera(camera2, group);
-    cy.apiCreateCamera(camera3, group);
+    cy.apiCreateUser(Bobletta);
+    cy.apiCreateGroupAndCameras(Bobletta, group, camera1, camera2, camera3);
 
 
     cy.uploadRecording(camera1, { time: visitTime });
