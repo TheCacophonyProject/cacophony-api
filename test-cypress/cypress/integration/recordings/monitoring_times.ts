@@ -35,7 +35,7 @@ describe("Monitoring : times and recording groupings", () => {
     cy.checkMonitoring(Dexter, camera, [{ recordings: 2 }]);
   });
 
-  it("Visits where the first recording is before the start time are ignored", () => {
+  it("Visits where the first recording is before the start time are marked as incomplete", () => {
     const camera = "cam-start-before";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { time: "20:49", duration: 300 });
@@ -46,7 +46,7 @@ describe("Monitoring : times and recording groupings", () => {
       from: "21:00"
     };
 
-    cy.checkMonitoringWithFilter(Dexter, camera, filter, [{recordings: 1, start:"21:22" }]);
+    cy.checkMonitoringWithFilter(Dexter, camera, filter, [{start: "20:49", incomplete: "true"}, { start:"21:22" }]);
   });
 
   it("Visits where the first recording is after the end time are ignored", () => {

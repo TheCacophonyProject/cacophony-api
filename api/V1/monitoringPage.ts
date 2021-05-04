@@ -81,8 +81,6 @@ export async function calculateMonitoringPageCriteria(params : MonitoringParams)
 
 async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringPageCriteria> {
     
-    // wrong values of page size must be accounted for. 
-
     const replacements = {
         GROUPS_AND_DEVICES : makeGroupsAndDevicesCriteria(params.devices, params.groups),
         USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(params.user),
@@ -178,7 +176,6 @@ async function makeGroupsAndDevicesPermissions(user: User): Promise<string> {
         return "";
     }
 
-    // FIXME(jon): Should really combine these into a single query?
     const [deviceIds, groupIds] = await Promise.all([
         user.getDeviceIds(),
         user.getGroupsIds()

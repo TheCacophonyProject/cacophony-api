@@ -4,12 +4,12 @@ import models from "../../models";
 import { Recording } from "../../models/Recording";
 import { getTrackTag, unidentifiedTags } from "./Visits";
 import { User } from "../../models/User";
-import { Json } from "sequelize/types/lib/utils";
+import { ClientError } from "../customErrors";
 
 const MINUTE = 60;
 const MAX_SECS_BETWEEN_RECORDINGS = 10 * MINUTE;
 const MAX_SECS_VIDEO_LENGTH = 10 * MINUTE;
-const LIMIT_RECORDINGS = 2000;
+const RECORDINGS_LIMIT = 2000;
 const MAX_MINS_AFTER_TIME = 70;
 
 type TagName = string;
@@ -50,7 +50,7 @@ class Visit {
         return this.stationId == stationId;
     }
 
-    // note this function assumes that the recording starts after the recordings alreayd in the visit.  
+    // note this function assumes that the recording start later than recordings already included  
     isRecordingInVisit(recording : Recording) {
         if (!this.timeEnd) {
             return true;
@@ -127,7 +127,7 @@ class Visit {
     }
 
     markIfPossiblyIncomplete(cutoff: Moment) {
-        this.incomplete = (!this.timeEnd || this.timeEnd.isAfter(cutoff));
+        this.incomplete = (this.incomplete || !this.timeEnd || this.timeEnd.isAfter(cutoff));
     }
 };
 
@@ -201,7 +201,9 @@ export async function generateVisits(user: User, search: MonitoringPageCriteria)
     const search_end = moment(search.pageUntil).add(MAX_MINS_AFTER_TIME, "minutes");
 
     const recordings = await getRecordings(user, search, search_start, search_end);
-    // what if count is too above limit? LIMIT_RECORDING
+    if (recordings.length == RECORDINGS_LIMIT) {
+        throw new ClientError("Too many recordings to retrieve.   Please reduce your page size");
+    }
 
     const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageUntil));
 
@@ -235,7 +237,7 @@ async function getRecordings(user: User, params: MonitoringPageCriteria, from : 
         null,
         null,
         null,
-        LIMIT_RECORDINGS,
+        RECORDINGS_LIMIT,
         order,
         true // superAdmin fix later
     );
@@ -260,10 +262,13 @@ function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: 
                 // we want to keep adding recordings to this visit even it started too early
                 // before the official time period
                 currentVisitForDevice[rec.DeviceId] = newVisit;            
+                allVisits.push(newVisit);
                 
-                if (start.isBefore(rec.recordingDateTime)) {
-                    // only want to return visits that start between the start and end times.
-                    allVisits.push(newVisit);
+                if (start.isAfter(rec.recordingDateTime)) {
+                    // First recording for this visit is actually before the time period.  
+                    // Therefore this visit isn't really part of this time period but some of the its recordings are
+                    // Mark as incomplete
+                    newVisit.incomplete = true;
                 } 
             }
             else {

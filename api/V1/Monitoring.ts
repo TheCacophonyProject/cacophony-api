@@ -43,8 +43,8 @@ export default function (app: Application, baseUrl: string) {
         toIdArray("groups").optional(),
         toDateInMillisecs("from").optional(),
         toDateInMillisecs("until").optional(), 
-        query("page").isInt(),
-        query("page-size").isInt(),
+        query("page").isLength({min: 1, max: 10000}),
+        query("page-size").isInt({min: 1, max: 100}),
         middleware.isValidName(query, "ai").optional()],
         middleware.requestWrapper(
         async (request: e.Request, response: e.Response) => {
