@@ -45,7 +45,8 @@ export default function (app: Application, baseUrl: string) {
         toDateInMillisecs("until").optional(), 
         query("page").isLength({min: 1, max: 10000}),
         query("page-size").isInt({min: 1, max: 100}),
-        middleware.isValidName(query, "ai").optional()],
+        middleware.isValidName(query, "ai").optional()], 
+        middleware.viewMode(),
         middleware.requestWrapper(
         async (request: e.Request, response: e.Response) => {
             const user = (request as any).user;
@@ -65,10 +66,11 @@ export default function (app: Application, baseUrl: string) {
                 params.until = new Date(request.query.until);
             }
 
-            const searchDetails = await calculateMonitoringPageCriteria(params)
+            const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
+            const searchDetails = await calculateMonitoringPageCriteria(params, viewAsSuperAdmin);
             searchDetails.compareAi = request.query["ai"] || "Master";
             
-            const visits = await generateVisits(user, searchDetails);
+            const visits = await generateVisits(user, searchDetails, viewAsSuperAdmin);
         
             responseUtil.send(response, {
                 statusCode: 200,

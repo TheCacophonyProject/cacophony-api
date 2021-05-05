@@ -75,15 +75,15 @@ export interface MonitoringPageCriteria {
 }
 
 
-export async function calculateMonitoringPageCriteria(params : MonitoringParams) : Promise<MonitoringPageCriteria> {
-    return getDatesForSearch(params);
+export async function calculateMonitoringPageCriteria(params : MonitoringParams, viewAsSuperAdmin: boolean) : Promise<MonitoringPageCriteria> {
+    return getDatesForSearch(params, viewAsSuperAdmin);
 }
 
-async function getDatesForSearch(params: MonitoringParams) : Promise<MonitoringPageCriteria> {
+async function getDatesForSearch(params: MonitoringParams, viewAsSuperAdmin: boolean) : Promise<MonitoringPageCriteria> {
     
     const replacements = {
         GROUPS_AND_DEVICES : makeGroupsAndDevicesCriteria(params.devices, params.groups),
-        USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(params.user),
+        USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(params.user, viewAsSuperAdmin),
         DATE_SELECTION: makeDatesCriteria(params),
         PAGING: null
     }
@@ -171,8 +171,8 @@ function toPgDate(date: Date): string {
 }
 
 
-async function makeGroupsAndDevicesPermissions(user: User): Promise<string> {
-    if (user.hasGlobalRead()) {
+async function makeGroupsAndDevicesPermissions(user: User, viewAsSuperAdmin: boolean): Promise<string> {
+    if (user.hasGlobalRead() && viewAsSuperAdmin) {
         return "";
     }
 

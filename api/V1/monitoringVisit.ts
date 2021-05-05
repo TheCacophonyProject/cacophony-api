@@ -196,11 +196,11 @@ interface VisitTrack {
     orig: any;
 }
 
-export async function generateVisits(user: User, search: MonitoringPageCriteria) {
+export async function generateVisits(user: User, search: MonitoringPageCriteria, viewAsSuperAdmin: boolean) {
     const search_start = moment(search.pageFrom).subtract(MAX_SECS_BETWEEN_RECORDINGS + MAX_SECS_VIDEO_LENGTH, "seconds");
     const search_end = moment(search.pageUntil).add(MAX_MINS_AFTER_TIME, "minutes");
 
-    const recordings = await getRecordings(user, search, search_start, search_end);
+    const recordings = await getRecordings(user, search, search_start, search_end, viewAsSuperAdmin);
     if (recordings.length == RECORDINGS_LIMIT) {
         throw new ClientError("Too many recordings to retrieve.   Please reduce your page size");
     }
@@ -217,7 +217,7 @@ export async function generateVisits(user: User, search: MonitoringPageCriteria)
     return visits;
 };
 
-async function getRecordings(user: User, params: MonitoringPageCriteria, from : Moment, until : Moment) {
+async function getRecordings(user: User, params: MonitoringPageCriteria, from : Moment, until : Moment, viewAsSuperAdmin: boolean) {
     const where : any = {
         duration: {"$gte":"0"},
         type:"thermalRaw",
@@ -239,7 +239,7 @@ async function getRecordings(user: User, params: MonitoringPageCriteria, from : 
         null,
         RECORDINGS_LIMIT,
         order,
-        true // superAdmin fix later
+        viewAsSuperAdmin
     );
 
     return models.Recording.findAll(builder.get());
