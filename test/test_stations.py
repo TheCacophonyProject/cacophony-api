@@ -182,4 +182,3 @@ class TestStations:
             if x["name"] == "Will be retired" and x["retiredAt"] is not None
         ]
         assert len(retired) == 2
-
