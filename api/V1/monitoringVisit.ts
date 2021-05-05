@@ -205,7 +205,7 @@ export async function generateVisits(user: User, search: MonitoringPageCriteria,
         throw new ClientError("Too many recordings to retrieve.   Please reduce your page size");
     }
 
-    const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageUntil));
+    const visits = groupRecordingsIntoVisits(recordings, moment(search.pageFrom), moment(search.pageUntil), search.page == search.pagesEstimate);
 
     const incompleteCutoff = moment(search_end).subtract(MAX_SECS_BETWEEN_RECORDINGS, "seconds");
     
@@ -245,7 +245,7 @@ async function getRecordings(user: User, params: MonitoringPageCriteria, from : 
     return models.Recording.findAll(builder.get());
 }
 
-function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: Moment) : Visit[] {
+function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: Moment, isLastPage: boolean) : Visit[] {
     const currentVisitForDevice : { [key: number]: Visit; } = {};
     const allVisits : Visit[] = [];
     
@@ -262,18 +262,19 @@ function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: 
                 // we want to keep adding recordings to this visit even it started too early
                 // before the official time period
                 currentVisitForDevice[rec.DeviceId] = newVisit;            
-                allVisits.push(newVisit);
                 
-                if (start.isAfter(rec.recordingDateTime)) {
+                if (start.isBefore(rec.recordingDateTime)) {
+                    allVisits.push(newVisit);
+                } else if (isLastPage) {
                     // First recording for this visit is actually before the time period.  
                     // Therefore this visit isn't really part of this time period but some of the its recordings are
-                    // Mark as incomplete
+
+                    // But if totally missing from the list user may wonder where recordings are so return visit anyway
+                    // (only relevant to the last page which shows the earliest recordings)
                     newVisit.incomplete = true;
-                } 
-            }
-            else {
-                // visit actually starts after the time period so we don't want to know.  
-                currentVisitForDevice[rec.DeviceId] = null;            
+                    allVisits.push(newVisit);
+                
+                }
             }
         }
     });
