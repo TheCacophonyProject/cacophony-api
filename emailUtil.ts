@@ -12,13 +12,13 @@ function alertBody(
 ): string[] {
   const dateTime = moment(recording.recordingDateTime)
     .tz(config.timeZone)
-    .format(" H:MMa Do MMM");
+    .format("h:mma Do MMM");
   let html = `<h1>${camera} has detected a ${tag.what} - ${dateTime}</h1>`;
   html += `<a  href="${config.server.recording_url_base}/${recording.id}/${tag.TrackId}?device=${recording.DeviceId}">View Recording</a>`;
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
 
-  let text = `${camera} has detected a ${tag.what} - ${dateTime}\n`;
-  text += `Go to ${config.server.recording_url_base}/${recording.id}/${tag.TrackId}?device=${recording.DeviceId} to view this recording\n`;
+  let text = `${camera} has detected a ${tag.what} - ${dateTime}\r\n`;
+  text += `Go to ${config.server.recording_url_base}/${recording.id}/${tag.TrackId}?device=${recording.DeviceId} to view this recording\r\n`;
   text += "Thanks, Cacophony Team";
   return [html, text];
 }
