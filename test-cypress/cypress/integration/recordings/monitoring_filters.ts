@@ -9,7 +9,7 @@ describe("Monitoring : filters", () => {
     const recordingsUploaded = false;
 
     const date1 = new Date(2021, 2, 3, 10);
-    const afterDate1 = new Date(2021, 2, 3, 10, 5);
+    const afterDate1 = new Date(2021, 2, 3, 10, 30);
     const date2 = new Date(2021, 2, 3, 10, 40);
     const date3 = new Date(2021, 2, 4, 9);
     const beforeDate4 = new Date(2021, 2, 6, 9, 40);

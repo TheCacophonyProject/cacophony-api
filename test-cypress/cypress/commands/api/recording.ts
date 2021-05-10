@@ -10,12 +10,13 @@ let lastUsedTime = DEFAULT_DATE;
 
 Cypress.Commands.add(
   "uploadRecording",
-  (cameraName: string, details: ThermalRecordingInfo) => {
+  (cameraName: string, details: ThermalRecordingInfo, log: boolean = true) => {
     const data = makeRecordingDataFromDetails(details);
 
     logTestDescription(
       `Upload recording ${prettyLog(details)}  to '${cameraName}'`,
-      { camera: cameraName, requestData: data }
+      { camera: cameraName, requestData: data }, 
+      log
     );
 
     const fileName = "invalid.cptv";
@@ -27,6 +28,21 @@ Cypress.Commands.add(
         cy.wrap(x.response.body.recordingId);
       }
     );
+  }
+);
+
+Cypress.Commands.add(
+  "uploadRecordingsAtTimes",
+  (cameraName: string, times: string[]) => {
+
+    logTestDescription(
+      `Upload recordings   at ${prettyLog(times)}  to '${cameraName}'`,
+      { camera: cameraName, times }
+    );
+
+    times.forEach(time => {
+      cy.uploadRecording(cameraName, { time }, false);
+    });
   }
 );
 

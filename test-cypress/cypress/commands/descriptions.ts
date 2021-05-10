@@ -32,5 +32,5 @@ export function prettyLog(object: any) {
     object = objectCopy;
   }
 
-  return JSON.stringify(object).replaceAll('"', "").replaceAll("},", "} -  ");
+  return JSON.stringify(object).replaceAll('",', ", ").replaceAll('"', "").replaceAll("},", "} -  ");
 }

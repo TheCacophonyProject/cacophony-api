@@ -28,7 +28,8 @@ declare namespace Cypress {
      */
     uploadRecording(
       cameraName: string,
-      details: ThermalRecordingInfo
+      details: ThermalRecordingInfo,
+      log?: boolean
     ): Cypress.Chainable<Interception>;
 
     uploadRecordingThenUserTag(
@@ -43,6 +44,11 @@ declare namespace Cypress {
       trackIndex: number,
       tagger: string,
       tag: string
+    );    
+    
+    uploadRecordingsAtTimes(
+      cameraName: string,
+      times: string[],
     );
 
     // to be run straight after an uploadRecording

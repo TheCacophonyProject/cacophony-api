@@ -12,20 +12,13 @@ describe("Monitoring : pagings", () => {
   it("recordings are broken into approximate pages by start date", () => {
     const camera = "basic";
     const firstRecording = "10:03";
-    cy.apiCreateCamera(camera, group);
-    cy.uploadRecording(camera, { time: firstRecording });
-    cy.uploadRecording(camera, {minsLater: 20});
-    cy.uploadRecording(camera, {minsLater: 20});
-    cy.uploadRecording(camera, {minsLater: 20});    
-    cy.uploadRecording(camera, {minsLater: 20});
-    cy.uploadRecording(camera, {minsLater: 20});
-    cy.uploadRecording(camera, {minsLater: 20});
-    cy.uploadRecording(camera, {minsLater: 20});
 
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{}, {}, {}]);
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{}, {}, {}]);
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{}, {}]);
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 4}, []);
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecordingsAtTimes(camera, ["21:03", "21:23", "21:43", "22:03", "22:23", "22:43", "23:03"]);
+
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{start: "22:23"}, {start: "22:43"}, {start: "23:03"}]);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{start: "21:23"}, {start: "21:43"}, {start: "22:03"}]);
+    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{start: "21:03"}]);
   });
 
 
@@ -43,20 +36,14 @@ describe("Monitoring : pagings", () => {
     const recording2c = "21:27";
     cy.apiCreateCamera(camera1, group);
     cy.apiCreateCamera(camera2, group);
-
-
-    cy.uploadRecording(camera1, { time: recording1 });
-    cy.uploadRecording(camera2, { time: recording2a });
-    cy.uploadRecording(camera1, { time: recording3 });
-    cy.uploadRecording(camera2, { time: recording2b });
-    cy.uploadRecording(camera1, { time: recording4 });
-    cy.uploadRecording(camera2, { time: recording2c });
+    cy.uploadRecordingsAtTimes(camera1, [recording1, recording3, recording4]);
+    cy.uploadRecordingsAtTimes(camera2, [recording2a, recording2b, recording2c]);
 
     cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: recording2a,}, { recordings: 1, start: recording3}, { recordings: 1, start: recording4}]);
     cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: recording1}]);
   });
 
-  it("vists can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
+  it("visits can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
     const Bobletta = "Bobletta";
     const group = "visits-same-time";
     const camera1 = "cam-1";
@@ -67,7 +54,6 @@ describe("Monitoring : pagings", () => {
     cy.apiCreateUser(Bobletta);
     cy.apiCreateGroupAndCameras(Bobletta, group, camera1, camera2, camera3);
 
-
     cy.uploadRecording(camera1, { time: visitTime });
     cy.uploadRecording(camera2, { time: visitTime });
     cy.uploadRecording(camera3, { time: visitTime });
@@ -76,4 +62,19 @@ describe("Monitoring : pagings", () => {
     cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 2}, [{ start: visitTime}, { start: visitTime}, { start: visitTime}]);
     cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 1}, [{ start: nextVisitTime}]);
   });
+
+  it("visits that start before search period but cross into search period are only shown on the last page", () => {
+    const camera = "close recordings";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecordingsAtTimes(camera, ["21:03", "21:13", "21:40", "21:45", "22:10", "22:40", "23:10"]);
+
+    cy.checkMonitoringWithFilter(Veronica, 
+      camera, 
+      {"page-size": 3, page: 1, from: "21:10"}, 
+      [{ start: "22:10"}, { start: "22:40"}, { start: "23:10"}]);
+
+    cy.checkMonitoringWithFilter(Veronica, camera, 
+      {"page-size": 3, page: 2, from: "21:10"}, 
+      [{ start: "21:03", incomplete: "true"}, {start: "21:40"}]);
+    });
 });

@@ -13,17 +13,14 @@ describe("Monitoring : times and recording groupings", () => {
   it("recordings less than 10 mins apart are considered a single visit", () => {
     const camera = "cam-close";
     cy.apiCreateCamera(camera, group);
-    cy.uploadRecording(camera, {});
-    cy.uploadRecording(camera, { minsLater: 9 });
-    cy.uploadRecording(camera, { minsLater: 9 });
+    cy.uploadRecordingsAtTimes(camera, ["21:04", "21:13", "21:22"]);
     cy.checkMonitoring(Dexter, camera, [{ recordings: 3 }]);
   });
 
   it("recordings more 10 mins apart are different visits", () => {
     const camera = "cam-apart";
     cy.apiCreateCamera(camera, group);
-    cy.uploadRecording(camera, {});
-    cy.uploadRecording(camera, { minsLater: 11 });
+    cy.uploadRecordingsAtTimes(camera, ["21:04", "21:15"]);
     cy.checkMonitoring(Dexter, camera, [{ recordings: 1 }, { recordings: 1 }]);
   });
   
@@ -35,7 +32,7 @@ describe("Monitoring : times and recording groupings", () => {
     cy.checkMonitoring(Dexter, camera, [{ recordings: 2 }]);
   });
 
-  it("Visits where the first recording is before the start time are marked as incomplete", () => {
+  it("Visits where the first recording is before the start time, but overlap with search period are marked as incomplete", () => {
     const camera = "cam-start-before";
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { time: "20:49", duration: 300 });
@@ -47,6 +44,19 @@ describe("Monitoring : times and recording groupings", () => {
     };
 
     cy.checkMonitoringWithFilter(Dexter, camera, filter, [{start: "20:49", incomplete: "true"}, { start:"21:22" }]);
+  });
+
+  it("Visits where the first recording is just before the search period, but don't overlap with the search period are ignored.", () => {
+    const camera = "cam-before-ignore";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecording(camera, { time: "20:51" });
+    cy.uploadRecording(camera, { time: "21:22" });
+
+    const filter = {
+      from: "21:00"
+    };
+
+    cy.checkMonitoringWithFilter(Dexter, camera, filter, [{ start:"21:22" }]);
   });
 
   it("Visits where the first recording is after the end time are ignored", () => {

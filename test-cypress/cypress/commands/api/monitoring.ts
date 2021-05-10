@@ -41,7 +41,7 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   "checkMonitoringWithFilter",
   (user: string, camera: string, searchParams: VisitSearchParams, expectedVisits: ComparableVisit[]) => {
-    logTestDescription(`Check visits match ${prettyLog(expectedVisits)} `, {
+    logTestDescription(`Check monitoring visits with filter ${prettyLog(searchParams)} match ${prettyLog(expectedVisits)} `, {
       user,
       camera,
       expectedVisits, 
