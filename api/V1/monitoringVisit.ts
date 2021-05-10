@@ -247,7 +247,8 @@ async function getRecordings(user: User, params: MonitoringPageCriteria, from : 
 
 function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: Moment, isLastPage: boolean) : Visit[] {
     const currentVisitForDevice : { [key: number]: Visit; } = {};
-    const allVisits : Visit[] = [];
+    const visitsStartingInPeriod : Visit[] = [];
+    const earlierVisits: Visit[] = [];
     
     recordings.forEach(rec => {
         const recording = rec as any;
@@ -255,29 +256,35 @@ function groupRecordingsIntoVisits(recordings: Recording[], start: Moment, end: 
         const currentVisit : Visit = currentVisitForDevice[rec.DeviceId];
         const matchingVisit = (currentVisit && currentVisit.stationsMatch(stationId)) ? currentVisit : null;
         if (!matchingVisit || !matchingVisit.addRecordingIfWithinTimeLimits(rec)) {
+            
             if (end.isSameOrAfter(rec.recordingDateTime)) {
                 
                 // start a new visit
                 const newVisit = new Visit(recording.Device, stationId, recording.Station, rec);
-                // we want to keep adding recordings to this visit even it started too early
-                // before the official time period
+                // we want to keep adding recordings to this visit even if first recording is before
+                // before the search period
                 currentVisitForDevice[rec.DeviceId] = newVisit;            
                 
-                if (start.isBefore(rec.recordingDateTime)) {
-                    allVisits.push(newVisit);
-                } else if (isLastPage) {
+                if (newVisit.timeStart.isAfter(start)) {
+                    visitsStartingInPeriod.push(newVisit);
+                } else {
                     // First recording for this visit is actually before the time period.  
                     // Therefore this visit isn't really part of this time period but some of the its recordings are
 
                     // But if totally missing from the list user may wonder where recordings are so return visit anyway
                     // (only relevant to the last page which shows the earliest recordings)
                     newVisit.incomplete = true;
-                    allVisits.push(newVisit);
+                    earlierVisits.push(newVisit);
                 
                 }
             }
         }
-    });
 
-    return allVisits;
-}
+    });
+    
+    if (isLastPage) {
+        const overlappingVisits = earlierVisits.filter(visit => visit.timeEnd.isAfter(start));
+        return [...overlappingVisits, ...visitsStartingInPeriod];
+    }
+    return visitsStartingInPeriod;
+};
