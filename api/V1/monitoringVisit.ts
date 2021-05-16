@@ -23,7 +23,7 @@ class Visit {
     classFromUserTag?: boolean;
     deviceId: number;
     device: string
-    incomplete: boolean;
+    incomplete?: boolean;
     timeStart?: Moment;
     timeEnd?: Moment; 
     recordings: VisitRecording[];
@@ -36,7 +36,6 @@ class Visit {
         this.deviceId = device.id;
         this.recordings = [];
         this.rawRecordings = [];
-        this.incomplete = false;
         this.tracks = 0;
         this.station = (station) ? station.name: "";
         this.stationId = stationId || 0;
@@ -74,7 +73,7 @@ class Visit {
 
     calculateTags(aiModel: string) {
         this.rawRecordings.forEach(rec => { this.recordings.push(this.calculateTrackTags(rec, aiModel)) });
-        this.rawRecordings = [];
+        delete this.rawRecordings;
 
         const allVisitTracks = this.getAllTracks();
         this.tracks = allVisitTracks.length;
@@ -112,7 +111,6 @@ class Visit {
                 aiTag: aiTag.length > 0 ? aiTag[0].what : null,
                 start: (track.data) ? track.data.start_s : "",
                 end: (track.data) ? track.data.end_s : "",
-                orig: null
             });
         }
         return newVisitRecording;
@@ -193,7 +191,6 @@ interface VisitTrack {
     isAITagged: boolean;
     start: string;
     end: string;
-    orig: any;
 }
 
 export async function generateVisits(user: User, search: MonitoringPageCriteria, viewAsSuperAdmin: boolean) {

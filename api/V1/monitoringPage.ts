@@ -62,7 +62,6 @@ export interface MonitoringParams {
 }
 
 export interface MonitoringPageCriteria {
-    all: boolean;
     compareAi: string;
     devices? : number[];
     groups? : number[];
@@ -93,7 +92,6 @@ async function getDatesForSearch(params: MonitoringParams, viewAsSuperAdmin: boo
     const returnVal = createPageCriteria(params, approxVisitCount);
 
     if (approxVisitCount < params.pageSize) {
-        returnVal.all = true;
         returnVal.pageFrom = returnVal.searchFrom;
         returnVal.pageUntil = returnVal.searchUntil;        
     } else if (params.page <= returnVal.pagesEstimate ) {
@@ -121,7 +119,6 @@ function createPageCriteria(params: MonitoringParams, count: number) : Monitorin
         pagesEstimate: Math.ceil(count / params.pageSize),
         searchFrom: params.from || BEFORE_CACOPHONY, 
         searchUntil: params.until || new Date(), 
-        all: false,
         compareAi: "Master"
     }
 
