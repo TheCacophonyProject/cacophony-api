@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Sequelize from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import { TrackTag, TrackTagId } from "./TrackTag";
+import { TrackTag, TrackTagId, AI_MASTER } from "./TrackTag";
 import { User } from "./User";
 import { Recording } from "./Recording";
 import { AlertStatic } from "./Alert";
@@ -113,6 +113,10 @@ export default function (
   // INSTANCE
   //---------------
   async function sendAlerts(track: Track, tag: TrackTag) {
+    if (tag.automatic && tag.data.name != AI_MASTER) {
+      return;
+    }
+
     const recording = await track.getRecording();
     const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
       recording.DeviceId,

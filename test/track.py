@@ -30,7 +30,7 @@ class TrackTag:
     MASTER_TAG = "Master"
 
     @classmethod
-    def create(cls, track, automatic=None, what=None, data=None):
+    def create(cls, track, automatic=None, what=None, data=None, ai_name=None):
         "Make a TestTrackTag with some plausible data."
         if automatic is None:
             automatic = random.choice([True, False])
@@ -39,7 +39,8 @@ class TrackTag:
         if data is None:
             data = random.choice([{"foo": 1}, {"bar": 2}, {"what": 3}])
         if automatic and "name" not in data:
-            data["name"] = TrackTag.MASTER_TAG
+            data["name"] = TrackTag.MASTER_TAG if ai_name is None else ai_name
+
         return cls(
             id_=None,
             track=track,
