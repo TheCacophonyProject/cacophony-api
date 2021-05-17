@@ -23,6 +23,7 @@ import log from "../../logging";
 import responseUtil from "./responseUtil";
 import config from "../../config";
 import modelsUtil from "../../models/util/util";
+import {CptvDecoder} from "cptv-decoder";
 
 function multipartUpload(keyPrefix, buildRecord) {
   return (request, response) => {

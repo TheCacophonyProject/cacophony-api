@@ -84,7 +84,6 @@ export enum RecordingPermission {
 
 export enum RecordingProcessingState {
   GetMetadata = "getMetadata",
-  ToMp4 = "toMp4",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
   Analyse = "analyse"
@@ -1401,7 +1400,7 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
+    thermalRaw: ["getMetadata", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 

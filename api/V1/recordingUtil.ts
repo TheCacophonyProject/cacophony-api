@@ -48,6 +48,8 @@ import {
   isWithinVisitInterval
 } from "./Visits";
 import { Station, StationId } from "../../models/Station";
+import modelsUtil from "../../models/util/util";
+import {CptvDecoder} from "cptv-decoder";
 
 export interface RecordingQuery extends Request {
   user: User;
@@ -134,7 +136,35 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (mungeData) {
       data = mungeData(data);
     }
+
+    // Read the file back out from s3 and decode it.
+    const fileData = await modelsUtil
+        .openS3()
+        .getObject({
+          Bucket: config.s3.bucket,
+          Key: key,
+        })
+        .promise()
+        .catch((err) => {
+          return err;
+        });
+
+    // TODO(jon): Test with corrupt files.
+    const decoder = new CptvDecoder();
+    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
+    decoder.close();
+    log.info("Read cptv metadata:", metadata);
+
     const recording = models.Recording.buildSafely(data);
+
+    if (metadata.latitude && metadata.longitude) {
+      recording.location.coordinates = [metadata.latitude, metadata.longitude];
+    }
+    if (metadata.duration) {
+      recording.duration = metadata.duration;
+    }
+    // TODO(jon): More metadata fields.
+
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
