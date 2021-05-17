@@ -111,4 +111,20 @@ describe("Monitoring : tracks and tags", () => {
     });
     cy.checkMonitoringTags(Damian, camera, ["conflicting tags"]);
   });
+  it("User tags conflict on one of many tracks majority wins", () => {
+    const camera = "conflicter-multiple";
+    cy.apiCreateCamera(camera, group);
+    const recording = cy.uploadRecording(camera, {
+      tags: ["possum", "rabbit"]
+    });
+    recording.then((recID: number) => {
+      cy.userTagRecording(recID, 0, Damian, "possum");
+      cy.userTagRecording(recID, 0, Gerry, "rat");
+    });
+    cy.uploadRecording(camera, { tags: ["possum", "rat"] }).thenUserTagAs(Damian, "possum");
+    cy.uploadRecording(camera, { tags: ["cat"] }).thenUserTagAs(Damian, "possum");
+
+    cy.checkMonitoringTags(Damian, camera, ["possum"]);
+  });
+
 });
