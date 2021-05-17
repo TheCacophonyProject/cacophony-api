@@ -111,4 +111,5 @@ describe("Visits : tracks and tags", () => {
       });
       cy.checkVisitTags(Dee, camera, ["conflicting tags"]);
     });
+
   });
