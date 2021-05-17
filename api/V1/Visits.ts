@@ -12,12 +12,12 @@ All tracks of a recording always belong to the same visit
 import { Recording } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
+import { AI_MASTER } from "../../models/TrackTag";
 import moment, { Moment } from "moment";
 import { Event } from "../../models/Event";
 
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
-const aiName = "Master";
 const conflictTag = "conflicting tags";
 
 const metaTags = ["part", "poor tracking"];
@@ -72,7 +72,7 @@ export function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | n
 
     return animalTags.length == 0 ? manualTags[0] : animalTags[0];
   }
-  const masterTag = trackTags.filter((tag) => tag.data == aiName);
+  const masterTag = trackTags.filter((tag) => tag.data == AI_MASTER);
   return masterTag.length == 0 ? null : masterTag[0];
 }
 
