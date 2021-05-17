@@ -23,15 +23,18 @@ if [[ `stat -c '%U' node_modules` != "fullnoise" ]]; then
     mkdir node_modules
     chown fullnoise:fullnoise node_modules
 fi
-
+chown fullnoise:fullnoise package-lock.json
 section "Installing dependencies"
 su fullnoise -s /bin/sh -c "npm install"
 
 section "Pruning unused dependencies"
 su fullnoise -s /bin/sh -c "npm prune"
 
-section "Running database migrations"
-npm run db-migrate
+#Only run migrations if we have write access to the database!
+if [ "$HOSTNAME" != "processing02" ]; then
+    section "Running database migrations"
+    npm run db-migrate
+fi
 
 section "Creating API docs"
 npm run apidoc

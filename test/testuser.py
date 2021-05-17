@@ -485,8 +485,8 @@ class TestUser:
             data={},
         )
 
-    def can_tag_track(self, track, automatic=None, what=None, replace=False):
-        tag = TrackTag.create(track, automatic=automatic, what=what)
+    def can_tag_track(self, track, automatic=None, what=None, replace=False, ai_name=None):
+        tag = TrackTag.create(track, automatic=automatic, what=what, ai_name=ai_name)
         tag.id_ = self._userapi.add_track_tag(
             recording_id=track.recording.id_,
             track_id=track.id_,
