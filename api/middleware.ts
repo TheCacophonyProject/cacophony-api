@@ -111,7 +111,7 @@ const convertToIdArray = function(idsAsString: string) : number[] {
   return [];
 }
 
-export const toDateInMillisecs  = function (fieldName: string) : ValidationChain {
+export const toDate  = function (fieldName: string) : ValidationChain {
   return query(fieldName, DATE_ERROR)
     .customSanitizer((value) =>{
       return getAsDate(value);

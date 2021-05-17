@@ -85,6 +85,17 @@ describe("Monitoring : tracks and tags", () => {
     cy.checkMonitoringTags(Damian, camera, ["rabbit"]);
   });
 
+
+  it("When user tag and AI tag aggree", () => {
+    const camera = "tagsagree";
+    cy.apiCreateCamera(camera, group);
+    cy.uploadRecording(camera, {
+      tags: ["possum", "rat", "rat"]
+    }).thenUserTagAs(Damian, "possum");
+    cy.uploadRecording(camera, { tags: ["possum"] });
+    cy.checkMonitoringTags(Damian, camera, ["possum"]);
+  });
+  
   it("User animal tag is preferred over user unknown tag", () => {
     const camera = "userAnimalUnknown";
     cy.apiCreateCamera(camera, group);
