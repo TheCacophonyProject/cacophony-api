@@ -1,6 +1,4 @@
-/// <reference path="../../support/index.d.ts" />
-
-import { addSeconds } from "../../commands/api/recording";
+/// <reference path="../support/index.d.ts" />
 
 describe("Monitoring : times and recording groupings", () => {
   const Dexter = "Dexter";
@@ -73,7 +71,6 @@ describe("Monitoring : times and recording groupings", () => {
 
   it("can handle large number of recordings per visit", () => {
     const camera = "recordings-per-visit";
-    var visits=[]
     // add 1000 recordings
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { time: "20:55", duration: 10 });
@@ -93,7 +90,7 @@ describe("Monitoring : times and recording groupings", () => {
 
     it("can handle large number of pages", () => {
     const camera = "pages";
-    var visits=[]
+
     // add 1000 recordings
     cy.apiCreateCamera(camera, group);
     cy.uploadRecording(camera, { time: "20:55", duration: 10 });
