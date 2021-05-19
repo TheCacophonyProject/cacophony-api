@@ -83,7 +83,7 @@ export enum RecordingPermission {
 }
 
 export enum RecordingProcessingState {
-  GetMetadata = "getMetadata",
+  ToMp4 = "toMp4", // TODO(jon): Call this something different, like "analyse" too
   Finished = "FINISHED",
   ToMp3 = "toMp3",
   Analyse = "analyse"
@@ -197,7 +197,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   type: RecordingType;
   duration: number;
   recordingDateTime: string;
-  location?: { coordinates: [number, number] };
+  location?: { coordinates: [number, number] } | [number, number]; // [number, number] is the format coordinates are set in, but they are returned as { coordinates: [number, number] }
   relativeToDawn: number;
   relativeToDusk: number;
   version: string;
@@ -1400,7 +1400,7 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["getMetadata", "FINISHED"],
+    thermalRaw: ["toMp4", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 
@@ -1408,7 +1408,7 @@ from (
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {
-      return RecordingProcessingState.GetMetadata;
+      return RecordingProcessingState.ToMp4;
     }
   };
 

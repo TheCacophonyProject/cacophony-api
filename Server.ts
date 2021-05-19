@@ -62,7 +62,7 @@ models.sequelize
     process.exit(2);
   });
 
-function openHttpServer(app) {
+function openHttpServer(app): Promise<void> {
   return new Promise(function (resolve, reject) {
     if (!config.server.http.active) {
       return resolve();
@@ -79,7 +79,7 @@ function openHttpServer(app) {
 
 // Returns a Promise that will reolve if it could connect to the S3 file storage
 // and reject if connection failed.
-function checkS3Connection() {
+function checkS3Connection(): Promise<void> {
   return new Promise(function (resolve, reject) {
     const s3 = modelsUtil.openS3();
     const params = { Bucket: config.s3.bucket };

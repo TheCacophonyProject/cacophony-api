@@ -49,7 +49,7 @@ import {
 } from "./Visits";
 import { Station, StationId } from "../../models/Station";
 import modelsUtil from "../../models/util/util";
-import {CptvDecoder} from "cptv-decoder";
+import {dynamicImportESM} from "../../dynamic-import-esm";
 
 export interface RecordingQuery extends Request {
   user: User;
@@ -107,9 +107,13 @@ export async function tryToMatchRecordingToStation(
   const stationDistances = [];
   for (const station of stations) {
     // See if any stations match: Looking at the location distance between this recording and the stations.
+    let recordingCoords = recording.location;
+    if (!Array.isArray(recordingCoords) && recordingCoords.hasOwnProperty("coordinates")) {
+      recordingCoords = recordingCoords.coordinates;
+    }
     const distanceToStation = latLngApproxDistance(
       station.location.coordinates,
-      recording.location.coordinates
+      recordingCoords as [number, number]
     );
     stationDistances.push({ distanceToStation, station });
   }
@@ -150,20 +154,26 @@ function makeUploadHandler(mungeData?: (any) => any) {
         });
 
     // TODO(jon): Test with corrupt files.
+    const {CptvDecoder} = await dynamicImportESM("cptv-decoder");
     const decoder = new CptvDecoder();
-    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
+    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body)).catch((err) => {
+      return err;
+    });
     decoder.close();
-    log.info("Read cptv metadata:", metadata);
-
     const recording = models.Recording.buildSafely(data);
 
     if (metadata.latitude && metadata.longitude) {
-      recording.location.coordinates = [metadata.latitude, metadata.longitude];
+      // @ts-ignore
+      recording.location = [metadata.latitude, metadata.longitude];
     }
     if (metadata.duration) {
-      recording.duration = metadata.duration;
+      recording.duration = Math.round(metadata.duration);
     }
-    // TODO(jon): More metadata fields.
+    if (metadata.timestamp) {
+      recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
+    }
+    // TODO(jon): More metadata fields?  What metadata do we care about here?
+    // previewSecs and algorithm?
 
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
