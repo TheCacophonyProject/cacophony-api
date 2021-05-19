@@ -31,25 +31,50 @@ export default function (app: Application, baseUrl: string) {
      * @api {get} /api/v1/monitoring/page Get visits page
      * @apiName MonitoringPage
      * @apiGroup Monitoring
-     * @apiDescription Get a page of monitoring visits.   First recording are sorted into visits and then the best-classification for this visit is calculated.
+     * @apiDescription Get a page of monitoring visits. 
+     *   
+     * As part of this process recordings are sorted into visits and then the best-classification for each visit is calculated.
      * Optionally you can also a specify an ai so you can compare the best classification with that given by the ai.   
      * 
+     * How many visits are returned is governed by the page-size parameter which is used to calculate page start and page end timestamps.
+     * In some circumstances the number of visits returned may be slightly bigger or smaller than the page-size.  
+     * 
      * @apiUse V1UserAuthorizationHeader
-     * @apiParam {number} devices  A list of ids of devices to include
-     * @apiParam {number} groups  A list of ids of groups to include
-     * @apiParam {date} from  Retreive visits after this date
-     * @apiParam {date} until Retreive visits starting on or before this date
+     * @apiParam {number|number[]} devices  A single device id, or a JSON list of device ids to include.  eg 52, or [23, 42]
+     * @apiParam {number|number[]} groups  A single group id or a JSON list of group ids to include.  eg 20, or [23, 42]
+     * @apiParam {timestamp} from  Retrieve visits after this time
+     * @apiParam {timestamp} until Retrieve visits starting on or before this time
      * @apiParam {number} page  Page number to retrieve
      * @apiParam {number} page Maximum numbers of visits to show on each page
-     * @apiParam {string} ai   Name of AI to compute results to put in classificationAI.   This will not affect the (best) classification, 
-     * which always uses a predefined AI choice.
-     * @apiParam {string} viewmode   dsaf
+     * @apiParam {string} ai   Name of the AI to be used to compute the 'classificationAI' result.  Note: This will not affect the 
+     * 'classification' result, which always uses a predefined AI/human choice.
+     * @apiParam {string} viewmode   View mode for super user. 
      * 
-     * @apiSuccess {JSON} params The parameters used to retrieve these results.  Most of these fields are from the request.  
-     * However, pageFrom (date), pageUntil (date) and pagesEstimated are calculated by the server. 
-     * @apiSuccess {JSON} visits The resulting visits
+     * @apiSuccess {JSON} params The parameters used to retrieve these results.  Most of these fields are from the request.   
+     * Calculated fields are listed in the 'Params Details' section below. 
+     * @apiSuccess {JSON} visits The returned visits.   More information in the 'Visits Details' section below.
      * @apiSuccess {boolean} success True
      * @apiSuccess {string} messages Any message from the server
+     * @apiSuccess (Params Details) {number} pagesEstimate Estimated number of pages in this query,
+     * @apiSuccess (Params Details) {timestamp} pageFrom Visits on this page start after this time,
+     * @apiSuccess (Params Details) {timestamp} pageUntil Visits on this page start before or at this time,
+     * @apiSuccess (Visit Details){string} device Name of device.
+     * @apiSuccess (Visit Details){number} deviceId Id of device.
+     * @apiSuccess (Visit Details){JSON} recordings More information on recordings and tracks that make up the visit
+     * @apiSuccess (Visit Details){number} tracks Number of tracks that are included in this visit
+     * @apiSuccess (Visit Details){string} station Name of station where recordings took place (if defined)
+     * @apiSuccess (Visit Details){number} stationId Id of station where recordings took place (if defined else 0)
+     * @apiSuccess (Visit Details){timestamp} timeStart Time visit starts
+     * @apiSuccess (Visit Details){timestamp} timeEnd Time visit ends
+     * @apiSuccess (Visit Details){string} timeEnd Time visit ends
+     * @apiSuccess (Visit Details){boolean} timeEnd Time visit ends
+     * @apiSuccess (Visit Details){string} classification Cacophony classification.   (This is the best classification we have for this visit)
+     * @apiSuccess (Visit Details){string} classificationAi Best classification from AI specified in request params, otherwise best classification from AI Master.     
+     * @apiSuccess (Visit Details){boolean} classFromUserTag True if the Cacophony classification was made by a user.   False if it was an AI classification
+     * @apiSuccess (Visit Details){boolean} incomplete Visits are incomplete if there maybe more recordings that belong to this visit.  This can only 
+     * occur at the start or end of the time period.   If it occurs at the start of the time period then for counting purposes it doesn't really belong
+     * in this time period.  
+
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      *     {

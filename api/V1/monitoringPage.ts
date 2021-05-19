@@ -95,7 +95,7 @@ async function getDatesForSearch(params: MonitoringParams, viewAsSuperAdmin: boo
         returnVal.pageFrom = returnVal.searchFrom;
         returnVal.pageUntil = returnVal.searchUntil;        
     } else if (params.page <= returnVal.pagesEstimate ) {
-        const limit : number = params.pageSize * 1 + 1;
+        const limit : number = Number(params.pageSize) + 1;
         const offset : number = (params.page - 1) * params.pageSize;
         replacements.PAGING = ` LIMIT ${ limit } OFFSET ${ offset }`;
         const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
@@ -135,6 +135,7 @@ function createPageCriteria(params: MonitoringParams, count: number) : Monitorin
 
 function replaceInSQL(sql: string, replacements: { [key: string]: string} ) : string {
     for (const key in replacements) {
+        const regexp = new RegExp(`\{${key}\}`, 'g');
         sql = sql.replace(`{${key}}`, replacements[key]);
     };
     return sql;

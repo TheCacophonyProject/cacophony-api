@@ -97,8 +97,7 @@ function checkResponseMatches(
     responseVisits.length,
     `Number of visits is ${responseVisits.length}`
   ).to.be.equal(expectedVisits.length);
-  // const increasingDateResponseVisits = responseVisits.reverse();
-  const increasingDateResponseVisits = responseVisits;
+  const increasingDateResponseVisits = responseVisits.reverse();
 
   // pull out the bits we care about
   const responseVisitsToCompare: ComparableVisit[] = [];

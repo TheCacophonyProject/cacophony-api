@@ -28,19 +28,13 @@ describe("Monitoring : pagings", () => {
     cy.apiCreateUserGroup(Henry, group);
     const camera1 = "cam-1";
     const camera2 = "cam-2";
-    const recording1 = "21:03";
-    const recording2a = "21:13";
-    const recording3 = "21:14";
-    const recording2b = "21:18";
-    const recording4 = "21:25";
-    const recording2c = "21:27";
     cy.apiCreateCamera(camera1, group);
     cy.apiCreateCamera(camera2, group);
-    cy.uploadRecordingsAtTimes(camera1, [recording1, recording3, recording4]);
-    cy.uploadRecordingsAtTimes(camera2, [recording2a, recording2b, recording2c]);
+    cy.uploadRecordingsAtTimes(camera1, ["21:03", "21:14", "21:25"]);
+    cy.uploadRecordingsAtTimes(camera2, ["21:13", "21:18", "21:27"]); // all one visit
 
-    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: recording2a,}, { recordings: 1, start: recording3}, { recordings: 1, start: recording4}]);
-    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: recording1}]);
+    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: "21:13",}, { recordings: 1, start: "21:14"}, { recordings: 1, start: "21:25"}]);
+    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: "21:03"}]);
   });
 
   it("visits can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {

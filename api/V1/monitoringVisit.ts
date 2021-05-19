@@ -211,7 +211,7 @@ export async function generateVisits(user: User, search: MonitoringPageCriteria,
         visit.markIfPossiblyIncomplete(incompleteCutoff);
     });
 
-    return visits;
+    return visits.reverse();
 };
 
 async function getRecordings(user: User, params: MonitoringPageCriteria, from : Moment, until : Moment, viewAsSuperAdmin: boolean) {
