@@ -31,7 +31,7 @@ export default function (app: Application, baseUrl: string) {
      * @api {get} /api/v1/monitoring/page Get visits page
      * @apiName MonitoringPage
      * @apiGroup Monitoring
-     * @apiDescription Get a page of monitoring visits. 
+     * @apiDescription Get a page of monitoring visits.   Visits are returned with the most recent ones listed first.
      *   
      * As part of this process recordings are sorted into visits and then the best-classification for each visit is calculated.
      * Optionally you can also a specify an ai so you can compare the best classification with that given by the ai.   
