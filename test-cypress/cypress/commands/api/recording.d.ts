@@ -9,7 +9,7 @@ interface TrackInfo {
 }
 
 interface ThermalRecordingInfo {
-  time?: Date;
+  time? : Date | string;
   duration?: number;
   model?: string;
   tracks?: TrackInfo[];
@@ -17,6 +17,8 @@ interface ThermalRecordingInfo {
   minsLater?: number; // minutes that later that the recording is taken
   secsLater?: number; // minutes that later that the recording is taken
   tags?: string[]; // short cut for defining tags for each track
+  lat?: number; // Latitude position for the recording
+  lng?: number; // Longitude position for the recording
 }
 
 declare namespace Cypress {
@@ -26,7 +28,8 @@ declare namespace Cypress {
      */
     uploadRecording(
       cameraName: string,
-      details: ThermalRecordingInfo
+      details: ThermalRecordingInfo,
+      log?: boolean
     ): Cypress.Chainable<Interception>;
 
     uploadRecordingThenUserTag(
@@ -41,8 +44,14 @@ declare namespace Cypress {
       trackIndex: number,
       tagger: string,
       tag: string
+    );    
+    
+    uploadRecordingsAtTimes(
+      cameraName: string,
+      times: string[],
     );
 
+    // to be run straight after an uploadRecording
     thenUserTagAs(tagger: string, tag: string);
   }
 }
