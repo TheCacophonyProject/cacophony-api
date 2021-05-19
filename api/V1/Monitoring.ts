@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import middleware, { toIdArray, toDate }  from "../middleware";
+import middleware, { toIdArray, toDate, isInteger }  from "../middleware";
 import auth from "../auth";
 import e, { Application } from "express";
 import {calculateMonitoringPageCriteria, MonitoringParams}  from "./monitoringPage";
@@ -45,7 +45,7 @@ export default function (app: Application, baseUrl: string) {
      * @apiParam {timestamp} from  Retrieve visits after this time
      * @apiParam {timestamp} until Retrieve visits starting on or before this time
      * @apiParam {number} page  Page number to retrieve
-     * @apiParam {number} page Maximum numbers of visits to show on each page
+     * @apiParam {number} page-size Maximum numbers of visits to show on each page.  Note: Number of visits is approximate per page.  In some situations number maybe slightly bigger or smaller than this.  
      * @apiParam {string} ai   Name of the AI to be used to compute the 'classificationAI' result.  Note: This will not affect the 
      * 'classification' result, which always uses a predefined AI/human choice.
      * @apiParam {string} viewmode   View mode for super user. 
@@ -133,8 +133,8 @@ export default function (app: Application, baseUrl: string) {
         toIdArray("groups").optional(),
         toDate("from").optional(),
         toDate("until").optional(), 
-        query("page").isLength({min: 1, max: 10000}),
-        query("page-size").isInt({min: 1, max: 100}),
+        isInteger("page", {min: 1, max: 10000}),
+        isInteger("page-size", {min: 1, max: 100}),
         middleware.isValidName(query, "ai").optional()], 
         middleware.viewMode(),
         middleware.requestWrapper(

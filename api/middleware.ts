@@ -23,6 +23,7 @@ import {
   ValidationChain,
   ValidationChainBuilder,
   validationResult,
+  ValidatorOptions,
 } from "express-validator/check";
 import models, { ModelStaticCommon } from "../models";
 import { format } from "util";
@@ -110,6 +111,12 @@ const convertToIdArray = function(idsAsString: string) : number[] {
   } 
   return [];
 }
+
+export const isInteger  = function (fieldName: string, range: ValidatorOptions.IsIntOptions) : ValidationChain {
+  // add an actually useful error to this isInt check
+  const error = `Parameter '${fieldName}' must be an integer between ${range.min} and ${range.max}`;
+  return query("page-size", error).isInt(range);
+} 
 
 export const toDate  = function (fieldName: string) : ValidationChain {
   return query(fieldName, DATE_ERROR)
