@@ -75,6 +75,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiParam {JSON} data Metadata about the recording.   Valid tags are:
    * <ul>
    * <li>(REQUIRED) type: 'thermalRaw', or 'audio'
+   * <li>fileHash - Optional sha1 hexadecimal formatted hash of the file to be uploaded
    * <li>duration
    * <li>recordingDateTime
    * <li>location

@@ -83,6 +83,7 @@ export enum RecordingPermission {
 }
 
 export enum RecordingProcessingState {
+  Corrupt = "CORRUPT",
   ToMp4 = "toMp4", // TODO(jon): Call this something different, like "analyse" too
   Finished = "FINISHED",
   ToMp3 = "toMp3",
@@ -158,8 +159,9 @@ export interface AudioRecordingMetadata {
 }
 
 export interface VideoRecordingMetadata {
-  algorithm: number;
   previewSecs: number;
+  algorithm?: number;
+  totalFrames?: number;
   oldTags?: {
     id: number;
     what: string;

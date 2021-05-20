@@ -18,36 +18,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
-import moment, { Moment } from "moment";
+import moment from "moment";
 import urljoin from "url-join";
-import { ClientError } from "../customErrors";
+import {ClientError} from "../customErrors";
 import config from "../../config";
 import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import { Response, Request } from "express";
+import {Request, Response} from "express";
 import {
   AudioRecordingMetadata,
   Recording,
   RecordingId,
   RecordingPermission,
+  RecordingProcessingState,
   RecordingType,
   TagMode
 } from "../../models/Recording";
-import { Event, QueryOptions } from "../../models/Event";
-import { User } from "../../models/User";
-import { Order } from "sequelize";
-import { FileId } from "../../models/File";
-import {
-  DeviceVisitMap,
-  Visit,
-  VisitEvent,
-  DeviceSummary,
-  VisitSummary,
-  isWithinVisitInterval
-} from "./Visits";
-import { Station, StationId } from "../../models/Station";
+import {Event, QueryOptions} from "../../models/Event";
+import {User} from "../../models/User";
+import {Order} from "sequelize";
+import {FileId} from "../../models/File";
+import {DeviceSummary, DeviceVisitMap, Visit, VisitEvent, VisitSummary} from "./Visits";
+import {Station} from "../../models/Station";
 import modelsUtil from "../../models/util/util";
 import {dynamicImportESM} from "../../dynamic-import-esm";
 
@@ -141,7 +135,7 @@ function makeUploadHandler(mungeData?: (any) => any) {
       data = mungeData(data);
     }
 
-    // Read the file back out from s3 and decode it.
+    // Read the file back out from s3 and decode/parse it.
     const fileData = await modelsUtil
         .openS3()
         .getObject({
@@ -152,13 +146,11 @@ function makeUploadHandler(mungeData?: (any) => any) {
         .catch((err) => {
           return err;
         });
-
-    // TODO(jon): Test with corrupt files.
     const {CptvDecoder} = await dynamicImportESM("cptv-decoder");
     const decoder = new CptvDecoder();
-    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body)).catch((err) => {
-      return err;
-    });
+    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
+    // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
+    const fileIsCorrupt = await decoder.hasStreamError();
     decoder.close();
     const recording = models.Recording.buildSafely(data);
 
@@ -172,9 +164,13 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (metadata.timestamp) {
       recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
     }
-    // TODO(jon): More metadata fields?  What metadata do we care about here?
-    // previewSecs and algorithm?
-
+    if (metadata.previewSecs) {
+      // NOTE: Algorithm property gets filled in later by AI
+      recording.additionalMetadata = {
+        previewSecs: metadata.previewSecs,
+        totalFrames: metadata.totalFrames
+      };
+    }
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
@@ -198,9 +194,14 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (data.processingState) {
       recording.processingState = data.processingState;
     } else {
-      recording.processingState = models.Recording.uploadedState(
-        data.type as RecordingType
-      );
+      if (!fileIsCorrupt) {
+        recording.processingState = models.Recording.uploadedState(
+            data.type as RecordingType
+        );
+      } else {
+        // Mark the recording as corrupt for future investigation, and so it doesn't get picked up by the pipeline.
+        recording.processingState = RecordingProcessingState.Corrupt;
+      }
     }
     return recording;
   });
