@@ -4,8 +4,10 @@
 FROM cacophonyproject/server-base
 
 # NOTE: Using locally for arm64
-#FROM cacophony-api
+# FROM cacophony-api
 
+# Npm install is using git dependencies, so we need to have git installed.
+RUN apt-get -y install git
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
