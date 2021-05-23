@@ -582,6 +582,7 @@ export default (app: Application, baseUrl: string) => {
         return;
       }
 
+      // FIXME(jon): This incomplete JSON string looks dodge.
       const algorithm = request.body.algorithm
         ? request.body.algorithm
         : "{'status': 'User added.'";
@@ -594,6 +595,11 @@ export default (app: Application, baseUrl: string) => {
         data: request.body.data,
         AlgorithmId: algorithmDetail.id
       });
+
+      // TODO(jon): Every time we add a track, see if it is the best/clearest track so far, and if
+      //  so update the thumbnail for the recording with the best frame of the track.  Would be
+      //  good to have a way of saying we're done adding tracks for the recording...
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track added."],
