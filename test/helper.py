@@ -185,10 +185,12 @@ class Helper:
         track = user.can_add_track_to_recording(rec)
         return rec, track
 
-    def upload_recording_with_tag(self, device, user, what, time=None, duration=30, automatic=True):
+    def upload_recording_with_tag(
+        self, device, user, what, time=None, duration=30, automatic=True, ai_name=None
+    ):
         if time is None:
             time = datetime.now(dateutil.tz.gettz(Helper.TIMEZONE)).replace(microsecond=0)
 
         rec, track = self.upload_recording_with_track(device, user, time, duration=30)
-        tag = user.can_tag_track(track, what=what, automatic=automatic)
+        tag = user.can_tag_track(track, what=what, automatic=automatic, ai_name=ai_name)
         return rec, track, tag

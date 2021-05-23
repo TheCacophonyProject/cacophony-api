@@ -12,16 +12,16 @@ All tracks of a recording always belong to the same visit
 import { Recording } from "../../models/Recording";
 import { TrackTag } from "../../models/TrackTag";
 import { Track } from "../../models/Track";
+import { AI_MASTER } from "../../models/TrackTag";
 import moment, { Moment } from "moment";
 import { Event } from "../../models/Event";
 
 let visitID = 1;
 const eventMaxTimeSeconds = 60 * 10;
-const aiName = "Master";
 const conflictTag = "conflicting tags";
 
 const metaTags = ["part", "poor tracking"];
-const unidentifiedTags = ["unidentified", "unknown"];
+export const unidentifiedTags = ["unidentified", "unknown"];
 const nonAnimalTags = [...metaTags, ...unidentifiedTags];
 
 const audioBaitInterval = 60 * 10;
@@ -49,7 +49,7 @@ function sortTracks(tracks: Track[]) {
 
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
-function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
+export function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
   if (trackTags.length == 0) {
     return null;
   }
@@ -72,7 +72,7 @@ function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
 
     return animalTags.length == 0 ? manualTags[0] : animalTags[0];
   }
-  const masterTag = trackTags.filter((tag) => tag.data == aiName);
+  const masterTag = trackTags.filter((tag) => tag.data == AI_MASTER);
   return masterTag.length == 0 ? null : masterTag[0];
 }
 
@@ -118,6 +118,7 @@ class DeviceSummary {
       for (var i = device.visits.length - 1; i >= 0; i--) {
         const visit = device.visits[i];
         if (visit.complete) {
+        
           break;
         }
         if (offset == null) {

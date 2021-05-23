@@ -5,19 +5,21 @@
   "main": "index.js",
   "scripts": {
     "dev": "./node_modules/cypress/bin/cypress open",
+    "performance": "./node_modules/cypress/bin/cypress open --config-file cypress-performance.json",
     "release": "./node_modules/cypress/bin/cypress run $CYPRESS_RECORD",
+    "performance:release": "./node_modules/cypress/bin/cypress run $CYPRESS_RECORD --config-file cypress-performance.json",
     "lint": "eslint ./cypress --ext .js,.vue",
     "lint:fix": "eslint ./cypress --fix --ext .js,.vue"
   },
   "dependencies": {
     "@types/form-data": "^2.5.0",
     "@types/node": "^14.14.25",
-    "cypress": "^6.4.0",
     "form-data": "^4.0.0",
     "moment": "^2.29.1",
     "typescript": "^4.1.3"
   },
   "devDependencies": {
+    "cypress": "^7.3.0",
     "eslint": "^6.8.0",
     "eslint-plugin-cypress": "^2.7.0",
     "eslint-plugin-no-only-tests": "^2.4.0",

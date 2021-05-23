@@ -62,7 +62,7 @@ export interface User extends Sequelize.Model, ModelCommon<User> {
   ) => Promise<void>;
   canAccessDevice: (deviceId: number) => Promise<bool>;
   canAccessGroup: (groupId: number) => Promise<bool>;
-  getDeviceIds: () => Promise<number>;
+  getDeviceIds: () => Promise<number[]>;
   admin: boolean;
   getGroupDeviceIds: () => Promise<number[]>;
   hasGlobalWrite: () => boolean;
