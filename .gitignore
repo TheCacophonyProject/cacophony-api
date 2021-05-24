@@ -10,3 +10,4 @@ models/**/*.js
 /*.js
 dockerstart.log
 test-cypress/cypress.json
+test-cypress/cypress-performance.json

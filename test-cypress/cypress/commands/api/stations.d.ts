@@ -2,7 +2,7 @@
 /// <reference types="cypress" />
 
 // Station data as supplied to API on creation.
-export interface CreateStationData {
+interface CreateStationData {
   name: string;
   lat: number;
   lng: number;
@@ -16,7 +16,8 @@ declare namespace Cypress {
     apiUploadStations(
       user: string,
       group: string,
-      stations: CreateStationData[]
+      stations: CreateStationData[], 
+      updateFrom?: Date
     );
 
     /**
@@ -27,5 +28,12 @@ declare namespace Cypress {
       group: string,
       stations: CreateStationData[]
     );
+
+    // to be run straight after an uploadRecording
+    // check that the recording has been assigned the right station name. sS
+    thenCheckStationIs(user: string, station: string);
+
+    // Only works if there is a single recording for the user
+    checkRecordingsStationIs(user: string, station: string);
   }
 }
