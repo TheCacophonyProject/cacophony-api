@@ -7,9 +7,10 @@ import {
   getCreds,
   makeAuthorizedRequest,
   saveCreds,
+  saveIdOnly,
   v1ApiPath
 } from "../server";
-import { logTestDescription } from "../descriptions";
+import { logTestDescription, prettyLog } from "../descriptions";
 
 Cypress.Commands.add("apiCreateUser", (userName: string, log = true) => {
   logTestDescription(`Create user '${userName}'`, { user: userName }, log);
@@ -62,7 +63,9 @@ Cypress.Commands.add(
         body: { groupname: getTestName(group) }
       },
       userName
-    );
+    ).then((response) => {
+      saveIdOnly(group, response.body.groupId);
+    });
   }
 );
 
@@ -86,6 +89,18 @@ Cypress.Commands.add("apiCreateUserGroup", (userName, group) => {
   });
   cy.apiCreateUser(userName, false);
   cy.apiCreateGroup(userName, group, false);
+});
+
+Cypress.Commands.add("apiCreateGroupAndCameras", (userName, group, ...cameras) => {
+  logTestDescription(`Create group '${group}' with cameras '${prettyLog(cameras)}'`, {
+    user: userName,
+    group, 
+    cameras
+  });
+  cy.apiCreateGroup(userName, group, false);
+  cameras.forEach(camera => {
+    cy.apiCreateCamera(camera, group);
+  });
 });
 
 Cypress.Commands.add(

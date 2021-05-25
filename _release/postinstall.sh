@@ -24,7 +24,7 @@ if [[ `stat -c '%U' node_modules` != "fullnoise" ]]; then
     chown fullnoise:fullnoise node_modules
     chown fullnoise:fullnoise package-lock.json
 fi
-
+chown fullnoise:fullnoise package-lock.json
 section "Installing dependencies"
 su fullnoise -s /bin/sh -c "npm install"
 

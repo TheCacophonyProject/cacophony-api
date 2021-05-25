@@ -290,7 +290,7 @@ async function reportRecordings(request: RecordingQuery) {
   const audioFileIds: Set<number> = new Set();
   for (const r of result) {
     const event = findLatestEvent(r.Device.Events);
-    if (event) {
+    if (event && event.EventDetail) {
       const fileId = event.EventDetail.details.fileId;
       audioEvents[r.id] = {
         timestamp: event.dateTime,

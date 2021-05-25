@@ -1,7 +1,8 @@
 // load the global Cypress types
 /// <reference types="cypress" />
-export const DEFAULT_DATE = new Date(2021, 1, 16, 22);
+export const DEFAULT_DATE = new Date(2021, 4, 9, 22);
 import { format as urlFormat } from "url";
+
 
 export function apiPath(): string {
   return Cypress.env("cacophony-api-server");
@@ -15,6 +16,24 @@ export function v1ApiPath(page: string, queryParams: any = {}): string {
   return `${Cypress.env("cacophony-api-server")}${urlpage}`;
 }
 
+// time string should look like "21:09"
+export function convertToDate(timeOrDate: Date | string) : Date {
+  if (timeOrDate instanceof Date) {
+    return timeOrDate as Date;
+  } else if (timeOrDate) {
+    const parts = (timeOrDate as String).split(':');
+    if (parts.length == 2) {
+      const nums = parts.map(item => parseInt(item));
+      const date = new Date(DEFAULT_DATE);
+      date.setHours(nums[0], nums[1]);
+      return date;
+    }
+    return new Date(DEFAULT_DATE);
+  }
+  
+  return null;
+}
+
 interface ApiCreds {
   name: string;
   headers: {
@@ -22,6 +41,18 @@ interface ApiCreds {
   };
   jwt: string;
   id: number;
+}
+
+export function saveIdOnly (name: string, id: number) {
+  const creds = {
+    name,
+    headers: {
+      authorization: ""
+    },
+    jwt: "",
+    id
+  };
+  Cypress.env("testCreds")[name] = creds;
 }
 
 export function getCreds(userName: string): ApiCreds {

@@ -101,7 +101,7 @@ interface RecordingQueryBuilder {
     tags?: string[], // AcceptableTag[]
     offset?: number,
     limit?: number,
-    order?: Order,
+    order?: any,
     viewAsSuperAdmin?: boolean
   ) => Promise<RecordingQueryBuilderInstance>;
   handleTagMode: (tagMode: TagMode, tagWhatsIn: string[]) => SqlString;
@@ -800,9 +800,7 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
-    any
-  > {
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<any> {
     return await this.getTracks({
       where: {
         archivedAt: null

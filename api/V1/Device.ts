@@ -25,7 +25,6 @@ import Sequelize from "sequelize";
 import { Application } from "express";
 import { AccessLevel } from "../../models/GroupUsers";
 import { AuthorizationError } from "../customErrors";
-import DeviceUsers from "../../models/DeviceUsers";
 
 const Op = Sequelize.Op;
 
