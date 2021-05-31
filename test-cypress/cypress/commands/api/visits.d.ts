@@ -1,13 +1,7 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-interface ComparableVisit {
-  start?: Date;
-  end?: Date;
-  tag?: string;
-  recordings?: number;
-}
-
+  
 declare namespace Cypress {
   interface Chainable {
     /**

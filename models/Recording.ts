@@ -101,7 +101,7 @@ interface RecordingQueryBuilder {
     tags?: string[], // AcceptableTag[]
     offset?: number,
     limit?: number,
-    order?: Order,
+    order?: any,
     viewAsSuperAdmin?: boolean
   ) => Promise<RecordingQueryBuilderInstance>;
   handleTagMode: (tagMode: TagMode, tagWhatsIn: string[]) => SqlString;

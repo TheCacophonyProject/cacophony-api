@@ -1,7 +1,7 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 import { v1ApiPath, getCreds, makeAuthorizedRequest } from "../server";
-import { logTestDescription } from "../descriptions";
+import { logTestDescription, prettyLog } from "../descriptions";
 
 export const EventTypes = {
   POWERED_ON: "rpi-power-on",
@@ -13,7 +13,7 @@ Cypress.Commands.add(
   "checkPowerEvents",
   (user: string, camera: string, expectedEvent: ComparablePowerEvent) => {
     logTestDescription(
-      `Check power events for ${camera} is ${JSON.stringify(expectedEvent)}}`,
+      `Check power events for ${camera} is ${prettyLog(expectedEvent)}}`,
       {
         user,
         camera,

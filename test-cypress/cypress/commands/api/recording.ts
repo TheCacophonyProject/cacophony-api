@@ -3,18 +3,20 @@
 
 import { uploadFile } from "../fileUpload";
 import { v1ApiPath, DEFAULT_DATE, makeAuthorizedRequest } from "../server";
-import { logTestDescription } from "../descriptions";
+import { logTestDescription, prettyLog } from "../descriptions";
+import { convertToDate } from "../server";
 
 let lastUsedTime = DEFAULT_DATE;
 
 Cypress.Commands.add(
   "uploadRecording",
-  (cameraName: string, details: ThermalRecordingInfo) => {
+  (cameraName: string, details: ThermalRecordingInfo, log: boolean = true) => {
     const data = makeRecordingDataFromDetails(details);
 
     logTestDescription(
-      `Upload recording ${JSON.stringify(details)}  to '${cameraName}'`,
-      { camera: cameraName, requestData: data }
+      `Upload recording ${prettyLog(details)}  to '${cameraName}'`,
+      { camera: cameraName, requestData: data }, 
+      log
     );
 
     const fileName = "invalid.cptv";
@@ -26,6 +28,21 @@ Cypress.Commands.add(
         cy.wrap(x.response.body.recordingId);
       }
     );
+  }
+);
+
+Cypress.Commands.add(
+  "uploadRecordingsAtTimes",
+  (cameraName: string, times: string[]) => {
+
+    logTestDescription(
+      `Upload recordings   at ${prettyLog(times)}  to '${cameraName}'`,
+      { camera: cameraName, times }
+    );
+
+    times.forEach(time => {
+      cy.uploadRecording(cameraName, { time }, false);
+    });
   }
 );
 
@@ -111,6 +128,7 @@ interface ThermalRecordingData {
   version?: string;
   additionalMetadata?: JSON;
   metadata?: ThermalRecordingMetaData;
+  location?: number[];
 }
 
 function makeRecordingDataFromDetails(
@@ -134,6 +152,10 @@ function makeRecordingDataFromDetails(
     addTracksToRecording(data, model, details.tracks, details.tags);
   }
 
+  if (details.lat && details.lng) {
+    data.location = [details.lat, details.lng];
+  }
+
   return data;
 }
 
@@ -141,8 +163,9 @@ function getDateForRecordings(details: ThermalRecordingInfo): Date {
   let date = lastUsedTime;
 
   if (details.time) {
-    date = details.time;
-  } else if (details.minsLater || details.secsLater) {
+    date = convertToDate(details.time);
+  }
+  else if (details.minsLater || details.secsLater) {
     let secs = 0;
     if (details.minsLater) {
       secs += details.minsLater * 60;
@@ -198,4 +221,9 @@ function addTracksToRecording(
       confidence: 0.5
     });
   }
+}
+
+export function addSeconds(initialTime: Date, secondsToAdd: number): Date {
+  const AS_MILLISECONDS = 1000;
+  return new Date(initialTime.getTime() + secondsToAdd * AS_MILLISECONDS);
 }
