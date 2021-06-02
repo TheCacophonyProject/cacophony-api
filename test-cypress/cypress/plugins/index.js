@@ -16,7 +16,7 @@
 
 // eslint-disable-next-line no-unused-vars
 module.exports = (on, config) => {
-  // on('after:spec', (spec) => { 
+  // on('after:spec', (spec) => {
   //   const path = spec.relative + '.md';
   //   cy.writeFile(path, 'helloworld');
   // })

@@ -16,7 +16,7 @@ declare namespace Cypress {
     apiUploadStations(
       user: string,
       group: string,
-      stations: CreateStationData[], 
+      stations: CreateStationData[],
       updateFrom?: Date
     );
 
