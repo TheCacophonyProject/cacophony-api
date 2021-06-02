@@ -113,6 +113,7 @@ export default function (app: Application) {
         // TODO:
         // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
         // longer using that for mp4s
+
         // .....
         // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
         // .....
