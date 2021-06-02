@@ -208,6 +208,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   public: boolean;
   rawFileKey: string;
   rawMimeType: string;
+  rawFileHash: string;
   fileKey: string;
   fileMimeType: string;
   processingStartTime: string;
@@ -328,7 +329,7 @@ export default function (
   const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
-    duration: DataTypes.INTEGER,
+    duration: DataTypes.FLOAT,
     recordingDateTime: DataTypes.DATE,
     location: {
       type: DataTypes.GEOMETRY,
@@ -350,6 +351,7 @@ export default function (
     // Raw file data.
     rawFileKey: DataTypes.STRING,
     rawMimeType: DataTypes.STRING,
+    rawFileHash: DataTypes.STRING,
 
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
@@ -944,6 +946,8 @@ from (
     );
 
     const state = Recording.processingStates[this.type][0];
+
+    // FIXME: Should the processing start time really be set to null?
     await this.update({
       processingStartTime: null,
       processingState: state

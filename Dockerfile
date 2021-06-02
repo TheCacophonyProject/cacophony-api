@@ -1,13 +1,11 @@
 # Build:                   sudo docker build --no-cache . -t cacophony-api
 # Run interactive session: sudo docker run -it cacophony-api
 
-FROM cacophonyproject/server-base:2
+#FROM cacophonyproject/server-base:2
 
 # NOTE: Using locally for arm64
-# FROM cacophony-api
+FROM cacophony-api
 
-# Npm install is using git dependencies, so we need to have git installed.
-RUN apt-get -y install git
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

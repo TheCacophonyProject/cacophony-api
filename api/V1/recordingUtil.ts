@@ -151,15 +151,23 @@ function makeUploadHandler(mungeData?: (any) => any) {
     const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
     // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
     const fileIsCorrupt = await decoder.hasStreamError();
+    if (fileIsCorrupt) {
+      log.warn("CPTV Stream error", await decoder.getStreamError());
+    }
     decoder.close();
     const recording = models.Recording.buildSafely(data);
+
+    // Add the filehash if present
+    if (data.fileHash) {
+      recording.rawFileHash = data.fileHash;
+    }
 
     if (metadata.latitude && metadata.longitude) {
       // @ts-ignore
       recording.location = [metadata.latitude, metadata.longitude];
     }
     if (metadata.duration) {
-      recording.duration = Math.round(metadata.duration);
+      recording.duration = metadata.duration;
     }
     if (metadata.timestamp) {
       recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
@@ -168,9 +176,10 @@ function makeUploadHandler(mungeData?: (any) => any) {
       // NOTE: Algorithm property gets filled in later by AI
       recording.additionalMetadata = {
         previewSecs: metadata.previewSecs,
-        totalFrames: metadata.totalFrames
+        totalFrames: metadata.totalFrames,
       };
     }
+
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;

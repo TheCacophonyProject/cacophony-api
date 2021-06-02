@@ -111,6 +111,12 @@ function multipartUpload(keyPrefix, buildRecord) {
 
         // Optional file integrity check, opt-in to be backward compatible with existing clients.
         if (data.fileHash) {
+
+          // TODO: ***Maybe*** check if fileHash already exists in DB?  We may actually want to allow duplicate files though,
+          //  so maybe rather than disallowing the entry being created, we should just make a new recording that
+          //  references the same data (fileKey, tracks etc) as the existing recording?  Then we just want to make sure
+          //  we stop running our script to prune duplicates.
+
           log.info("Checking file hash. Key:", key);
           // Read the full file back from s3 and hash it
           const fileData = await modelsUtil

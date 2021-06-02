@@ -1,10 +1,11 @@
 import responseUtil from "../V1/responseUtil";
 import middleware from "../middleware";
 import log from "../../logging";
-import { body, param } from "express-validator/check";
+import {body, param} from "express-validator/check";
 import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
-import { Response, Request, Application } from "express";
+import {Application, Request, Response} from "express";
+import {Recording, RecordingType} from "../../models/Recording";
 
 export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
@@ -92,6 +93,8 @@ export default function (app: Application) {
       const jobs = models.Recording.processingStates[recording.type];
       const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
       recording.set("processingState", nextJob);
+
+      // FIXME: Should this ever exist now that we won't be saving mp4 files?
       recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);
       if (complete) {
@@ -105,6 +108,16 @@ export default function (app: Application) {
       }
 
       await recording.save();
+
+      if ((recording as Recording).type === RecordingType.ThermalRaw) {
+        // TODO:
+        // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
+        // longer using that for mp4s
+        // .....
+        // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
+        // .....
+      }
+
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
       recording.set("processingState", recording.processingState + ".failed");
