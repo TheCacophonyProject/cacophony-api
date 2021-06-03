@@ -162,17 +162,17 @@ function makeUploadHandler(mungeData?: (any) => any) {
       recording.rawFileHash = data.fileHash;
     }
 
-    if (metadata.latitude && metadata.longitude) {
+    if (!data.hasOwnProperty("location") && metadata.latitude && metadata.longitude) {
       // @ts-ignore
       recording.location = [metadata.latitude, metadata.longitude];
     }
-    if (metadata.duration) {
+    if (!data.hasOwnProperty("duration") && metadata.duration) {
       recording.duration = metadata.duration;
     }
-    if (metadata.timestamp) {
+    if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
       recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
     }
-    if (metadata.previewSecs) {
+    if (!data.hasOwnProperty("additionalMetadata") && metadata.previewSecs) {
       // NOTE: Algorithm property gets filled in later by AI
       recording.additionalMetadata = {
         previewSecs: metadata.previewSecs,
