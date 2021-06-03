@@ -134,27 +134,6 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (mungeData) {
       data = mungeData(data);
     }
-
-    // Read the file back out from s3 and decode/parse it.
-    const fileData = await modelsUtil
-        .openS3()
-        .getObject({
-          Bucket: config.s3.bucket,
-          Key: key,
-        })
-        .promise()
-        .catch((err) => {
-          return err;
-        });
-    const {CptvDecoder} = await dynamicImportESM("cptv-decoder");
-    const decoder = new CptvDecoder();
-    const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
-    // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
-    const fileIsCorrupt = await decoder.hasStreamError();
-    if (fileIsCorrupt) {
-      log.warn("CPTV Stream error", await decoder.getStreamError());
-    }
-    decoder.close();
     const recording = models.Recording.buildSafely(data);
 
     // Add the filehash if present
@@ -162,22 +141,46 @@ function makeUploadHandler(mungeData?: (any) => any) {
       recording.rawFileHash = data.fileHash;
     }
 
-    if (!data.hasOwnProperty("location") && metadata.latitude && metadata.longitude) {
-      // @ts-ignore
-      recording.location = [metadata.latitude, metadata.longitude];
-    }
-    if (!data.hasOwnProperty("duration") && metadata.duration) {
-      recording.duration = metadata.duration;
-    }
-    if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
-      recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
-    }
-    if (!data.hasOwnProperty("additionalMetadata") && metadata.previewSecs) {
-      // NOTE: Algorithm property gets filled in later by AI
-      recording.additionalMetadata = {
-        previewSecs: metadata.previewSecs,
-        totalFrames: metadata.totalFrames,
-      };
+    let fileIsCorrupt = false;
+    if (data.type === "thermalRaw") {
+      // Read the file back out from s3 and decode/parse it.
+      const fileData = await modelsUtil
+          .openS3()
+          .getObject({
+            Bucket: config.s3.bucket,
+            Key: key,
+          })
+          .promise()
+          .catch((err) => {
+            return err;
+          });
+      const {CptvDecoder} = await dynamicImportESM("cptv-decoder");
+      const decoder = new CptvDecoder();
+      const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
+      // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
+      fileIsCorrupt = await decoder.hasStreamError();
+      if (fileIsCorrupt) {
+        log.warn("CPTV Stream error", await decoder.getStreamError());
+      }
+      decoder.close();
+
+      if (!data.hasOwnProperty("location") && metadata.latitude && metadata.longitude) {
+        // @ts-ignore
+        recording.location = [metadata.latitude, metadata.longitude];
+      }
+      if (!data.hasOwnProperty("duration") && metadata.duration) {
+        recording.duration = metadata.duration;
+      }
+      if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
+        recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
+      }
+      if (!data.hasOwnProperty("additionalMetadata") && metadata.previewSecs) {
+        // NOTE: Algorithm property gets filled in later by AI
+        recording.additionalMetadata = {
+          previewSecs: metadata.previewSecs,
+          totalFrames: metadata.totalFrames,
+        };
+      }
     }
 
     recording.rawFileKey = key;

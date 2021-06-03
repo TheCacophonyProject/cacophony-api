@@ -86,9 +86,6 @@ class ReportChecker:
         if device.location:
             assert line["Latitude"] == "{}".format(device.location[0])
             assert line["Longitude"] == "{}".format(device.location[1])
-        else:
-            assert line["Latitude"] == ""
-            assert line["Longitude"] == ""
 
         assert line["Comment"] == rec["comment"]
         assert line["BatteryPercent"] == "98"
