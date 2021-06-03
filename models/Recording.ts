@@ -407,24 +407,33 @@ export default function (
             processingState: state,
             processingStartTime: null
           },
-          include: [
-            {
-              model: models.Device,
-              include: [{ model: models.Alert, attributes: ["id"] }]
-            }
+          attributes: [
+            ...(models.Recording as RecordingStatic).processingAttributes,
+            [
+              Sequelize.literal(`exists(
+          	select
+          		1
+          	from
+          		"Alerts"
+          	where
+          		"DeviceId" = "Recording"."DeviceId"
+          	limit 1)`),
+              "hasAlert"
+            ]
           ],
-          attributes: (models.Recording as RecordingStatic)
-            .processingAttributes,
           order: [
-            [models.Device, models.Alert, "id", "ASC"],
-            ["recordingDateTime", "DESC"],
-            ["id", "DESC"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+            Sequelize.literal(`"hasAlert" DESC`),
+            ["recordingDateTime", "asc"],
+            ["id", "asc"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
           ],
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
           transaction
         }).then(async function (recording) {
+          if (!recording) {
+            return recording;
+          }
           const date = new Date();
           recording.set(
             {
@@ -444,7 +453,8 @@ export default function (
       .then(function (result) {
         return result;
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log("ERROR", e);
         return null;
       });
   };
