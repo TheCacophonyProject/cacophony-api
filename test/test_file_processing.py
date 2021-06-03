@@ -7,12 +7,9 @@ from multiprocessing import Pool
 
 class TestFileProcessing:
     def get_recording(file_processing):
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
         if recording is not None:
-            assert recording["processingState"] == "getMetadata"
-            assert recording["processingStartTime"] is not None
             assert "rawFileKey" in recording
-            assert "fileKey" in recording
 
         return recording
 
@@ -38,12 +35,8 @@ class TestFileProcessing:
         helper.given_a_recording(self)
 
         # Get a recording to process.
-        recording = file_processing.get("thermalRaw", "getMetadata")
-        assert recording["processingState"] == "getMetadata"
-
-        # Move job to next stage.
-        file_processing.put(recording, success=True, complete=False)
-        check_recording(user, recording, processingState="toMp4")
+        recording = file_processing.get("thermalRaw", "toMp4")
+        assert recording["processingState"] == "toMp4"
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True)
@@ -63,8 +56,8 @@ class TestFileProcessing:
         props = {"metadata": metadata}
         helper.given_a_recording(self, props=props)
 
-        recording = file_processing.get("thermalRaw", "getMetadata")
-        assert recording["processingState"] == "getMetadata"
+        recording = file_processing.get("thermalRaw", "toMp4")
+        assert recording["processingState"] == "toMp4"
 
         tracks = user.get_tracks(recording.id_)
         assert len(tracks) == 1
@@ -84,7 +77,7 @@ class TestFileProcessing:
         props["processingState"] = "FINISHED"
         processed_rec = helper.given_a_recording(self, props=props)
         check_recording(user, processed_rec, processingState="FINISHED")
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
         assert recording is None
 
     def test_metadata_update(self, helper, file_processing):
@@ -92,7 +85,7 @@ class TestFileProcessing:
         helper.given_a_recording(self)
 
         # Get a recording to process.
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         # Change the fileMimeType field.
         file_processing.put(
@@ -105,7 +98,7 @@ class TestFileProcessing:
         helper.given_a_recording(self)
 
         # Get a recording to process.
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         # Update additionalMetadata.
         file_processing.put(
@@ -138,7 +131,7 @@ class TestFileProcessing:
         user = helper.admin_user()
         helper.given_a_recording(self)
 
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         track = Track.create(recording)
         track.id_ = file_processing.add_track(recording, track)
@@ -149,7 +142,7 @@ class TestFileProcessing:
         user = helper.admin_user()
         helper.given_a_recording(self)
 
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         # Add some tracks to the recording.
         track0 = Track.create(recording)
@@ -168,7 +161,7 @@ class TestFileProcessing:
         user = helper.admin_user()
         helper.given_a_recording(self)
 
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         track = Track.create(recording)
         track.id_ = file_processing.add_track(recording, track)
@@ -218,18 +211,14 @@ class TestFileProcessing:
         helper.given_a_recording(self, props=props)
 
         # Get a recording to process.
-        recording = file_processing.get(rec_type, "getMetadata")
-        assert recording["processingState"] == "getMetadata"
+        recording = file_processing.get(rec_type, "toMp4")
+        assert recording["processingState"] == "toMp4"
         if ai_tag:
             recording.is_tagged_as(what=ai_tag).byAI(helper.admin_user())
         if human_tag:
             recording.is_tagged_as(what=ai_tag).by(helper.admin_user())
 
         track, tag = self.add_tracks_and_tag(file_processing, recording)
-
-        # Move job to next stage.
-        file_processing.put(recording, success=True, complete=False)
-        check_recording(user, recording, processingState="toMp4")
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True)
@@ -246,12 +235,12 @@ class TestFileProcessing:
         return track, tag
 
     def process_all_recordings(self, file_processing):
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
 
         while recording:
             # Move job to next stage.
             file_processing.put(recording, success=True, complete=False)
-            recording = file_processing.get("thermalRaw", "getMetadata")
+            recording = file_processing.get("thermalRaw", "toMp4")
 
     def test_reprocess_recording(self, helper, file_processing):
         self.process_all_recordings(file_processing)
@@ -273,7 +262,7 @@ class TestFileProcessing:
 
         # check recording is ready to be reprocessed
         db_recording = admin.get_recording(recording)
-        assert db_recording["processingState"] == "getMetadata"
+        assert db_recording["processingState"] == "toMp4"
         admin.has_no_tracks(recording)
         assert len(db_recording["additionalMetadata"].get("oldTags", [])) == 2
 
@@ -284,12 +273,8 @@ class TestFileProcessing:
         assert len(db_recording["Tags"]) == 2
         admin.can_see_track(track2)
         # check is returned when asking for another recording
-        recording = file_processing.get("thermalRaw", "getMetadata")
+        recording = file_processing.get("thermalRaw", "toMp4")
         assert recording.id_ == reprocessed_id
-
-        # Move job to next stage.
-        file_processing.put(recording, success=True, complete=False)
-        check_recording(admin, recording, processingState="toMp4")
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True, new_object_key="some_key")
