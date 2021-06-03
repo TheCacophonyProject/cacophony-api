@@ -27,7 +27,7 @@ script:
  - npm run lint
  - black --diff --check ./test
  - ./beautify.sh
-  - git diff --exit-code --quiet || (echo "Please run './beautify.sh' to clean up formatting of files."; false)
+ - git diff --exit-code --quiet || (echo "Please run './beautify.sh' to clean up formatting of files."; false)
  - ./wait-for-api || { docker ps; docker-compose logs; exit 1; }
 # Apply migration undo and redo to test undo migration
  - docker-compose exec server /app/node_modules/.bin/sequelize db:migrate:undo --config /app/config/app_test_default.js --migrations-path /app/migrations
