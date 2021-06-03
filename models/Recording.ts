@@ -453,8 +453,7 @@ export default function (
       .then(function (result) {
         return result;
       })
-      .catch((e) => {
-        console.log("ERROR", e);
+      .catch(() => {
         return null;
       });
   };
