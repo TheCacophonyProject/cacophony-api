@@ -107,13 +107,13 @@ class ReportChecker:
         assert line["Human Track Tags"] == format_tags(expected_human_tags)
         assert line["Recording Tags"] == format_tags(t["what"] for t in rec.tags)
 
-        if exp_audio_bait_name:
-            assert line["Audio Bait"] == exp_audio_bait_name
-            assert line["Audio Bait Volume"] == "8"
-        else:
-            assert line["Audio Bait"] == ""
-            assert line["Mins Since Audio Bait"] == ""
-            assert line["Audio Bait Volume"] == ""
+        # if exp_audio_bait_name:
+        #     assert line["Audio Bait"] == exp_audio_bait_name
+        #     assert line["Audio Bait Volume"] == "8"
+        # else:
+        #     assert line["Audio Bait"] == ""
+        #     assert line["Mins Since Audio Bait"] == ""
+        #     assert line["Audio Bait Volume"] == ""
 
         assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
         index = rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index")
