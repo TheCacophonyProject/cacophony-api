@@ -50,11 +50,22 @@ class TestReport:
         user.can_tag_track(track, what="rat", automatic=False)
         user.can_tag_track(track, what="stoat", automatic=False)
 
-        report = ReportChecker(user.get_report(limit=10))
-        report.check_line(rec0, device0, exp_audio_bait_name, exp_audio_bait_time)
-        report.check_line(rec1, device0, exp_audio_bait_name, exp_audio_bait_time)
+        # with audiobait
+        report = ReportChecker(user.get_report(limit=10, audiobait="true"))
+        report.check_line(rec0, device0)
+        report.check_line(rec1, device0)
         report.check_line(rec2, device1)
         report.check_line(rec3, device1)
+        report.check_audiobait(rec0, exp_audio_bait_name, exp_audio_bait_time)
+        report.check_audiobait(rec1, exp_audio_bait_name, exp_audio_bait_time)
+
+        # without audiobait
+        report2 = ReportChecker(user.get_report(limit=10))
+        report2.check_line(rec0, device0)
+        report2.check_line(rec1, device0)
+        report2.check_line(rec2, device1)
+        report2.check_line(rec3, device1)
+        report2.check_no_audiobait(rec0)
 
     def test_report_jwt_arg(self, helper):
         user = helper.admin_user()
@@ -76,7 +87,21 @@ class ReportChecker:
             assert recording_id not in self._lines
             self._lines[recording_id] = line
 
-    def check_line(self, rec, device, exp_audio_bait_name=None, exp_audio_bait_time=None):
+    def check_no_audiobait(self, rec):
+        line = self._lines.get(rec.id_)
+        assert "Audio Bait" not in line
+
+    def check_audiobait(self, rec, exp_audio_bait_name=None, exp_audio_bait_time=None):
+        line = self._lines.get(rec.id_)
+        if exp_audio_bait_name:
+            assert line["Audio Bait"] == exp_audio_bait_name
+            assert line["Audio Bait Volume"] == "8"
+        else:
+            assert line["Audio Bait"] == ""
+            assert line["Mins Since Audio Bait"] == ""
+            assert line["Audio Bait Volume"] == ""
+
+    def check_line(self, rec, device):
         line = self._lines.get(rec.id_)
         assert line is not None
         assert line["Type"] == rec["type"]
@@ -106,14 +131,6 @@ class ReportChecker:
         assert line["Automatic Track Tags"] == format_tags(expected_auto_tags)
         assert line["Human Track Tags"] == format_tags(expected_human_tags)
         assert line["Recording Tags"] == format_tags(t["what"] for t in rec.tags)
-
-        # if exp_audio_bait_name:
-        #     assert line["Audio Bait"] == exp_audio_bait_name
-        #     assert line["Audio Bait Volume"] == "8"
-        # else:
-        #     assert line["Audio Bait"] == ""
-        #     assert line["Mins Since Audio Bait"] == ""
-        #     assert line["Audio Bait Volume"] == ""
 
         assert line["URL"] == "http://test.site/recording/" + str(rec.id_)
         index = rec.props.get("additionalMetadata", {}).get("analysis", {}).get("cacophony_index")
