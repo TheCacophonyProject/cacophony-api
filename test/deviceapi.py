@@ -25,8 +25,8 @@ class DeviceAPI(APIBase):
 
     def upload_audio_recording(self, filename, props=None):
         if not props:
-            props = {}
-        return self._upload("/api/v1/audiorecordings", filename, props)
+            props = {"type": "audio"}
+        return self._upload("/api/v1/recordings", filename, props)
 
     def record_event(self, type_, details, times=None):
         data = {"description": {"type": type_, "details": details}}
