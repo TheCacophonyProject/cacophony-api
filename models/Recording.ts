@@ -87,7 +87,8 @@ export enum RecordingProcessingState {
   ToMp4 = "toMp4",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
-  Analyse = "analyse"
+  Analyse = "analyse",
+  Reprocess = "reprocess"
 }
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
 
@@ -760,6 +761,23 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
+Recording.prototype.getNextState = async function (){
+  const jobs = models.Recording.processingStates[this.type];
+  let nextState;
+  if (this.processingState == ProcessingStates.Reprocess){
+    nextState = jobs[jobs.length-1]);
+  }else{
+    const job_index = jobs.indexOf(recording.processingState)
+    if (job_index ==-1){
+      throw new Error(`Recording state unknown - ${this.processState}`);
+    }else if(jon_index < jobs.length-1){
+      nextState = jobs[job_index+1];
+    }else{
+      nextState = job_index;
+    }
+  }
+  return nextState
+}
 
   Recording.prototype.setStation = async function (station: { id: number }) {
     this.StationId = station.id;
@@ -942,10 +960,9 @@ from (
       }
     );
 
-    const state = Recording.processingStates[this.type][0];
     await this.update({
       processingStartTime: null,
-      processingState: state
+      processingState: ProcessingStates.Reprocess
     });
   };
 
@@ -1399,8 +1416,8 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
-    audio: ["toMp3", "analyse", "FINISHED"]
+    thermalRaw: [ RecordingProcessingState.GetMetadata, RecordingProcessingState.ToMp4, RecordingProcessingState.Finished],
+    audio: [RecordingProcessingState.ToMp3, RecordingProcessingState.Analyse, RecordingProcessingState.Finished]
   };
 
   Recording.uploadedState = function (type: RecordingType) {

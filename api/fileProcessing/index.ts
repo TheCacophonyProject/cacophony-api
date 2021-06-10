@@ -89,8 +89,7 @@ export default function (app: Application) {
     }
 
     if (success) {
-      const jobs = models.Recording.processingStates[recording.type];
-      const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
+      const nextJob =       recoridng.getNextState();
       recording.set("processingState", nextJob);
       recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);
