@@ -84,7 +84,7 @@ export enum RecordingPermission {
 
 export enum RecordingProcessingState {
   Corrupt = "CORRUPT",
-  ToMp4 = "toMp4", // TODO(jon): Call this something different, like "analyse" too
+  AnalyseThermal = "analyse",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
   Analyse = "analyse"
@@ -247,7 +247,6 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   setStation: (station: Station) => Promise<void>;
 }
-type Mp4File = "string";
 type CptvFile = "string";
 type JwtToken<T> = string;
 type Seconds = number;
@@ -268,7 +267,7 @@ interface TagLimitedRecording {
   RecordingId: RecordingId;
   DeviceId: DeviceId;
   tracks: LimitedTrack[];
-  recordingJWT: JwtToken<Mp4File>;
+  recordingJWT: JwtToken<CptvFile>;
   tagJWT: JwtToken<TrackTag>;
 }
 
@@ -869,8 +868,8 @@ from (
   };
 
   Recording.prototype.getFileExt = function () {
-    if (this.fileMimeType == "video/mp4") {
-      return ".mp4";
+    if (this.fileMimeType == "application/cptv") {
+      return ".cptv";
     }
     const ext = mime.getExtension(this.fileMimeType);
     if (ext) {
@@ -1404,7 +1403,7 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["toMp4", "FINISHED"],
+    thermalRaw: ["analyse", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 
@@ -1412,7 +1411,7 @@ from (
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {
-      return RecordingProcessingState.ToMp4;
+      return RecordingProcessingState.AnalyseThermal;
     }
   };
 

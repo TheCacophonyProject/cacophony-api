@@ -94,8 +94,9 @@ export default function (app: Application) {
       const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
       recording.set("processingState", nextJob);
 
-      // FIXME: Should this ever exist now that we won't be saving mp4 files?
-      recording.set("fileKey", newProcessedFileKey);
+      if (newProcessedFileKey) {
+        recording.set("fileKey", newProcessedFileKey);
+      }
       log.info("Complete is " + complete);
       if (complete) {
         recording.set("jobKey", null);
