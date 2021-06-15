@@ -868,7 +868,7 @@ from (
   };
 
   Recording.prototype.getFileExt = function () {
-    if (this.fileMimeType == "application/cptv") {
+    if (this.fileMimeType == "application/x-cptv") {
       return ".cptv";
     }
     const ext = mime.getExtension(this.fileMimeType);
