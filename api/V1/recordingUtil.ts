@@ -168,7 +168,8 @@ function makeUploadHandler(mungeData?: (any) => any) {
         // @ts-ignore
         recording.location = [metadata.latitude, metadata.longitude];
       }
-      if (!data.hasOwnProperty("duration") && metadata.duration) {
+      if (metadata.duration) {
+        // NOTE: remove the ability for clients to set their duration: we know best once we've parsed the file.
         recording.duration = metadata.duration;
       }
       if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
@@ -180,6 +181,12 @@ function makeUploadHandler(mungeData?: (any) => any) {
           previewSecs: metadata.previewSecs,
           totalFrames: metadata.totalFrames,
         };
+      }
+      if (data.hasOwnProperty("additionalMetadata")) {
+        recording.additionalMetadata = {
+          ...data.additionalMetadata,
+          ...recording.additionalMetadata,
+        }
       }
     }
 
