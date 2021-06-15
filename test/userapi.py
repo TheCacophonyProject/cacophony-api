@@ -156,7 +156,7 @@ class UserAPI(APIBase):
             "filterOptions": filterOptions,
         }
 
-        if (audiobait is not None):
+        if audiobait is not None:
             params["audiobait"] = audiobait
 
         if report_type:
