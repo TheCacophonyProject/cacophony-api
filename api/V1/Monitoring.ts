@@ -129,49 +129,58 @@ export default function (app: Application, baseUrl: string) {
      *
      * @apiUse V1ResponseError
      */
-    app.get(
-        apiUrl + "/page",
-        [auth.authenticateUser,
-        toIdArray("devices").optional(),
-        toIdArray("groups").optional(),
-        toDate("from").optional(),
-        toDate("until").optional(),
-        isInteger("page", {min: 1, max: 10000}),
-        isInteger("page-size", {min: 1, max: 100}),
-        middleware.isValidName(query, "ai").optional()],
-        middleware.viewMode(),
-        middleware.requestWrapper(
-        async (request: e.Request, response: e.Response) => {
-            const user = (request as any).user;
-            const params : MonitoringParams  = {
-               user,
-               devices: request.query.devices as unknown[] as number[],
-               groups: request.query.groups as unknown[] as number[],
-               page: Number(request.query.page),
-               pageSize: Number(request.query["page-size"])
-            }
+  app.get(
+    apiUrl + "/page",
+    [
+      auth.authenticateUser,
+      toIdArray("devices").optional(),
+      toIdArray("groups").optional(),
+      toDate("from").optional(),
+      toDate("until").optional(),
+      isInteger("page", { min: 1, max: 10000 }),
+      isInteger("page-size", { min: 1, max: 100 }),
+      middleware.isValidName(query, "ai").optional()
+    ],
+    middleware.viewMode(),
+    middleware.requestWrapper(
+      async (request: e.Request, response: e.Response) => {
+        const user = (request as any).user;
+        const params: MonitoringParams = {
+          user,
+          devices: request.query.devices as unknown[] as number[],
+          groups: request.query.groups as unknown[] as number[],
+          page: Number(request.query.page),
+          pageSize: Number(request.query["page-size"])
+        };
 
-            if (request.query.from) {
-                params.from = new Date(request.query.from as string);
-            }
-
-            if (request.query.until) {
-                params.until = new Date(request.query.until as string);
-            }
-
-            const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
-            const searchDetails = await calculateMonitoringPageCriteria(params, viewAsSuperAdmin);
-            searchDetails.compareAi = request.query["ai"] as string || "Master";
-
-            const visits = await generateVisits(user, searchDetails, viewAsSuperAdmin);
-
-            responseUtil.send(response, {
-                statusCode: 200,
-                messages: ["Completed query."],
-                params: searchDetails,
-                visits: visits
-            });
+        if (request.query.from) {
+          params.from = new Date(request.query.from as string);
         }
-        )
-    );
+
+        if (request.query.until) {
+          params.until = new Date(request.query.until as string);
+        }
+
+        const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
+        const searchDetails = await calculateMonitoringPageCriteria(
+          params,
+          viewAsSuperAdmin
+        );
+        searchDetails.compareAi = (request.query["ai"] as string) || "Master";
+
+        const visits = await generateVisits(
+          user,
+          searchDetails,
+          viewAsSuperAdmin
+        );
+
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          params: searchDetails,
+          visits: visits
+        });
+      }
+    )
+  );
 }

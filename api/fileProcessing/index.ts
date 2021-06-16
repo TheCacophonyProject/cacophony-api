@@ -1,11 +1,15 @@
 import responseUtil from "../V1/responseUtil";
 import middleware from "../middleware";
 import log from "../../logging";
-import {body, param} from "express-validator/check";
+import { body, param } from "express-validator/check";
 import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
-import {Application, Request, Response} from "express";
-import {Recording, RecordingProcessingState, RecordingType} from "../../models/Recording";
+import { Application, Request, Response } from "express";
+import {
+  Recording,
+  RecordingProcessingState,
+  RecordingType
+} from "../../models/Recording";
 
 export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
@@ -119,7 +123,6 @@ export default function (app: Application) {
         // TODO:
         // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
         // longer using that for mp4s
-
         // .....
         // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
         // .....

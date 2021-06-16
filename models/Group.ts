@@ -153,9 +153,8 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
   });
   builder.query.distinct = true;
   delete builder.query.limit;
-  const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(
-    builder.get()
-  );
+  const recordingsFromStartDate: Recording[] =
+    await AllModels.Recording.findAll(builder.get());
   const recordingOpPromises = [];
   // Find matching recordings to apply stations to from `applyToRecordingsFromDate`
   for (const recording of recordingsFromStartDate) {
@@ -193,9 +192,7 @@ export interface Group extends Sequelize.Model, ModelCommon<Group> {
     where?: any;
     attributes?: string[];
   }) => Promise<Device[]>;
-  userPermissions: (
-    user: User
-  ) => Promise<{
+  userPermissions: (user: User) => Promise<{
     canAddUsers: boolean;
     canRemoveUsers: boolean;
   }>;
@@ -247,7 +244,7 @@ export default function (sequelize, DataTypes): GroupStatic {
     }
   };
 
-  const Group = (sequelize.define(name, attributes) as unknown) as GroupStatic;
+  const Group = sequelize.define(name, attributes) as unknown as GroupStatic;
 
   Group.apiSettableFields = [];
 
@@ -410,12 +407,13 @@ export default function (sequelize, DataTypes): GroupStatic {
     let updatedRecordings = [];
     if (applyToRecordingsFromDate) {
       // After adding stations, we need to apply any station matches to recordings from a start date:
-      updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
-        authUser,
-        group,
-        applyToRecordingsFromDate,
-        allStations
-      );
+      updatedRecordings =
+        await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
+          authUser,
+          group,
+          applyToRecordingsFromDate,
+          allStations
+        );
       updatedRecordings = await Promise.all(updatedRecordings);
     }
     const result: {
@@ -472,7 +470,7 @@ export default function (sequelize, DataTypes): GroupStatic {
           //  past 24 hours.
           // TODO(jon): Remove this once we have updated the front-end to use
           //  QueryRecordingsCount for the devices home page.
-          attributes: ["id", "devicename"],
+          attributes: ["id", "devicename"]
         }
       ]
     }).then((groups) => {
