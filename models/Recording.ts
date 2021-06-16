@@ -84,7 +84,6 @@ export enum RecordingPermission {
 
 export enum RecordingProcessingState {
   GetMetadata = "getMetadata",
-  ToMp4 = "toMp4",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
   Analyse = "analyse",
@@ -315,6 +314,8 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
+  getNextState : () => String;
+
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
 
@@ -761,19 +762,19 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
-Recording.prototype.getNextState = async function (){
-  const jobs = models.Recording.processingStates[this.type];
+Recording.prototype.getNextState = function (){
+  const jobs = Recording.processingStates[this.type];
   let nextState;
-  if (this.processingState == ProcessingStates.Reprocess){
-    nextState = jobs[jobs.length-1]);
+  if (this.processingState == RecordingProcessingState.Reprocess){
+    nextState = jobs[jobs.length-1];
   }else{
-    const job_index = jobs.indexOf(recording.processingState)
+    const job_index = jobs.indexOf(this.processingState)
     if (job_index ==-1){
       throw new Error(`Recording state unknown - ${this.processState}`);
-    }else if(jon_index < jobs.length-1){
+    }else if(job_index < jobs.length-1){
       nextState = jobs[job_index+1];
     }else{
-      nextState = job_index;
+      nextState = jobs[job_index];
     }
   }
   return nextState
@@ -959,10 +960,9 @@ Recording.prototype.getNextState = async function (){
         }
       }
     );
-
     await this.update({
       processingStartTime: null,
-      processingState: ProcessingStates.Reprocess
+      processingState: RecordingProcessingState.Reprocess
     });
   };
 
@@ -1416,7 +1416,7 @@ Recording.prototype.getNextState = async function (){
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: [ RecordingProcessingState.GetMetadata, RecordingProcessingState.ToMp4, RecordingProcessingState.Finished],
+    thermalRaw: [ RecordingProcessingState.GetMetadata, RecordingProcessingState.Analyse, RecordingProcessingState.Finished],
     audio: [RecordingProcessingState.ToMp3, RecordingProcessingState.Analyse, RecordingProcessingState.Finished]
   };
 
@@ -1424,7 +1424,7 @@ Recording.prototype.getNextState = async function (){
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {
-      return RecordingProcessingState.GetMetadata;
+      return RecordingProcessingState.Analyse;
     }
   };
 
