@@ -539,7 +539,7 @@ async function delete_(request, response) {
 }
 
 function guessRawMimeType(type, filename) {
-  const mimeType = mime.lookup(filename);
+  const mimeType = mime.getType(filename);
   if (mimeType) {
     return mimeType;
   }

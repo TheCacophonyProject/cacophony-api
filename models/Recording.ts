@@ -783,7 +783,7 @@ from (
     if (this.rawMimeType == "application/x-cptv") {
       return ".cptv";
     }
-    const ext = mime.extension(this.rawMimeType);
+    const ext = mime.getExtension(this.rawMimeType);
     if (ext) {
       return "." + ext;
     }
@@ -868,7 +868,7 @@ from (
     if (this.fileMimeType == "application/x-cptv") {
       return ".cptv";
     }
-    const ext = mime.extension(this.fileMimeType);
+    const ext = mime.getExtension(this.fileMimeType);
     if (ext) {
       return "." + ext;
     }

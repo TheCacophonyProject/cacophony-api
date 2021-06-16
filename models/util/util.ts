@@ -128,7 +128,7 @@ export function getFileName(model) {
     fileName = "file";
   }
 
-  const ext = mime.extension(model.getDataValue("mimeType") || "");
+  const ext = mime.getExtension(model.getDataValue("mimeType") || "");
   if (ext) {
     fileName = fileName + "." + ext;
   }
