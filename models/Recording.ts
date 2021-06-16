@@ -20,7 +20,7 @@ import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
 import assert from "assert";
-import uuidv4 from "uuid/v4";
+import uuidv4 from "uuid/dist/v4";
 import config from "../config";
 import util from "./util/util";
 import validation from "./util/validation";
@@ -786,7 +786,7 @@ from (
     if (this.rawMimeType == "application/x-cptv") {
       return ".cptv";
     }
-    const ext = mime.getExtension(this.rawMimeType);
+    const ext = mime.extension(this.rawMimeType);
     if (ext) {
       return "." + ext;
     }
@@ -871,7 +871,7 @@ from (
     if (this.fileMimeType == "application/x-cptv") {
       return ".cptv";
     }
-    const ext = mime.getExtension(this.fileMimeType);
+    const ext = mime.extension(this.fileMimeType);
     if (ext) {
       return "." + ext;
     }
