@@ -89,7 +89,7 @@ export default function (app: Application) {
     }
 
     if (success) {
-      const nextJob =       recording.getNextState();
+      const nextJob = recording.getNextState();
       recording.set("processingState", nextJob);
       recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);

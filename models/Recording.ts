@@ -314,7 +314,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
-  getNextState : () => String;
+  getNextState: () => String;
 
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
@@ -762,23 +762,23 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
-Recording.prototype.getNextState = function (){
-  const jobs = Recording.processingStates[this.type];
-  let nextState;
-  if (this.processingState == RecordingProcessingState.Reprocess){
-    nextState = jobs[jobs.length-1];
-  }else{
-    const job_index = jobs.indexOf(this.processingState)
-    if (job_index ==-1){
-      throw new Error(`Recording state unknown - ${this.processState}`);
-    }else if(job_index < jobs.length-1){
-      nextState = jobs[job_index+1];
-    }else{
-      nextState = jobs[job_index];
+  Recording.prototype.getNextState = function () {
+    const jobs = Recording.processingStates[this.type];
+    let nextState;
+    if (this.processingState == RecordingProcessingState.Reprocess) {
+      nextState = jobs[jobs.length - 1];
+    } else {
+      const job_index = jobs.indexOf(this.processingState);
+      if (job_index == -1) {
+        throw new Error(`Recording state unknown - ${this.processState}`);
+      } else if (job_index < jobs.length - 1) {
+        nextState = jobs[job_index + 1];
+      } else {
+        nextState = jobs[job_index];
+      }
     }
-  }
-  return nextState
-}
+    return nextState;
+  };
 
   Recording.prototype.setStation = async function (station: { id: number }) {
     this.StationId = station.id;
@@ -818,7 +818,9 @@ Recording.prototype.getNextState = function (){
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<any> {
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
+    any
+  > {
     return await this.getTracks({
       where: {
         archivedAt: null
@@ -1416,8 +1418,16 @@ Recording.prototype.getNextState = function (){
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: [ RecordingProcessingState.GetMetadata, RecordingProcessingState.Analyse, RecordingProcessingState.Finished],
-    audio: [RecordingProcessingState.ToMp3, RecordingProcessingState.Analyse, RecordingProcessingState.Finished]
+    thermalRaw: [
+      RecordingProcessingState.GetMetadata,
+      RecordingProcessingState.Analyse,
+      RecordingProcessingState.Finished
+    ],
+    audio: [
+      RecordingProcessingState.ToMp3,
+      RecordingProcessingState.Analyse,
+      RecordingProcessingState.Finished
+    ]
   };
 
   Recording.uploadedState = function (type: RecordingType) {

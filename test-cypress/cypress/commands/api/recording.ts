@@ -15,7 +15,7 @@ Cypress.Commands.add(
 
     logTestDescription(
       `Upload recording ${prettyLog(details)}  to '${cameraName}'`,
-      { camera: cameraName, requestData: data }, 
+      { camera: cameraName, requestData: data },
       log
     );
 
@@ -34,13 +34,12 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   "uploadRecordingsAtTimes",
   (cameraName: string, times: string[]) => {
-
     logTestDescription(
       `Upload recordings   at ${prettyLog(times)}  to '${cameraName}'`,
       { camera: cameraName, times }
     );
 
-    times.forEach(time => {
+    times.forEach((time) => {
       cy.uploadRecording(cameraName, { time }, false);
     });
   }
@@ -164,8 +163,7 @@ function getDateForRecordings(details: ThermalRecordingInfo): Date {
 
   if (details.time) {
     date = convertToDate(details.time);
-  }
-  else if (details.minsLater || details.secsLater) {
+  } else if (details.minsLater || details.secsLater) {
     let secs = 0;
     if (details.minsLater) {
       secs += details.minsLater * 60;
