@@ -44,4 +44,5 @@ RUN apt-get install -y nodejs
 # on the base means there are fewer packages to install
 WORKDIR /app
 COPY package*.json ./
+RUN npm i -g npm
 RUN npm install
