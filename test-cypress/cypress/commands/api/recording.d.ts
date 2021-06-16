@@ -9,7 +9,7 @@ interface TrackInfo {
 }
 
 interface ThermalRecordingInfo {
-  time? : Date | string;
+  time?: Date | string;
   duration?: number;
   model?: string;
   tracks?: TrackInfo[];
@@ -44,12 +44,9 @@ declare namespace Cypress {
       trackIndex: number,
       tagger: string,
       tag: string
-    );    
-    
-    uploadRecordingsAtTimes(
-      cameraName: string,
-      times: string[],
     );
+
+    uploadRecordingsAtTimes(cameraName: string, times: string[]);
 
     // to be run straight after an uploadRecording
     thenUserTagAs(tagger: string, tag: string);

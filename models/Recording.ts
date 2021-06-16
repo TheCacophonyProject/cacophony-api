@@ -406,17 +406,33 @@ export default function (
             processingState: state,
             processingStartTime: null
           },
-          attributes: (models.Recording as RecordingStatic)
-            .processingAttributes,
+          attributes: [
+            ...(models.Recording as RecordingStatic).processingAttributes,
+            [
+              Sequelize.literal(`exists(
+          	select
+          		1
+          	from
+          		"Alerts"
+          	where
+          		"DeviceId" = "Recording"."DeviceId"
+          	limit 1)`),
+              "hasAlert"
+            ]
+          ],
           order: [
-            ["recordingDateTime", "DESC"],
-            ["id", "DESC"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+            Sequelize.literal(`"hasAlert" DESC`),
+            ["recordingDateTime", "asc"],
+            ["id", "asc"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
           ],
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
           transaction
         }).then(async function (recording) {
+          if (!recording) {
+            return recording;
+          }
           const date = new Date();
           recording.set(
             {
@@ -798,7 +814,9 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<any> {
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
+    any
+  > {
     return await this.getTracks({
       where: {
         archivedAt: null

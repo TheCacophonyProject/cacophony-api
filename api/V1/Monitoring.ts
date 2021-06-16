@@ -16,18 +16,21 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import middleware, { toIdArray, toDate, isInteger }  from "../middleware";
+import middleware, { toIdArray, toDate, isInteger } from "../middleware";
 import auth from "../auth";
 import e, { Application } from "express";
-import {calculateMonitoringPageCriteria, MonitoringParams}  from "./monitoringPage";
-import {generateVisits}  from "./monitoringVisit";
+import {
+  calculateMonitoringPageCriteria,
+  MonitoringParams
+} from "./monitoringPage";
+import { generateVisits } from "./monitoringVisit";
 import responseUtil from "./responseUtil";
 import { query } from "express-validator/check";
 
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/monitoring`;
 
-    /**
+  /**
      * @api {get} /api/v1/monitoring/page Get visits page
      * @apiName MonitoringPage
      * @apiGroup Monitoring
@@ -172,4 +175,3 @@ export default function (app: Application, baseUrl: string) {
         )
     );
 }
-

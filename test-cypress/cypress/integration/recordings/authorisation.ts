@@ -1,10 +1,11 @@
 /// <reference path="../../support/index.d.ts" />
 
 import { getTestName } from "../../commands/names";
+import { v1ApiPath } from "../../commands/server";
 import {
-  v1ApiPath
-} from "../../commands/server";
-import { logTestDescription, NO_LOG_MESSAGE } from "../../commands/descriptions";
+  logTestDescription,
+  NO_LOG_MESSAGE
+} from "../../commands/descriptions";
 
 describe("Recording authorizations", () => {
   const admin = "Betty-group_admin";
@@ -25,10 +26,9 @@ describe("Recording authorizations", () => {
     cy.apiAddUserToGroup(admin, member, group, NOT_ADMIN);
   });
 
-  
   beforeEach(() => {
     if (!recordingUploaded) {
-      cy.uploadRecording(camera, {tags: ["possum"]});
+      cy.uploadRecording(camera, { tags: ["possum"] });
       recordingUploaded = true;
     }
   });
@@ -48,18 +48,20 @@ describe("Recording authorizations", () => {
   it("Hacker should not have any access", () => {
     checkMonitoringRequestReturnsNoResults(hacker, camera);
   });
-  
 });
 
 function checkMonitoringRequestSucceeds(username: string, camera: string) {
   logTestDescription(`User ${username} should be able to see visits.`, {});
   cy.checkMonitoring(username, camera, [{}], NO_LOG_MESSAGE);
-};
+}
 
-function checkMonitoringRequestReturnsNoResults(username: string, camera: string) {
+function checkMonitoringRequestReturnsNoResults(
+  username: string,
+  camera: string
+) {
   logTestDescription(`User ${username} should not see any visits.`, {});
   cy.checkMonitoring(username, camera, [], NO_LOG_MESSAGE);
-};
+}
 
 function deviceRequest(group: string, camera: string) {
   const groupName = getTestName(group);

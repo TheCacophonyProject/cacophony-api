@@ -12,14 +12,11 @@ Cypress.Commands.add(
       return { tag };
     });
 
-    logTestDescription(
-      `Check visit tags match ${prettyLog(expectedTags)}`,
-      {
-        user,
-        camera,
-        expectedVisits
-      }
-    );
+    logTestDescription(`Check visit tags match ${prettyLog(expectedTags)}`, {
+      user,
+      camera,
+      expectedVisits
+    });
 
     checkMonitoringMatches(user, camera, {}, expectedVisits);
   }
@@ -27,12 +24,21 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "checkMonitoring",
-  (user: string, camera: string, expectedVisits: ComparableVisit[], log = true) => {
-    logTestDescription(`Check visits match ${prettyLog(expectedVisits)}`, {
-      user,
-      camera,
-      expectedVisits
-    }, log);
+  (
+    user: string,
+    camera: string,
+    expectedVisits: ComparableVisit[],
+    log = true
+  ) => {
+    logTestDescription(
+      `Check visits match ${prettyLog(expectedVisits)}`,
+      {
+        user,
+        camera,
+        expectedVisits
+      },
+      log
+    );
 
     checkMonitoringMatches(user, camera, {}, expectedVisits);
   }
@@ -40,13 +46,23 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "checkMonitoringWithFilter",
-  (user: string, camera: string, searchParams: VisitSearchParams, expectedVisits: ComparableVisit[]) => {
-    logTestDescription(`Check monitoring visits with filter ${prettyLog(searchParams)} match ${prettyLog(expectedVisits)} `, {
-      user,
-      camera,
-      expectedVisits, 
-      searchParams
-    });
+  (
+    user: string,
+    camera: string,
+    searchParams: VisitSearchParams,
+    expectedVisits: ComparableVisit[]
+  ) => {
+    logTestDescription(
+      `Check monitoring visits with filter ${prettyLog(
+        searchParams
+      )} match ${prettyLog(expectedVisits)} `,
+      {
+        user,
+        camera,
+        expectedVisits,
+        searchParams
+      }
+    );
 
     if (searchParams.from) {
       searchParams.from = convertToDate(searchParams.from).toISOString();
@@ -56,7 +72,7 @@ Cypress.Commands.add(
       searchParams.until = convertToDate(searchParams.until).toISOString();
     }
 
-    checkMonitoringMatches(user, camera , searchParams, expectedVisits);
+    checkMonitoringMatches(user, camera, searchParams, expectedVisits);
   }
 );
 
@@ -66,10 +82,9 @@ function checkMonitoringMatches(
   specialParams: VisitSearchParams,
   expectedVisits: ComparableVisit[]
 ) {
-  
-  const params : VisitSearchParams = {
+  const params: VisitSearchParams = {
     page: 1,
-    "page-size": 100,
+    "page-size": 100
   };
 
   Object.assign(params, specialParams);
@@ -111,19 +126,24 @@ function checkResponseMatches(
     }
 
     if (expectedVisit.camera) {
-      simplifiedResponseVisit.camera = stripBackName(completeResponseVisit.device);
+      simplifiedResponseVisit.camera = stripBackName(
+        completeResponseVisit.device
+      );
     }
 
     if (expectedVisit.tag) {
-      simplifiedResponseVisit.tag = completeResponseVisit.classification || "<none>";
+      simplifiedResponseVisit.tag =
+        completeResponseVisit.classification || "<none>";
     }
 
     if (expectedVisit.aiTag) {
-      simplifiedResponseVisit.aiTag = completeResponseVisit.classificationAi || "<none>";
+      simplifiedResponseVisit.aiTag =
+        completeResponseVisit.classificationAi || "<none>";
     }
 
     if (expectedVisit.recordings) {
-      simplifiedResponseVisit.recordings =  completeResponseVisit.recordings.length;
+      simplifiedResponseVisit.recordings =
+        completeResponseVisit.recordings.length;
     }
 
     if (expectedVisit.start) {
@@ -132,7 +152,11 @@ function checkResponseMatches(
         simplifiedResponseVisit.start = completeResponseVisit.timeStart;
       } else {
         // just time
-        simplifiedResponseVisit.start = new Date(completeResponseVisit.timeStart).toTimeString().substring(0, 5);
+        simplifiedResponseVisit.start = new Date(
+          completeResponseVisit.timeStart
+        )
+          .toTimeString()
+          .substring(0, 5);
       }
     }
 
