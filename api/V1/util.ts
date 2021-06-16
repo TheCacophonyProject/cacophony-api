@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import moment from "moment";
-import uuidv4 from "uuid/v4";
+import {v4 as uuidv4} from "uuid";
 import multiparty from "multiparty";
 import log from "../../logging";
 import responseUtil from "./responseUtil";

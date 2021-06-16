@@ -378,7 +378,7 @@ export default (app: Application, baseUrl: string) => {
           //  a preferred deviceId, to handle the case where we'd like a series
           //  of random recordings to tag constrained to a single device.
           result = await models.Recording.getRecordingWithUntaggedTracks(
-            request.query.deviceId
+            Number(request.query.deviceId)
           );
         }
         responseUtil.send(response, {

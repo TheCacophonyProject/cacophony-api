@@ -45,6 +45,7 @@ import {Station} from "../../models/Station";
 import modelsUtil from "../../models/util/util";
 import {dynamicImportESM} from "../../dynamic-import-esm";
 
+// @ts-ignore
 export interface RecordingQuery extends Request {
   user: User;
   query: {
@@ -538,7 +539,7 @@ async function delete_(request, response) {
 }
 
 function guessRawMimeType(type, filename) {
-  const mimeType = mime.getType(filename);
+  const mimeType = mime.lookup(filename);
   if (mimeType) {
     return mimeType;
   }

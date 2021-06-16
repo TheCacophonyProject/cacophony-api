@@ -20,7 +20,7 @@ import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
 import assert from "assert";
-import uuidv4 from "uuid/dist/v4";
+import {v4 as uuidv4} from "uuid";
 import config from "../config";
 import util from "./util/util";
 import validation from "./util/validation";

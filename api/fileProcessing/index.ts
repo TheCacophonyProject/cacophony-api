@@ -5,7 +5,7 @@ import {body, param} from "express-validator/check";
 import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
 import {Application, Request, Response} from "express";
-import {Recording, RecordingType} from "../../models/Recording";
+import {Recording, RecordingProcessingState, RecordingType} from "../../models/Recording";
 
 export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
@@ -20,8 +20,8 @@ export default function (app: Application) {
    */
   app.get(apiUrl, async (request: Request, response: Response) => {
     log.info(`${request.method} Request: ${request.url}`);
-    const type = request.query.type;
-    const state = request.query.state;
+    const type = request.query.type as RecordingType;
+    const state = request.query.state as RecordingProcessingState;
     const recording = await models.Recording.getOneForProcessing(type, state);
     if (recording == null) {
       log.debug("No file to be processed.");
