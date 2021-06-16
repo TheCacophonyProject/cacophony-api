@@ -39,11 +39,8 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
-import { CreateStationData, Station, StationId } from "./Station";
+import { Station, StationId } from "./Station";
 import {
-  latLngApproxDistance,
-  MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MIN_STATION_SEPARATION_METERS,
   tryToMatchRecordingToStation
 } from "../api/V1/recordingUtil";
 

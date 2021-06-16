@@ -41,7 +41,7 @@ export default function (app: Application) {
    * @apiGroup FileProcessing
    *
    * @apiParam {Integer} id ID of the recording.
-   * @apiParam {String} jobKey Key given when reqesting the job.
+   * @apiParam {String} jobKey Key given when requesting the job.
    * @apiParam {Boolean} success If the job was finished successfully.
    * @apiParam {JSON} [result] Result of the file processing
    * @apiParam {Boolean} complete true if the processing is complete, or false if file will be processed further.
@@ -81,6 +81,11 @@ export default function (app: Application) {
     }
 
     const recording = await models.Recording.findOne({ where: { id: id } });
+    if (!recording) {
+      return response.status(400).json({
+        messages: [`Recording ${id} not found for jobKey ${jobKey}`]
+      });
+    }
 
     // Check that jobKey is correct.
     if (jobKey != recording.get("jobKey")) {
