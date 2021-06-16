@@ -39,7 +39,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {String} devicename Unique device name.
    * @apiParam {String} password Password for the device.
    * @apiParam {String} group Group to assign the device to.
-   * @apiParam {String} [saltId] Salt ID of device. Will be set as device id if not given.
+   * @apiParam {Integer} [saltId] Salt ID of device. Will be set as device id if not given.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
