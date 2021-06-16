@@ -1429,6 +1429,7 @@ from (
     "DeviceId",
     "StationId",
     "recordingDateTime",
+    "duration",
     "location"
   ];
 
