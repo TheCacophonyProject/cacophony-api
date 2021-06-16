@@ -32,7 +32,7 @@ RUN chmod +x minio
 RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.RELEASE.2019-07-11T19-31-28Z > mc
 
 # Note: uncomment if you're developing on arm64
-#RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-arm64/mc > mc
+# RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-arm64/mc > mc
 
 RUN chmod +x mc
 
