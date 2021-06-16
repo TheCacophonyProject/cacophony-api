@@ -20,7 +20,8 @@ declare namespace Cypress {
     apiCreateCamera(
       cameraName: string,
       group: string,
-      log?: boolean
+      saltId?: string,
+      log?: boolean,
     ): Chainable<Element>;
 
     /**
@@ -31,7 +32,9 @@ declare namespace Cypress {
     apiShouldFailToCreateCamera(
       cameraName: string,
       group: string,
-      makeCameraNameTestName?: boolean
+      saltId?: string,
+      makeCameraNameTestName?: boolean,
+      log?: boolean,
     ): Chainable<Element>;
   }
 }

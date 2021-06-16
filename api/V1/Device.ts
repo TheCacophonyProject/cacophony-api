@@ -39,6 +39,7 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {String} devicename Unique device name.
    * @apiParam {String} password Password for the device.
    * @apiParam {String} group Group to assign the device to.
+   * @apiParam {String} [saltId] Salt ID of device. Will be set as device id if not given.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
@@ -50,7 +51,8 @@ export default function (app: Application, baseUrl: string) {
     [
       middleware.getGroupByName(body),
       middleware.isValidName(body, "devicename"),
-      middleware.checkNewPassword("password")
+      middleware.checkNewPassword("password"),
+      body("saltId").optional().isInt(),
     ],
     middleware.requestWrapper(async (request, response) => {
       if (
@@ -70,14 +72,17 @@ export default function (app: Application, baseUrl: string) {
         GroupId: request.body.group.id
       });
 
-      await device.update({
-        saltId: device.id
-      });
+      if (request.body.saltId) {
+        await device.update({ saltId: request.body.saltId });
+      } else {
+        await device.update({ saltId: device.id });
+      }
 
       return responseUtil.send(response, {
         statusCode: 200,
         messages: ["Created new device."],
         id: device.id,
+        saltId: device.saltId,
         token: "JWT " + auth.createEntityJWT(device)
       });
     })
