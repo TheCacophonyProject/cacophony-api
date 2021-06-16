@@ -89,7 +89,7 @@ export default function (app: Application) {
     }
 
     if (success) {
-      const nextJob =       recoridng.getNextState();
+      const nextJob =       recording.getNextState();
       recording.set("processingState", nextJob);
       recording.set("fileKey", newProcessedFileKey);
       log.info("Complete is " + complete);
@@ -102,7 +102,6 @@ export default function (app: Application) {
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
-
       await recording.save();
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
