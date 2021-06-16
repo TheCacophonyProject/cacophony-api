@@ -11,9 +11,10 @@ python:
   - "3.6.1"
 
 install:
+  - npm i -g npm
   - npm install -g apidoc@0.20.0
   - npm run apidoc
-  - npm install -g eslint 
+  - npm install -g eslint
   # global eslint uses local plugins
   - npm install eslint-plugin-cypress eslint-plugin-no-only-tests
   - sudo apt update
@@ -37,7 +38,7 @@ script:
  - cd ..
 
  - cd test-cypress
- - cp cypress.json.TEMPLATE cypress.json 
+ - cp cypress.json.TEMPLATE cypress.json
  - npm install
  - npm run release
  - cd ..
