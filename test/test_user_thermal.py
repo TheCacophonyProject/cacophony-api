@@ -65,9 +65,6 @@ class TestUserThermal:
         print("\nA user should not be able to download the recording using the audio API")
         user.cannot_download_recording(recording)
 
-        print("\nNor be able to see the recording through the audio query API")
-        user.cannot_see_audio_recording(recording)
-
     def test_can_upload_recording_for_device_legacy(self, helper):
         data_collector, device = helper.given_new_user_with_device(self, "data_collector")
         print("   and data_collector uploads a recording on behalf of the device")
