@@ -135,6 +135,7 @@ class UserAPI(APIBase):
         deviceIds=None,
         jwt=None,
         report_type=None,
+        audiobait=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -154,6 +155,9 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
+
+        if audiobait is not None:
+            params["audiobait"] = audiobait
 
         if report_type:
             params["type"] = report_type

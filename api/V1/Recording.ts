@@ -403,6 +403,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
+   * @apiParam {boolean} [audiobait] To add audiobait to a recording query set this to true. 
    * @apiUse FilterOptions
    * @apiUse V1ResponseError
    */
@@ -411,12 +412,12 @@ export default (app: Application, baseUrl: string) => {
     [
       auth.paramOrHeader,
       query("type").isString().optional().isIn(["recordings", "visits"]),
-      ...queryValidators
+      ...queryValidators,
+      query("audiobait").isBoolean().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       // 10 minute timeout because the query can take a while to run
       // when the result set is large.
-      request.setTimeout(10 * 60 * 1000);
       const rows = await recordingUtil.report(request);
       response.status(200).set({
         "Content-Type": "text/csv",
