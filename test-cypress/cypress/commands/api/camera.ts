@@ -38,17 +38,23 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "apiCreateCamera",
-  (cameraName: string, group: string, log = true) => {
+  (
+    cameraName: string,
+    group: string,
+    saltId: string = null,
+    log = true,
+  ) => {
     logTestDescription(
       `Create camera '${cameraName}' in group '${group}'`,
       {
         camera: cameraName,
-        group: group
+        group: group,
+        saltId: saltId,
       },
       log
     );
 
-    const request = createCameraDetails(cameraName, group);
+    const request = createCameraDetails(cameraName, group, saltId);
     cy.request(request).then((response) => {
       const id = response.body.id;
       saveCreds(response, cameraName, id);
@@ -61,19 +67,20 @@ Cypress.Commands.add(
   (
     cameraName: string,
     group: string,
+    saltId: string = null,
     makeCameraATestName = true,
-    log = true
+    log = true,
   ) => {
     logTestDescription(
       `Check that user cannot create camera '${cameraName}' in group '${group} '`,
       {
         camera: cameraName,
-        group: group
+        group: group,
+        saltId: saltId,
       },
       log
     );
-
-    const request = createCameraDetails(cameraName, group, makeCameraATestName);
+    const request = createCameraDetails(cameraName, group, saltId, makeCameraATestName);
     checkRequestFails(request);
   }
 );
@@ -81,7 +88,8 @@ Cypress.Commands.add(
 function createCameraDetails(
   cameraName: string,
   group: string,
-  makeCameraNameTestName = true
+  saltId: string = null,
+  makeCameraNameTestName = true,
 ): any {
   const fullName = makeCameraNameTestName
     ? getTestName(cameraName)
@@ -93,6 +101,9 @@ function createCameraDetails(
     password: password,
     group: getTestName(group)
   };
+  if (saltId) {
+    data["saltId"] = saltId;
+  }
 
   return {
     method: "POST",
