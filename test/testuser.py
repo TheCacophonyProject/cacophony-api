@@ -226,7 +226,7 @@ class TestUser:
         return self._userapi.delete_recording_tag(tag_id)
 
     def can_see_audio_recording(self, recording):
-        self._userapi.get_audio(recording.id_)
+        self._userapi.get_recording(recording.id_)
 
     def cannot_see_audio_recording(self, recording):
         for row in self._userapi.query_audio():
@@ -240,9 +240,6 @@ class TestUser:
         expected_ids = {rec.id_ for rec in recordings}
         actual_ids = {row["id"] for row in self._userapi.query_audio(**query_args)}
         assert actual_ids == expected_ids
-
-    def delete_audio_recording(self, recording):
-        self._userapi.delete_audio(recording.id_)
 
     def update_audio_recording(self, recording, **updates):
         self._userapi.update_audio_recording(recording.id_, updates)

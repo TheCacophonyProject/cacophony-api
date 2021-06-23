@@ -1,4 +1,4 @@
-# Build:                   sudo docker build --no-cache . -t cacophony-api
+# Build:                   sudo docker build --no-cache . -t cacophonyproject/server-base:latest
 # Run interactive session: sudo docker run -it cacophony-api
 
 FROM ubuntu:18.04
@@ -11,6 +11,7 @@ RUN echo "Pacific/Auckland" > /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
 RUN apt-get update --fix-missing
 RUN apt-get -y install curl sudo make build-essential g++
+RUN apt-get -y install git
 
 # install postgress
 RUN apt-get -y install postgis postgresql-server-dev-10
@@ -35,7 +36,12 @@ RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/r
 
 RUN chmod +x mc
 
-
 #install node
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
+
+# install packages - this still has to be done each time because of updates but doing it
+# on the base means there are fewer packages to install
+WORKDIR /app
+COPY package*.json ./
+RUN npm install

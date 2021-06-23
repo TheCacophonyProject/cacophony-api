@@ -50,6 +50,7 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="FINISHED")
 
     def test_thermal_video_with_meta(self, helper, file_processing):
+        self.process_all_recordings(file_processing)
         user = helper.admin_user()
 
         track_meta = {
@@ -306,7 +307,7 @@ class TestFileProcessing:
         listener = helper.given_new_device(self, "Listener", description="reprocess test")
 
         # processed audio recording
-        recording = listener.upload_audio_recording_deprecated()
+        recording = listener.upload_audio_recording()
         recording = file_processing.get("audio", "toMp3")
         file_processing.put(recording, success=True, complete=True)
         assert admin.get_recording(recording)["processingState"] == "analyse"

@@ -14,7 +14,7 @@ class TestSmoke:
         helper.login_as_device(listener.devicename, self.groupName)
 
         print("And 'Listener' should be able to upload an audio file")
-        recording = listener.upload_audio_recording_deprecated()
+        recording = listener.upload_audio_recording()
 
     def test_can_upload_cptv(self, helper):
         helper.config.api_url = self.test_server

@@ -60,6 +60,7 @@ export interface RecordingQuery extends Request {
     order: null | Order;
     distinct: boolean;
     type: string;
+    audiobait: null | boolean;
   };
   filterOptions: null | any;
 }
@@ -211,6 +212,7 @@ async function report(request: RecordingQuery) {
 }
 
 async function reportRecordings(request: RecordingQuery) {
+  const includeAudiobait: boolean = request.query.audiobait;
   const builder = (
     await new models.Recording.queryBuilder().init(
       request.user,
@@ -223,8 +225,11 @@ async function reportRecordings(request: RecordingQuery) {
     )
   )
     .addColumn("comment")
-    .addColumn("additionalMetadata")
-    .addAudioEvents();
+    .addColumn("additionalMetadata");
+
+  if (includeAudiobait) {
+    builder.addAudioEvents();
+  }
 
   builder.query.include.push({
     model: models.Station,
@@ -240,61 +245,66 @@ async function reportRecordings(request: RecordingQuery) {
     request.filterOptions
   );
 
-  // Our DB schema doesn't allow us to easily get from a audio event
-  // recording to a audio file name so do some work first to look these up.
+  const audioFileNames = new Map();
   const audioEvents: Map<
     RecordingId,
     { timestamp: Date; volume: number; fileId: FileId }
   > = new Map();
-  const audioFileIds: Set<number> = new Set();
-  for (const r of result) {
-    const event = findLatestEvent(r.Device.Events);
-    if (event && event.EventDetail) {
-      const fileId = event.EventDetail.details.fileId;
-      audioEvents[r.id] = {
-        timestamp: event.dateTime,
-        volume: event.EventDetail.details.volume,
-        fileId
-      };
-      audioFileIds.add(fileId);
-    }
-  }
 
-  // Bulk look up file details of played audio events.
-  const audioFileNames = new Map();
-  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
-    audioFileNames[f.id] = f.details.name;
+  if (includeAudiobait) {
+    // Our DB schema doesn't allow us to easily get from a audio event
+    // recording to a audio file name so do some work first to look these up.
+    const audioFileIds: Set<number> = new Set();
+    for (const r of result) {
+      const event = findLatestEvent(r.Device.Events);
+      if (event && event.EventDetail) {
+        const fileId = event.EventDetail.details.fileId;
+        audioEvents[r.id] = {
+          timestamp: event.dateTime,
+          volume: event.EventDetail.details.volume,
+          fileId
+        };
+        audioFileIds.add(fileId);
+      }
+    }
+    // Bulk look up file details of played audio events.
+    for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+      audioFileNames[f.id] = f.details.name;
+    }
   }
 
   const recording_url_base = config.server.recording_url_base || "";
 
-  const out = [
-    [
-      "Id",
-      "Type",
-      "Group",
-      "Device",
-      "Station",
-      "Date",
-      "Time",
-      "Latitude",
-      "Longitude",
-      "Duration",
-      "BatteryPercent",
-      "Comment",
-      "Track Count",
-      "Automatic Track Tags",
-      "Human Track Tags",
-      "Recording Tags",
+  const labels = [
+    "Id",
+    "Type",
+    "Group",
+    "Device",
+    "Station",
+    "Date",
+    "Time",
+    "Latitude",
+    "Longitude",
+    "Duration",
+    "BatteryPercent",
+    "Comment",
+    "Track Count",
+    "Automatic Track Tags",
+    "Human Track Tags",
+    "Recording Tags"
+  ];
+
+  if (includeAudiobait) {
+    labels.push(
       "Audio Bait",
       "Audio Bait Time",
       "Mins Since Audio Bait",
-      "Audio Bait Volume",
-      "URL",
-      "Cacophony Index",
-      "Species Classification"
-    ]
-  ];
+      "Audio Bait Volume"
+    );
+  }
+  labels.push("URL", "Cacophony Index", "Species Classification");
+
+  const out = [labels];
 
   for (const r of result) {
     r.filterData(filterOptions);
@@ -314,25 +324,10 @@ async function reportRecordings(request: RecordingQuery) {
 
     const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
-    let audioBaitName = "";
-    let audioBaitTime = null;
-    let audioBaitDelta = null;
-    let audioBaitVolume = null;
-    const audioEvent = audioEvents[r.id];
-    if (audioEvent) {
-      audioBaitName = audioFileNames[audioEvent.fileId];
-      audioBaitTime = moment(audioEvent.timestamp);
-      audioBaitDelta = moment
-        .duration(r.recordingDateTime - audioBaitTime)
-        .asMinutes()
-        .toFixed(1);
-      audioBaitVolume = audioEvent.volume;
-    }
-
     const cacophonyIndex = getCacophonyIndex(r);
     const speciesClassifications = getSpeciesIdentification(r);
 
-    out.push([
+    const thisRow = [
       r.id,
       r.type,
       r.Group.groupname,
@@ -348,27 +343,57 @@ async function reportRecordings(request: RecordingQuery) {
       r.Tracks.length,
       formatTags(automatic_track_tags),
       formatTags(human_track_tags),
-      formatTags(recording_tags),
-      audioBaitName,
-      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
-      audioBaitDelta,
-      audioBaitVolume,
+      formatTags(recording_tags)
+    ];
+
+    if (includeAudiobait) {
+      let audioBaitName = "";
+      let audioBaitTime = null;
+      let audioBaitDelta = null;
+      let audioBaitVolume = null;
+      const audioEvent = audioEvents[r.id];
+      if (audioEvent) {
+        audioBaitName = audioFileNames[audioEvent.fileId];
+        audioBaitTime = moment(audioEvent.timestamp);
+        audioBaitDelta = moment
+          .duration(r.recordingDateTime - audioBaitTime)
+          .asMinutes()
+          .toFixed(1);
+        audioBaitVolume = audioEvent.volume;
+      }
+
+      thisRow.push(
+        audioBaitName,
+        audioBaitTime
+          ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss")
+          : "",
+        audioBaitDelta,
+        audioBaitVolume
+      );
+    }
+
+    thisRow.push(
       urljoin(recording_url_base, r.id.toString()),
       cacophonyIndex,
       speciesClassifications
-    ]);
+    );
+    out.push(thisRow);
   }
   return out;
 }
 
 function getCacophonyIndex(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.cacophony_index
     ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.species_identify
     ?.map(
       (classification) => `${classification.species}: ${classification.begin_s}`
     )
