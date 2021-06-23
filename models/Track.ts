@@ -49,10 +49,10 @@ export default function (
 ): TrackStatic {
   const { ClientError } = require("../api/customErrors");
 
-  const Track = (sequelize.define("Track", {
+  const Track = sequelize.define("Track", {
     data: DataTypes.JSONB,
     archivedAt: DataTypes.DATE
-  }) as unknown) as TrackStatic;
+  }) as unknown as TrackStatic;
 
   //---------------
   // CLASS

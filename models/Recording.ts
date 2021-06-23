@@ -365,10 +365,10 @@ export default function (
     airplaneModeOn: DataTypes.BOOLEAN
   };
 
-  const Recording = (sequelize.define(
+  const Recording = sequelize.define(
     name,
     attributes
-  ) as unknown) as RecordingStatic;
+  ) as unknown as RecordingStatic;
 
   //---------------
   // CLASS METHODS
@@ -815,29 +815,28 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
-    any
-  > {
-    return await this.getTracks({
-      where: {
-        archivedAt: null
-      },
-      include: [
-        {
-          model: models.TrackTag,
-          include: [
-            {
-              model: models.User,
-              attributes: ["username"]
+  Recording.prototype.getActiveTracksTagsAndTagger =
+    async function (): Promise<any> {
+      return await this.getTracks({
+        where: {
+          archivedAt: null
+        },
+        include: [
+          {
+            model: models.TrackTag,
+            include: [
+              {
+                model: models.User,
+                attributes: ["username"]
+              }
+            ],
+            attributes: {
+              exclude: ["UserId"]
             }
-          ],
-          attributes: {
-            exclude: ["UserId"]
           }
-        }
-      ]
-    });
-  };
+        ]
+      });
+    };
   /* eslint-enable indent */
 
   /**
@@ -983,7 +982,7 @@ from (
     return track;
   };
 
-  Recording.queryBuilder = (function () {} as unknown) as RecordingQueryBuilder;
+  Recording.queryBuilder = function () {} as unknown as RecordingQueryBuilder;
 
   Recording.queryBuilder.prototype.init = async function (
     user,

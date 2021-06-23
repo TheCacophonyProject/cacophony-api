@@ -47,11 +47,11 @@ export default function (sequelize, DataTypes): DetailSnapshotStatic {
 
   const options = {};
 
-  const DetailSnapshot = (sequelize.define(
+  const DetailSnapshot = sequelize.define(
     name,
     attributes,
     options
-  ) as unknown) as DetailSnapshotStatic;
+  ) as unknown as DetailSnapshotStatic;
 
   const models = sequelize.models;
 
