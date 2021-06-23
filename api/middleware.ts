@@ -23,7 +23,7 @@ import {
   ValidationChain,
   ValidationChainBuilder,
   validationResult,
-  ValidatorOptions,
+  ValidatorOptions
 } from "express-validator/check";
 import models, { ModelStaticCommon } from "../models";
 import { format } from "util";
@@ -49,7 +49,7 @@ const getModelById = function <T>(
 };
 
 const getModelByName = function <T>(
-  modelType: ModelStaticCommon<T>,  
+  modelType: ModelStaticCommon<T>,
   fieldName: string,
   checkFunc: ValidationChainBuilder
 ): ValidationChain {
@@ -85,57 +85,56 @@ function modelTypeName(modelType: ModelStaticCommon<any>): string {
 }
 
 const ID_OR_ID_ARRAY_REGEXP = /^\[[0-9,]+\]$|^[0-9]+$/;
-const ID_OR_ID_ARRAY_MESSAGE = "Must be an id, or an array of ids.  For example, '32' or '[32, 33, 34]'";
+const ID_OR_ID_ARRAY_MESSAGE =
+  "Must be an id, or an array of ids.  For example, '32' or '[32, 33, 34]'";
 
-export const toIdArray = function (fieldName: string) : ValidationChain {
+export const toIdArray = function (fieldName: string): ValidationChain {
   return query(fieldName, ID_OR_ID_ARRAY_MESSAGE)
     .matches(ID_OR_ID_ARRAY_REGEXP)
     .customSanitizer((value) => convertToIdArray(value));
-}
+};
 
-const convertToIdArray = function(idsAsString: string) : number[] {
+const convertToIdArray = function (idsAsString: string): number[] {
   if (idsAsString) {
     try {
       const val = JSON.parse(idsAsString);
       if (Array.isArray(val)) {
         return val;
-      }
-      else {
+      } else {
         return [val];
       }
-    }
-    catch (error) {
-
-    }
-  } 
+    } catch (error) {}
+  }
   return [];
-}
+};
 
-export const isInteger  = function (fieldName: string, range: ValidatorOptions.IsIntOptions) : ValidationChain {
+export const isInteger = function (
+  fieldName: string,
+  range: ValidatorOptions.IsIntOptions
+): ValidationChain {
   // add an actually useful error to this isInt check
   const error = `Parameter '${fieldName}' must be an integer between ${range.min} and ${range.max}`;
   return query("page-size", error).isInt(range);
-} 
+};
 
-export const toDate  = function (fieldName: string) : ValidationChain {
+export const toDate = function (fieldName: string): ValidationChain {
   return query(fieldName, DATE_ERROR)
-    .customSanitizer((value) =>{
+    .customSanitizer((value) => {
       return getAsDate(value);
     })
     .isInt();
-} 
+};
 
-const getAsDate = function(dateAsString: string) : number {
+const getAsDate = function (dateAsString: string): number {
   try {
-    console.log("date is " + dateAsString );
+    console.log("date is " + dateAsString);
     return Date.parse(dateAsString);
-  }
-  catch (error) {
-  }
+  } catch (error) {}
   return NaN;
-}
+};
 
-const DATE_ERROR = "Must be a date or timestamp.   For example, '2017-11-13' or '2017-11-13T00:47:51.160Z'."
+const DATE_ERROR =
+  "Must be a date or timestamp.   For example, '2017-11-13' or '2017-11-13T00:47:51.160Z'.";
 
 const isDateArray = function (fieldName: string, customError): ValidationChain {
   return body(fieldName, customError)

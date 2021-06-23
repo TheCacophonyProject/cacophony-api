@@ -8,14 +8,19 @@ import { checkRecording } from "./recordings";
 
 Cypress.Commands.add(
   "apiUploadStations",
-  (user: string, group: string, stations: CreateStationData[], updateFrom? : Date) => {
+  (
+    user: string,
+    group: string,
+    stations: CreateStationData[],
+    updateFrom?: Date
+  ) => {
     logTestDescription(
       `Add stations ${prettyLog(stations)} to group '${group}' `,
       { user, group, stations, updateFrom }
     );
 
     const actualGroup = getTestName(group);
-    const body : {[key: string]: string} = {
+    const body: { [key: string]: string } = {
       stations: JSON.stringify(stations)
     };
     if (updateFrom) {
@@ -52,23 +57,29 @@ Cypress.Commands.add(
   { prevSubject: true },
   (subject, user: string, station: string) => {
     checkStationIs(user, subject, station);
-  });
-    
-Cypress.Commands.add("checkRecordingsStationIs", (user:string, station:string) => {
-  checkStationIs(user, 0, station);
-});
+  }
+);
 
-function checkStationIs(user:string, recId: number, station:string) {
-  const text = station === "" ? "not assigned to a station" : `assigned to station '${station}'`;
+Cypress.Commands.add(
+  "checkRecordingsStationIs",
+  (user: string, station: string) => {
+    checkStationIs(user, 0, station);
+  }
+);
+
+function checkStationIs(user: string, recId: number, station: string) {
+  const text =
+    station === ""
+      ? "not assigned to a station"
+      : `assigned to station '${station}'`;
   logTestDescription(`and check recording is ${text}`, {
-    user,
+    user
   });
-  checkRecording(user, recId, (recording => {
+  checkRecording(user, recId, (recording) => {
     if (recording.Station) {
-      expect (recording.Station.name).equals(station); 
+      expect(recording.Station.name).equals(station);
+    } else {
+      expect("").equals(station);
     }
-    else {
-      expect ("").equals(station);
-    }
-  }));
-};
+  });
+}

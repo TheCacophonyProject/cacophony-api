@@ -13,13 +13,35 @@ describe("Monitoring : pagings", () => {
     const camera = "basic";
 
     cy.apiCreateCamera(camera, group);
-    cy.uploadRecordingsAtTimes(camera, ["21:03", "21:23", "21:43", "22:03", "22:23", "22:43", "23:03"]);
+    cy.uploadRecordingsAtTimes(camera, [
+      "21:03",
+      "21:23",
+      "21:43",
+      "22:03",
+      "22:23",
+      "22:43",
+      "23:03"
+    ]);
 
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{start: "22:23"}, {start: "22:43"}, {start: "23:03"}]);
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 2}, [{start: "21:23"}, {start: "21:43"}, {start: "22:03"}]);
-    cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 3}, [{start: "21:03"}]);
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 1 },
+      [{ start: "22:23" }, { start: "22:43" }, { start: "23:03" }]
+    );
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 2 },
+      [{ start: "21:23" }, { start: "21:43" }, { start: "22:03" }]
+    );
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 3 },
+      [{ start: "21:03" }]
+    );
   });
-
 
   it("visits can finish for some cameras beyond the start time for others", () => {
     const Henry = "Henry";
@@ -32,8 +54,14 @@ describe("Monitoring : pagings", () => {
     cy.uploadRecordingsAtTimes(camera1, ["21:03", "21:14", "21:25"]);
     cy.uploadRecordingsAtTimes(camera2, ["21:13", "21:18", "21:27"]); // all one visit
 
-    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 1}, [{ recordings : 3,  start: "21:13",}, { recordings: 1, start: "21:14"}, { recordings: 1, start: "21:25"}]);
-    cy.checkMonitoringWithFilter(Henry, null, {"page-size": 3, page: 2}, [{ recordings : 1, start: "21:03"}]);
+    cy.checkMonitoringWithFilter(Henry, null, { "page-size": 3, page: 1 }, [
+      { recordings: 3, start: "21:13" },
+      { recordings: 1, start: "21:14" },
+      { recordings: 1, start: "21:25" }
+    ]);
+    cy.checkMonitoringWithFilter(Henry, null, { "page-size": 3, page: 2 }, [
+      { recordings: 1, start: "21:03" }
+    ]);
   });
 
   it("visits can start at exactly the same time on multiple cameras and paging still works (even if all pages won't be equal size).", () => {
@@ -52,32 +80,60 @@ describe("Monitoring : pagings", () => {
     cy.uploadRecording(camera3, { time: visitTime });
     cy.uploadRecording(camera1, { time: nextVisitTime });
 
-    cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 2}, [{ start: visitTime}, { start: visitTime}, { start: visitTime}]);
-    cy.checkMonitoringWithFilter(Bobletta, null, {"page-size": 2, page: 1}, [{ start: nextVisitTime}]);
+    cy.checkMonitoringWithFilter(Bobletta, null, { "page-size": 2, page: 2 }, [
+      { start: visitTime },
+      { start: visitTime },
+      { start: visitTime }
+    ]);
+    cy.checkMonitoringWithFilter(Bobletta, null, { "page-size": 2, page: 1 }, [
+      { start: nextVisitTime }
+    ]);
   });
 
   it("visits that start before search period but cross into search period are only shown on the last page", () => {
     const camera = "close recordings";
     cy.apiCreateCamera(camera, group);
-    cy.uploadRecordingsAtTimes(camera, ["21:03", "21:13", "21:40", "21:45", "22:10", "22:40", "23:10"]);
+    cy.uploadRecordingsAtTimes(camera, [
+      "21:03",
+      "21:13",
+      "21:40",
+      "21:45",
+      "22:10",
+      "22:40",
+      "23:10"
+    ]);
 
-    cy.checkMonitoringWithFilter(Veronica, 
-      camera, 
-      {"page-size": 3, page: 1, from: "21:10"}, 
-      [{ start: "22:10"}, { start: "22:40"}, { start: "23:10"}]);
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 1, from: "21:10" },
+      [{ start: "22:10" }, { start: "22:40" }, { start: "23:10" }]
+    );
 
-    cy.checkMonitoringWithFilter(Veronica, camera, 
-      {"page-size": 3, page: 2, from: "21:10"}, 
-      [{ start: "21:03", incomplete: "true"}, {start: "21:40"}]);
-    });
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 2, from: "21:10" },
+      [{ start: "21:03", incomplete: "true" }, { start: "21:40" }]
+    );
+  });
 
-    it("paging is correct even when time limit is only met by taking duration of video into account.", () => {
-      const camera = "visits-not-just-start";
-      cy.apiCreateCamera(camera, group);
+  it("paging is correct even when time limit is only met by taking duration of video into account.", () => {
+    const camera = "visits-not-just-start";
+    cy.apiCreateCamera(camera, group);
 
-      cy.uploadRecording(camera, { time: "21:03", duration: 62 });
-      cy.uploadRecordingsAtTimes(camera, ["21:14", "21:50", "22:20"]);
-  
-      cy.checkMonitoringWithFilter(Veronica, camera, {"page-size": 3, page: 1}, [{ recordings : 2,  start: "21:03",}, { start: "21:50"}, { start: "22:20"}]);
-    });
+    cy.uploadRecording(camera, { time: "21:03", duration: 62 });
+    cy.uploadRecordingsAtTimes(camera, ["21:14", "21:50", "22:20"]);
+
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 1 },
+      [
+        { recordings: 2, start: "21:03" },
+        { start: "21:50" },
+        { start: "22:20" }
+      ]
+    );
+  });
 });
