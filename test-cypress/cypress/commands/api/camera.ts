@@ -38,18 +38,13 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "apiCreateCamera",
-  (
-    cameraName: string,
-    group: string,
-    saltId: string = null,
-    log = true,
-  ) => {
+  (cameraName: string, group: string, saltId: string = null, log = true) => {
     logTestDescription(
       `Create camera '${cameraName}' in group '${group}'`,
       {
         camera: cameraName,
         group: group,
-        saltId: saltId,
+        saltId: saltId
       },
       log
     );
@@ -69,18 +64,23 @@ Cypress.Commands.add(
     group: string,
     saltId: string = null,
     makeCameraATestName = true,
-    log = true,
+    log = true
   ) => {
     logTestDescription(
       `Check that user cannot create camera '${cameraName}' in group '${group} '`,
       {
         camera: cameraName,
         group: group,
-        saltId: saltId,
+        saltId: saltId
       },
       log
     );
-    const request = createCameraDetails(cameraName, group, saltId, makeCameraATestName);
+    const request = createCameraDetails(
+      cameraName,
+      group,
+      saltId,
+      makeCameraATestName
+    );
     checkRequestFails(request);
   }
 );
@@ -89,7 +89,7 @@ function createCameraDetails(
   cameraName: string,
   group: string,
   saltId: string = null,
-  makeCameraNameTestName = true,
+  makeCameraNameTestName = true
 ): any {
   const fullName = makeCameraNameTestName
     ? getTestName(cameraName)

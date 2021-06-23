@@ -50,6 +50,7 @@ class TestFileProcessing:
         check_recording(user, recording, processingState="FINISHED")
 
     def test_thermal_video_with_meta(self, helper, file_processing):
+        self.process_all_recordings(file_processing)
         user = helper.admin_user()
 
         track_meta = {

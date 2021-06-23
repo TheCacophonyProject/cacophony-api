@@ -13,7 +13,7 @@ python:
 install:
   - npm install -g apidoc@0.20.0
   - npm run apidoc
-  - npm install -g eslint 
+  - npm install -g eslint
   # global eslint uses local plugins
   - npm install eslint-plugin-cypress eslint-plugin-no-only-tests
   - sudo apt update
@@ -26,6 +26,7 @@ install:
 script:
  - npm run lint
  - black --diff --check ./test
+ - find . -regextype posix-extended -regex '.*\.(ts|js)$' | egrep -v "(./node_modules/*|./apidoc*|package*.js)" | xargs npx prettier --check  || (echo "Please run './beautify.sh' to clean up formatting of files."; false)
  - ./wait-for-api || { docker ps; docker-compose logs; exit 1; }
 # Apply migration undo and redo to test undo migration
  - docker-compose exec server /app/node_modules/.bin/sequelize db:migrate:undo --config /app/config/app_test_default.js --migrations-path /app/migrations
@@ -37,7 +38,7 @@ script:
  - cd ..
 
  - cd test-cypress
- - cp cypress.json.TEMPLATE cypress.json 
+ - cp cypress.json.TEMPLATE cypress.json
  - npm install
  - npm run release
  - cd ..

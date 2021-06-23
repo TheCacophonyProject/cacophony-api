@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { User } from "../../models/User";
-import {QueryTypes} from "sequelize";
+import { QueryTypes } from "sequelize";
 import models from "../../models";
 
 const GROUPS_AND_DEVICES = "GROUPS_AND_DEVICES";
@@ -51,132 +51,167 @@ order by "recordingDateTime" desc
 {${PAGING}}`;
 
 export interface MonitoringParams {
-    user : User;
-    groups? : number[];
-    devices? : number[];
-    from? : Date;
-    until? : Date;
-    page : number;
-    pageSize: number;
+  user: User;
+  groups?: number[];
+  devices?: number[];
+  from?: Date;
+  until?: Date;
+  page: number;
+  pageSize: number;
 }
 
 export interface MonitoringPageCriteria {
-    compareAi: string;
-    devices? : number[];
-    groups? : number[];
-    page: number,
-    pagesEstimate: number,
-    pageFrom?: Date;
-    pageUntil?: Date;
-    searchFrom?: Date;
-    searchUntil?: Date;
+  compareAi: string;
+  devices?: number[];
+  groups?: number[];
+  page: number;
+  pagesEstimate: number;
+  pageFrom?: Date;
+  pageUntil?: Date;
+  searchFrom?: Date;
+  searchUntil?: Date;
 }
 
-
-export async function calculateMonitoringPageCriteria(params : MonitoringParams, viewAsSuperAdmin: boolean) : Promise<MonitoringPageCriteria> {
-    return getDatesForSearch(params, viewAsSuperAdmin);
+export async function calculateMonitoringPageCriteria(
+  params: MonitoringParams,
+  viewAsSuperAdmin: boolean
+): Promise<MonitoringPageCriteria> {
+  return getDatesForSearch(params, viewAsSuperAdmin);
 }
 
-async function getDatesForSearch(params: MonitoringParams, viewAsSuperAdmin: boolean) : Promise<MonitoringPageCriteria> {
-    
-    const replacements = {
-        GROUPS_AND_DEVICES : makeGroupsAndDevicesCriteria(params.devices, params.groups),
-        USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(params.user, viewAsSuperAdmin),
-        DATE_SELECTION: makeDatesCriteria(params),
-        PAGING: null
-    }
+async function getDatesForSearch(
+  params: MonitoringParams,
+  viewAsSuperAdmin: boolean
+): Promise<MonitoringPageCriteria> {
+  const replacements = {
+    GROUPS_AND_DEVICES: makeGroupsAndDevicesCriteria(
+      params.devices,
+      params.groups
+    ),
+    USER_PERMISSIONS: await makeGroupsAndDevicesPermissions(
+      params.user,
+      viewAsSuperAdmin
+    ),
+    DATE_SELECTION: makeDatesCriteria(params),
+    PAGING: null
+  };
 
-    const countRet = await models.sequelize.query(replaceInSQL(VISITS_COUNT_SQL, replacements), { type: QueryTypes.SELECT });
-    const approxVisitCount = parseInt(countRet[0].count);
-    const returnVal = createPageCriteria(params, approxVisitCount);
+  const countRet = await models.sequelize.query(
+    replaceInSQL(VISITS_COUNT_SQL, replacements),
+    { type: QueryTypes.SELECT }
+  );
+  const approxVisitCount = parseInt(countRet[0].count);
+  const returnVal = createPageCriteria(params, approxVisitCount);
 
-    if (approxVisitCount < params.pageSize) {
+  if (approxVisitCount < params.pageSize) {
+    returnVal.pageFrom = returnVal.searchFrom;
+    returnVal.pageUntil = returnVal.searchUntil;
+  } else if (params.page <= returnVal.pagesEstimate) {
+    const limit: number = Number(params.pageSize) + 1;
+    const offset: number = (params.page - 1) * params.pageSize;
+    replacements.PAGING = ` LIMIT ${limit} OFFSET ${offset}`;
+    const results = await models.sequelize.query(
+      replaceInSQL(VISIT_STARTS_SQL, replacements),
+      { type: QueryTypes.SELECT }
+    );
+
+    if (results.length > 0) {
+      returnVal.pageUntil =
+        params.page == 1 ? returnVal.searchUntil : results[0].recordingDateTime;
+      if (params.page < returnVal.pagesEstimate) {
+        returnVal.pageFrom = results[results.length - 1].recordingDateTime;
+      } else {
         returnVal.pageFrom = returnVal.searchFrom;
-        returnVal.pageUntil = returnVal.searchUntil;        
-    } else if (params.page <= returnVal.pagesEstimate ) {
-        const limit : number = Number(params.pageSize) + 1;
-        const offset : number = (params.page - 1) * params.pageSize;
-        replacements.PAGING = ` LIMIT ${ limit } OFFSET ${ offset }`;
-        const results = await models.sequelize.query(replaceInSQL(VISIT_STARTS_SQL, replacements), { type: QueryTypes.SELECT });
+      }
+    }
+  }
 
-        if (results.length > 0) {
-            returnVal.pageUntil = (params.page == 1) ? returnVal.searchUntil : results[0].recordingDateTime;
-            if (params.page < returnVal.pagesEstimate) {
-                returnVal.pageFrom = results[results.length - 1].recordingDateTime;
-            } else {
-                returnVal.pageFrom = returnVal.searchFrom;
-            }
-        }
-    } 
-
-    return returnVal;
+  return returnVal;
 }
 
-function createPageCriteria(params: MonitoringParams, count: number) : MonitoringPageCriteria {
-    const criteria : MonitoringPageCriteria = {
-        page: params.page,
-        pagesEstimate: Math.ceil(count / params.pageSize),
-        searchFrom: params.from || BEFORE_CACOPHONY, 
-        searchUntil: params.until || new Date(), 
-        compareAi: "Master"
-    }
+function createPageCriteria(
+  params: MonitoringParams,
+  count: number
+): MonitoringPageCriteria {
+  const criteria: MonitoringPageCriteria = {
+    page: params.page,
+    pagesEstimate: Math.ceil(count / params.pageSize),
+    searchFrom: params.from || BEFORE_CACOPHONY,
+    searchUntil: params.until || new Date(),
+    compareAi: "Master"
+  };
 
-    if (params.devices) {
-        criteria.devices = params.devices;
-    }
+  if (params.devices) {
+    criteria.devices = params.devices;
+  }
 
-    if (params.groups) {
-        criteria.groups = params.groups;
-    }
+  if (params.groups) {
+    criteria.groups = params.groups;
+  }
 
-    return criteria;
+  return criteria;
 }
 
-function replaceInSQL(sql: string, replacements: { [key: string]: string} ) : string {
-    for (const key in replacements) {
-        const regexp = new RegExp(`\{${key}\}`, 'g');
-        sql = sql.replace(`{${key}}`, replacements[key]);
-    };
-    return sql;
+function replaceInSQL(
+  sql: string,
+  replacements: { [key: string]: string }
+): string {
+  for (const key in replacements) {
+    const regexp = new RegExp(`\{${key}\}`, "g");
+    sql = sql.replace(`{${key}}`, replacements[key]);
+  }
+  return sql;
 }
 
-function makeGroupsAndDevicesCriteria(deviceIds?: number[], groupIds?: number[]): string {
-    const devString = deviceIds && deviceIds.length > 0 ? `"DeviceId" IN (${deviceIds.join(",")})` : null;
-    const grpString = groupIds && groupIds.length > 0 ? `"GroupId" IN (${groupIds.join(",")})` : null;
+function makeGroupsAndDevicesCriteria(
+  deviceIds?: number[],
+  groupIds?: number[]
+): string {
+  const devString =
+    deviceIds && deviceIds.length > 0
+      ? `"DeviceId" IN (${deviceIds.join(",")})`
+      : null;
+  const grpString =
+    groupIds && groupIds.length > 0
+      ? `"GroupId" IN (${groupIds.join(",")})`
+      : null;
 
-    if (devString && grpString) {
-        return ` and (${devString} or ${grpString})`;
-    }
-    else if (devString) {
-        return ` and ${devString}`;
-    }
-    else if (grpString) {
-        return ` and ${grpString}`;
-    }
-    
-    return "";
+  if (devString && grpString) {
+    return ` and (${devString} or ${grpString})`;
+  } else if (devString) {
+    return ` and ${devString}`;
+  } else if (grpString) {
+    return ` and ${grpString}`;
+  }
+
+  return "";
 }
 
-function makeDatesCriteria(params : MonitoringParams) : string {
-    const fromCondition = (params.from) ? ` AND "recordingDateTime" > '${toPgDate(params.from)}' ` : "";  
-    const untilCondition = (params.until) ? ` AND "recordingDateTime" < '${toPgDate(params.until)}' ` : "";
-    return fromCondition + untilCondition;
+function makeDatesCriteria(params: MonitoringParams): string {
+  const fromCondition = params.from
+    ? ` AND "recordingDateTime" > '${toPgDate(params.from)}' `
+    : "";
+  const untilCondition = params.until
+    ? ` AND "recordingDateTime" < '${toPgDate(params.until)}' `
+    : "";
+  return fromCondition + untilCondition;
 }
 
 function toPgDate(date: Date): string {
-    return date.toISOString().replace('T',' ').replace('Z',' +00:00');
+  return date.toISOString().replace("T", " ").replace("Z", " +00:00");
 }
 
+async function makeGroupsAndDevicesPermissions(
+  user: User,
+  viewAsSuperAdmin: boolean
+): Promise<string> {
+  if (user.hasGlobalRead() && viewAsSuperAdmin) {
+    return "";
+  }
 
-async function makeGroupsAndDevicesPermissions(user: User, viewAsSuperAdmin: boolean): Promise<string> {
-    if (user.hasGlobalRead() && viewAsSuperAdmin) {
-        return "";
-    }
-
-    const [deviceIds, groupIds] = await Promise.all([
-        user.getDeviceIds(),
-        user.getGroupsIds()
-    ]);
-    return makeGroupsAndDevicesCriteria(deviceIds, groupIds);
+  const [deviceIds, groupIds] = await Promise.all([
+    user.getDeviceIds(),
+    user.getGroupsIds()
+  ]);
+  return makeGroupsAndDevicesCriteria(deviceIds, groupIds);
 }
-

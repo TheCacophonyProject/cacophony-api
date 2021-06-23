@@ -27,5 +27,5 @@ export function initializeTestNames(uniqueId = "") {
 
 export function stripBackName(testName: string) {
   const uniqueId = Cypress.config("env")[uniqueIdName];
-  return testName.substring(3,  testName.length - uniqueId.length - 1);
+  return testName.substring(3, testName.length - uniqueId.length - 1);
 }
