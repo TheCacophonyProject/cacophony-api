@@ -153,11 +153,11 @@ export default function (
     }
   };
 
-  const Device = (sequelize.define(
+  const Device = sequelize.define(
     name,
     attributes,
     options
-  ) as unknown) as DeviceStatic;
+  ) as unknown as DeviceStatic;
 
   //---------------
   // CLASS METHODS
@@ -396,10 +396,8 @@ export default function (
     //  This happens to work when both the inserter and the DB are in the same timezone, but otherwise will
     //  lead to spurious values.  Need to standardize input time.
 
-    const [
-      result,
-      _extra
-    ] = await sequelize.query(`select round((avg(cacophony_index.scores))::numeric, 2) as cacophony_index from
+    const [result, _extra] =
+      await sequelize.query(`select round((avg(cacophony_index.scores))::numeric, 2) as cacophony_index from
 (select
 	(jsonb_array_elements("additionalMetadata"->'analysis'->'cacophony_index')->>'index_percent')::float as scores
 from
@@ -554,14 +552,12 @@ order by hour;
       return AccessLevel.Admin;
     }
 
-    const groupAccessLevel = await (models.GroupUsers as GroupUsersStatic).getAccessLevel(
-      this.GroupId,
-      user.id
-    );
-    const deviceAccessLevel = await (models.DeviceUsers as DeviceUsersStatic).getAccessLevel(
-      this.id,
-      user.id
-    );
+    const groupAccessLevel = await (
+      models.GroupUsers as GroupUsersStatic
+    ).getAccessLevel(this.GroupId, user.id);
+    const deviceAccessLevel = await (
+      models.DeviceUsers as DeviceUsersStatic
+    ).getAccessLevel(this.id, user.id);
     return Math.max(groupAccessLevel, deviceAccessLevel);
   };
 

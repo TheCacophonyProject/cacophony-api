@@ -52,7 +52,7 @@ export default function (app: Application, baseUrl: string) {
       middleware.getGroupByName(body),
       middleware.isValidName(body, "devicename"),
       middleware.checkNewPassword("password"),
-      body("saltId").optional().isInt(),
+      body("saltId").optional().isInt()
     ],
     middleware.requestWrapper(async (request, response) => {
       if (

@@ -237,7 +237,7 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.queryVisits(
-          (request as unknown) as RecordingQuery
+          request as unknown as RecordingQuery
         );
         responseUtil.send(response, {
           statusCode: 200,
@@ -277,7 +277,7 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.query(
-          (request as unknown) as RecordingQuery
+          request as unknown as RecordingQuery
         );
         responseUtil.send(response, {
           statusCode: 200,
@@ -403,7 +403,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
-   * @apiParam {boolean} [audiobait] To add audiobait to a recording query set this to true. 
+   * @apiParam {boolean} [audiobait] To add audiobait to a recording query set this to true.
    * @apiUse FilterOptions
    * @apiUse V1ResponseError
    */
@@ -455,13 +455,8 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("filterOptions", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const {
-        recording,
-        rawSize,
-        rawJWT,
-        cookedSize,
-        cookedJWT
-      } = await recordingUtil.get(request);
+      const { recording, rawSize, rawJWT, cookedSize, cookedJWT } =
+        await recordingUtil.get(request);
 
       responseUtil.send(response, {
         statusCode: 200,

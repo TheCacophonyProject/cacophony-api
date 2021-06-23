@@ -49,7 +49,10 @@ function sortTracks(tracks: Track[]) {
 
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
-export function getTrackTag(trackTags: TrackTag[], userID: number): TrackTag | null {
+export function getTrackTag(
+  trackTags: TrackTag[],
+  userID: number
+): TrackTag | null {
   if (trackTags.length == 0) {
     return null;
   }
@@ -118,7 +121,6 @@ class DeviceSummary {
       for (var i = device.visits.length - 1; i >= 0; i--) {
         const visit = device.visits[i];
         if (visit.complete) {
-        
           break;
         }
         if (offset == null) {

@@ -21,7 +21,7 @@ declare namespace Cypress {
       cameraName: string,
       group: string,
       saltId?: string,
-      log?: boolean,
+      log?: boolean
     ): Chainable<Element>;
 
     /**
@@ -34,7 +34,7 @@ declare namespace Cypress {
       group: string,
       saltId?: string,
       makeCameraNameTestName?: boolean,
-      log?: boolean,
+      log?: boolean
     ): Chainable<Element>;
   }
 }
