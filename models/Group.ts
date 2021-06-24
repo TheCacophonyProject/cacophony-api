@@ -470,7 +470,7 @@ export default function (sequelize, DataTypes): GroupStatic {
           //  past 24 hours.
           // TODO(jon): Remove this once we have updated the front-end to use
           //  QueryRecordingsCount for the devices home page.
-          attributes: ["id", "devicename"],
+          attributes: ["id", "devicename"]
         }
       ]
     }).then((groups) => {

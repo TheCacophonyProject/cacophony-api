@@ -129,24 +129,26 @@ export default function (app: Application, baseUrl: string) {
      *
      * @apiUse V1ResponseError
      */
-    app.get(
-        apiUrl + "/page",
-        [auth.authenticateUser,
-        toIdArray("devices").optional(),
-        toIdArray("groups").optional(),
-        toDate("from").optional(),
-        toDate("until").optional(),
-        isInteger("page", {min: 1, max: 10000}),
-        isInteger("page-size", {min: 1, max: 100}),
-        middleware.isValidName(query, "ai").optional()],
-        middleware.viewMode(),
-        middleware.requestWrapper(
-        async (request: e.Request, response: e.Response) => {
-            const user = (request as any).user;
-            const params : MonitoringParams  = {
-               user,
-               devices: request.query.devices as unknown[] as number[],
-               groups: request.query.groups as unknown[] as number[],
+  app.get(
+    apiUrl + "/page",
+    [
+      auth.authenticateUser,
+      toIdArray("devices").optional(),
+      toIdArray("groups").optional(),
+      toDate("from").optional(),
+      toDate("until").optional(),
+      isInteger("page", { min: 1, max: 10000 }),
+      isInteger("page-size", { min: 1, max: 100 }),
+      middleware.isValidName(query, "ai").optional()
+    ],
+    middleware.viewMode(),
+    middleware.requestWrapper(
+      async (request: e.Request, response: e.Response) => {
+        const user = (request as any).user;
+        const params: MonitoringParams = {
+          user,
+          devices: request.query.devices as unknown[] as number[],
+          groups: request.query.groups as unknown[] as number[],
           page: Number(request.query.page),
           pageSize: Number(request.query["page-size"])
         };
@@ -164,7 +166,7 @@ export default function (app: Application, baseUrl: string) {
           params,
           viewAsSuperAdmin
         );
-        searchDetails.compareAi = request.query["ai"] as string || "Master";
+        searchDetails.compareAi = (request.query["ai"] as string) || "Master";
 
         const visits = await generateVisits(
           user,

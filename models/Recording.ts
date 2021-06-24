@@ -20,7 +20,7 @@ import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
 import assert from "assert";
-import {v4 as uuidv4} from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import config from "../config";
 import util from "./util/util";
 import validation from "./util/validation";
@@ -40,9 +40,7 @@ import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
 import { Station, StationId } from "./Station";
-import {
-  tryToMatchRecordingToStation
-} from "../api/V1/recordingUtil";
+import { tryToMatchRecordingToStation } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;

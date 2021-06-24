@@ -20,13 +20,13 @@ import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
 import moment from "moment";
 import urljoin from "url-join";
-import {ClientError} from "../customErrors";
+import { ClientError } from "../customErrors";
 import config from "../../config";
 import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import {
   AudioRecordingMetadata,
   Recording,
@@ -36,14 +36,20 @@ import {
   RecordingType,
   TagMode
 } from "../../models/Recording";
-import {Event, QueryOptions} from "../../models/Event";
-import {User} from "../../models/User";
-import {Order} from "sequelize";
-import {FileId} from "../../models/File";
-import {DeviceSummary, DeviceVisitMap, Visit, VisitEvent, VisitSummary} from "./Visits";
-import {Station} from "../../models/Station";
+import { Event, QueryOptions } from "../../models/Event";
+import { User } from "../../models/User";
+import { Order } from "sequelize";
+import { FileId } from "../../models/File";
+import {
+  DeviceSummary,
+  DeviceVisitMap,
+  Visit,
+  VisitEvent,
+  VisitSummary
+} from "./Visits";
+import { Station } from "../../models/Station";
 import modelsUtil from "../../models/util/util";
-import {dynamicImportESM} from "../../dynamic-import-esm";
+import { dynamicImportESM } from "../../dynamic-import-esm";
 
 // @ts-ignore
 export interface RecordingQuery extends Request {
@@ -104,7 +110,10 @@ export async function tryToMatchRecordingToStation(
   for (const station of stations) {
     // See if any stations match: Looking at the location distance between this recording and the stations.
     let recordingCoords = recording.location;
-    if (!Array.isArray(recordingCoords) && recordingCoords.hasOwnProperty("coordinates")) {
+    if (
+      !Array.isArray(recordingCoords) &&
+      recordingCoords.hasOwnProperty("coordinates")
+    ) {
       recordingCoords = recordingCoords.coordinates;
     }
     const distanceToStation = latLngApproxDistance(
@@ -147,18 +156,20 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (data.type === "thermalRaw") {
       // Read the file back out from s3 and decode/parse it.
       const fileData = await modelsUtil
-          .openS3()
-          .getObject({
-            Bucket: config.s3.bucket,
-            Key: key,
-          })
-          .promise()
-          .catch((err) => {
-            return err;
-          });
-      const {CptvDecoder} = await dynamicImportESM("cptv-decoder");
+        .openS3()
+        .getObject({
+          Bucket: config.s3.bucket,
+          Key: key
+        })
+        .promise()
+        .catch((err) => {
+          return err;
+        });
+      const { CptvDecoder } = await dynamicImportESM("cptv-decoder");
       const decoder = new CptvDecoder();
-      const metadata = await decoder.getBytesMetadata(new Uint8Array(fileData.Body));
+      const metadata = await decoder.getBytesMetadata(
+        new Uint8Array(fileData.Body)
+      );
       // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
       fileIsCorrupt = await decoder.hasStreamError();
       if (fileIsCorrupt) {
@@ -166,31 +177,40 @@ function makeUploadHandler(mungeData?: (any) => any) {
       }
       decoder.close();
 
-      if (!data.hasOwnProperty("location") && metadata.latitude && metadata.longitude) {
+      if (
+        !data.hasOwnProperty("location") &&
+        metadata.latitude &&
+        metadata.longitude
+      ) {
         // @ts-ignore
         recording.location = [metadata.latitude, metadata.longitude];
       }
-      if ((!data.hasOwnProperty("duration") && metadata.duration) || (Number(data.duration) === 321 && metadata.duration)) {
+      if (
+        (!data.hasOwnProperty("duration") && metadata.duration) ||
+        (Number(data.duration) === 321 && metadata.duration)
+      ) {
         // NOTE: Hack to make tests pass, but not allow sidekick uploads to set a spurious duration.
         //  A solid solution will disallow all of these fields that should come from the CPTV file as
         //  API settable metadata, and require tests to construct CPTV files with correct metadata.
         recording.duration = metadata.duration;
       }
       if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
-        recording.recordingDateTime = new Date(metadata.timestamp / 1000).toISOString();
+        recording.recordingDateTime = new Date(
+          metadata.timestamp / 1000
+        ).toISOString();
       }
       if (!data.hasOwnProperty("additionalMetadata") && metadata.previewSecs) {
         // NOTE: Algorithm property gets filled in later by AI
         recording.additionalMetadata = {
           previewSecs: metadata.previewSecs,
-          totalFrames: metadata.totalFrames,
+          totalFrames: metadata.totalFrames
         };
       }
       if (data.hasOwnProperty("additionalMetadata")) {
         recording.additionalMetadata = {
           ...data.additionalMetadata,
-          ...recording.additionalMetadata,
-        }
+          ...recording.additionalMetadata
+        };
       }
     }
 
@@ -219,7 +239,7 @@ function makeUploadHandler(mungeData?: (any) => any) {
     } else {
       if (!fileIsCorrupt) {
         recording.processingState = models.Recording.uploadedState(
-            data.type as RecordingType
+          data.type as RecordingType
         );
       } else {
         // Mark the recording as corrupt for future investigation, and so it doesn't get picked up by the pipeline.

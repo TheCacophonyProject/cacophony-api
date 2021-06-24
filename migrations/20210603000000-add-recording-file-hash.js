@@ -5,8 +5,7 @@ module.exports = {
       queryInterface.changeColumn("Recordings", "duration", {
         type: Sequelize.FLOAT
       }),
-      queryInterface.addColumn("Recordings", "rawFileHash", Sequelize.STRING),
-
+      queryInterface.addColumn("Recordings", "rawFileHash", Sequelize.STRING)
     ]);
   },
 
