@@ -16,18 +16,21 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import middleware, { toIdArray, toDate, isInteger }  from "../middleware";
+import middleware, { toIdArray, toDate, isInteger } from "../middleware";
 import auth from "../auth";
 import e, { Application } from "express";
-import {calculateMonitoringPageCriteria, MonitoringParams}  from "./monitoringPage";
-import {generateVisits}  from "./monitoringVisit";
+import {
+  calculateMonitoringPageCriteria,
+  MonitoringParams
+} from "./monitoringPage";
+import { generateVisits } from "./monitoringVisit";
 import responseUtil from "./responseUtil";
 import { query } from "express-validator/check";
 
 export default function (app: Application, baseUrl: string) {
   const apiUrl = `${baseUrl}/monitoring`;
 
-    /**
+  /**
      * @api {get} /api/v1/monitoring/page Get visits page
      * @apiName MonitoringPage
      * @apiGroup Monitoring
@@ -144,32 +147,38 @@ export default function (app: Application, baseUrl: string) {
                user,
                devices: request.query.devices as unknown[] as number[],
                groups: request.query.groups as unknown[] as number[],
-               page: Number(request.query.page),
-               pageSize: Number(request.query["page-size"])
-            }
+          page: Number(request.query.page),
+          pageSize: Number(request.query["page-size"])
+        };
 
-            if (request.query.from) {
-                params.from = new Date(request.query.from as string);
-            }
-
-            if (request.query.until) {
-                params.until = new Date(request.query.until as string);
-            }
-
-            const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
-            const searchDetails = await calculateMonitoringPageCriteria(params, viewAsSuperAdmin);
-            searchDetails.compareAi = request.query["ai"] as string || "Master";
-
-            const visits = await generateVisits(user, searchDetails, viewAsSuperAdmin);
-
-            responseUtil.send(response, {
-                statusCode: 200,
-                messages: ["Completed query."],
-                params: searchDetails,
-                visits: visits
-            });
+        if (request.query.from) {
+          params.from = new Date(request.query.from as string);
         }
-        )
-    );
-}
 
+        if (request.query.until) {
+          params.until = new Date(request.query.until as string);
+        }
+
+        const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
+        const searchDetails = await calculateMonitoringPageCriteria(
+          params,
+          viewAsSuperAdmin
+        );
+        searchDetails.compareAi = request.query["ai"] as string || "Master";
+
+        const visits = await generateVisits(
+          user,
+          searchDetails,
+          viewAsSuperAdmin
+        );
+
+        responseUtil.send(response, {
+          statusCode: 200,
+          messages: ["Completed query."],
+          params: searchDetails,
+          visits: visits
+        });
+      }
+    )
+  );
+}

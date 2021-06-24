@@ -91,17 +91,23 @@ Cypress.Commands.add("apiCreateUserGroup", (userName, group) => {
   cy.apiCreateGroup(userName, group, false);
 });
 
-Cypress.Commands.add("apiCreateGroupAndCameras", (userName, group, ...cameras) => {
-  logTestDescription(`Create group '${group}' with cameras '${prettyLog(cameras)}'`, {
-    user: userName,
-    group, 
-    cameras
-  });
-  cy.apiCreateGroup(userName, group, false);
-  cameras.forEach(camera => {
-    cy.apiCreateCamera(camera, group);
-  });
-});
+Cypress.Commands.add(
+  "apiCreateGroupAndCameras",
+  (userName, group, ...cameras) => {
+    logTestDescription(
+      `Create group '${group}' with cameras '${prettyLog(cameras)}'`,
+      {
+        user: userName,
+        group,
+        cameras
+      }
+    );
+    cy.apiCreateGroup(userName, group, false);
+    cameras.forEach((camera) => {
+      cy.apiCreateCamera(camera, group);
+    });
+  }
+);
 
 Cypress.Commands.add(
   "apiAddUserToGroup",

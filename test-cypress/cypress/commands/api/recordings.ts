@@ -11,7 +11,7 @@ import { v1ApiPath, makeAuthorizedRequest } from "../server";
 //         camera,
 //         expected
 //       });
-  
+
 //       checkRecordingsMatch(user, camera, expected);
 //     }
 //   );
@@ -23,12 +23,12 @@ import { v1ApiPath, makeAuthorizedRequest } from "../server";
 //   ) {
 
 //     let params = camera ? {where: JSON.stringify({DeviceId: getCreds(camera).id})} : {};
-    
-//     makeAuthorizedRequest( 
+
+//     makeAuthorizedRequest(
 //         {
 //             url: v1ApiPath("recordings", params),
 //         },
-//         user  
+//         user
 //     ).then((response) => {
 //       checkResponseMatches(response, expectedRecordings);
 //     });
@@ -39,24 +39,24 @@ import { v1ApiPath, makeAuthorizedRequest } from "../server";
 //     expected: ComparableRecording[]
 //   ) {
 //     const responseRecordings = response.body.rows;
-  
+
 //     expect(
 //       responseRecordings.length,
 //       `Number of recording expected to be ${responseRecordings.length}`
 //     ).to.eq(expected.length);
 //     const increasingDateResponseVisits = responseRecordings.reverse();
-  
+
 //     // pull out the bits we care about
 //     const compares: ComparableRecording[] = [];
 //     for (var i = 0; i < expected.length; i++) {
 //       const expectedRec = expected[i];
 //       const recToCompare = increasingDateResponseVisits[i];
 //       const comparableRec: ComparableRecording = {};
-  
+
 //       if (expectedRec.station != null) {
 //         comparableRec.station = (recToCompare.Station) ? recToCompare.Station.name : "";
 //       }
- 
+
 //       compares.push(comparableRec);
 //     }
 
@@ -65,23 +65,26 @@ import { v1ApiPath, makeAuthorizedRequest } from "../server";
 //     );
 //   }
 
-  export function checkRecording(user: string, recordingId: number, checkFunction: any) {
-    cy.log(`recording id is ${recordingId}`)
-    makeAuthorizedRequest( 
-      {
-        url: v1ApiPath(`recordings`)
-      },
-      user
-    ).then(response => {
-        let recordings = response.body.rows;
-        if (recordingId !== 0) {
-            recordings = recordings.filter(x => x.id == recordingId);
-        }
-        if (recordings.length > 0) {
-            checkFunction(recordings[0]);
-        }
-        else {
-            expect(recordings.length).equal(1);
-        }
-    })
-  }
+export function checkRecording(
+  user: string,
+  recordingId: number,
+  checkFunction: any
+) {
+  cy.log(`recording id is ${recordingId}`);
+  makeAuthorizedRequest(
+    {
+      url: v1ApiPath(`recordings`)
+    },
+    user
+  ).then((response) => {
+    let recordings = response.body.rows;
+    if (recordingId !== 0) {
+      recordings = recordings.filter((x) => x.id == recordingId);
+    }
+    if (recordings.length > 0) {
+      checkFunction(recordings[0]);
+    } else {
+      expect(recordings.length).equal(1);
+    }
+  });
+}

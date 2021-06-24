@@ -276,7 +276,7 @@ async function report(request: RecordingQuery) {
 }
 
 async function reportRecordings(request: RecordingQuery) {
-  const includeAudiobait : boolean = request.query.audiobait;
+  const includeAudiobait: boolean = request.query.audiobait;
   const builder = (
     await new models.Recording.queryBuilder().init(
       request.user,
@@ -337,11 +337,9 @@ async function reportRecordings(request: RecordingQuery) {
     }
   }
 
-
   const recording_url_base = config.server.recording_url_base || "";
 
-  const labels = 
-  [
+  const labels = [
     "Id",
     "Type",
     "Group",
@@ -357,22 +355,21 @@ async function reportRecordings(request: RecordingQuery) {
     "Track Count",
     "Automatic Track Tags",
     "Human Track Tags",
-    "Recording Tags",
-  ]
+    "Recording Tags"
+  ];
 
   if (includeAudiobait) {
-    labels.push("Audio Bait",
-    "Audio Bait Time",
-    "Mins Since Audio Bait",
-    "Audio Bait Volume");
+    labels.push(
+      "Audio Bait",
+      "Audio Bait Time",
+      "Mins Since Audio Bait",
+      "Audio Bait Volume"
+    );
   }
-  labels.push("URL",
-    "Cacophony Index",
-    "Species Classification");
-  
+  labels.push("URL", "Cacophony Index", "Species Classification");
+
   const out = [labels];
 
- 
   for (const r of result) {
     r.filterData(filterOptions);
 
@@ -391,10 +388,9 @@ async function reportRecordings(request: RecordingQuery) {
 
     const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
-    
     const cacophonyIndex = getCacophonyIndex(r);
     const speciesClassifications = getSpeciesIdentification(r);
-    
+
     const thisRow = [
       r.id,
       r.type,
@@ -429,29 +425,39 @@ async function reportRecordings(request: RecordingQuery) {
           .toFixed(1);
         audioBaitVolume = audioEvent.volume;
       }
-      
-      thisRow.push(audioBaitName,
-      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
-      audioBaitDelta,
-      audioBaitVolume);
+
+      thisRow.push(
+        audioBaitName,
+        audioBaitTime
+          ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss")
+          : "",
+        audioBaitDelta,
+        audioBaitVolume
+      );
     }
-    
-    thisRow.push(urljoin(recording_url_base, r.id.toString()),
+
+    thisRow.push(
+      urljoin(recording_url_base, r.id.toString()),
       cacophonyIndex,
-      speciesClassifications);
+      speciesClassifications
+    );
     out.push(thisRow);
   }
   return out;
 }
 
 function getCacophonyIndex(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.cacophony_index
     ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.species_identify
     ?.map(
       (classification) => `${classification.species}: ${classification.begin_s}`
     )

@@ -7,22 +7,21 @@ interface ComparableVisit {
   end?: Date | string;
   tag?: string;
   recordings?: number;
-  incomplete? : string;  
-  aiTag? : string;
-  camera? : string;
-  station? : string;
+  incomplete?: string;
+  aiTag?: string;
+  camera?: string;
+  station?: string;
 }
 
-interface VisitSearchParams { 
+interface VisitSearchParams {
   from?: Date | string;
   until?: Date | string;
-  devices?: number | number[], 
+  devices?: number | number[];
   page?: number;
-  "page-size"? : number;
+  "page-size"?: number;
   ai?: string;
-  groups?: number | number[],
+  groups?: number | number[];
 }
-
 
 declare namespace Cypress {
   interface Chainable {
@@ -38,7 +37,7 @@ declare namespace Cypress {
       expectedVisits: ComparableVisit[],
       log?: boolean
     );
-    
+
     /**
      * check the visits returned match the listed visits specified. Only the specified information will be checked.
      *
@@ -48,7 +47,7 @@ declare namespace Cypress {
     checkMonitoringWithFilter(
       user: string,
       camera: string,
-      searchParams: VisitSearchParams ,
+      searchParams: VisitSearchParams,
       expectedVisits: ComparableVisit[]
     );
     /*
@@ -57,10 +56,6 @@ declare namespace Cypress {
      * Please note:  visits must be listed in order of oldest to newest start dates.
      *
      */
-    checkMonitoringTags(
-      user: string,
-      camera: string,
-      expectedTags: string[]
-    );
+    checkMonitoringTags(user: string, camera: string, expectedTags: string[]);
   }
 }
