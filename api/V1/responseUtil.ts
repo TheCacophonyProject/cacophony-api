@@ -91,10 +91,14 @@ function validFileRequest(response, data) {
   });
 }
 
-function serverError(response: Response, err) {
+function serverError(
+  response: Response,
+  err,
+  message = "Server error. Sorry!"
+) {
   log.error(err);
   return response.status(500).json({
-    messages: ["Server error. Sorry!"]
+    messages: [message]
   });
 }
 

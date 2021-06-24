@@ -32,7 +32,7 @@ RUN chmod +x minio
 RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.RELEASE.2019-07-11T19-31-28Z > mc
 
 # Note: uncomment if you're developing on arm64
-#RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-arm64/mc > mc
+# RUN curl --location --fail --silent --show-error https://dl.minio.io/client/mc/release/linux-arm64/mc > mc
 
 RUN chmod +x mc
 
@@ -44,4 +44,5 @@ RUN apt-get install -y nodejs
 # on the base means there are fewer packages to install
 WORKDIR /app
 COPY package*.json ./
+RUN npm i -g npm
 RUN npm install

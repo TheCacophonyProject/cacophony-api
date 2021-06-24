@@ -20,7 +20,7 @@ import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
 import assert from "assert";
-import uuidv4 from "uuid/v4";
+import { v4 as uuidv4 } from "uuid";
 import config from "../config";
 import util from "./util/util";
 import validation from "./util/validation";
@@ -39,13 +39,8 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
-import { CreateStationData, Station, StationId } from "./Station";
-import {
-  latLngApproxDistance,
-  MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MIN_STATION_SEPARATION_METERS,
-  tryToMatchRecordingToStation
-} from "../api/V1/recordingUtil";
+import { Station, StationId } from "./Station";
+import { tryToMatchRecordingToStation } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -83,8 +78,8 @@ export enum RecordingPermission {
 }
 
 export enum RecordingProcessingState {
-  GetMetadata = "getMetadata",
-  ToMp4 = "toMp4",
+  Corrupt = "CORRUPT",
+  AnalyseThermal = "analyse",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
   Analyse = "analyse"
@@ -159,8 +154,9 @@ export interface AudioRecordingMetadata {
 }
 
 export interface VideoRecordingMetadata {
-  algorithm: number;
   previewSecs: number;
+  algorithm?: number;
+  totalFrames?: number;
   oldTags?: {
     id: number;
     what: string;
@@ -198,7 +194,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   type: RecordingType;
   duration: number;
   recordingDateTime: string;
-  location?: { coordinates: [number, number] };
+  location?: { coordinates: [number, number] } | [number, number]; // [number, number] is the format coordinates are set in, but they are returned as { coordinates: [number, number] }
   relativeToDawn: number;
   relativeToDusk: number;
   version: string;
@@ -207,6 +203,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   public: boolean;
   rawFileKey: string;
   rawMimeType: string;
+  rawFileHash: string;
   fileKey: string;
   fileMimeType: string;
   processingStartTime: string;
@@ -245,7 +242,6 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   setStation: (station: Station) => Promise<void>;
 }
-type Mp4File = "string";
 type CptvFile = "string";
 type JwtToken<T> = string;
 type Seconds = number;
@@ -266,7 +262,7 @@ interface TagLimitedRecording {
   RecordingId: RecordingId;
   DeviceId: DeviceId;
   tracks: LimitedTrack[];
-  recordingJWT: JwtToken<Mp4File>;
+  recordingJWT: JwtToken<CptvFile>;
   tagJWT: JwtToken<TrackTag>;
 }
 
@@ -327,7 +323,7 @@ export default function (
   const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
-    duration: DataTypes.INTEGER,
+    duration: DataTypes.FLOAT,
     recordingDateTime: DataTypes.DATE,
     location: {
       type: DataTypes.GEOMETRY,
@@ -349,6 +345,7 @@ export default function (
     // Raw file data.
     rawFileKey: DataTypes.STRING,
     rawMimeType: DataTypes.STRING,
+    rawFileHash: DataTypes.STRING,
 
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
@@ -883,8 +880,8 @@ from (
   };
 
   Recording.prototype.getFileExt = function () {
-    if (this.fileMimeType == "video/mp4") {
-      return ".mp4";
+    if (this.fileMimeType == "application/x-cptv") {
+      return ".cptv";
     }
     const ext = mime.getExtension(this.fileMimeType);
     if (ext) {
@@ -960,6 +957,8 @@ from (
     );
 
     const state = Recording.processingStates[this.type][0];
+
+    // FIXME: Should the processing start time really be set to null?
     await this.update({
       processingStartTime: null,
       processingState: state
@@ -1416,7 +1415,7 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["getMetadata", "toMp4", "FINISHED"],
+    thermalRaw: ["analyse", "FINISHED"],
     audio: ["toMp3", "analyse", "FINISHED"]
   };
 
@@ -1424,7 +1423,7 @@ from (
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {
-      return RecordingProcessingState.GetMetadata;
+      return RecordingProcessingState.AnalyseThermal;
     }
   };
 
@@ -1442,6 +1441,7 @@ from (
     "DeviceId",
     "StationId",
     "recordingDateTime",
+    "duration",
     "location"
   ];
 
