@@ -147,8 +147,8 @@ export default function (app: Application, baseUrl: string) {
         const user = (request as any).user;
         const params: MonitoringParams = {
           user,
-          devices: (request.query.devices as unknown[]) as number[],
-          groups: (request.query.groups as unknown[]) as number[],
+          devices: request.query.devices as unknown[] as number[],
+          groups: request.query.groups as unknown[] as number[],
           page: Number(request.query.page),
           pageSize: Number(request.query["page-size"])
         };
