@@ -78,10 +78,11 @@ export enum RecordingPermission {
 }
 
 export enum RecordingProcessingState {
-  GetMetadata = "getMetadata",
-  Finished = "FINISHED",
-  ToMp3 = "toMp3",
-  Analyse = "analyse",
+  Corrupt = "CORRUPT",
+ AnalyseThermal = "analyse",
+ Finished = "FINISHED",
+ ToMp3 = "toMp3",
+ Analyse = "analyse",
   Reprocess = "reprocess"
 }
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
@@ -1431,7 +1432,6 @@ from (
 
   Recording.processingStates = {
     thermalRaw: [
-      RecordingProcessingState.GetMetadata,
       RecordingProcessingState.AnalyseThermal,
       RecordingProcessingState.Finished
     ],
