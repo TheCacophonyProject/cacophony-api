@@ -17,12 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import moment from "moment";
-import uuidv4 from "uuid/v4";
+import { v4 as uuidv4 } from "uuid";
 import multiparty from "multiparty";
 import log from "../../logging";
 import responseUtil from "./responseUtil";
 import config from "../../config";
 import modelsUtil from "../../models/util/util";
+import crypto from "crypto";
 
 function multipartUpload(keyPrefix, buildRecord) {
   return (request, response) => {
@@ -107,6 +108,52 @@ function multipartUpload(keyPrefix, buildRecord) {
           return;
         }
         log.info("Finished streaming upload to object store. Key:", key);
+
+        // Optional file integrity check, opt-in to be backward compatible with existing clients.
+        if (data.fileHash) {
+          // TODO: ***Maybe*** check if fileHash already exists in DB?  We may actually want to allow duplicate files though,
+          //  so maybe rather than disallowing the entry being created, we should just make a new recording that
+          //  references the same data (fileKey, tracks etc) as the existing recording?  Then we just want to make sure
+          //  we stop running our script to prune duplicates.
+
+          log.info("Checking file hash. Key:", key);
+          // Read the full file back from s3 and hash it
+          const fileData = await modelsUtil
+            .openS3()
+            .getObject({
+              Bucket: config.s3.bucket,
+              Key: key
+            })
+            .promise()
+            .catch((err) => {
+              return err;
+            });
+          const checkHash = crypto
+            .createHash("sha1")
+            // @ts-ignore
+            .update(new Uint8Array(fileData.Body), "binary")
+            .digest("hex");
+          if (data.fileHash !== checkHash) {
+            log.error("File hash check failed, deleting key:", key);
+            // Hash check failed, delete the file from s3, and return an error which the client can respond to to decide
+            // whether or not to retry immediately.
+            await modelsUtil
+              .openS3()
+              .deleteObject({
+                Bucket: config.s3.bucket,
+                Key: key
+              })
+              .promise()
+              .catch((err) => {
+                return err;
+              });
+            responseUtil.invalidDatapointUpload(
+              response,
+              "Uploaded file integrity check failed, please retry."
+            );
+            return;
+          }
+        }
 
         data.filename = filename;
 

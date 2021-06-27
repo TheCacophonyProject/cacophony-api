@@ -91,9 +91,9 @@ async function main() {
 function generateText(stoppedDevices: PowerEvents[]): string {
   let textBody = `Stopped Devices ${moment().format("MMM ddd Do ha")}\r\n`;
   for (const event of stoppedDevices) {
-    let deviceText = `${event.Device.Group.groupname}- ${
+    let deviceText = `${event.Device.groupname}- ${
       event.Device.devicename
-    } ${
+    } id: ${
       event.Device.id
     } has stopped, last powered on ${event.lastStarted.format(
       "MMM ddd Do ha"
@@ -108,9 +108,9 @@ function generateHtml(stoppedDevices: PowerEvents[]): string {
   let html = `<h1>Stopped Devices ${moment().format("MMM ddd Do ha")} <h1>`;
   html += "<ul>";
   for (const event of stoppedDevices) {
-    let deviceText = `<li>${event.Device.Group.groupname}- ${
+    let deviceText = `<li>${event.Device.groupname}-${
       event.Device.devicename
-    } ${
+    } id: ${
       event.Device.id
     } has stopped, last powered on ${event.lastStarted.format(
       "MMM ddd Do ha"

@@ -45,7 +45,7 @@ find -name '*.ts' -print0 | xargs -0 rm
 # cron doesn't like it when cron.d files are writeable by anyone other than the
 # owner.
 echo "Fixing perms..."
-chmod 644 _release/{cacophony-api-prune-objects,cacophony-api-remove-dups}
+chmod 644 _release/{cacophony-api-prune-objects,cacophony-api-remove-dups,cacophony-api-report-stopped-devices,cacophony-api-report-errors}
 
 echo "Setting versions..."
 perl -pi -e "s/^version:.+/version: \"${version}\"/" _release/nfpm.yaml

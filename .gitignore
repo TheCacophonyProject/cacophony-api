@@ -10,4 +10,5 @@ models/**/*.js
 /*.js
 dockerstart.log
 test-cypress/cypress.json
+!dynamic-import-esm.js
 test-cypress/cypress-performance.json

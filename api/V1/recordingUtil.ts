@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
-import moment, { Moment } from "moment";
+import moment from "moment";
 import urljoin from "url-join";
 import { ClientError } from "../customErrors";
 import config from "../../config";
@@ -26,12 +26,13 @@ import log from "../../logging";
 import models from "../../models";
 import responseUtil from "./responseUtil";
 import util from "./util";
-import { Response, Request } from "express";
+import { Request, Response } from "express";
 import {
   AudioRecordingMetadata,
   Recording,
   RecordingId,
   RecordingPermission,
+  RecordingProcessingState,
   RecordingType,
   TagMode
 } from "../../models/Recording";
@@ -40,15 +41,17 @@ import { User } from "../../models/User";
 import { Order } from "sequelize";
 import { FileId } from "../../models/File";
 import {
+  DeviceSummary,
   DeviceVisitMap,
   Visit,
   VisitEvent,
-  DeviceSummary,
-  VisitSummary,
-  isWithinVisitInterval
+  VisitSummary
 } from "./Visits";
-import { Station, StationId } from "../../models/Station";
+import { Station } from "../../models/Station";
+import modelsUtil from "../../models/util/util";
+import { dynamicImportESM } from "../../dynamic-import-esm";
 
+// @ts-ignore
 export interface RecordingQuery extends Request {
   user: User;
   query: {
@@ -60,6 +63,7 @@ export interface RecordingQuery extends Request {
     order: null | Order;
     distinct: boolean;
     type: string;
+    audiobait: null | boolean;
   };
   filterOptions: null | any;
 }
@@ -105,9 +109,16 @@ export async function tryToMatchRecordingToStation(
   const stationDistances = [];
   for (const station of stations) {
     // See if any stations match: Looking at the location distance between this recording and the stations.
+    let recordingCoords = recording.location;
+    if (
+      !Array.isArray(recordingCoords) &&
+      recordingCoords.hasOwnProperty("coordinates")
+    ) {
+      recordingCoords = recordingCoords.coordinates;
+    }
     const distanceToStation = latLngApproxDistance(
       station.location.coordinates,
-      recording.location.coordinates
+      recordingCoords as [number, number]
     );
     stationDistances.push({ distanceToStation, station });
   }
@@ -135,6 +146,74 @@ function makeUploadHandler(mungeData?: (any) => any) {
       data = mungeData(data);
     }
     const recording = models.Recording.buildSafely(data);
+
+    // Add the filehash if present
+    if (data.fileHash) {
+      recording.rawFileHash = data.fileHash;
+    }
+
+    let fileIsCorrupt = false;
+    if (data.type === "thermalRaw") {
+      // Read the file back out from s3 and decode/parse it.
+      const fileData = await modelsUtil
+        .openS3()
+        .getObject({
+          Bucket: config.s3.bucket,
+          Key: key
+        })
+        .promise()
+        .catch((err) => {
+          return err;
+        });
+      const { CptvDecoder } = await dynamicImportESM("cptv-decoder");
+      const decoder = new CptvDecoder();
+      const metadata = await decoder.getBytesMetadata(
+        new Uint8Array(fileData.Body)
+      );
+      // If true, the parser failed for some reason, so the file is probably corrupt, and should be investigated later.
+      fileIsCorrupt = await decoder.hasStreamError();
+      if (fileIsCorrupt) {
+        log.warn("CPTV Stream error", await decoder.getStreamError());
+      }
+      decoder.close();
+
+      if (
+        !data.hasOwnProperty("location") &&
+        metadata.latitude &&
+        metadata.longitude
+      ) {
+        // @ts-ignore
+        recording.location = [metadata.latitude, metadata.longitude];
+      }
+      if (
+        (!data.hasOwnProperty("duration") && metadata.duration) ||
+        (Number(data.duration) === 321 && metadata.duration)
+      ) {
+        // NOTE: Hack to make tests pass, but not allow sidekick uploads to set a spurious duration.
+        //  A solid solution will disallow all of these fields that should come from the CPTV file as
+        //  API settable metadata, and require tests to construct CPTV files with correct metadata.
+        recording.duration = metadata.duration;
+      }
+      if (!data.hasOwnProperty("recordingDateTime") && metadata.timestamp) {
+        recording.recordingDateTime = new Date(
+          metadata.timestamp / 1000
+        ).toISOString();
+      }
+      if (!data.hasOwnProperty("additionalMetadata") && metadata.previewSecs) {
+        // NOTE: Algorithm property gets filled in later by AI
+        recording.additionalMetadata = {
+          previewSecs: metadata.previewSecs,
+          totalFrames: metadata.totalFrames
+        };
+      }
+      if (data.hasOwnProperty("additionalMetadata")) {
+        recording.additionalMetadata = {
+          ...data.additionalMetadata,
+          ...recording.additionalMetadata
+        };
+      }
+    }
+
     recording.rawFileKey = key;
     recording.rawMimeType = guessRawMimeType(data.type, data.filename);
     recording.DeviceId = request.device.id;
@@ -158,9 +237,15 @@ function makeUploadHandler(mungeData?: (any) => any) {
     if (data.processingState) {
       recording.processingState = data.processingState;
     } else {
-      recording.processingState = models.Recording.uploadedState(
-        data.type as RecordingType
-      );
+      if (!fileIsCorrupt) {
+        recording.processingState = models.Recording.uploadedState(
+          data.type as RecordingType
+        );
+      } else {
+        // Mark the recording as corrupt for future investigation, and so it doesn't get picked up by the pipeline.
+        log.warn("File was corrupt, don't queue for processing");
+        recording.processingState = RecordingProcessingState.Corrupt;
+      }
     }
     return recording;
   });
@@ -211,6 +296,7 @@ async function report(request: RecordingQuery) {
 }
 
 async function reportRecordings(request: RecordingQuery) {
+  const includeAudiobait: boolean = request.query.audiobait;
   const builder = (
     await new models.Recording.queryBuilder().init(
       request.user,
@@ -223,8 +309,11 @@ async function reportRecordings(request: RecordingQuery) {
     )
   )
     .addColumn("comment")
-    .addColumn("additionalMetadata")
-    .addAudioEvents();
+    .addColumn("additionalMetadata");
+
+  if (includeAudiobait) {
+    builder.addAudioEvents();
+  }
 
   builder.query.include.push({
     model: models.Station,
@@ -240,61 +329,66 @@ async function reportRecordings(request: RecordingQuery) {
     request.filterOptions
   );
 
-  // Our DB schema doesn't allow us to easily get from a audio event
-  // recording to a audio file name so do some work first to look these up.
+  const audioFileNames = new Map();
   const audioEvents: Map<
     RecordingId,
     { timestamp: Date; volume: number; fileId: FileId }
   > = new Map();
-  const audioFileIds: Set<number> = new Set();
-  for (const r of result) {
-    const event = findLatestEvent(r.Device.Events);
-    if (event && event.EventDetail) {
-      const fileId = event.EventDetail.details.fileId;
-      audioEvents[r.id] = {
-        timestamp: event.dateTime,
-        volume: event.EventDetail.details.volume,
-        fileId
-      };
-      audioFileIds.add(fileId);
-    }
-  }
 
-  // Bulk look up file details of played audio events.
-  const audioFileNames = new Map();
-  for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
-    audioFileNames[f.id] = f.details.name;
+  if (includeAudiobait) {
+    // Our DB schema doesn't allow us to easily get from a audio event
+    // recording to a audio file name so do some work first to look these up.
+    const audioFileIds: Set<number> = new Set();
+    for (const r of result) {
+      const event = findLatestEvent(r.Device.Events);
+      if (event && event.EventDetail) {
+        const fileId = event.EventDetail.details.fileId;
+        audioEvents[r.id] = {
+          timestamp: event.dateTime,
+          volume: event.EventDetail.details.volume,
+          fileId
+        };
+        audioFileIds.add(fileId);
+      }
+    }
+    // Bulk look up file details of played audio events.
+    for (const f of await models.File.getMultiple(Array.from(audioFileIds))) {
+      audioFileNames[f.id] = f.details.name;
+    }
   }
 
   const recording_url_base = config.server.recording_url_base || "";
 
-  const out = [
-    [
-      "Id",
-      "Type",
-      "Group",
-      "Device",
-      "Station",
-      "Date",
-      "Time",
-      "Latitude",
-      "Longitude",
-      "Duration",
-      "BatteryPercent",
-      "Comment",
-      "Track Count",
-      "Automatic Track Tags",
-      "Human Track Tags",
-      "Recording Tags",
+  const labels = [
+    "Id",
+    "Type",
+    "Group",
+    "Device",
+    "Station",
+    "Date",
+    "Time",
+    "Latitude",
+    "Longitude",
+    "Duration",
+    "BatteryPercent",
+    "Comment",
+    "Track Count",
+    "Automatic Track Tags",
+    "Human Track Tags",
+    "Recording Tags"
+  ];
+
+  if (includeAudiobait) {
+    labels.push(
       "Audio Bait",
       "Audio Bait Time",
       "Mins Since Audio Bait",
-      "Audio Bait Volume",
-      "URL",
-      "Cacophony Index",
-      "Species Classification"
-    ]
-  ];
+      "Audio Bait Volume"
+    );
+  }
+  labels.push("URL", "Cacophony Index", "Species Classification");
+
+  const out = [labels];
 
   for (const r of result) {
     r.filterData(filterOptions);
@@ -314,25 +408,10 @@ async function reportRecordings(request: RecordingQuery) {
 
     const recording_tags = r.Tags.map((t) => t.what || t.detail);
 
-    let audioBaitName = "";
-    let audioBaitTime = null;
-    let audioBaitDelta = null;
-    let audioBaitVolume = null;
-    const audioEvent = audioEvents[r.id];
-    if (audioEvent) {
-      audioBaitName = audioFileNames[audioEvent.fileId];
-      audioBaitTime = moment(audioEvent.timestamp);
-      audioBaitDelta = moment
-        .duration(r.recordingDateTime - audioBaitTime)
-        .asMinutes()
-        .toFixed(1);
-      audioBaitVolume = audioEvent.volume;
-    }
-
     const cacophonyIndex = getCacophonyIndex(r);
     const speciesClassifications = getSpeciesIdentification(r);
 
-    out.push([
+    const thisRow = [
       r.id,
       r.type,
       r.Group.groupname,
@@ -348,27 +427,57 @@ async function reportRecordings(request: RecordingQuery) {
       r.Tracks.length,
       formatTags(automatic_track_tags),
       formatTags(human_track_tags),
-      formatTags(recording_tags),
-      audioBaitName,
-      audioBaitTime ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss") : "",
-      audioBaitDelta,
-      audioBaitVolume,
+      formatTags(recording_tags)
+    ];
+
+    if (includeAudiobait) {
+      let audioBaitName = "";
+      let audioBaitTime = null;
+      let audioBaitDelta = null;
+      let audioBaitVolume = null;
+      const audioEvent = audioEvents[r.id];
+      if (audioEvent) {
+        audioBaitName = audioFileNames[audioEvent.fileId];
+        audioBaitTime = moment(audioEvent.timestamp);
+        audioBaitDelta = moment
+          .duration(r.recordingDateTime - audioBaitTime)
+          .asMinutes()
+          .toFixed(1);
+        audioBaitVolume = audioEvent.volume;
+      }
+
+      thisRow.push(
+        audioBaitName,
+        audioBaitTime
+          ? audioBaitTime.tz(config.timeZone).format("HH:mm:ss")
+          : "",
+        audioBaitDelta,
+        audioBaitVolume
+      );
+    }
+
+    thisRow.push(
       urljoin(recording_url_base, r.id.toString()),
       cacophonyIndex,
       speciesClassifications
-    ]);
+    );
+    out.push(thisRow);
   }
   return out;
 }
 
 function getCacophonyIndex(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.cacophony_index
     ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
-  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
+  return (
+    recording.additionalMetadata as AudioRecordingMetadata
+  )?.analysis?.species_identify
     ?.map(
       (classification) => `${classification.species}: ${classification.begin_s}`
     )

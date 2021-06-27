@@ -20,7 +20,7 @@ import mime from "mime";
 import moment from "moment-timezone";
 import Sequelize, { FindOptions, Includeable, Order } from "sequelize";
 import assert from "assert";
-import uuidv4 from "uuid/v4";
+import { v4 as uuidv4 } from "uuid";
 import config from "../config";
 import util from "./util/util";
 import validation from "./util/validation";
@@ -39,13 +39,8 @@ import { GroupId as GroupIdAlias } from "./Group";
 import { Track, TrackId } from "./Track";
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
-import { CreateStationData, Station, StationId } from "./Station";
-import {
-  latLngApproxDistance,
-  MAX_DISTANCE_FROM_STATION_FOR_RECORDING,
-  MIN_STATION_SEPARATION_METERS,
-  tryToMatchRecordingToStation
-} from "../api/V1/recordingUtil";
+import { Station, StationId } from "./Station";
+import { tryToMatchRecordingToStation } from "../api/V1/recordingUtil";
 
 export type RecordingId = number;
 type SqlString = string;
@@ -159,8 +154,9 @@ export interface AudioRecordingMetadata {
 }
 
 export interface VideoRecordingMetadata {
-  algorithm: number;
   previewSecs: number;
+  algorithm?: number;
+  totalFrames?: number;
   oldTags?: {
     id: number;
     what: string;
@@ -198,7 +194,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   type: RecordingType;
   duration: number;
   recordingDateTime: string;
-  location?: { coordinates: [number, number] };
+  location?: { coordinates: [number, number] } | [number, number]; // [number, number] is the format coordinates are set in, but they are returned as { coordinates: [number, number] }
   relativeToDawn: number;
   relativeToDusk: number;
   version: string;
@@ -207,6 +203,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   public: boolean;
   rawFileKey: string;
   rawMimeType: string;
+  rawFileHash: string;
   fileKey: string;
   fileMimeType: string;
   processingStartTime: string;
@@ -245,7 +242,6 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
 
   setStation: (station: Station) => Promise<void>;
 }
-type Mp4File = "string";
 type CptvFile = "string";
 type JwtToken<T> = string;
 type Seconds = number;
@@ -266,7 +262,7 @@ interface TagLimitedRecording {
   RecordingId: RecordingId;
   DeviceId: DeviceId;
   tracks: LimitedTrack[];
-  recordingJWT: JwtToken<Mp4File>;
+  recordingJWT: JwtToken<CptvFile>;
   tagJWT: JwtToken<TrackTag>;
 }
 
@@ -329,7 +325,7 @@ export default function (
   const attributes = {
     // recording metadata.
     type: DataTypes.STRING,
-    duration: DataTypes.INTEGER,
+    duration: DataTypes.FLOAT,
     recordingDateTime: DataTypes.DATE,
     location: {
       type: DataTypes.GEOMETRY,
@@ -351,6 +347,7 @@ export default function (
     // Raw file data.
     rawFileKey: DataTypes.STRING,
     rawMimeType: DataTypes.STRING,
+    rawFileHash: DataTypes.STRING,
 
     // Processing fields. Fields set by and for the processing.
     fileKey: DataTypes.STRING,
@@ -367,10 +364,10 @@ export default function (
     airplaneModeOn: DataTypes.BOOLEAN
   };
 
-  const Recording = (sequelize.define(
+  const Recording = sequelize.define(
     name,
     attributes
-  ) as unknown) as RecordingStatic;
+  ) as unknown as RecordingStatic;
 
   //---------------
   // CLASS METHODS
@@ -409,17 +406,33 @@ export default function (
             processingState: state,
             processingStartTime: null
           },
-          attributes: (models.Recording as RecordingStatic)
-            .processingAttributes,
+          attributes: [
+            ...(models.Recording as RecordingStatic).processingAttributes,
+            [
+              Sequelize.literal(`exists(
+          	select
+          		1
+          	from
+          		"Alerts"
+          	where
+          		"DeviceId" = "Recording"."DeviceId"
+          	limit 1)`),
+              "hasAlert"
+            ]
+          ],
           order: [
-            ["recordingDateTime", "DESC"],
-            ["id", "DESC"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
+            Sequelize.literal(`"hasAlert" DESC`),
+            ["recordingDateTime", "asc"],
+            ["id", "asc"] // Adding another order is a "fix" for a bug in postgresql causing the query to be slow
           ],
           // @ts-ignore
           skipLocked: true,
           lock: (transaction as any).LOCK.UPDATE,
           transaction
         }).then(async function (recording) {
+          if (!recording) {
+            return recording;
+          }
           const date = new Date();
           recording.set(
             {
@@ -818,29 +831,28 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
-    any
-  > {
-    return await this.getTracks({
-      where: {
-        archivedAt: null
-      },
-      include: [
-        {
-          model: models.TrackTag,
-          include: [
-            {
-              model: models.User,
-              attributes: ["username"]
+  Recording.prototype.getActiveTracksTagsAndTagger =
+    async function (): Promise<any> {
+      return await this.getTracks({
+        where: {
+          archivedAt: null
+        },
+        include: [
+          {
+            model: models.TrackTag,
+            include: [
+              {
+                model: models.User,
+                attributes: ["username"]
+              }
+            ],
+            attributes: {
+              exclude: ["UserId"]
             }
-          ],
-          attributes: {
-            exclude: ["UserId"]
           }
-        }
-      ]
-    });
-  };
+        ]
+      });
+    };
   /* eslint-enable indent */
 
   /**
@@ -887,8 +899,8 @@ from (
   };
 
   Recording.prototype.getFileExt = function () {
-    if (this.fileMimeType == "video/mp4") {
-      return ".mp4";
+    if (this.fileMimeType == "application/x-cptv") {
+      return ".cptv";
     }
     const ext = mime.getExtension(this.fileMimeType);
     if (ext) {
@@ -984,7 +996,7 @@ from (
     return track;
   };
 
-  Recording.queryBuilder = (function () {} as unknown) as RecordingQueryBuilder;
+  Recording.queryBuilder = function () {} as unknown as RecordingQueryBuilder;
 
   Recording.queryBuilder.prototype.init = async function (
     user,
@@ -1420,7 +1432,7 @@ from (
   Recording.processingStates = {
     thermalRaw: [
       RecordingProcessingState.GetMetadata,
-      RecordingProcessingState.Analyse,
+      RecordingProcessingState.AnalyseThermal,
       RecordingProcessingState.Finished
     ],
     audio: [
@@ -1434,7 +1446,7 @@ from (
     if (type == RecordingType.Audio) {
       return RecordingProcessingState.ToMp3;
     } else {
-      return RecordingProcessingState.Analyse;
+      return RecordingProcessingState.AnalyseThermal;
     }
   };
 
@@ -1452,6 +1464,7 @@ from (
     "DeviceId",
     "StationId",
     "recordingDateTime",
+    "duration",
     "location"
   ];
 

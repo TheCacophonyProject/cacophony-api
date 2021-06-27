@@ -7,7 +7,7 @@ class TestAudioDevice:
         helper.login_as_device(listener.devicename, helper.config.default_group)
 
         print("And 'Listener' should be able to upload an audio file")
-        recording = listener.upload_audio_recording_deprecated()
+        recording = listener.upload_audio_recording()
 
         user = helper.admin_user()
 
@@ -25,7 +25,7 @@ class TestAudioDevice:
         helper.login_as_device(listener.devicename)
 
         print("And 'Listener' should be able to upload an audio file even with disallowed metadata")
-        recording = listener.upload_audio_recording_deprecated({UNSETTABLE_FIELD: UNSETTABLE_INPUT_VALUE})
+        recording = listener.upload_audio_recording({UNSETTABLE_FIELD: UNSETTABLE_INPUT_VALUE})
 
         user = helper.admin_user()
 

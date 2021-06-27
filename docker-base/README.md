@@ -10,7 +10,7 @@ This is by design.   By running the command on the base image it saves time as m
 
 * Copy the latest packages list from [package.json](../package.json) to [docker-base/package.json](package.json)
 * Build the image 
-`sudo docker build --no-cache . -t cacophonyproject/server-base:<tag>`
+`sudo docker buildx build --platform linux/amd64 --no-cache . -t cacophonyproject/server-base:<tag>`
 * Follow this guide to save an access token on your local docker installation that will allow you to push to dockerhub. (You need an account on dockerhub for this) https://docs.docker.com/docker-hub/access-tokens/
 * Push the new version to dockerhub
 `docker push cacophonyproject/server-base:<tag>`

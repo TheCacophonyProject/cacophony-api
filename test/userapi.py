@@ -135,6 +135,7 @@ class UserAPI(APIBase):
         deviceIds=None,
         jwt=None,
         report_type=None,
+        audiobait=None,
     ):
         where = defaultdict(dict)
         where["duration"] = {"$gte": min_secs}
@@ -154,6 +155,9 @@ class UserAPI(APIBase):
             "tags": tags,
             "filterOptions": filterOptions,
         }
+
+        if audiobait is not None:
+            params["audiobait"] = audiobait
 
         if report_type:
             params["type"] = report_type
@@ -216,58 +220,11 @@ class UserAPI(APIBase):
     def download_cptv(self, recording_id):
         return self._download_recording(recording_id, "downloadRawJWT")
 
-    def download_mp4(self, recording_id):
-        return self._download_recording(recording_id, "downloadFileJWT")
-
     def _download_recording(self, id, jwt_key):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(id))
         r = requests.get(url, headers=self._auth_header)
         d = self._check_response(r)
         return self._download_signed(d[jwt_key])
-
-    def query_audio(self, startDate=None, endDate=None, min_secs=0, limit=100, offset=0):
-        headers = self._auth_header.copy()
-
-        where = defaultdict(dict)
-        where["duration"] = {"$gte": min_secs}
-        if startDate is not None:
-            where["recordingDateTime"]["$gte"] = startDate.isoformat()
-        if endDate is not None:
-            where["recordingDateTime"]["$lte"] = endDate.isoformat()
-        headers["where"] = json.dumps(where)
-
-        if limit is not None:
-            headers["limit"] = str(limit)
-        if offset is not None:
-            headers["offset"] = str(offset)
-
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings")
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            return r.json()["result"]["rows"]
-        raise_specific_exception(r)
-
-    def get_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
-
-        r = requests.get(url, headers=self._auth_header)
-        return self._check_response(r)
-
-    def delete_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
-        r = requests.delete(url, headers=self._auth_header)
-        return self._check_response(r)
-
-    def update_audio_recording(self, recording_id, updates):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
-        r = requests.put(url, headers=self._auth_header, data={"data": json.dumps(updates)})
-        return self._check_response(r)
-
-    def download_audio(self, recording_id):
-        url = urljoin(self._baseurl, "/api/v1/audiorecordings/{}".format(recording_id))
-        r = requests.get(url, headers=self._auth_header)
-        d = self._check_response(r)
-        return self._download_signed(d["jwt"])
 
     def _get_all(self, url):
         r = requests.get(urljoin(self._baseurl, url), params={"where": "{}"}, headers=self._auth_header)

@@ -4,7 +4,12 @@ import log from "../../logging";
 import { body, param } from "express-validator/check";
 import models from "../../models";
 import recordingUtil from "../V1/recordingUtil";
-import { Response, Request, Application } from "express";
+import { Application, Request, Response } from "express";
+import {
+  Recording,
+  RecordingProcessingState,
+  RecordingType
+} from "../../models/Recording";
 
 export default function (app: Application) {
   const apiUrl = "/api/fileProcessing";
@@ -19,8 +24,8 @@ export default function (app: Application) {
    */
   app.get(apiUrl, async (request: Request, response: Response) => {
     log.info(`${request.method} Request: ${request.url}`);
-    const type = request.query.type;
-    const state = request.query.state;
+    const type = request.query.type as RecordingType;
+    const state = request.query.state as RecordingProcessingState;
     const recording = await models.Recording.getOneForProcessing(type, state);
     if (recording == null) {
       log.debug("No file to be processed.");
@@ -40,7 +45,7 @@ export default function (app: Application) {
    * @apiGroup FileProcessing
    *
    * @apiParam {Integer} id ID of the recording.
-   * @apiParam {String} jobKey Key given when reqesting the job.
+   * @apiParam {String} jobKey Key given when requesting the job.
    * @apiParam {Boolean} success If the job was finished successfully.
    * @apiParam {JSON} [result] Result of the file processing
    * @apiParam {Boolean} complete true if the processing is complete, or false if file will be processed further.
@@ -80,6 +85,11 @@ export default function (app: Application) {
     }
 
     const recording = await models.Recording.findOne({ where: { id: id } });
+    if (!recording) {
+      return response.status(400).json({
+        messages: [`Recording ${id} not found for jobKey ${jobKey}`]
+      });
+    }
 
     // Check that jobKey is correct.
     if (jobKey != recording.get("jobKey")) {
@@ -91,7 +101,10 @@ export default function (app: Application) {
     if (success) {
       const nextJob = recording.getNextState();
       recording.set("processingState", nextJob);
-      recording.set("fileKey", newProcessedFileKey);
+
+      if (newProcessedFileKey) {
+        recording.set("fileKey", newProcessedFileKey);
+      }
       log.info("Complete is " + complete);
       if (complete) {
         recording.set("jobKey", null);
@@ -103,6 +116,16 @@ export default function (app: Application) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
       await recording.save();
+
+      if ((recording as Recording).type === RecordingType.ThermalRaw) {
+        // TODO:
+        // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
+        // longer using that for mp4s
+        // .....
+        // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
+        // .....
+      }
+
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
       recording.set("processingState", recording.processingState + ".failed");

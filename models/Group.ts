@@ -153,9 +153,8 @@ const updateExistingRecordingsForGroupWithMatchingStationsFromDate = async (
   });
   builder.query.distinct = true;
   delete builder.query.limit;
-  const recordingsFromStartDate: Recording[] = await AllModels.Recording.findAll(
-    builder.get()
-  );
+  const recordingsFromStartDate: Recording[] =
+    await AllModels.Recording.findAll(builder.get());
   const recordingOpPromises = [];
   // Find matching recordings to apply stations to from `applyToRecordingsFromDate`
   for (const recording of recordingsFromStartDate) {
@@ -193,9 +192,7 @@ export interface Group extends Sequelize.Model, ModelCommon<Group> {
     where?: any;
     attributes?: string[];
   }) => Promise<Device[]>;
-  userPermissions: (
-    user: User
-  ) => Promise<{
+  userPermissions: (user: User) => Promise<{
     canAddUsers: boolean;
     canRemoveUsers: boolean;
   }>;
@@ -247,7 +244,7 @@ export default function (sequelize, DataTypes): GroupStatic {
     }
   };
 
-  const Group = (sequelize.define(name, attributes) as unknown) as GroupStatic;
+  const Group = sequelize.define(name, attributes) as unknown as GroupStatic;
 
   Group.apiSettableFields = [];
 
@@ -348,7 +345,7 @@ export default function (sequelize, DataTypes): GroupStatic {
 
     const existingStationsByName: Record<string, Station> = {};
     const newStationsByName: Record<string, CreateStationData> = {};
-    const stationOpsPromises = [];
+    const stationOpsPromises: Promise<any>[] = [];
     for (const station of stationsToAdd) {
       newStationsByName[station.name] = station;
     }
@@ -387,7 +384,7 @@ export default function (sequelize, DataTypes): GroupStatic {
           new Promise(async (resolve) => {
             await stationToAddOrUpdate.save();
             await group.addStation(stationToAddOrUpdate);
-            resolve();
+            resolve(null);
           })
         );
       } else {
@@ -410,12 +407,13 @@ export default function (sequelize, DataTypes): GroupStatic {
     let updatedRecordings = [];
     if (applyToRecordingsFromDate) {
       // After adding stations, we need to apply any station matches to recordings from a start date:
-      updatedRecordings = await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
-        authUser,
-        group,
-        applyToRecordingsFromDate,
-        allStations
-      );
+      updatedRecordings =
+        await updateExistingRecordingsForGroupWithMatchingStationsFromDate(
+          authUser,
+          group,
+          applyToRecordingsFromDate,
+          allStations
+        );
       updatedRecordings = await Promise.all(updatedRecordings);
     }
     const result: {

@@ -75,6 +75,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiParam {JSON} data Metadata about the recording.   Valid tags are:
    * <ul>
    * <li>(REQUIRED) type: 'thermalRaw', or 'audio'
+   * <li>fileHash - Optional sha1 hexadecimal formatted hash of the file to be uploaded
    * <li>duration
    * <li>recordingDateTime
    * <li>location
@@ -237,7 +238,7 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.queryVisits(
-          (request as unknown) as RecordingQuery
+          request as unknown as RecordingQuery
         );
         responseUtil.send(response, {
           statusCode: 200,
@@ -277,7 +278,7 @@ export default (app: Application, baseUrl: string) => {
     middleware.requestWrapper(
       async (request: e.Request, response: e.Response) => {
         const result = await recordingUtil.query(
-          (request as unknown) as RecordingQuery
+          request as unknown as RecordingQuery
         );
         responseUtil.send(response, {
           statusCode: 200,
@@ -377,7 +378,7 @@ export default (app: Application, baseUrl: string) => {
           //  a preferred deviceId, to handle the case where we'd like a series
           //  of random recordings to tag constrained to a single device.
           result = await models.Recording.getRecordingWithUntaggedTracks(
-            request.query.deviceId
+            Number(request.query.deviceId)
           );
         }
         responseUtil.send(response, {
@@ -403,6 +404,7 @@ export default (app: Application, baseUrl: string) => {
    * @apiUse BaseQueryParams
    * @apiUse RecordingOrder
    * @apiUse MoreQueryParams
+   * @apiParam {boolean} [audiobait] To add audiobait to a recording query set this to true.
    * @apiUse FilterOptions
    * @apiUse V1ResponseError
    */
@@ -411,12 +413,12 @@ export default (app: Application, baseUrl: string) => {
     [
       auth.paramOrHeader,
       query("type").isString().optional().isIn(["recordings", "visits"]),
-      ...queryValidators
+      ...queryValidators,
+      query("audiobait").isBoolean().optional()
     ],
     middleware.requestWrapper(async (request, response) => {
       // 10 minute timeout because the query can take a while to run
       // when the result set is large.
-      request.setTimeout(10 * 60 * 1000);
       const rows = await recordingUtil.report(request);
       response.status(200).set({
         "Content-Type": "text/csv",
@@ -454,13 +456,8 @@ export default (app: Application, baseUrl: string) => {
       middleware.parseJSON("filterOptions", query).optional()
     ],
     middleware.requestWrapper(async (request, response) => {
-      const {
-        recording,
-        rawSize,
-        rawJWT,
-        cookedSize,
-        cookedJWT
-      } = await recordingUtil.get(request);
+      const { recording, rawSize, rawJWT, cookedSize, cookedJWT } =
+        await recordingUtil.get(request);
 
       responseUtil.send(response, {
         statusCode: 200,
@@ -581,6 +578,7 @@ export default (app: Application, baseUrl: string) => {
         return;
       }
 
+      // FIXME(jon): This incomplete JSON string looks dodge.
       const algorithm = request.body.algorithm
         ? request.body.algorithm
         : "{'status': 'User added.'";
@@ -593,6 +591,7 @@ export default (app: Application, baseUrl: string) => {
         data: request.body.data,
         AlgorithmId: algorithmDetail.id
       });
+
       responseUtil.send(response, {
         statusCode: 200,
         messages: ["Track added."],
