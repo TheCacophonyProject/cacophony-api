@@ -27,6 +27,7 @@ install:
 script:
  - npm run lint
  - black --diff --check ./test
+ - npm install
  - find . -regextype posix-extended -regex '.*\.(ts|js)$' | egrep -v "(./node_modules/*|./apidoc*|package*.js)" | xargs npx prettier --check  || (echo "Please run './beautify.sh' to clean up formatting of files."; false)
  - ./wait-for-api || { docker ps; docker-compose logs; exit 1; }
 # Apply migration undo and redo to test undo migration
@@ -40,7 +41,6 @@ script:
 
  - cd test-cypress
  - cp cypress.json.TEMPLATE cypress.json
- - npm install
  - npm run release
  - cd ..
 
