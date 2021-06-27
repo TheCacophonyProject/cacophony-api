@@ -51,7 +51,7 @@ export default function (sequelize, DataTypes) {
     details: DataTypes.JSONB
   };
 
-  const File = sequelize.define(name, attributes) as unknown as FileStatic;
+  const File = (sequelize.define(name, attributes) as unknown) as FileStatic;
 
   File.apiSettableFields = ["type", "details"];
 

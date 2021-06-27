@@ -75,7 +75,7 @@ export default function (sequelize, DataTypes) {
     dateTime: DataTypes.DATE
   };
 
-  const Event = sequelize.define(name, attributes) as unknown as EventStatic;
+  const Event = (sequelize.define(name, attributes) as unknown) as EventStatic;
 
   //---------------
   // CLASS METHODS

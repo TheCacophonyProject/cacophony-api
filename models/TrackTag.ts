@@ -40,12 +40,12 @@ export default function (
 ): TrackTagStatic {
   const additionalTags = Object.freeze(["poor tracking", "part"]);
 
-  const TrackTag = sequelize.define("TrackTag", {
+  const TrackTag = (sequelize.define("TrackTag", {
     what: DataTypes.STRING,
     confidence: DataTypes.FLOAT,
     automatic: DataTypes.BOOLEAN,
     data: DataTypes.JSONB
-  }) as unknown as TrackTagStatic;
+  }) as unknown) as TrackTagStatic;
 
   //---------------
   // CLASS METHODS

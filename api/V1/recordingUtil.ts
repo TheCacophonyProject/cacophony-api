@@ -467,17 +467,13 @@ async function reportRecordings(request: RecordingQuery) {
 }
 
 function getCacophonyIndex(recording: Recording): string | null {
-  return (
-    recording.additionalMetadata as AudioRecordingMetadata
-  )?.analysis?.cacophony_index
+  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.cacophony_index
     ?.map((val) => val.index_percent)
     .join(";");
 }
 
 function getSpeciesIdentification(recording: Recording): string | null {
-  return (
-    recording.additionalMetadata as AudioRecordingMetadata
-  )?.analysis?.species_identify
+  return (recording.additionalMetadata as AudioRecordingMetadata)?.analysis?.species_identify
     ?.map(
       (classification) => `${classification.species}: ${classification.begin_s}`
     )

@@ -76,10 +76,10 @@ export default function (
   };
 
   // Define table
-  const Station = sequelize.define(
+  const Station = (sequelize.define(
     name,
     attributes
-  ) as unknown as StationStatic;
+  ) as unknown) as StationStatic;
 
   //---------------
   // CLASS METHODS

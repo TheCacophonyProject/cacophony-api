@@ -43,10 +43,10 @@ export default function (sequelize, DataTypes): GroupUsersStatic {
     }
   };
 
-  const GroupUsers = sequelize.define(
+  const GroupUsers = (sequelize.define(
     name,
     attributes
-  ) as unknown as GroupUsersStatic;
+  ) as unknown) as GroupUsersStatic;
 
   //---------------
   // CLASS METHODS

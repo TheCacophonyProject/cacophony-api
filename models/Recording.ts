@@ -79,10 +79,10 @@ export enum RecordingPermission {
 
 export enum RecordingProcessingState {
   Corrupt = "CORRUPT",
- AnalyseThermal = "analyse",
- Finished = "FINISHED",
- ToMp3 = "toMp3",
- Analyse = "analyse",
+  AnalyseThermal = "analyse",
+  Finished = "FINISHED",
+  ToMp3 = "toMp3",
+  Analyse = "analyse",
   Reprocess = "reprocess"
 }
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
@@ -365,10 +365,10 @@ export default function (
     airplaneModeOn: DataTypes.BOOLEAN
   };
 
-  const Recording = sequelize.define(
+  const Recording = (sequelize.define(
     name,
     attributes
-  ) as unknown as RecordingStatic;
+  ) as unknown) as RecordingStatic;
 
   //---------------
   // CLASS METHODS
@@ -832,28 +832,29 @@ from (
   };
 
   /* eslint-disable indent */
-  Recording.prototype.getActiveTracksTagsAndTagger =
-    async function (): Promise<any> {
-      return await this.getTracks({
-        where: {
-          archivedAt: null
-        },
-        include: [
-          {
-            model: models.TrackTag,
-            include: [
-              {
-                model: models.User,
-                attributes: ["username"]
-              }
-            ],
-            attributes: {
-              exclude: ["UserId"]
+  Recording.prototype.getActiveTracksTagsAndTagger = async function (): Promise<
+    any
+  > {
+    return await this.getTracks({
+      where: {
+        archivedAt: null
+      },
+      include: [
+        {
+          model: models.TrackTag,
+          include: [
+            {
+              model: models.User,
+              attributes: ["username"]
             }
+          ],
+          attributes: {
+            exclude: ["UserId"]
           }
-        ]
-      });
-    };
+        }
+      ]
+    });
+  };
   /* eslint-enable indent */
 
   /**
@@ -997,7 +998,7 @@ from (
     return track;
   };
 
-  Recording.queryBuilder = function () {} as unknown as RecordingQueryBuilder;
+  Recording.queryBuilder = (function () {} as unknown) as RecordingQueryBuilder;
 
   Recording.queryBuilder.prototype.init = async function (
     user,

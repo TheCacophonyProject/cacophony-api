@@ -165,8 +165,7 @@ function checkResponseMatches(
     }
 
     if (expectedVisit.incomplete) {
-      simplifiedResponseVisit.incomplete =
-        completeResponseVisit.incomplete.toString();
+      simplifiedResponseVisit.incomplete = completeResponseVisit.incomplete.toString();
     }
 
     responseVisitsToCompare.push(simplifiedResponseVisit);

@@ -43,10 +43,10 @@ export default function (
     }
   };
 
-  const DeviceUsers = sequelize.define(
+  const DeviceUsers = (sequelize.define(
     name,
     attributes
-  ) as unknown as DeviceUsersStatic;
+  ) as unknown) as DeviceUsersStatic;
 
   //---------------
   // CLASS METHODS
