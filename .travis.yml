@@ -39,7 +39,7 @@ script:
  - cd ..
 
  - cd test-cypress
-  - npm install
+ - npm install
  - cp cypress.json.TEMPLATE cypress.json
  - npm run release
  - cd ..
