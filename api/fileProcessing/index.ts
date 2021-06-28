@@ -101,6 +101,7 @@ export default function (app: Application) {
     if (success) {
       const jobs = models.Recording.processingStates[recording.type];
       const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
+      const prevState = recording.processingState;
       recording.set("processingState", nextJob);
 
       if (newProcessedFileKey) {
@@ -108,6 +109,10 @@ export default function (app: Application) {
       }
       log.info("Complete is " + complete);
       if (complete) {
+        if(prevState != "Reprocess"){
+          await recordingUtil.sendAlerts(recording)
+          // alerts
+        }
         recording.set("jobKey", null);
         recording.set("processingStartTime", null);
       }

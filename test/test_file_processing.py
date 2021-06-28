@@ -27,7 +27,7 @@ class TestFileProcessing:
         recordings = [record for record in results if record]
         assert len(set(recordings)) == len(recordings)
 
-    def test_thermal_video(self, helper, file_processing):
+    def test_thermal_video2(self, helper, file_processing):
         user = helper.admin_user()
 
         # Ensure there's a recording to work with (the file processing
@@ -199,7 +199,7 @@ class TestFileProcessing:
         assert json["fail"] == [-1]
 
     def create_processed_recording(
-        self, helper, file_processing, user, rec_type=None, ai_tag=None, human_tag=None
+        self, helper, file_processing, user, device=None, rec_type=None, ai_tag=None, human_tag=None
     ):
         # Ensure there's a recording to work with (the file processing
         # API may return a different one though).
@@ -209,29 +209,32 @@ class TestFileProcessing:
         else:
             rec_type = "thermalRaw"
 
-        helper.given_a_recording(self, props=props)
+        device.has_recording(props=props)
 
         # Get a recording to process.
         recording = file_processing.get(rec_type, "analyse")
         assert recording["processingState"] == "analyse"
         if ai_tag:
+            print("recoridng tagged as ", ai_tag)
             recording.is_tagged_as(what=ai_tag).byAI(helper.admin_user())
         if human_tag:
+            print("recoridng human tagged as ", human_tag)
+
             recording.is_tagged_as(what=ai_tag).by(helper.admin_user())
 
-        track, tag = self.add_tracks_and_tag(file_processing, recording)
+        track, tag = self.add_tracks_and_tag(file_processing, recording, ai_tag)
 
         # Now finalise processing.
         file_processing.put(recording, success=True, complete=True)
         check_recording(user, recording, processingState="FINISHED")
         return recording, track, tag
 
-    def add_tracks_and_tag(self, file_processing, recording):
+    def add_tracks_and_tag(self, file_processing, recording, ai_tag):
         # insert tracks
         track = Track.create(recording)
         track.id_ = file_processing.add_track(recording, track)
 
-        tag = TrackTag.create(track, automatic=True)
+        tag = TrackTag.create(track, automatic=True, what=ai_tag)
         file_processing.add_track_tag(track, tag)
         return track, tag
 
@@ -242,6 +245,20 @@ class TestFileProcessing:
             # Move job to next stage.
             file_processing.put(recording, success=True, complete=False)
             recording = file_processing.get("thermalRaw", "analyse")
+
+    def test_alert(self, helper, file_processing):
+        colonel = helper.given_new_user(self, "colonel")
+        colonel_group = helper.make_unique_group_name(self, "colonelGroup")
+        colonel.create_group(colonel_group)
+        colonel_device = helper.given_new_device(self, "colonel_device", colonel_group)
+
+        alert_id = make_alert(colonel, "Colonel always alert", "possum", colonel_device._id, frequency=0)
+
+        self.process_all_recordings(file_processing)
+        admin = helper.admin_user()
+        recording, track, tag = self.create_processed_recording(
+            helper, file_processing, admin, device=colonel_device, ai_tag="possum", human_tag="possum"
+        )
 
     def test_reprocess_recording(self, helper, file_processing):
         self.process_all_recordings(file_processing)
@@ -316,3 +333,7 @@ def check_recording(user, recording, **expected):
                 assert r[name][k] == v
         else:
             assert r[name] == value
+
+
+def make_alert(user, name, tag, device_id, automatic=True, frequency=None):
+    return user.create_alert(name, [{"tag": tag, "automatic": automatic}], device_id, frequency)

@@ -15,7 +15,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { AlertStatic } from "../../models/Alert";
 
+import { AI_MASTER } from "../../models/TrackTag";
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
 import moment from "moment";
@@ -45,7 +47,8 @@ import {
   DeviceVisitMap,
   Visit,
   VisitEvent,
-  VisitSummary
+  VisitSummary,
+  getTrackTag
 } from "./Visits";
 import { Station } from "../../models/Station";
 import modelsUtil from "../../models/util/util";
@@ -1098,6 +1101,40 @@ function addAudioBaitRow(out: any, audioBait: Event) {
     ""
   ]);
 }
+
+  //---------------
+  // INSTANCE
+  //---------------
+  async function sendAlerts(rec: Recording) {
+    const recording = await models.Recording.getForAdmin(rec.id) as any
+
+    const recVisit =new Visit(recording,0);
+    recVisit.completeVisit();
+
+    const matchedTracks = []
+    for (const track of recording.Tracks){
+      const tag = track.TrackTags.find(
+        (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
+      );
+      if (tag){
+        matchedTracks.push([track,tag]);
+      }
+    }
+    if(matchedTracks.length == 0){
+      return;
+    }
+    const [track, tag] = matchedTracks[0]
+    const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
+      recording.DeviceId,
+      matchedTracks[0][1]
+    );
+    for (const alert of alerts) {
+      await alert.sendAlert(recording, matchedTracks[0][0], matchedTracks[0][1]);
+    }
+    return alerts;
+  }
+
+
 export default {
   makeUploadHandler,
   query,
@@ -1109,5 +1146,6 @@ export default {
   reprocessAll,
   tracksFromMeta,
   updateMetadata,
-  queryVisits
+  queryVisits,
+  sendAlerts,
 };
