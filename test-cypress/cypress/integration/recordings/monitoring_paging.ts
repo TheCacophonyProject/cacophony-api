@@ -11,7 +11,6 @@ describe("Monitoring : pagings", () => {
 
   it("recordings are broken into approximate pages by start date", () => {
     const camera = "basic";
-    const firstRecording = "10:03";
 
     cy.apiCreateCamera(camera, group);
     cy.uploadRecordingsAtTimes(camera, [
@@ -116,6 +115,25 @@ describe("Monitoring : pagings", () => {
       camera,
       { "page-size": 3, page: 2, from: "21:10" },
       [{ start: "21:03", incomplete: "true" }, { start: "21:40" }]
+    );
+  });
+
+  it("paging is correct even when time limit is only met by taking duration of video into account.", () => {
+    const camera = "visits-not-just-start";
+    cy.apiCreateCamera(camera, group);
+
+    cy.uploadRecording(camera, { time: "21:03", duration: 62 });
+    cy.uploadRecordingsAtTimes(camera, ["21:14", "21:50", "22:20"]);
+
+    cy.checkMonitoringWithFilter(
+      Veronica,
+      camera,
+      { "page-size": 3, page: 1 },
+      [
+        { recordings: 2, start: "21:03" },
+        { start: "21:50" },
+        { start: "22:20" }
+      ]
     );
   });
 });

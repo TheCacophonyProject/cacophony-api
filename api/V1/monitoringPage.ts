@@ -28,9 +28,9 @@ const BEFORE_CACOPHONY = new Date(2017, 1, 1);
 
 const LAST_TIMES_TABLE = `with lasttimes as                                    
 (select "recordingDateTime", "DeviceId", "GroupId",
-   LAG("recordingDateTime", 1) OVER 
-    (PARTITION BY "DeviceId" ORDER BY "recordingDateTime")
-     lasttime  from "Recordings" 
+   LAG("recordingDateTime", 1) OVER (PARTITION BY "DeviceId" ORDER BY "recordingDateTime") lasttime,
+   LAG("duration", 1) OVER (PARTITION BY "DeviceId" ORDER BY "recordingDateTime") lastduration
+     from "Recordings" 
      where "recordingDateTime" is not NULL 
        and type = 'thermalRaw' 
        and duration > 0
@@ -40,7 +40,7 @@ const LAST_TIMES_TABLE = `with lasttimes as
 )`;
 
 const WHERE_IS_VISIT_START = `where "lasttime" is NULL 
-or extract(epoch from "recordingDateTime") - extract(epoch from "lasttime") > 600`;
+or extract(epoch from "recordingDateTime") - extract(epoch from "lasttime") - "lastduration" > 600`;
 
 const VISITS_COUNT_SQL = `${LAST_TIMES_TABLE} select count(*) from "lasttimes" ${WHERE_IS_VISIT_START}`;
 

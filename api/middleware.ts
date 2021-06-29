@@ -96,7 +96,6 @@ export const toIdArray = function (fieldName: string): ValidationChain {
 
 const convertToIdArray = function (idsAsString: string): number[] {
   if (idsAsString) {
-    console.log(`value is ${idsAsString}`);
     try {
       const val = JSON.parse(idsAsString);
       if (Array.isArray(val)) {
