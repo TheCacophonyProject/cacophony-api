@@ -35,26 +35,26 @@ export default function (app: Application, baseUrl: string) {
      * @apiName MonitoringPage
      * @apiGroup Monitoring
      * @apiDescription Get a page of monitoring visits.   Visits are returned with the most recent ones listed first.
-     *   
+     *
      * As part of this process recordings are sorted into visits and then the best-classification for each visit is calculated.
-     * Optionally you can also a specify an ai so you can compare the best classification with that given by the ai.   
-     * 
+     * Optionally you can also a specify an ai so you can compare the best classification with that given by the ai.
+     *
      * How many visits are returned is governed by the page-size parameter which is used to calculate page start and page end timestamps.
-     * In some circumstances the number of visits returned may be slightly bigger or smaller than the page-size.  
-     * 
+     * In some circumstances the number of visits returned may be slightly bigger or smaller than the page-size.
+     *
      * @apiUse V1UserAuthorizationHeader
      * @apiParam {number|number[]} devices  A single device id, or a JSON list of device ids to include.  eg 52, or [23, 42]
      * @apiParam {number|number[]} groups  A single group id or a JSON list of group ids to include.  eg 20, or [23, 42]
      * @apiParam {timestamp} from  Retrieve visits after this time
      * @apiParam {timestamp} until Retrieve visits starting on or before this time
      * @apiParam {number} page  Page number to retrieve
-     * @apiParam {number} page-size Maximum numbers of visits to show on each page.  Note: Number of visits is approximate per page.  In some situations number maybe slightly bigger or smaller than this.  
-     * @apiParam {string} ai   Name of the AI to be used to compute the 'classificationAI' result.  Note: This will not affect the 
+     * @apiParam {number} page-size Maximum numbers of visits to show on each page.  Note: Number of visits is approximate per page.  In some situations number maybe slightly bigger or smaller than this.
+     * @apiParam {string} ai   Name of the AI to be used to compute the 'classificationAI' result.  Note: This will not affect the
      * 'classification' result, which always uses a predefined AI/human choice.
-     * @apiParam {string} viewmode   View mode for super user. 
-     * 
-     * @apiSuccess {JSON} params The parameters used to retrieve these results.  Most of these fields are from the request.   
-     * Calculated fields are listed in the 'Params Details' section below. 
+     * @apiParam {string} viewmode   View mode for super user.
+     *
+     * @apiSuccess {JSON} params The parameters used to retrieve these results.  Most of these fields are from the request.
+     * Calculated fields are listed in the 'Params Details' section below.
      * @apiSuccess {JSON} visits The returned visits.   More information in the 'Visits Details' section below.
      * @apiSuccess {boolean} success True
      * @apiSuccess {string} messages Any message from the server
@@ -72,11 +72,11 @@ export default function (app: Application, baseUrl: string) {
      * @apiSuccess (Visit Details){string} timeEnd Time visit ends
      * @apiSuccess (Visit Details){boolean} timeEnd Time visit ends
      * @apiSuccess (Visit Details){string} classification Cacophony classification.   (This is the best classification we have for this visit)
-     * @apiSuccess (Visit Details){string} classificationAi Best classification from AI specified in request params, otherwise best classification from AI Master.     
+     * @apiSuccess (Visit Details){string} classificationAi Best classification from AI specified in request params, otherwise best classification from AI Master.
      * @apiSuccess (Visit Details){boolean} classFromUserTag True if the Cacophony classification was made by a user.   False if it was an AI classification
-     * @apiSuccess (Visit Details){boolean} incomplete Visits are incomplete if there maybe more recordings that belong to this visit.  This can only 
+     * @apiSuccess (Visit Details){boolean} incomplete Visits are incomplete if there maybe more recordings that belong to this visit.  This can only
      * occur at the start or end of the time period.   If it occurs at the start of the time period then for counting purposes it doesn't really belong
-     * in this time period.  
+     * in this time period.
 
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
@@ -126,10 +126,9 @@ export default function (app: Application, baseUrl: string) {
      *       "success": true
      *   }
      * @apiSuccess {JSON} visits Calculated visits with classifications.
-     * 
+     *
      * @apiUse V1ResponseError
      */
-
   app.get(
     apiUrl + "/page",
     [
@@ -148,18 +147,18 @@ export default function (app: Application, baseUrl: string) {
         const user = (request as any).user;
         const params: MonitoringParams = {
           user,
-          devices: request.query.devices,
-          groups: request.query.groups,
-          page: request.query.page,
-          pageSize: request.query["page-size"]
+          devices: request.query.devices as unknown[] as number[],
+          groups: request.query.groups as unknown[] as number[],
+          page: Number(request.query.page),
+          pageSize: Number(request.query["page-size"])
         };
 
         if (request.query.from) {
-          params.from = new Date(request.query.from);
+          params.from = new Date(request.query.from as string);
         }
 
         if (request.query.until) {
-          params.until = new Date(request.query.until);
+          params.until = new Date(request.query.until as string);
         }
 
         const viewAsSuperAdmin = request.body.viewAsSuperAdmin;
@@ -167,7 +166,7 @@ export default function (app: Application, baseUrl: string) {
           params,
           viewAsSuperAdmin
         );
-        searchDetails.compareAi = request.query["ai"] || "Master";
+        searchDetails.compareAi = (request.query["ai"] as string) || "Master";
 
         const visits = await generateVisits(
           user,

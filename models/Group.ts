@@ -345,7 +345,7 @@ export default function (sequelize, DataTypes): GroupStatic {
 
     const existingStationsByName: Record<string, Station> = {};
     const newStationsByName: Record<string, CreateStationData> = {};
-    const stationOpsPromises = [];
+    const stationOpsPromises: Promise<any>[] = [];
     for (const station of stationsToAdd) {
       newStationsByName[station.name] = station;
     }
@@ -384,7 +384,7 @@ export default function (sequelize, DataTypes): GroupStatic {
           new Promise(async (resolve) => {
             await stationToAddOrUpdate.save();
             await group.addStation(stationToAddOrUpdate);
-            resolve();
+            resolve(null);
           })
         );
       } else {

@@ -311,6 +311,7 @@ export default function (
   User.prototype.isGroupAdmin = async function (
     groupId: number
   ): Promise<boolean> {
+    // FIXME: Better to put the groupId in the where clause here?
     const groupIds = await this.getGroups();
     return groupIds.some(
       ({ id, GroupUsers }) => id === groupId && GroupUsers.admin === true

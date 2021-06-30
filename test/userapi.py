@@ -220,9 +220,6 @@ class UserAPI(APIBase):
     def download_cptv(self, recording_id):
         return self._download_recording(recording_id, "downloadRawJWT")
 
-    def download_mp4(self, recording_id):
-        return self._download_recording(recording_id, "downloadFileJWT")
-
     def _download_recording(self, id, jwt_key):
         url = urljoin(self._baseurl, "/api/v1/recordings/{}".format(id))
         r = requests.get(url, headers=self._auth_header)
