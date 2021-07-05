@@ -201,6 +201,7 @@ function addTracksToRecording(
 
   if (trackDetails) {
     let count = 0;
+    console.log("data ", trackDetails)
     data.metadata.tracks = trackDetails.map((track) => {
       let tag = track.tag ? track.tag : "possum";
       return {

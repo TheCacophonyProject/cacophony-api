@@ -14,8 +14,8 @@ import { logTestDescription, prettyLog } from "../descriptions";
 
 
 Cypress.Commands.add(
-  "apiCreateAlertForUser",
-  (what, camera, alertName) => {
+  "apiCreateAlert",
+  (user,what, camera, alertName) => {
     logTestDescription(
       `Creating alert on '${what}' for camera '${camera}'`,
       {
@@ -30,27 +30,26 @@ Cypress.Commands.add(
 
     cy.request({
       method: "POST",
-      url: v1ApiPath("alerts", params),
+      url: v1ApiPath("alerts"),
+      body:data,
       headers: getCreds(user).headers
-    }).then((response) => {
-      checkResponseMatches(response, expectedVisits);
     });
   }
 );
 
   Cypress.Commands.add(
     "checkAlerts",
-    (user: string, device: string, expectedEvent: ComparablePowerEvent) => {
+    (user: string, camera: string, expectedEvents: ComparablePowerEvent) => {
       logTestDescription(
-        `Check power events for ${camera} is ${prettyLog(expectedEvent)}}`,
+        `Check alert events for ${camera} is ${prettyLog(expectedEvents)}}`,
         {
           user,
           camera,
-          expectedEvent
+          expectedEvents
         }
       );
 
-      checkAlerts(user, camera, expectedEvent);
+      checkAlerts(user, camera, expectedEvents);
     }
   );
 
@@ -58,7 +57,7 @@ Cypress.Commands.add(
   function checkAlerts(
     user: string,
     camera: string,
-    expectedAlerts: ComparableAlert[]
+    expectedEvents: ComparableAlert[]
   ) {
     const params = {
       deviceID: getCreds(camera).id
@@ -68,7 +67,7 @@ Cypress.Commands.add(
       { url: v1ApiPath(`alerts/device/${getCreds(camera).id}`) },
       user
     ).then((response) => {
-      checkResponseMatches(response, expectedEvent);
+      checkResponseMatches(response, expectedEvents);
     });
   }
 
@@ -76,15 +75,15 @@ Cypress.Commands.add(
     response: Cypress.Response,
     expectedEvents: ComparableAlert[]
   ) {
-    expect(response.body.alerts.length, `Expected ${expectedEvent.length} alerts`).to.eq(expectedEvents.length);
-    const alerts = response.body.alerts;
+    expect(response.body.Alerts.length, `Expected ${expectedEvents.length} alerts`).to.eq(expectedEvents.length);
+    const alerts = response.body.Alerts;
     let index = 0;
     for(const alert of alerts){
       const expectedEvent = expectedEvents[index]
       expect(
-        alert.what,
-        `Alert should be for ${expectedEvent.what}`
-      ).to.eq(expectedEvent.what);
+        alert.name,
+        `Alert should be for a ${expectedEvent.name}`
+      ).to.eq(expectedEvent.name);
       expect(
         alert.recId,
         `Alert should be for recording ${
