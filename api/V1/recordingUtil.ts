@@ -1102,34 +1102,33 @@ function addAudioBaitRow(out: any, audioBait: Event) {
   ]);
 }
 
-  //---------------
-  // INSTANCE
-  //---------------
-  async function sendAlerts(rec: Recording) {
-    const recording = await models.Recording.getForAdmin(rec.id) as any
-
+  async function sendAlerts(recID: number) {
+    const recording = await models.Recording.getForAdmin(recID) as any
     const recVisit =new Visit(recording,0);
     recVisit.completeVisit();
 
-    const matchedTracks = []
+    let matchedTrack , matchedTag
+    // find any ai master tags that match the visit tag
     for (const track of recording.Tracks){
-      const tag = track.TrackTags.find(
+      matchedTag = track.TrackTags.find(
         (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
       );
-      if (tag){
-        matchedTracks.push([track,tag]);
+      if (matchedTag){
+        matchedTrack = track
+        break
       }
     }
-    if(matchedTracks.length == 0){
+    if(!matchedTag){
       return;
     }
-    const [track, tag] = matchedTracks[0]
+
     const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
       recording.DeviceId,
-      matchedTracks[0][1]
+      matchedTag
     );
+
     for (const alert of alerts) {
-      await alert.sendAlert(recording, matchedTracks[0][0], matchedTracks[0][1]);
+      await alert.sendAlert(recording, matchedTrack,matchedTag);
     }
     return alerts;
   }
