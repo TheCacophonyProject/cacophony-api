@@ -236,9 +236,14 @@ function makeUploadHandler(mungeData?: (any) => any) {
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
+
     }
     if (data.processingState) {
       recording.processingState = data.processingState;
+      if(recording.processingState  == models.Recording.finishedState(          data.type as RecordingType
+)){
+          await sendAlerts(recording.id)
+      }
     } else {
       if (!fileIsCorrupt) {
         recording.processingState = models.Recording.uploadedState(

@@ -279,6 +279,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     [RecordingType.Audio]: string[];
   };
   uploadedState: (type: RecordingType) => RecordingProcessingState;
+  finishedState: (type: RecordingType) => RecordingProcessingState;
 
   getOneForProcessing: (
     type: RecordingType,
@@ -1453,7 +1454,13 @@ from (
       return RecordingProcessingState.AnalyseThermal;
     }
   };
-
+  Recording.finishedState = function (type: RecordingType) {
+    if (type == RecordingType.Audio) {
+      return RecordingProcessingState.Finished;
+    } else {
+      return RecordingProcessingState.Finished;
+    }
+  };
   Recording.processingAttributes = [
     "id",
     "type",
