@@ -311,9 +311,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
-  getForAdmin: (
-    id: RecordingId
-  ) => Promise<Recording>;
+  getForAdmin: (id: RecordingId) => Promise<Recording>;
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
 
@@ -469,7 +467,7 @@ export default function (
    * Return a single recording for a user/device.
    */
   Recording.get = async function (
-    modelObj: User | Device ,
+    modelObj: User | Device,
     id,
     permission,
     options: getOptions = {}
@@ -529,27 +527,24 @@ export default function (
     return recording;
   };
 
-    /**
-     * Return a single recording for a devce.
-     */
-    Recording.getForAdmin = async function (
-      id,
-    ) {
-      const query = {
-        where:
-            {
-              id: id,
-            },
-        include: getRecordingInclude(),
-        attributes: this.queryGetAttributes.concat(["rawFileKey"])
-      };
-
-      const recording = await this.findOne(query);
-      if (!recording) {
-        return null;
-      }
-      return recording;
+  /**
+   * Return a single recording for a devce.
+   */
+  Recording.getForAdmin = async function (id) {
+    const query = {
+      where: {
+        id: id
+      },
+      include: getRecordingInclude(),
+      attributes: this.queryGetAttributes.concat(["rawFileKey"])
     };
+
+    const recording = await this.findOne(query);
+    if (!recording) {
+      return null;
+    }
+    return recording;
+  };
 
   /**
    * Return a single recording for a devce.
@@ -1064,8 +1059,6 @@ from (
     };
     return this;
   };
-
-
 
   function getRecordingInclude() {
     return [

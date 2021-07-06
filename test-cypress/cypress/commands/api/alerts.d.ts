@@ -2,7 +2,6 @@
 /// <reference types="cypress" />
 
 interface ComparableAlertEvent {
-  name: string;
   recId: number;
 }
 
@@ -11,14 +10,17 @@ declare namespace Cypress {
     /**
      * create an alert for user for what on this camera
      */
-    apiCreateAlert(user:string
+    apiCreateAlert(
+      user: string,
       what: string,
       camera: string,
       alertName: string
     ): Chainable<Element>;
 
     checkAlerts(
-      user: string, camera: string, expectedAlerts: ComparableAlertEvents[]
+      user: string,
+      camera: string,
+      expectedAlerts: ComparableAlertEvents[]
     ): Chainable<Element>;
   }
 }

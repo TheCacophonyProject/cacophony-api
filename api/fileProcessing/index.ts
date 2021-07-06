@@ -108,8 +108,8 @@ export default function (app: Application) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        if(prevState != "Reprocess"){
-          await recordingUtil.sendAlerts(recording)
+        if (prevState != "Reprocess") {
+          await recordingUtil.sendAlerts(recording);
           // alerts
         }
         recording.set("jobKey", null);

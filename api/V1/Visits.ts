@@ -49,9 +49,7 @@ function sortTracks(tracks: Track[]) {
 
 // getTrackTag from all tags return a single tag by precedence:
 // this users tag, or any other humans tag, else the original AI
-export function getTrackTag(
-  trackTags: TrackTag[],
-): TrackTag | null {
+export function getTrackTag(trackTags: TrackTag[]): TrackTag | null {
   if (trackTags.length == 0) {
     return null;
   }
@@ -307,7 +305,7 @@ class DeviceVisits {
   calculateNewVisits(
     rec: any,
     queryOffset: number,
-    complete: boolean = false,
+    complete: boolean = false
   ): Visit[] {
     sortTracks(rec.Tracks);
     if (rec.Tracks.length == 0) {
@@ -361,7 +359,7 @@ class Visit {
   audioBaitEvents: Event[];
   complete: boolean;
   tagCount: any;
-  constructor(rec: any,  public queryOffset: number) {
+  constructor(rec: any, public queryOffset: number) {
     visitID += 1;
     this.tagCount = {};
     this.visitID = visitID;

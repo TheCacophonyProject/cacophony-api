@@ -127,7 +127,6 @@ export default function (app: Application, baseUrl: string) {
       if (query.type) {
         options = { eventType: query.type } as QueryOptions;
       }
-
       const result = await models.Event.query(
         request.user,
         query.startTime,

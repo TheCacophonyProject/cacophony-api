@@ -154,7 +154,9 @@ function makeRecordingDataFromDetails(
   if (details.lat && details.lng) {
     data.location = [details.lat, details.lng];
   }
-
+  if (details.processingState) {
+    data.processingState = details.processingState;
+  }
   return data;
 }
 
@@ -201,7 +203,6 @@ function addTracksToRecording(
 
   if (trackDetails) {
     let count = 0;
-    console.log("data ", trackDetails)
     data.metadata.tracks = trackDetails.map((track) => {
       let tag = track.tag ? track.tag : "possum";
       return {

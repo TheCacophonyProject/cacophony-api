@@ -236,13 +236,14 @@ function makeUploadHandler(mungeData?: (any) => any) {
     await recording.save();
     if (data.metadata) {
       await tracksFromMeta(recording, data.metadata);
-
     }
     if (data.processingState) {
       recording.processingState = data.processingState;
-      if(recording.processingState  == models.Recording.finishedState(          data.type as RecordingType
-)){
-          await sendAlerts(recording.id)
+      if (
+        recording.processingState ==
+        models.Recording.finishedState(data.type as RecordingType)
+      ) {
+        await sendAlerts(recording.id);
       }
     } else {
       if (!fileIsCorrupt) {
@@ -1107,37 +1108,35 @@ function addAudioBaitRow(out: any, audioBait: Event) {
   ]);
 }
 
-  async function sendAlerts(recID: number) {
-    const recording = await models.Recording.getForAdmin(recID) as any
-    const recVisit =new Visit(recording,0);
-    recVisit.completeVisit();
-
-    let matchedTrack , matchedTag
-    // find any ai master tags that match the visit tag
-    for (const track of recording.Tracks){
-      matchedTag = track.TrackTags.find(
-        (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
-      );
-      if (matchedTag){
-        matchedTrack = track
-        break
-      }
-    }
-    if(!matchedTag){
-      return;
-    }
-
-    const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
-      recording.DeviceId,
-      matchedTag
+async function sendAlerts(recID: number) {
+  const recording = (await models.Recording.getForAdmin(recID)) as any;
+  const recVisit = new Visit(recording, 0);
+  recVisit.completeVisit();
+  let matchedTrack, matchedTag;
+  // find any ai master tags that match the visit tag
+  for (const track of recording.Tracks) {
+    matchedTag = track.TrackTags.find(
+      (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
     );
-
-    for (const alert of alerts) {
-      await alert.sendAlert(recording, matchedTrack,matchedTag);
+    if (matchedTag) {
+      matchedTrack = track;
+      break;
     }
-    return alerts;
+  }
+  if (!matchedTag) {
+    return;
   }
 
+  const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
+    recording.DeviceId,
+    matchedTag
+  );
+
+  for (const alert of alerts) {
+    await alert.sendAlert(recording, matchedTrack, matchedTag);
+  }
+  return alerts;
+}
 
 export default {
   makeUploadHandler,
@@ -1151,5 +1150,5 @@ export default {
   tracksFromMeta,
   updateMetadata,
   queryVisits,
-  sendAlerts,
+  sendAlerts
 };
