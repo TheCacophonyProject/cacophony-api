@@ -231,7 +231,7 @@ class TestFileProcessing:
         track = Track.create(recording)
         track.id_ = file_processing.add_track(recording, track)
 
-        tag = TrackTag.create(track, automatic=True, what=ai_tag)
+        tag = TrackTag.create(track, automatic=True)
         file_processing.add_track_tag(track, tag)
         return track, tag
 
