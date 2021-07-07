@@ -16,7 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { AlertStatic } from "../../models/Alert";
-
 import { AI_MASTER } from "../../models/TrackTag";
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";

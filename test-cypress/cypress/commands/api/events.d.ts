@@ -8,7 +8,7 @@ declare namespace Cypress {
     apiGetEvents(
       user: string,
       camera: string,
-      evnetType: string
+      eventType: string
     ): Chainable<Element>;
 
     /**

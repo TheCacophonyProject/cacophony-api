@@ -99,8 +99,6 @@ export default function (app: Application) {
     }
 
     if (success) {
-
-
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
@@ -119,6 +117,7 @@ export default function (app: Application) {
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
+
       await recording.save();
 
       if ((recording as Recording).type === RecordingType.ThermalRaw) {

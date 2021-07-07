@@ -312,7 +312,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
-  
+
   getForAdmin: (id: RecordingId) => Promise<Recording>;
   getNextState: () => String;
   //findAll: (query: FindOptions) => Promise<Recording[]>;
@@ -531,7 +531,7 @@ export default function (
   };
 
   /**
-   * Return a single recording for a devce.
+   * Return a single recording for an admin.
    */
   Recording.getForAdmin = async function (id) {
     const query = {
@@ -801,7 +801,7 @@ from (
     const jobs = Recording.processingStates[this.type];
     let nextState;
     if (this.processingState == RecordingProcessingState.Reprocess) {
-      nextState = jobs[jobs.length - 1];
+      nextState = Recording.finishedState(this.type);
     } else {
       const job_index = jobs.indexOf(this.processingState);
       if (job_index == -1) {
@@ -809,7 +809,8 @@ from (
       } else if (job_index < jobs.length - 1) {
         nextState = jobs[job_index + 1];
       } else {
-        nextState = jobs[job_index];
+        //already at final state
+        nextState = this.processingState;
       }
     }
     return nextState;

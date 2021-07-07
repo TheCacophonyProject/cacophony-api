@@ -12,7 +12,7 @@ describe("Alerts : recordings get alerted", () => {
     cy.apiCreateCamera(TreeCamera, AlertGroup);
   });
 
-  it("device without alerts doesn't send alert", () => {
+  it("Device without alerts does not receive an alert", () => {
     const camera = "no_alerts";
     cy.apiCreateCamera(camera, AlertGroup);
     cy.uploadRecording(camera, {
@@ -22,7 +22,7 @@ describe("Alerts : recordings get alerted", () => {
     cy.checkAlerts(Tiny, camera, []);
   });
 
-  it("device gets alert for possum", () => {
+  it("Possum alert is sent", () => {
     const camera = "possum_alert";
     cy.apiCreateCamera(camera, AlertGroup);
     cy.apiCreateAlert(Tiny, "possum", camera, "possum1");
@@ -40,7 +40,7 @@ describe("Alerts : recordings get alerted", () => {
     });
   });
 
-  it("device gets alert no alert for rat", () => {
+  it("No possum alert is sent for a rat", () => {
     const camera = "not a rat alert";
     cy.apiCreateCamera(camera, AlertGroup);
     cy.apiCreateAlert(Tiny, "possum", camera, "possum1");
@@ -48,8 +48,22 @@ describe("Alerts : recordings get alerted", () => {
     cy.uploadRecording(camera, { processingState: "FINISHED", tags: ["rat"] });
     cy.checkAlerts(Tiny, camera, []);
   });
+  it("No possum alert is sent for a possum on a different device", () => {
+    const camera = "possum catcher";
+    const cameraTwo = "rat catcher";
 
-  it("device gets alert based of visit tag", () => {
+    cy.apiCreateCamera(camera, AlertGroup);
+    cy.apiCreateAlert(Tiny, "possum", camera, "possum1");
+    cy.apiCreateCamera(cameraTwo, AlertGroup);
+
+    cy.uploadRecording(cameraTwo, {
+      processingState: "FINISHED",
+      tags: ["possum"]
+    });
+    cy.checkAlerts(Tiny, camera, []);
+  });
+
+  it("Alert is based of visit tag, a recording with 2 possum tags and 1 rat is a possum", () => {
     const camera = "possum visit";
     cy.apiCreateCamera(camera, AlertGroup);
     cy.apiCreateAlert(Tiny, "possum", camera, "possum1");

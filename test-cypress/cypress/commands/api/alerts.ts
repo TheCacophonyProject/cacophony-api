@@ -1,25 +1,20 @@
 // load the global Cypress types
 /// <reference types="cypress" />
 
-import { getTestName } from "../names";
-import {
-  apiPath,
-  getCreds,
-  makeAuthorizedRequest,
-  saveCreds,
-  saveIdOnly,
-  v1ApiPath
-} from "../server";
+import { getCreds, v1ApiPath } from "../server";
 import { logTestDescription, prettyLog } from "../descriptions";
 
 Cypress.Commands.add("apiCreateAlert", (user, what, camera, alertName) => {
-  logTestDescription(`Creating alert on '${what}' for camera '${camera}'`, {
-    what: what,
-    camera
-  });
+  logTestDescription(
+    `Creating alert on '${what}' for camera '${camera}' and user ${user}`,
+    {
+      what: what,
+      camera
+    }
+  );
   const data = {
     name: alertName,
-    conditions: JSON.stringify([{ tag: what, automatic: true }]),
+    conditions: JSON.stringify([{ tag: what }]),
     deviceId: getCreds(camera).id
   };
 
@@ -35,7 +30,9 @@ Cypress.Commands.add(
   "checkAlerts",
   (user: string, camera: string, expectedEvents: ComparablePowerEvent) => {
     logTestDescription(
-      `Check alert events for ${camera} is ${prettyLog(expectedEvents)}}`,
+      `Check ${user} has been alerted on ${camera} for these recordings: ${prettyLog(
+        expectedEvents
+      )}}`,
       {
         user,
         camera,
