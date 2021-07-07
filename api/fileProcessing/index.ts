@@ -99,20 +99,22 @@ export default function (app: Application) {
     }
 
     if (success) {
+
+
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        if (recording.processingState != "Reprocess") {
+        if (recording.processState != RecordingProcessingState.Reprocess) {
           await recordingUtil.sendAlerts(recording);
           // alerts
         }
-        const nextJob = recording.getNextState();
-        recording.set("processingState", nextJob);
+
         recording.set("jobKey", null);
         recording.set("processingStartTime", null);
       }
-
+      const nextJob = recording.getNextState();
+      recording.set("processingState", nextJob);
       // Process extra data from file processing
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
