@@ -104,7 +104,7 @@ export default function (app: Application) {
       }
       if (complete) {
         if (recording.processState != RecordingProcessingState.Reprocess) {
-          await recordingUtil.sendAlerts(recording);
+          await recordingUtil.sendAlerts(recording.id);
         }
 
         recording.set("jobKey", null);
