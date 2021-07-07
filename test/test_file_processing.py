@@ -239,12 +239,13 @@ class TestFileProcessing:
         return track, tag
 
     def process_all_recordings(self, file_processing):
-        recording = file_processing.get("thermalRaw", "analyse")
+        for state in ["analyse", "reprocess"]:
+            recording = file_processing.get("thermalRaw", state)
 
-        while recording:
-            # Move job to next stage.
-            file_processing.put(recording, success=True, complete=False)
-            recording = file_processing.get("thermalRaw", "analyse")
+            while recording:
+                # Move job to next stage.
+                file_processing.put(recording, success=True, complete=False)
+                recording = file_processing.get("thermalRaw", state)
 
     def test_alert(self, helper, file_processing):
         colonel = helper.given_new_user(self, "colonel")
@@ -280,7 +281,7 @@ class TestFileProcessing:
 
         # check recording is ready to be reprocessed
         db_recording = admin.get_recording(recording)
-        assert db_recording["processingState"] == "analyse"
+        assert db_recording["processingState"] == "reprocess"
         admin.has_no_tracks(recording)
         assert len(db_recording["additionalMetadata"].get("oldTags", [])) == 2
 
@@ -291,7 +292,7 @@ class TestFileProcessing:
         assert len(db_recording["Tags"]) == 2
         admin.can_see_track(track2)
         # check is returned when asking for another recording
-        recording = file_processing.get("thermalRaw", "analyse")
+        recording = file_processing.get("thermalRaw", "reprocess")
         assert recording.id_ == reprocessed_id
 
         # Now finalise processing.
@@ -319,7 +320,7 @@ class TestFileProcessing:
         assert admin.get_recording(recording)["processingState"] == "FINISHED"
 
         admin.reprocess(recording)
-        assert admin.get_recording(recording)["processingState"] == "toMp3"
+        assert admin.get_recording(recording)["processingState"] == "reprocess"
 
 
 def check_recording(user, recording, **expected):

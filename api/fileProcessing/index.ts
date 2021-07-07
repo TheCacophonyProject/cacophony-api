@@ -99,19 +99,16 @@ export default function (app: Application) {
     }
 
     if (success) {
-      const jobs = models.Recording.processingStates[recording.type];
-      const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
-      const prevState = recording.processingState;
-      recording.set("processingState", nextJob);
-
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        if (prevState != "Reprocess") {
+        if (recording.processingState != "Reprocess") {
           await recordingUtil.sendAlerts(recording);
           // alerts
         }
+        const nextJob = recording.getNextState();
+        recording.set("processingState", nextJob);
         recording.set("jobKey", null);
         recording.set("processingStartTime", null);
       }
@@ -120,7 +117,6 @@ export default function (app: Application) {
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
-
       await recording.save();
 
       if ((recording as Recording).type === RecordingType.ThermalRaw) {

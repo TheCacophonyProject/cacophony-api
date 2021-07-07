@@ -39,8 +39,8 @@ script:
  - cd ..
 
  - cd test-cypress
- - cp cypress.json.TEMPLATE cypress.json
  - npm install
+ - cp cypress.json.TEMPLATE cypress.json
  - npm run release
  - cd ..
 

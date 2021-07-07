@@ -82,7 +82,8 @@ export enum RecordingProcessingState {
   AnalyseThermal = "analyse",
   Finished = "FINISHED",
   ToMp3 = "toMp3",
-  Analyse = "analyse"
+  Analyse = "analyse",
+  Reprocess = "reprocess"
 }
 export const RecordingPermissions = new Set(Object.values(RecordingPermission));
 
@@ -311,7 +312,9 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
+  
   getForAdmin: (id: RecordingId) => Promise<Recording>;
+  getNextState: () => String;
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
 
@@ -794,6 +797,23 @@ from (
   //------------------
   // INSTANCE METHODS
   //------------------
+  Recording.prototype.getNextState = function () {
+    const jobs = Recording.processingStates[this.type];
+    let nextState;
+    if (this.processingState == RecordingProcessingState.Reprocess) {
+      nextState = jobs[jobs.length - 1];
+    } else {
+      const job_index = jobs.indexOf(this.processingState);
+      if (job_index == -1) {
+        throw new Error(`Recording state unknown - ${this.processState}`);
+      } else if (job_index < jobs.length - 1) {
+        nextState = jobs[job_index + 1];
+      } else {
+        nextState = jobs[job_index];
+      }
+    }
+    return nextState;
+  };
 
   Recording.prototype.setStation = async function (station: { id: number }) {
     this.StationId = station.id;
@@ -976,13 +996,9 @@ from (
         }
       }
     );
-
-    const state = Recording.processingStates[this.type][0];
-
-    // FIXME: Should the processing start time really be set to null?
     await this.update({
       processingStartTime: null,
-      processingState: state
+      processingState: RecordingProcessingState.Reprocess
     });
   };
 
@@ -1436,8 +1452,15 @@ from (
   const apiUpdatableFields = ["location", "comment", "additionalMetadata"];
 
   Recording.processingStates = {
-    thermalRaw: ["analyse", "FINISHED"],
-    audio: ["toMp3", "analyse", "FINISHED"]
+    thermalRaw: [
+      RecordingProcessingState.AnalyseThermal,
+      RecordingProcessingState.Finished
+    ],
+    audio: [
+      RecordingProcessingState.ToMp3,
+      RecordingProcessingState.Analyse,
+      RecordingProcessingState.Finished
+    ]
   };
 
   Recording.uploadedState = function (type: RecordingType) {
