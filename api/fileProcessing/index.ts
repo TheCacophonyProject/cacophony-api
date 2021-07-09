@@ -103,7 +103,7 @@ export default function (app: Application) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        if (recording.processState != RecordingProcessingState.Reprocess) {
+        if (recording.processingState != RecordingProcessingState.Reprocess) {
           await recordingUtil.sendAlerts(recording.id);
         }
 
