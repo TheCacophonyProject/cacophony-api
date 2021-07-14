@@ -788,7 +788,7 @@ from (
       } else if (job_index < jobs.length - 1) {
         nextState = jobs[job_index + 1];
       } else {
-        nextState = jobs[job_index];
+        nextState = this.processingState;
       }
     }
     return nextState;
