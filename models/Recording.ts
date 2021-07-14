@@ -809,7 +809,6 @@ from (
       } else if (job_index < jobs.length - 1) {
         nextState = jobs[job_index + 1];
       } else {
-        //already at final state
         nextState = this.processingState;
       }
     }
