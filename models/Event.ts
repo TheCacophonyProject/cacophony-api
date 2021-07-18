@@ -209,7 +209,7 @@ export default function (sequelize, DataTypes) {
         },
         {
           model: models.Device,
-          attributes: ["id", "devicename", "GroupId"]
+          attributes: ["id", "devicename", "GroupId", "groupname"]
         }
       ],
       attributes: [
