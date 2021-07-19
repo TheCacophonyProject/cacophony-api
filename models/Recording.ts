@@ -1383,7 +1383,8 @@ from (
     "batteryLevel",
     "DeviceId",
     "GroupId",
-    "StationId"
+    "StationId",
+    "rawFileKey"
   ];
 
   // Attributes returned when looking up a single recording.

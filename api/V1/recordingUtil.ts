@@ -15,6 +15,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import sharp from "sharp";
 
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
@@ -138,6 +139,129 @@ export async function tryToMatchRecordingToStation(
     return closest.station;
   }
   return null;
+}
+
+const THUMBNAIL_MIN_SIZE = 64;
+const THUMBNAIL_PALETTE = "Viridis";
+
+async function getCPTVFrame(recording, frameNumber) {
+  const { CptvDecoder } = await dynamicImportESM("cptv-decoder");
+  const decoder = new CptvDecoder();
+  const fileData = await modelsUtil
+    .openS3()
+    .getObject({
+      Bucket: config.s3.bucket,
+      Key: recording.rawFileKey
+    })
+    .promise()
+    .catch((err) => {
+      return err;
+    });
+  //work around for error in cptv-decoder
+  //best to use createReadStream() from s3 when cptv-decoder has support
+  let data = new Uint8Array(fileData.Body);
+  const meta = await decoder.getBytesMetadata(data);
+  let result = await decoder.initWithLocalCptvFile(data);
+  if (!result) {
+    return;
+  }
+  let finished = false;
+  let currentFrame = 0;
+  let frame;
+  while (!finished) {
+    currentFrame++;
+    frame = await decoder.getNextFrame();
+    finished = frame == null;
+    if (currentFrame == frameNumber) {
+      break;
+    }
+  }
+  decoder.close();
+  return frame;
+}
+async function saveThumbnailInfo(recording, thumbnail) {
+  const frame = await getCPTVFrame(recording, thumbnail.frame_number);
+  const thumb = await createThumbnail(frame, thumbnail);
+
+  let upload = await modelsUtil
+    .openS3()
+    .upload({
+      Bucket: config.s3.bucket,
+      Key: `${recording.rawFileKey}-thumb`,
+      Body: thumb.data,
+      Metadata: thumb.meta
+    })
+    .promise()
+    .catch((err) => {
+      return err;
+    });
+  return upload;
+}
+
+async function createThumbnail(frame, thumbnail) {
+  const frameMeta = frame.meta.imageData;
+  const res_x = frameMeta.width;
+  const res_y = frameMeta.height;
+
+  const size = Math.max(THUMBNAIL_MIN_SIZE, thumbnail.height, thumbnail.width);
+  const thumbnail_data = new Uint8Array(size * size);
+
+  //dimensions to it is a square with a minimum size of THUMBNAIL_MIN_SIZE
+  const extra_width = (size - thumbnail.width) / 2;
+  thumbnail.x -= Math.ceil(extra_width);
+  thumbnail.x = Math.max(0, thumbnail.x);
+  thumbnail.width = size;
+  if (thumbnail.x + thumbnail.width > res_x) {
+    thumbnail.x = res_x - thumbnail.width;
+  }
+
+  const extra_height = (size - thumbnail.height) / 2;
+  thumbnail.y -= Math.ceil(extra_height);
+  thumbnail.y = Math.max(0, thumbnail.y);
+  thumbnail.height = size;
+  if (thumbnail.y + thumbnail.height > res_y) {
+    thumbnail.y = res_y - thumbnail.height;
+  }
+
+  let frame_start;
+  let sub_start;
+  for (let i = 0; i < size; i++) {
+    frame_start = (i + thumbnail.y) * res_x + thumbnail.x;
+    sub_start = i * size;
+    for (let offset = 0; offset < thumbnail.width; offset++) {
+      let pixel = frame.data[frame_start + offset];
+      pixel = (255 * (pixel - frameMeta.min)) / (frameMeta.max - frameMeta.min);
+      thumbnail_data[sub_start + offset] = pixel;
+    }
+  }
+  const frameBuffer = new Uint8ClampedArray(4 * thumbnail_data.length);
+  const { renderFrameIntoFrameBuffer, ColourMaps } = await dynamicImportESM(
+    "cptv-decoder"
+  );
+  let defaultColourmap = ColourMaps[0][1];
+  for (const colourMap of ColourMaps) {
+    if (colourMap[0] == THUMBNAIL_PALETTE) {
+      defaultColourmap = colourMap[1];
+    }
+  }
+  renderFrameIntoFrameBuffer(
+    frameBuffer,
+    thumbnail_data,
+    defaultColourmap,
+    0,
+    255
+  );
+  const img = await sharp(frameBuffer, {
+    raw: { width: thumbnail.width, height: thumbnail.height, channels: 4 }
+  }).resize(size, size, { fit: "contain" });
+  const meta = await img.metadata();
+  const thumbMeta = {
+    width: meta.width.toString(),
+    height: meta.height.toString(),
+    region: JSON.stringify(thumbnail)
+  };
+  const data = await img.png().toBuffer();
+  return { data: data, meta: thumbMeta };
 }
 
 function makeUploadHandler(mungeData?: (any) => any) {
@@ -279,6 +403,13 @@ async function query(
     request.user,
     request.filterOptions
   );
+  let s3 = await modelsUtil.openS3();
+  for (const rec of result.rows) {
+    const thumb = await readThumbnail(s3, rec);
+    if (thumb) {
+      rec.dataValues.thumbnail = thumb;
+    }
+  }
   result.rows = result.rows.map((rec) => {
     rec.filterData(filterOptions);
     return handleLegacyTagFieldsForGetOnRecording(rec);
@@ -286,6 +417,25 @@ async function query(
   return result;
 }
 
+async function readThumbnail(s3, rec) {
+  const { renderFrameIntoFrameBuffer, ColourMaps } = await dynamicImportESM(
+    "cptv-decoder"
+  );
+
+  let thumb = await s3
+    .getObject({
+      Bucket: config.s3.bucket,
+      Key: `${rec.rawFileKey}-thumb`
+    })
+    .promise()
+    .catch((err) => {
+      return;
+    });
+  if (!thumb) {
+    return;
+  }
+  return { data: thumb.Body, meta: thumb.Metadata };
+}
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request: RecordingQuery) {
@@ -1109,5 +1259,6 @@ export default {
   reprocessAll,
   tracksFromMeta,
   updateMetadata,
-  queryVisits
+  queryVisits,
+  saveThumbnailInfo
 };

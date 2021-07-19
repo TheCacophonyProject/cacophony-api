@@ -108,7 +108,6 @@ export default function (app: Application) {
       log.info("Complete is " + complete);
       if (complete) {
         recording.set("jobKey", null);
-        recording.set("processingStartTime", null);
       }
 
       // Process extra data from file processing
@@ -116,8 +115,19 @@ export default function (app: Application) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
       await recording.save();
-
       if ((recording as Recording).type === RecordingType.ThermalRaw) {
+        if (recording.processingState == RecordingProcessingState.Finished) {
+          if (
+            recording.additionalMetadata &&
+            "thumbnail_region" in recording.additionalMetadata
+          ) {
+            const region = recording.additionalMetadata["thumbnail_region"];
+            let result = await recordingUtil.saveThumbnailInfo(
+              recording,
+              region
+            );
+          }
+        }
         // TODO:
         // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
         // longer using that for mp4s
