@@ -238,16 +238,16 @@ async function createThumbnail(frame, thumbnail) {
   const { renderFrameIntoFrameBuffer, ColourMaps } = await dynamicImportESM(
     "cptv-decoder"
   );
-  let defaultColourmap = ColourMaps[0][1];
+  let palette = ColourMaps[0];
   for (const colourMap of ColourMaps) {
     if (colourMap[0] == THUMBNAIL_PALETTE) {
-      defaultColourmap = colourMap[1];
+      palette = colourMap;
     }
   }
   renderFrameIntoFrameBuffer(
     frameBuffer,
     thumbnail_data,
-    defaultColourmap,
+    palette[1],
     0,
     255
   );
@@ -258,7 +258,8 @@ async function createThumbnail(frame, thumbnail) {
   const thumbMeta = {
     width: meta.width.toString(),
     height: meta.height.toString(),
-    region: JSON.stringify(thumbnail)
+    region: JSON.stringify(thumbnail),
+    palette: palette[0]
   };
   const data = await img.png().toBuffer();
   return { data: data, meta: thumbMeta };
