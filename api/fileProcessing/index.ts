@@ -99,8 +99,7 @@ export default function (app: Application) {
     }
 
     if (success) {
-      const jobs = models.Recording.processingStates[recording.type];
-      const nextJob = jobs[jobs.indexOf(recording.processingState) + 1];
+      const nextJob = recording.getNextState();
       recording.set("processingState", nextJob);
 
       if (newProcessedFileKey) {
@@ -116,7 +115,6 @@ export default function (app: Application) {
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
-
       await recording.save();
 
       if ((recording as Recording).type === RecordingType.ThermalRaw) {
