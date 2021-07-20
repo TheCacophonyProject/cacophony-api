@@ -58,7 +58,7 @@ export default function (app: Application) {
     let result = request.body.result;
     const complete = middleware.parseBool(request.body.complete);
     const newProcessedFileKey = request.body.newProcessedFileKey;
-
+    console.log("puting processing")
     // Validate request.
     const errorMessages = [];
     if (isNaN(id)) {
@@ -105,11 +105,10 @@ export default function (app: Application) {
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
-      log.info("Complete is " + complete);
       if (complete) {
-        recording.set("jobKey", null);
+        recording.set({jobKey:null, processing: false});
       }
-
+      console.log("recording is", recording.processing)
       // Process extra data from file processing
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
@@ -138,8 +137,7 @@ export default function (app: Application) {
 
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
-      recording.set("processingState", recording.processingState + ".failed");
-      recording.set("jobKey", null);
+      recording.set({processingState: `${recording.processingState}.failed`,jobKey: null,processing:false});
       await recording.save();
       return response.status(200).json({
         messages: ["Processing failed."]

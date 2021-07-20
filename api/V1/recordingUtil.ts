@@ -144,6 +144,7 @@ export async function tryToMatchRecordingToStation(
 const THUMBNAIL_MIN_SIZE = 64;
 const THUMBNAIL_PALETTE = "Viridis";
 
+// Gets a raw cptv frame from a recording
 async function getCPTVFrame(recording, frameNumber) {
   const { CptvDecoder } = await dynamicImportESM("cptv-decoder");
   const decoder = new CptvDecoder();
@@ -179,6 +180,8 @@ async function getCPTVFrame(recording, frameNumber) {
   decoder.close();
   return frame;
 }
+
+// Creates and saves a thumbnail for a recording using specified thumbnail info
 async function saveThumbnailInfo(recording, thumbnail) {
   const frame = await getCPTVFrame(recording, thumbnail.frame_number);
   const thumb = await createThumbnail(frame, thumbnail);
@@ -198,6 +201,11 @@ async function saveThumbnailInfo(recording, thumbnail) {
   return upload;
 }
 
+// Create a png thumbnail image  from this frame with thumbnail info
+// Expand the thumbnail region such that it is a square and at least THUMBNAIL_MIN_SIZE
+// width and height
+//render the png in THUMBNAIL_PALETTE
+//returns {data: buffer, meta: metadata about image}
 async function createThumbnail(frame, thumbnail) {
   const frameMeta = frame.meta.imageData;
   const res_x = frameMeta.width;
@@ -224,14 +232,14 @@ async function createThumbnail(frame, thumbnail) {
   }
 
   let frame_start;
-  let sub_start;
+  let thumb_index =0
   for (let i = 0; i < size; i++) {
     frame_start = (i + thumbnail.y) * res_x + thumbnail.x;
-    sub_start = i * size;
     for (let offset = 0; offset < thumbnail.width; offset++) {
       let pixel = frame.data[frame_start + offset];
       pixel = (255 * (pixel - frameMeta.min)) / (frameMeta.max - frameMeta.min);
-      thumbnail_data[sub_start + offset] = pixel;
+      thumbnail_data[thumb_index] = pixel;
+      thumb_index ++;
     }
   }
   const frameBuffer = new Uint8ClampedArray(4 * thumbnail_data.length);
@@ -244,7 +252,13 @@ async function createThumbnail(frame, thumbnail) {
       palette = colourMap;
     }
   }
-  renderFrameIntoFrameBuffer(frameBuffer, thumbnail_data, palette[1], 0, 255);
+  renderFrameIntoFrameBuffer(
+    frameBuffer,
+    thumbnail_data,
+    palette[1],
+    0,
+    255
+  );
   const img = await sharp(frameBuffer, {
     raw: { width: thumbnail.width, height: thumbnail.height, channels: 4 }
   }).resize(size, size, { fit: "contain" });

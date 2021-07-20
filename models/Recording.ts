@@ -405,7 +405,7 @@ export default function (
           where: {
             type: type,
             processingState: state,
-            processingStartTime: null
+            processing:  { [Op.or]: [null,false]}
           },
           attributes: [
             ...(models.Recording as RecordingStatic).processingAttributes,
@@ -435,10 +435,13 @@ export default function (
             return recording;
           }
           const date = new Date();
+          if(!recording.processingStartTime){
+              recording.set("processingStartTime", date.toISOString());
+          }
           recording.set(
             {
               jobKey: uuidv4(),
-              processingStartTime: date.toISOString()
+              processing: true
             },
             {
               transaction

@@ -291,17 +291,15 @@ class TestFileProcessing:
     def test_audio_reprocessing(self, helper, file_processing):
         admin = helper.admin_user()
         listener = helper.given_new_device(self, "Listener", description="reprocess test")
-
         # processed audio recording
         recording = listener.upload_audio_recording()
         recording = file_processing.get("audio", "toMp3")
-        file_processing.put(recording, success=True, complete=True)
+        file_processing.put(recording, success=True, complete=False)
         assert admin.get_recording(recording)["processingState"] == "analyse"
 
         recording = file_processing.get("audio", "analyse")
         file_processing.put(recording, success=True, complete=True)
         assert admin.get_recording(recording)["processingState"] == "FINISHED"
-
         admin.reprocess(recording)
         assert admin.get_recording(recording)["processingState"] == "reprocess"
 
