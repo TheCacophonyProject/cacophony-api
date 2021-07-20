@@ -63,7 +63,7 @@ describe("Alerts : recordings get alerted", () => {
     cy.checkAlerts(Tiny, camera, []);
   });
 
-  it("Alert is based of visit tag, a recording with 2 possum tags and 1 rat is a possum", () => {
+  it("Alert is based off visit tag, a recording with 2 possum tags and 1 rat is a possum", () => {
     const camera = "possum visit";
     cy.apiCreateCamera(camera, AlertGroup);
     cy.apiCreateAlert(Tiny, "possum", camera, "possum1");

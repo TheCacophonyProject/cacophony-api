@@ -312,8 +312,6 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     id: RecordingId,
     options?: getOptions
   ) => Promise<Recording>;
-
-  getForAdmin: (id: RecordingId) => Promise<Recording>;
   getNextState: () => String;
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
@@ -527,25 +525,6 @@ export default function (
     recording.filterData(
       Recording.makeFilterOptions(user, options.filterOptions)
     );
-    return recording;
-  };
-
-  /**
-   * Return a single recording for an admin.
-   */
-  Recording.getForAdmin = async function (id) {
-    const query = {
-      where: {
-        id: id
-      },
-      include: getRecordingInclude(),
-      attributes: this.queryGetAttributes.concat(["rawFileKey"])
-    };
-
-    const recording = await this.findOne(query);
-    if (!recording) {
-      return null;
-    }
     return recording;
   };
 

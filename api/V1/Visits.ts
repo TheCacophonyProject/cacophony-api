@@ -95,8 +95,7 @@ class DeviceSummary {
   generateVisits(
     recordings: any[],
     queryOffset: number,
-    complete: boolean = false,
-    userID: number
+    complete: boolean = false
   ) {
     for (const [i, rec] of recordings.entries()) {
       this.lastRecTime = moment(rec.recordingDateTime);

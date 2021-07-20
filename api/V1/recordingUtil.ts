@@ -52,6 +52,7 @@ import {
 import { Station } from "../../models/Station";
 import modelsUtil from "../../models/util/util";
 import { dynamicImportESM } from "../../dynamic-import-esm";
+import Sequelize from "sequelize";
 
 // @ts-ignore
 export interface RecordingQuery extends Request {
@@ -850,8 +851,7 @@ async function queryVisits(
     devSummary.generateVisits(
       recordings,
       request.query.offset || 0,
-      gotAllRecordings,
-      request.user.id
+      gotAllRecordings
     );
 
     if (!gotAllRecordings) {
@@ -1107,8 +1107,61 @@ function addAudioBaitRow(out: any, audioBait: Event) {
   ]);
 }
 
+// Gets a single recording with associated tables required to calculate a visit
+// calculation
+async function getRecordingForVisit(id: number): Promise<Recording> {
+  const query = {
+    include: [
+      {
+        model: models.Group,
+        attributes: ["groupname"]
+      },
+      {
+        model: models.Track,
+        where: {
+          archivedAt: null
+        },
+        attributes: [
+          "id",
+          [
+            Sequelize.fn(
+              "json_build_object",
+              "start_s",
+              Sequelize.literal(`"Tracks"."data"#>'{start_s}'`),
+              "end_s",
+              Sequelize.literal(`"Tracks"."data"#>'{end_s}'`)
+            ),
+            "data"
+          ]
+        ],
+        required: false,
+        include: [
+          {
+            model: models.TrackTag,
+            attributes: [
+              "what",
+              "automatic",
+              "TrackId",
+              "confidence",
+              "UserId",
+              [Sequelize.json("data.name"), "data"]
+            ]
+          }
+        ]
+      },
+      {
+        model: models.Device,
+        attributes: ["devicename", "id"]
+      }
+    ],
+    attributes: ["id", "recordingDateTime", "DeviceId", "GroupId"]
+  };
+  // @ts-ignore
+  return await models.Recording.findByPk(id, query);
+}
+
 async function sendAlerts(recID: number) {
-  const recording = (await models.Recording.getForAdmin(recID)) as any;
+  const recording = (await getRecordingForVisit(recID)) as any;
   const recVisit = new Visit(recording, 0);
   recVisit.completeVisit();
   let matchedTrack, matchedTag;
