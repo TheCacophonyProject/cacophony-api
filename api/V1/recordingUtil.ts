@@ -244,13 +244,7 @@ async function createThumbnail(frame, thumbnail) {
       palette = colourMap;
     }
   }
-  renderFrameIntoFrameBuffer(
-    frameBuffer,
-    thumbnail_data,
-    palette[1],
-    0,
-    255
-  );
+  renderFrameIntoFrameBuffer(frameBuffer, thumbnail_data, palette[1], 0, 255);
   const img = await sharp(frameBuffer, {
     raw: { width: thumbnail.width, height: thumbnail.height, channels: 4 }
   }).resize(size, size, { fit: "contain" });
@@ -419,10 +413,6 @@ async function query(
 }
 
 async function readThumbnail(s3, rec) {
-  const { renderFrameIntoFrameBuffer, ColourMaps } = await dynamicImportESM(
-    "cptv-decoder"
-  );
-
   let thumb = await s3
     .getObject({
       Bucket: config.s3.bucket,

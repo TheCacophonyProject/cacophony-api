@@ -31,6 +31,10 @@ import { Track } from "../../models/Track";
 import { Op } from "sequelize";
 import jwt from "jsonwebtoken";
 import config from "../../config";
+import { ClientError } from "../customErrors";
+import log from "../../logging";
+import modelsUtil from "../../models/util/util";
+import stream from "stream";
 
 export default (app: Application, baseUrl: string) => {
   const apiUrl = `${baseUrl}/recordings`;
@@ -471,6 +475,86 @@ export default (app: Application, baseUrl: string) => {
     })
   );
 
+  /**
+   * @api {get} /api/v1/recordings/:id/thumbnail Gets thumbnail for recording
+   * @apiName RecordingThumbnail
+   * @apiGroup Recordings
+   * @apiDescription Gets a thumbnail png for this recording in vidris palette
+   *
+   * @apiSuccess {file} file Raw data stream of the file.
+   * @apiUse V1ResponseError
+   */
+  app.get(
+    `${apiUrl}/:id/thumbnail`,
+    [param("id").isInt()],
+    middleware.requestWrapper(async (request, response) => {
+      console.log("got it");
+      const rec = await models.Recording.findByPk(request.params.id, {
+        attributes: ["rawFileKey", "id"]
+      });
+      if (!rec) {
+        return responseUtil.send(response, {
+          statusCode: 400,
+          messages: ["Failed to get recording."]
+        });
+      }
+      const mimeType = "image/png";
+      const filename = `${rec.id}-thumb.png`;
+
+      if (!rec.rawFileKey) {
+        throw new ClientError("Rec has no raw file key.");
+      }
+
+      const s3 = modelsUtil.openS3();
+      const params = {
+        Bucket: config.s3.bucket,
+        Key: `${rec.rawFileKey}-thumb`
+      };
+
+      s3.getObject(params, function (err, data) {
+        if (err) {
+          log.error("Error getting thumbnail from s3 %s", rec.id);
+          log.error(err.stack);
+          return responseUtil.send(response, {
+            statusCode: 400,
+            messages: ["No thumbnail exists"]
+          });
+        }
+
+        if (!request.headers.range) {
+          response.setHeader(
+            "Content-disposition",
+            "attachment; filename=" + filename
+          );
+          response.setHeader("Content-type", mimeType);
+          response.setHeader("Content-Length", data.ContentLength);
+          response.write(data.Body, "binary");
+          return response.end(null, "binary");
+        }
+
+        const range = request.headers.range;
+        const positions = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(positions[0], 10);
+        const total = (data.Body as Buffer).length;
+        const end = positions[1] ? parseInt(positions[1], 10) : total - 1;
+        const chunksize = end - start + 1;
+
+        const headers = {
+          "Content-Range": "bytes " + start + "-" + end + "/" + total,
+          "Content-Length": chunksize,
+          "Accept-Ranges": "bytes",
+          "Content-type": mimeType
+        };
+
+        response.writeHead(206, headers);
+
+        const bufStream = new stream.PassThrough();
+        const b2 = (data.Body as Buffer).slice(start, end + 1);
+        bufStream.end(b2);
+        bufStream.pipe(response);
+      });
+    })
+  );
   /**
    * @api {delete} /api/v1/recordings/:id Delete an existing recording
    * @apiName DeleteRecording
