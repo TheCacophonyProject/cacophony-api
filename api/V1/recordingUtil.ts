@@ -1166,7 +1166,7 @@ async function sendAlerts(recID: number) {
   let matchedTrack, matchedTag;
   // find any ai master tags that match the visit tag
   for (const track of recording.Tracks) {
-    matchedTag = (track as any).TrackTags.find(
+    matchedTag = track.TrackTags.find(
       (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
     );
     if (matchedTag) {

@@ -37,6 +37,8 @@ export interface Track extends Sequelize.Model, ModelCommon<Track> {
   ) => Promise<TrackTag>;
   // NOTE: Implicitly created by sequelize associations.
   getRecording: () => Promise<Recording>;
+
+  TrackTags?: TrackTag[];
 }
 export interface TrackStatic extends ModelStaticCommon<Track> {
   replaceTag: (id: TrackId, tag: TrackTag) => Promise<any>;
