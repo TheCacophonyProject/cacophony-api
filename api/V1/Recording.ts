@@ -479,9 +479,9 @@ export default (app: Application, baseUrl: string) => {
    * @api {get} /api/v1/recordings/:id/thumbnail Gets thumbnail for recording
    * @apiName RecordingThumbnail
    * @apiGroup Recordings
-   * @apiDescription Gets a thumbnail png for this recording in vidris palette
+   * @apiDescription Gets a thumbnail png for this recording in Viridis palette
    *
-   * @apiSuccess {file} file Raw data stream of the file.
+   * @apiSuccess {file} file Raw data stream of the png.
    * @apiUse V1ResponseError
    */
   app.get(
@@ -533,7 +533,7 @@ export default (app: Application, baseUrl: string) => {
         }
 
         const range = request.headers.range;
-        const positions = range.replace(/bytes=/, "").split("-");
+        const positions = range.replace(/bytes=Viridis/, "").split("-");
         const start = parseInt(positions[0], 10);
         const total = (data.Body as Buffer).length;
         const end = positions[1] ? parseInt(positions[1], 10) : total - 1;
