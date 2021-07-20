@@ -35,8 +35,10 @@ import {
   DeviceId as DeviceIdAlias,
   DeviceStatic
 } from "./Device";
-import { GroupId as GroupIdAlias } from "./Group";
+import { GroupId as GroupIdAlias, Group } from "./Group";
 import { Track, TrackId } from "./Track";
+import { Tag } from "./Tag";
+
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
 import { Station, StationId } from "./Station";
@@ -240,8 +242,13 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getTrack: (id: TrackId) => Promise<Track | null>;
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
-
   setStation: (station: Station) => Promise<void>;
+
+  Station?: Station;
+  Group?: Group;
+  Tags?: Tag[];
+  Tracks?: Track[];
+  Device?: Device;
 }
 type CptvFile = "string";
 type JwtToken<T> = string;
@@ -280,6 +287,7 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     [RecordingType.Audio]: string[];
   };
   uploadedState: (type: RecordingType) => RecordingProcessingState;
+  finishedState: (type: RecordingType) => RecordingProcessingState;
 
   getOneForProcessing: (
     type: RecordingType,
@@ -312,7 +320,6 @@ export interface RecordingStatic extends ModelStaticCommon<Recording> {
     options?: getOptions
   ) => Promise<Recording>;
   getNextState: () => String;
-
   //findAll: (query: FindOptions) => Promise<Recording[]>;
 }
 
@@ -780,7 +787,7 @@ from (
     const jobs = Recording.processingStates[this.type];
     let nextState;
     if (this.processingState == RecordingProcessingState.Reprocess) {
-      nextState = jobs[jobs.length - 1];
+      nextState = Recording.finishedState(this.type);
     } else {
       const job_index = jobs.indexOf(this.processingState);
       if (job_index == -1) {
@@ -1449,7 +1456,13 @@ from (
       return RecordingProcessingState.AnalyseThermal;
     }
   };
-
+  Recording.finishedState = function (type: RecordingType) {
+    if (type == RecordingType.Audio) {
+      return RecordingProcessingState.Finished;
+    } else {
+      return RecordingProcessingState.Finished;
+    }
+  };
   Recording.processingAttributes = [
     "id",
     "type",

@@ -15,7 +15,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+import { AlertStatic } from "../../models/Alert";
+import { AI_MASTER } from "../../models/TrackTag";
 import jsonwebtoken from "jsonwebtoken";
 import mime from "mime";
 import moment from "moment";
@@ -45,11 +46,13 @@ import {
   DeviceVisitMap,
   Visit,
   VisitEvent,
-  VisitSummary
+  VisitSummary,
+  getTrackTag
 } from "./Visits";
 import { Station } from "../../models/Station";
 import modelsUtil from "../../models/util/util";
 import { dynamicImportESM } from "../../dynamic-import-esm";
+import Sequelize from "sequelize";
 
 // @ts-ignore
 export interface RecordingQuery extends Request {
@@ -236,6 +239,12 @@ function makeUploadHandler(mungeData?: (any) => any) {
     }
     if (data.processingState) {
       recording.processingState = data.processingState;
+      if (
+        recording.processingState ==
+        models.Recording.finishedState(data.type as RecordingType)
+      ) {
+        await sendAlerts(recording.id);
+      }
     } else {
       if (!fileIsCorrupt) {
         recording.processingState = models.Recording.uploadedState(
@@ -842,8 +851,7 @@ async function queryVisits(
     devSummary.generateVisits(
       recordings,
       request.query.offset || 0,
-      gotAllRecordings,
-      request.user.id
+      gotAllRecordings
     );
 
     if (!gotAllRecordings) {
@@ -1098,6 +1106,89 @@ function addAudioBaitRow(out: any, audioBait: Event) {
     ""
   ]);
 }
+
+// Gets a single recording with associated tables required to calculate a visit
+// calculation
+async function getRecordingForVisit(id: number): Promise<Recording> {
+  const query = {
+    include: [
+      {
+        model: models.Group,
+        attributes: ["groupname"]
+      },
+      {
+        model: models.Track,
+        where: {
+          archivedAt: null
+        },
+        attributes: [
+          "id",
+          [
+            Sequelize.fn(
+              "json_build_object",
+              "start_s",
+              Sequelize.literal(`"Tracks"."data"#>'{start_s}'`),
+              "end_s",
+              Sequelize.literal(`"Tracks"."data"#>'{end_s}'`)
+            ),
+            "data"
+          ]
+        ],
+        required: false,
+        include: [
+          {
+            model: models.TrackTag,
+            attributes: [
+              "what",
+              "automatic",
+              "TrackId",
+              "confidence",
+              [Sequelize.json("data.name"), "data"]
+            ]
+          }
+        ]
+      },
+      {
+        model: models.Device,
+        attributes: ["devicename", "id"]
+      }
+    ],
+    attributes: ["id", "recordingDateTime", "DeviceId", "GroupId"]
+  };
+  // @ts-ignore
+  return await models.Recording.findByPk(id, query);
+}
+
+async function sendAlerts(recID: number) {
+  const recording = await getRecordingForVisit(recID);
+  const recVisit = new Visit(recording, 0);
+  recVisit.completeVisit();
+  let matchedTrack, matchedTag;
+  // find any ai master tags that match the visit tag
+  for (const track of recording.Tracks) {
+    matchedTag = track.TrackTags.find(
+      (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
+    );
+    if (matchedTag) {
+      matchedTrack = track;
+      break;
+    }
+  }
+  if (!matchedTag) {
+    return;
+  }
+
+  const alerts = await (models.Alert as AlertStatic).getActiveAlerts(
+    recording.DeviceId,
+    matchedTag
+  );
+
+  for (const alert of alerts) {
+    await alert.sendAlert(recording, matchedTrack, matchedTag);
+  }
+  return alerts;
+}
+
 export default {
   makeUploadHandler,
   query,
@@ -1109,5 +1200,6 @@ export default {
   reprocessAll,
   tracksFromMeta,
   updateMetadata,
-  queryVisits
+  queryVisits,
+  sendAlerts
 };
