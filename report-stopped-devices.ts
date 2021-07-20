@@ -13,8 +13,7 @@ async function getUserEvents(powerEvents: PowerEvents[]) {
 
   for (const event of powerEvents) {
     if (!groupAdmins.hasOwnProperty(event.Device.GroupId)) {
-      const group = await event.Device.getGroup();
-      const adminUsers = await group.getUsers({
+      const adminUsers = await event.Device.Group.getUsers({
         through: { where: { admin: true } }
       });
       groupAdmins[event.Device.GroupId] = adminUsers;
@@ -90,7 +89,7 @@ async function main() {
 function generateText(stoppedDevices: PowerEvents[]): string {
   let textBody = `Stopped Devices ${moment().format("MMM ddd Do ha")}\r\n`;
   for (const event of stoppedDevices) {
-    let deviceText = `${event.Device.groupname}- ${
+    let deviceText = `${event.Device.Group.groupname}- ${
       event.Device.devicename
     } id: ${
       event.Device.id
@@ -107,7 +106,7 @@ function generateHtml(stoppedDevices: PowerEvents[]): string {
   let html = `<h1>Stopped Devices ${moment().format("MMM ddd Do ha")} <h1>`;
   html += "<ul>";
   for (const event of stoppedDevices) {
-    let deviceText = `<li>${event.Device.groupname}-${
+    let deviceText = `<li>${event.Device.Group.groupname}-${
       event.Device.devicename
     } id: ${
       event.Device.id
