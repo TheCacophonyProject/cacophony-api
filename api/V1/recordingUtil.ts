@@ -1143,7 +1143,6 @@ async function getRecordingForVisit(id: number): Promise<Recording> {
               "automatic",
               "TrackId",
               "confidence",
-              "UserId",
               [Sequelize.json("data.name"), "data"]
             ]
           }
