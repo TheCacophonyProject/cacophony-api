@@ -1160,13 +1160,13 @@ async function getRecordingForVisit(id: number): Promise<Recording> {
 }
 
 async function sendAlerts(recID: number) {
-  const recording = (await getRecordingForVisit(recID)) as any;
+  const recording = await getRecordingForVisit(recID);
   const recVisit = new Visit(recording, 0);
   recVisit.completeVisit();
   let matchedTrack, matchedTag;
   // find any ai master tags that match the visit tag
   for (const track of recording.Tracks) {
-    matchedTag = track.TrackTags.find(
+    matchedTag = (track as any).TrackTags.find(
       (tag) => tag.data == AI_MASTER && recVisit.what == tag.what
     );
     if (matchedTag) {

@@ -35,8 +35,10 @@ import {
   DeviceId as DeviceIdAlias,
   DeviceStatic
 } from "./Device";
-import { GroupId as GroupIdAlias } from "./Group";
+import { GroupId as GroupIdAlias, Group } from "./Group";
 import { Track, TrackId } from "./Track";
+import { Tag } from "./Tag";
+
 import jsonwebtoken from "jsonwebtoken";
 import { TrackTag } from "./TrackTag";
 import { Station, StationId } from "./Station";
@@ -240,8 +242,13 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   getTrack: (id: TrackId) => Promise<Track | null>;
   getTracks: (options: FindOptions) => Promise<Track[]>;
   createTrack: ({ data: any, AlgorithmId: DetailSnapshotId }) => Promise<Track>;
-
   setStation: (station: Station) => Promise<void>;
+
+  Station?: Station;
+  Group?: Group;
+  Tags?: Tag[];
+  Tracks?: Track[];
+  Device?: Device;
 }
 type CptvFile = "string";
 type JwtToken<T> = string;
