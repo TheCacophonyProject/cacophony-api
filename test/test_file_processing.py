@@ -3,6 +3,7 @@ from .recording import Recording
 from .track import Track
 from .track import TrackTag
 from multiprocessing import Pool
+import random
 
 
 class TestFileProcessing:
@@ -53,6 +54,8 @@ class TestFileProcessing:
             "all_class_confidences": {"rodent": 0.9, "else": 0.1},
             "confidence": 0.9,
         }
+
+        track_meta["positions"] = get_ltrb_positions(track_meta)
         metadata = {"algorithm": {"model_name": "test-model"}, "tracks": [track_meta]}
         props = {"metadata": metadata}
         helper.given_a_recording(self, props=props)
@@ -291,17 +294,15 @@ class TestFileProcessing:
     def test_audio_reprocessing(self, helper, file_processing):
         admin = helper.admin_user()
         listener = helper.given_new_device(self, "Listener", description="reprocess test")
-
         # processed audio recording
         recording = listener.upload_audio_recording()
         recording = file_processing.get("audio", "toMp3")
-        file_processing.put(recording, success=True, complete=True)
+        file_processing.put(recording, success=True, complete=False)
         assert admin.get_recording(recording)["processingState"] == "analyse"
 
         recording = file_processing.get("audio", "analyse")
         file_processing.put(recording, success=True, complete=True)
         assert admin.get_recording(recording)["processingState"] == "FINISHED"
-
         admin.reprocess(recording)
         assert admin.get_recording(recording)["processingState"] == "reprocess"
 
@@ -317,3 +318,23 @@ def check_recording(user, recording, **expected):
                 assert r[name][k] == v
         else:
             assert r[name] == value
+
+
+def get_ltrb_positions(track_meta):
+    positions = []
+    duration = int(round(track_meta["end_s"] - track_meta["start_s"]))
+    x = 40
+    y = 40
+    x2 = 60
+    y2 = 70
+    for i in range(9 * duration):
+        x = x + random.randint(0, 6) - 3
+        y = y + random.randint(0, 6) - 3
+        x2 = x2 + random.randint(0, 6) - 3
+        y2 = y2 + random.randint(0, 6) - 3
+        x = max(x, 0)
+        y = max(y, 0)
+        x2 = min(160, max(x + 1, x2))
+        y2 = min(120, max(y + 1, y2))
+        positions.append([track_meta["start_s"] + i / 9.0, [x, y, x2, y2]])
+    return positions

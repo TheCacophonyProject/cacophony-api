@@ -58,7 +58,6 @@ export default function (app: Application) {
     let result = request.body.result;
     const complete = middleware.parseBool(request.body.complete);
     const newProcessedFileKey = request.body.newProcessedFileKey;
-
     // Validate request.
     const errorMessages = [];
     if (isNaN(id)) {
@@ -97,18 +96,13 @@ export default function (app: Application) {
         messages: ["'jobKey' given did not match the database.."]
       });
     }
-
+    const prevState = recording.processingState;
     if (success) {
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        if (recording.processingState != RecordingProcessingState.Reprocess) {
-          await recordingUtil.sendAlerts(recording.id);
-        }
-
-        recording.set("jobKey", null);
-        recording.set("processingStartTime", null);
+        recording.set({ jobKey: null, processing: false });
       }
       const nextJob = recording.getNextState();
       recording.set("processingState", nextJob);
@@ -117,20 +111,31 @@ export default function (app: Application) {
         await recording.mergeUpdate(result.fieldUpdates);
       }
       await recording.save();
-
       if ((recording as Recording).type === RecordingType.ThermalRaw) {
-        // TODO:
-        // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
-        // longer using that for mp4s
-        // .....
-        // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
-        // .....
+        if (recording.processingState == RecordingProcessingState.Finished) {
+          if (
+            recording.additionalMetadata &&
+            "thumbnail_region" in recording.additionalMetadata
+          ) {
+            const region = recording.additionalMetadata["thumbnail_region"];
+            let result = await recordingUtil.saveThumbnailInfo(
+              recording,
+              region
+            );
+          }
+        }
+        if (prevState != RecordingProcessingState.Reprocess) {
+          await recordingUtil.sendAlerts(recording.id);
+        }
       }
 
       return response.status(200).json({ messages: ["Processing finished."] });
     } else {
-      recording.set("processingState", recording.processingState + ".failed");
-      recording.set("jobKey", null);
+      recording.set({
+        processingState: `${recording.processingState}.failed`,
+        jobKey: null,
+        processing: false
+      });
       await recording.save();
       return response.status(200).json({
         messages: ["Processing failed."]
