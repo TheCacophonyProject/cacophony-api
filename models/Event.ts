@@ -213,7 +213,7 @@ export default function (sequelize, DataTypes) {
           include: [
             {
               model: models.Group,
-              attributes: ["groupname"]
+              attributes: ["groupname","id"]
             }
           ]
         }
