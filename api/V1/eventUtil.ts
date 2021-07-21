@@ -123,7 +123,6 @@ export class PowerEvents {
   Device: Device | null;
   hasStopped: boolean;
   hasAlerted: boolean;
-
   constructor(event: Event) {
     this.hasStopped = false;
     this.lastReported = null;

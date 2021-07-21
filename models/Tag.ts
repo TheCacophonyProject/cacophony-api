@@ -43,6 +43,7 @@ export interface TagStatic extends ModelStaticCommon<Tag> {
 
 export enum AcceptableTag {
   Cool = "cool",
+  RequiresReview = "requires review",
   InteractionWithTrap = "interaction with trap",
   MissedTrack = "missed track",
   MultipleAnimals = "multiple animals",

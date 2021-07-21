@@ -97,18 +97,16 @@ export default function (app: Application) {
         messages: ["'jobKey' given did not match the database.."]
       });
     }
-
+    const prevState = recording.processingState
     if (success) {
-      const nextJob = recording.getNextState();
-      recording.set("processingState", nextJob);
-
       if (newProcessedFileKey) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
         recording.set({jobKey:null, processing: false});
       }
-      console.log("recording is", recording.processing)
+      const nextJob = recording.getNextState();
+      recording.set("processingState", nextJob);
       // Process extra data from file processing
       if (result && result.fieldUpdates) {
         await recording.mergeUpdate(result.fieldUpdates);
@@ -127,12 +125,9 @@ export default function (app: Application) {
             );
           }
         }
-        // TODO:
-        // Pick a thumbnail image from the best frame here, and upload it to minio using fileKey, since we are no
-        // longer using that for mp4s
-        // .....
-        // Send alerts for best track tag here - it can use the thumbnail image in the email generated.
-        // .....
+        if (prevState != RecordingProcessingState.Reprocess) {
+          await recordingUtil.sendAlerts(recording.id);
+        }
       }
 
       return response.status(200).json({ messages: ["Processing finished."] });
