@@ -275,6 +275,10 @@ export default function (
       {
         model: models.User,
         attributes: ["id", "username"]
+      },
+      {
+        model: models.Group,
+        attributes: ["id", "groupname"]
       }
     ];
     const includeOnlyActiveDevices = onlyActive ? { active: true } : null;
