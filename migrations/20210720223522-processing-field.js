@@ -8,7 +8,7 @@ module.exports = {
     );
   },
 
-  down: async function (queryInterface, Sequelize) {
+  down: async function (queryInterface) {
     return queryInterface.removeColumn("Recordings", "processing");
   }
 };
