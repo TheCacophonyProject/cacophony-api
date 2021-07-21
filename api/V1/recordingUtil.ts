@@ -236,14 +236,14 @@ async function createThumbnail(frame, thumbnail) {
   }
 
   let frame_start;
-  let thumb_index =0
+  let thumb_index = 0;
   for (let i = 0; i < size; i++) {
     frame_start = (i + thumbnail.y) * res_x + thumbnail.x;
     for (let offset = 0; offset < thumbnail.width; offset++) {
       let pixel = frame.data[frame_start + offset];
       pixel = (255 * (pixel - frameMeta.min)) / (frameMeta.max - frameMeta.min);
       thumbnail_data[thumb_index] = pixel;
-      thumb_index ++;
+      thumb_index++;
     }
   }
   const frameBuffer = new Uint8ClampedArray(4 * thumbnail_data.length);
@@ -256,13 +256,7 @@ async function createThumbnail(frame, thumbnail) {
       palette = colourMap;
     }
   }
-  renderFrameIntoFrameBuffer(
-    frameBuffer,
-    thumbnail_data,
-    palette[1],
-    0,
-    255
-  );
+  renderFrameIntoFrameBuffer(frameBuffer, thumbnail_data, palette[1], 0, 255);
   const img = await sharp(frameBuffer, {
     raw: { width: thumbnail.width, height: thumbnail.height, channels: 4 }
   }).resize(size, size, { fit: "contain" });
@@ -1335,6 +1329,6 @@ export default {
   tracksFromMeta,
   updateMetadata,
   queryVisits,
-  saveThumbnailInfo
+  saveThumbnailInfo,
   sendAlerts
 };
