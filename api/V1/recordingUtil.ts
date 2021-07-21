@@ -422,13 +422,6 @@ async function query(
     request.user,
     request.filterOptions
   );
-  let s3 = await modelsUtil.openS3();
-  for (const rec of result.rows) {
-    const thumb = await readThumbnail(s3, rec);
-    if (thumb) {
-      rec.dataValues.thumbnail = thumb;
-    }
-  }
   result.rows = result.rows.map((rec) => {
     rec.filterData(filterOptions);
     return handleLegacyTagFieldsForGetOnRecording(rec);
@@ -436,21 +429,6 @@ async function query(
   return result;
 }
 
-async function readThumbnail(s3, rec) {
-  let thumb = await s3
-    .getObject({
-      Bucket: config.s3.bucket,
-      Key: `${rec.rawFileKey}-thumb`
-    })
-    .promise()
-    .catch((err) => {
-      return;
-    });
-  if (!thumb) {
-    return;
-  }
-  return { data: thumb.Body, meta: thumb.Metadata };
-}
 // Returns a promise for report rows for a set of recordings. Takes
 // the same parameters as query() above.
 async function report(request: RecordingQuery) {
