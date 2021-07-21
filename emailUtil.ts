@@ -13,7 +13,7 @@ function alertBody(
   const dateTime = moment(recording.recordingDateTime)
     .tz(config.timeZone)
     .format("h:mma Do MMM");
-  let html = `<h1>${camera} has detected a ${tag.what} - ${dateTime}</h1>`;
+  let html = `<b>${camera} has detected a ${tag.what} - ${dateTime}</b>`;
   html += `<a  href="${config.server.recording_url_base}/${recording.id}/${tag.TrackId}?device=${recording.DeviceId}">View Recording</a>`;
   html += "<br><p>Thanks,<br> Cacophony Team</p>";
 

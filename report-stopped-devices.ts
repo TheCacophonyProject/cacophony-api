@@ -103,7 +103,7 @@ function generateText(stoppedDevices: PowerEvents[]): string {
 }
 
 function generateHtml(stoppedDevices: PowerEvents[]): string {
-  let html = `<h1>Stopped Devices ${moment().format("MMM ddd Do ha")} <h1>`;
+  let html = `<b>Stopped Devices ${moment().format("MMM ddd Do ha")} </b>`;
   html += "<ul>";
   for (const event of stoppedDevices) {
     let deviceText = `<li>${event.Device.Group.groupname}-${
