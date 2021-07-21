@@ -476,7 +476,7 @@ export default (app: Application, baseUrl: string) => {
   );
 
   /**
-   * @api {get} /api/v1/recordings/:id/thumbnail Gets thumbnail for recording
+   * @api {get} /api/v1/recordings/:id/thumbnail Gets a thumbnail png for this recording
    * @apiName RecordingThumbnail
    * @apiGroup Recordings
    * @apiDescription Gets a thumbnail png for this recording in Viridis palette
@@ -488,7 +488,6 @@ export default (app: Application, baseUrl: string) => {
     `${apiUrl}/:id/thumbnail`,
     [param("id").isInt()],
     middleware.requestWrapper(async (request, response) => {
-      console.log("got it");
       const rec = await models.Recording.findByPk(request.params.id, {
         attributes: ["rawFileKey", "id"]
       });
