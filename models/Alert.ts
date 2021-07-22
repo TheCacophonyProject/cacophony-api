@@ -52,7 +52,11 @@ export interface AlertStatic extends ModelStaticCommon<Alert> {
   ) => Promise<any[]>;
   getFromId: (id: number, user: User) => Promise<Alert>;
   getActiveAlerts: (deviceId: number, tag: TrackTag) => Promise<any[]>;
-  sendAlert: (recording: Recording, track: Track) => Promise<null>;
+  sendAlert: (
+    recording: Recording,
+    track: Track,
+    thumbnail?: Buffer
+  ) => Promise<null>;
 }
 
 export default function (sequelize, DataTypes): AlertStatic {
@@ -172,12 +176,24 @@ export default function (sequelize, DataTypes): AlertStatic {
   Alert.prototype.sendAlert = async function (
     recording: Recording,
     track: Track,
-    tag: TrackTag
+    tag: TrackTag,
+    thumbnail?: Buffer
   ) {
     const subject = `${this.name}  - ${tag.what} Detected`;
-    const [html, text] = alertBody(recording, tag, this.Device.devicename);
+    const [html, text] = alertBody(
+      recording,
+      tag,
+      this.Device.devicename,
+      thumbnail ? true : false
+    );
     const alertTime = new Date().toISOString();
-    const result = await sendEmail(html, text, this.User.email, subject);
+    const result = await sendEmail(
+      html,
+      text,
+      this.User.email,
+      subject,
+      thumbnail
+    );
     const detail = await models.DetailSnapshot.getOrCreateMatching("alert", {
       alertId: this.id,
       recId: recording.id,

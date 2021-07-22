@@ -1394,7 +1394,8 @@ from (
     "DeviceId",
     "GroupId",
     "StationId",
-    "rawFileKey"
+    "rawFileKey",
+    "processing"
   ];
 
   // Attributes returned when looking up a single recording.
@@ -1417,7 +1418,8 @@ from (
     "GroupId",
     "StationId",
     "fileKey",
-    "comment"
+    "comment",
+    "processing"
   ];
 
   // Fields that can be provided when uploading new recordings.

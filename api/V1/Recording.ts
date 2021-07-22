@@ -504,23 +504,9 @@ export default (app: Application, baseUrl: string) => {
         throw new ClientError("Rec has no raw file key.");
       }
 
-      const s3 = modelsUtil.openS3();
-      const params = {
-        Bucket: config.s3.bucket,
-        Key: `${rec.rawFileKey}-thumb`
-      };
-
-      s3.getObject(params, function (err, data) {
-        if (err) {
-          log.error("Error getting thumbnail from s3 %s", rec.id);
-          log.error(err.stack);
-          return responseUtil.send(response, {
-            statusCode: 400,
-            messages: ["No thumbnail exists"]
-          });
-        }
-
-        if (!request.headers.range) {
+      recordingUtil
+        .getThumbnail(rec)
+        .then((data) => {
           response.setHeader(
             "Content-disposition",
             "attachment; filename=" + filename
@@ -529,29 +515,15 @@ export default (app: Application, baseUrl: string) => {
           response.setHeader("Content-Length", data.ContentLength);
           response.write(data.Body, "binary");
           return response.end(null, "binary");
-        }
-
-        const range = request.headers.range;
-        const positions = range.replace(/bytes=Viridis/, "").split("-");
-        const start = parseInt(positions[0], 10);
-        const total = (data.Body as Buffer).length;
-        const end = positions[1] ? parseInt(positions[1], 10) : total - 1;
-        const chunksize = end - start + 1;
-
-        const headers = {
-          "Content-Range": "bytes " + start + "-" + end + "/" + total,
-          "Content-Length": chunksize,
-          "Accept-Ranges": "bytes",
-          "Content-type": mimeType
-        };
-
-        response.writeHead(206, headers);
-
-        const bufStream = new stream.PassThrough();
-        const b2 = (data.Body as Buffer).slice(start, end + 1);
-        bufStream.end(b2);
-        bufStream.pipe(response);
-      });
+        })
+        .catch((err) => {
+          log.error("Error getting thumbnail from s3 %s", rec.id);
+          log.error(err.stack);
+          return responseUtil.send(response, {
+            statusCode: 400,
+            messages: ["No thumbnail exists"]
+          });
+        });
     })
   );
   /**
