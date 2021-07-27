@@ -4,8 +4,9 @@ testconfig.json
 .pytest_cache
 __pycache__
 /dist/
-.idea
+../.idea
 api/**/*.js
+!api/**/apidoc.js
 models/**/*.js
 /*.js
 dockerstart.log

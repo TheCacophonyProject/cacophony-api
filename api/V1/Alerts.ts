@@ -34,12 +34,23 @@ export default function (app: Application, baseUrl: string) {
    * @apiName PostAlert
    * @apiGroup Alert
    *
-   * @apiDescription Creates a new alert with the user used in the JWT as the admin.
+   * @apiDescription Creates a new alert with the user associated with the supplied JWT authentication 
+   * token as the admin.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiParam {JSON} alert Alert
    *
+   * @apiParamExample {JSON} alert:
+   * {
+   * "name":"alert name",
+   * "conditions":[{
+   *   "tag":"possum",
+   *   "automatic":true
+   * }],
+   * "deviceId":1234,
+   * "frequencySeconds":120
+   * }
    * @apiUse V1ResponseSuccess
    * @apiSuccess {number} id Unique id of the newly created alert.
 
@@ -99,14 +110,39 @@ export default function (app: Application, baseUrl: string) {
    * @apiName GetAlerts
    * @apiGroup Alert
    *
+   * @apiDescription Returns all alerts for a device along with details of the associated user and
+   * device for each alert
+   *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {number} deviceId of the device to get alerts for
+   * @apiParam {number} deviceId deviceId of the device to get alerts for
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {Alerts[]} Alerts Array of Alerts
    *
    * @apiUse V1ResponseError
+   *
+   * @apiSuccessExample {JSON} Alerts:
+   * [{
+   * "id":123,
+   * "name":"alert name",
+   * "frequencySeconds":120,
+   * "conditions":[{"tag":"cat", "automatic":true}],
+   * "lastAlert":"2021-07-21T02:01:05.118Z",
+   * "User":{},
+   * "Device":{}
+   * }]
+   * @apiSuccessExample {JSON} User:
+   * {
+   *  "id":456,
+   *  "username":"user name",
+   *  "email":"email@server.org.nz"
+   * }
+   * @apiSuccessExample {JSON} Device:
+   * {
+   *   "id":1234,
+   *   "devicename":"device name"
+   * }
    */
   app.get(
     `${apiUrl}/device/:deviceId`,

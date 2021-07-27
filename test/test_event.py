@@ -1,5 +1,4 @@
 import pytest
-import json
 
 from datetime import datetime, timedelta, timezone
 from test.testexception import AuthorizationError, UnprocessableError

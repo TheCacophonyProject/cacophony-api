@@ -22,7 +22,7 @@ import { Recording } from "./Recording";
 import { Track } from "./Track";
 import { TrackTag } from "./TrackTag";
 import { EventStatic } from "./Event";
-import { alertBody, sendEmail } from "../emailUtil";
+import { alertBody, sendEmail } from "../scripts/emailUtil";
 const { AuthorizationError } = require("../api/customErrors");
 
 export type AlertId = number;

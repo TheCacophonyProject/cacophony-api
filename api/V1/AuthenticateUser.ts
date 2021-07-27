@@ -83,6 +83,8 @@ export default function (app: Application) {
    * @apiDescription Allows an authenticated super-user to obtain a user JWT token for any other user, so that they
    * can view the site as that user.
    *
+   * @apiUse V1UserAuthorizationHeader
+   *
    * @apiParam {String} name Username identifying a valid user account
    *
    * @apiSuccess {String} token JWT string to provide to further API requests
@@ -112,16 +114,21 @@ export default function (app: Application) {
    * @api {post} /token Generate temporary JWT
    * @apiName Token
    * @apiGroup Authentication
+   * @apiDeprecated No longer maintained, not supported by all API endpoints and may be removed in future
    * @apiDescription It is sometimes necessary to include an
    * authentication token in a URL but it is not safe to provide a
    * user's primary JWT as it can easily leak into logs etc. This API
    * generates a short-lived token which can be used as part of URLs.
    *
-   * @apiParam {String} ttl short,medium,long defining token expiry time
-   * @apiParam {JSON} access dictionary of access to different entities
-   *  e.g. {"devices":"r"}
+   * @apiParam {String} [ttl] short,medium,long defining token expiry time
+   * @apiParam {JSON} [access] dictionary of access to different entities
+   *
+   * @apiParamExample  {JSON} access:
+   * {"devices":"r"}
+   *
    * @apiUse V1UserAuthorizationHeader
-   * @apiSuccess {JSON} token JWT that may be used to call the report endpoint.
+   * @apiSuccess {JSON} token JWT that may be used to call the report endpoint. Token will require
+   * prefixing with "JWT " before use in Authorization header fields.
    */
   app.post(
     "/token",

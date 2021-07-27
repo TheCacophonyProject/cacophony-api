@@ -62,9 +62,9 @@
     "typescript": "^4.2.4"
   },
   "scripts": {
-    "lint": "eslint --ignore-pattern 'dynamic-import-esm.js' --ignore-path .gitignore .",
-    "lint:fix": "eslint --fix --ignore-pattern 'dynamic-import-esm.js' --ignore-path .gitignore . && ./beautify.sh",
-    "apidoc": "apidoc -i api/V1/ -o apidoc/",
+    "lint": "eslint --ignore-pattern 'dynamic-import-esm.js' --ignore-path .gitignore . && (../prettier-check.sh || (echo \"Please run '../prettier-fix.sh' to clean up formatting of files.\"; false))",
+    "lint:fix": "eslint --fix --ignore-pattern 'dynamic-import-esm.js' --ignore-path .gitignore . && ../prettier-fix.sh",
+    "apidoc": "apidoc -i api/V1 -o apidoc/",
     "db-migrate": "sequelize db:migrate",
     "new-migration": "sequelize migration:generate --name",
     "dev": "docker-compose build && docker-compose up --force-recreate",

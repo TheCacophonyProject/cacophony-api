@@ -1,5 +1,4 @@
 import pytest
-import time
 import json
 
 from test.testexception import AuthorizationError

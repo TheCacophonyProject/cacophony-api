@@ -36,14 +36,15 @@ export default function (app: Application, baseUrl: string) {
    * @apiName RegisterDevice
    * @apiGroup Device
    *
-   * @apiParam {String} devicename Unique device name.
+   * @apiParam {String} devicename Unique (within group) device name.
    * @apiParam {String} password Password for the device.
-   * @apiParam {String} group Group to assign the device to.
+   * @apiParam {String} group Name of group to assign the device to.
    * @apiParam {Integer} [saltId] Salt ID of device. Will be set as device id if not given.
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {String} token JWT for authentication. Contains the device ID and type.
-   * @apiSuccess {int} id of device registered
+   * @apiSuccess {int} id id of device registered
+   * @apiSuccess {int} saltId saltId of device registered
    * @apiUse V1ResponseError
    */
   app.post(
@@ -92,9 +93,10 @@ export default function (app: Application, baseUrl: string) {
    * @api {get} /api/v1/devices Get list of devices
    * @apiName GetDevices
    * @apiGroup Device
-   * @apiParam onlyActive {Boolean} Only return active devices, defaults to 'true'
-   * If we want to return *all* devices this must be present and set to 'false'
-   * @apiParam {string} view-mode (Optional) - can be set to "user"
+   * @apiParam {Boolean} [onlyActive] Only return active devices, defaults to `true`
+   * If we want to return *all* devices this must be present and set to `false`
+   * @apiParam {string} [view-mode] `"user"` show only devices assigned to current user where
+   * JWT Authorization supplied is for a superuser (default for superuser is to show all devices)
    *
    * @apiDescription Returns all devices the user can access
    * through both group membership and direct assignment.
@@ -102,10 +104,37 @@ export default function (app: Application, baseUrl: string) {
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {JSON} devices Object with two entries, a count integer that is the number of rows returned, and
-   * rows, which is an array of devices accessible.
-   * Each element in rows includes `devicename` (string), `id` (int), and `Users` which is an array of Users with permissions on that device.
-   *
+   * @apiSuccess {JSON} devices Devices details
+   * @apiSuccessExample {JSON} devices:
+   * {
+   * "count":1,
+   * "rows":
+   *  [{
+   *   "devicename":"device name",
+   *   "id":3836,
+   *   "active":true,
+   *   "Users":Array[]
+   *   "Group":{}
+   *  }]
+   * }
+   * @apiSuccessExample {JSON} Users:
+   * [{
+   *  "id":1564,
+   *  "username":"user name",
+   *  "DeviceUsers":
+   *   {
+   *    "admin":false,
+   *    "createdAt":"2021-07-20T01:00:44.467Z",
+   *    "updatedAt":"2021-07-20T01:00:44.467Z",
+   *    "DeviceId":3836,
+   *    "UserId":1564
+   *   }
+   * }]
+   * @apiSuccessExample {JSON} Group:
+   * {
+   *  "id":1016,
+   *  "groupname":"group name"
+   * }
    * @apiUse V1ResponseError
    */
   app.get(
@@ -137,14 +166,28 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {string} deviceName Name of the device
    * @apiParam {stringOrInt} groupIdOrName Identifier of group device belongs to
    *
-   * @apiDescription Returns the device if the user can access it either through
-   * through both group membership and direct assignment.
+   * @apiDescription Returns details of the device if the user can access it either through
+   * group membership or direct assignment to the device.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiUse V1ResponseSuccess
-   * @apiSuccess {JSON} device Object with `deviceName` (string), `id` (int), and device users (if authorized) '
+   * @apiSuccess {JSON} device Device details
    *
+   * @apiSuccessExample {JSON} device:
+   * {
+   * "id":2008,
+   * "deviceName":"device name",
+   * "groupName":"group name",
+   * "userIsAdmin":true,
+   * "users":Array[]
+   * }
+   * @apiSuccessExample {JSON} users:
+   * [{
+   * "userName"=>"user name",
+   * "admin"=>false,
+   * "id"=>123
+   * }]
    * @apiUse V1ResponseError
    */
   app.get(
@@ -214,8 +257,16 @@ export default function (app: Application, baseUrl: string) {
    *
    * @apiUse V1ResponseSuccess
    * @apiSuccess {JSON} rows Array of users who have access to the
-   * device. Each element includes `id` (user id), `username`, `email`,
-   * `relation` (either `group` or `device`) and `admin` (boolean).
+   * device.  `relation` indicates whether the user is a `group` or `device` member.
+   * @apiSuccessExample {JSON} rows:
+   * [{
+   * "id":1564,
+   * "username":"user name",
+   * "email":"email@server.nz",
+   * "relation":"device",
+   * "admin":true
+   * }]
+   *
    * @apiUse V1ResponseError
    */
   app.get(
@@ -258,13 +309,13 @@ export default function (app: Application, baseUrl: string) {
    * @apiName AddUserToDevice
    * @apiGroup Device
    * @apiDescription This call adds a user to a device. This allows individual
-   * user accounts to monitor a devices without being part of the group that the
+   * user accounts to monitor a device without being part of the group that the
    * device belongs to.
    *
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiParam {Number} deviceId ID of the device.
-   * @apiParam {Number} username Name of the user to add to the device.
+   * @apiParam {String} username Name of the user to add to the device.
    * @apiParam {Boolean} admin If true, the user should have administrator access to the device..
    *
    * @apiUse V1ResponseSuccess
@@ -305,15 +356,16 @@ export default function (app: Application, baseUrl: string) {
    * @apiName RemoveUserFromDevice
    * @apiGroup Device
    * @apiDescription This call can remove a user from a device. Has to be
-   * authenticated by an admin from the group that the device belongs to or a
-   * user that has control of device.
+   * authenticated by an admin user from the group that the device belongs to or an
+   * admin user of the device.
    *
    * @apiUse V1UserAuthorizationHeader
    *
-   * @apiParam {Number} username name of the user to delete from the device.
+   * @apiParam {String} username name of the user to delete from the device.
    * @apiParam {Number} deviceId ID of the device.
    *
    * @apiUse V1ResponseSuccess
+
    * @apiUse V1ResponseError
    */
   app.delete(
@@ -356,6 +408,8 @@ export default function (app: Application, baseUrl: string) {
    * @apiParam {String} newGroup name of the group you want to move the device to.
    * @apiParam {String} newPassword password for the device
    *
+   * @apiSuccess {String} token JWT string to provide to further API requests
+   * @apiSuccess {int} id id of device reregistered
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
@@ -386,21 +440,29 @@ export default function (app: Application, baseUrl: string) {
    * @api {get} /api/v1/devices/query Query devices by groups or devices.
    * @apiName query
    * @apiGroup Device
-   * @apiDescription This call is to query all devices by groups or devices
+   * @apiDescription This call is to query all devices by groupname and/or groupname & devicename.
+   * Both acitve and inactive devices are returned.
    *
    * @apiUse V1DeviceAuthorizationHeader
    *
-   * @apiParam {JSON} array of Devices
-   * @apiParamExample {JSON} Device:
-   * {
+   * @apiParam {JSON} [devices] array of Devices. Either groups or devices (or both) must be supplied.
+   * @apiParamExample {JSON} devices:
+   * [{
    *   "devicename":"newdevice",
    *   "groupname":"newgroup"
-   * }
-   * @apiParam {String} groups array of group names.
-   * @apiParam {String} operator to use. Default is "or".
-   * Accepted values are "and" or "or".
+   * }]
+   * @apiParam {String[]} [groups] array of group names. Either groups or devices (or both) must be supplied.
+   * @apiParam {String} [operator] to use when user supplies both groups and devices. Default is `"or"`.
+   * Accepted values are `"and"` or `"or"`.
    * @apiSuccess {JSON} devices Array of devices which match fully (group or group and devicename)
-   * @apiSuccess {JSON} nameMatches Array of devices which match only on devicename
+   * @apiSuccessExample {JSON} devices:
+   * [{
+   *  "groupname":"group name",
+   *  "devicename":"device name",
+   *  "id":2008,
+   *  "saltId":1007,
+   *  "Group.groupname":"group name"
+   * }]
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
    */
@@ -448,8 +510,8 @@ export default function (app: Application, baseUrl: string) {
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiParam {Integer} deviceId ID of the device.
-   * @apiParam {String} from ISO8601 date string
-   * @apiParam {String} window-size length of rolling window in hours.  Default is 2160 (90 days)
+   * @apiParam {String} [from] ISO8601 date string
+   * @apiParam {String} [window-size] length of rolling window in hours.  Default is 2160 (90 days)
    * @apiSuccess {Float} cacophonyIndex A number representing the average index over the period `from` minus `window-size`
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError
@@ -490,8 +552,8 @@ export default function (app: Application, baseUrl: string) {
    * @apiUse V1UserAuthorizationHeader
    *
    * @apiParam {Integer} deviceId ID of the device.
-   * @apiParam {String} from ISO8601 date string
-   * @apiParam {Integer} window-size length of window in hours going backwards in time from the `from` param.  Default is 2160 (90 days)
+   * @apiParam {String} [from] ISO8601 date string
+   * @apiParam {Integer} [window-size] length of window in hours going backwards in time from the `from` param.  Default is 2160 (90 days)
    * @apiSuccess {Object} cacophonyIndex in the format `[{hour: number, index: number}, ...]`
    * @apiUse V1ResponseSuccess
    * @apiUse V1ResponseError

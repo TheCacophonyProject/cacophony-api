@@ -39,7 +39,7 @@ export function findAllWithUser<T extends ModelStaticCommon<T>>(
   queryParams
 ): Promise<QueryResult<T>> {
   return new Promise(function (resolve) {
-    const models = require("../");
+    const models = require("../index");
     if (typeof queryParams.limit == "undefined") {
       queryParams.limit = 20;
     }

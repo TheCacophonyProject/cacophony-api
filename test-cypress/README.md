@@ -19,4 +19,4 @@ You can test against code running on any environment by changing the cacophony-a
 
 Before you write your own tests please read the following:
 
-[Test architecture](/test-cypress/architecture.md)
+[Test architecture](/api/test-cypress/architecture.md)

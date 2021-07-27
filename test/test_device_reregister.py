@@ -1,8 +1,5 @@
 import pytest
 
-from test.testexception import AuthorizationError
-from .deviceapi import DeviceAPI
-
 
 class TestDeviceRename:
     def test_renaming_device(self, helper):

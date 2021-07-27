@@ -28,7 +28,7 @@ import log from "../logging";
 import { bool } from "aws-sdk/clients/signer";
 import Model from "sequelize";
 import { ModelCommon, ModelStaticCommon } from "./index";
-import { Group } from "../models/Group";
+import { Group } from "./Group";
 
 const Op = Sequelize.Op;
 

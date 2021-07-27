@@ -14,7 +14,7 @@ This is by design.   By running the command on the base image it saves time as m
 * Follow this guide to save an access token on your local docker installation that will allow you to push to dockerhub. (You need an account on dockerhub for this) https://docs.docker.com/docker-hub/access-tokens/
 * Push the new version to dockerhub
 `docker push cacophonyproject/server-base:<tag>`
-* Update the project [Dockerfile](../Dockerfile) to use the new version of cacophonyproject/serverbase. 
+* Update the project [Dockerfile](../../Dockerfile) to use the new version of cacophonyproject/serverbase. 
 * Delete all your images named cacophonyproject/server-base and test that ` npm run dev  ` downloads and uses the new version of the base image. 
 
 
