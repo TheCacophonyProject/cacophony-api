@@ -31,7 +31,7 @@ function getConfigPathFromArgs(strict: boolean = false): string {
 }
 
 function loadConfig(configPath) {
-  configPath = path.resolve(configPath);
+  configPath = path.resolve(__dirname, configPath);
   checkConfigFileExists(configPath);
   const config = require(configPath).default;
   checkDatabaseConfigAvailable(config);
