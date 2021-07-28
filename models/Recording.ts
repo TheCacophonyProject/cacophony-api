@@ -210,6 +210,7 @@ export interface Recording extends Sequelize.Model, ModelCommon<Recording> {
   fileKey: string;
   fileMimeType: string;
   processingStartTime: string;
+  processingEndTime: string;
   processingMeta: RecordingProcessingMetadata;
   processingState: RecordingProcessingState;
   passedFilter: boolean;
@@ -361,6 +362,8 @@ export default function (
     fileKey: DataTypes.STRING,
     fileMimeType: DataTypes.STRING,
     processingStartTime: DataTypes.DATE,
+    processingEndTime: DataTypes.DATE,
+
     processingMeta: DataTypes.JSONB,
     processingState: DataTypes.STRING,
     passedFilter: DataTypes.BOOLEAN,
@@ -447,6 +450,7 @@ export default function (
           }
           recording.set(
             {
+              processingEndTime: null,
               jobKey: uuidv4(),
               processing: true
             },
@@ -987,6 +991,8 @@ from (
     );
     await this.update({
       processingStartTime: null,
+      processingEndTime: null,
+      processing: false,
       processingState: RecordingProcessingState.Reprocess
     });
   };

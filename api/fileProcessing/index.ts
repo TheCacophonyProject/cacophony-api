@@ -102,7 +102,11 @@ export default function (app: Application) {
         recording.set("fileKey", newProcessedFileKey);
       }
       if (complete) {
-        recording.set({ jobKey: null, processing: false });
+        recording.set({
+          jobKey: null,
+          processing: false,
+          processingEndTime: new Date().toISOString()
+        });
       }
       const nextJob = recording.getNextState();
       recording.set("processingState", nextJob);
