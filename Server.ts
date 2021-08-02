@@ -16,8 +16,8 @@ log.info("Starting Full Noise.");
 config.loadConfigFromArgs(true);
 
 const app: Application = express();
-app.use(bodyParser.urlencoded({ extended: false, limit: "2Mb" }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false, limit: "2Mb" }));
+app.use(express.json());
 app.use(passport.initialize());
 log.addExpressApp(app);
 
@@ -45,7 +45,9 @@ app.use(customErrors.errorHandler);
 
 // Add file processing API.
 const fileProcessingApp = express();
-fileProcessingApp.use(bodyParser.urlencoded({ extended: false, limit: "2Mb" }));
+fileProcessingApp.use(express.urlencoded({ extended: false, limit: "50Mb" }));
+fileProcessingApp.use(express.json({ limit: "50Mb" }));
+
 fileProcessingApi(fileProcessingApp);
 http.createServer(fileProcessingApp).listen(config.fileProcessing.port);
 log.info("Starting file processing on", config.fileProcessing.port);
